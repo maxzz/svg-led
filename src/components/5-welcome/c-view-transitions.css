@@ -1,0 +1,187 @@
+/*
+ * View Transition classes used by <ViewTransition> boundaries in 0-app.tsx and 5-welcome/.
+ * React sets `view-transition-class` on the element, so pseudo-elements are matched by class.
+ * Stacking: main page snapshot < welcome quadrants < shared logo.
+ * The sliding-doors alternative lives in c-view-transitions-doors.css; the reduced-motion rule below covers both.
+ */
+
+ /*------------------------------------------------------------------------*/
+
+/* Welcome -> Main: the Welcome page splits into four quarters that fly out to the corners, revealing the main page */
+
+::view-transition-group(.vt-welcome-quad) {
+    z-index: 1;
+}
+
+::view-transition-old(.vt-welcome-quad-out-tl),
+::view-transition-new(.vt-welcome-quad-in-tl) {
+    --vt-quad-x: -1;
+    --vt-quad-y: -1;
+}
+
+::view-transition-old(.vt-welcome-quad-out-tr),
+::view-transition-new(.vt-welcome-quad-in-tr) {
+    --vt-quad-x: 1;
+    --vt-quad-y: -1;
+}
+
+::view-transition-old(.vt-welcome-quad-out-br),
+::view-transition-new(.vt-welcome-quad-in-br) {
+    --vt-quad-x: 1;
+    --vt-quad-y: 1;
+}
+
+::view-transition-old(.vt-welcome-quad-out-bl),
+::view-transition-new(.vt-welcome-quad-in-bl) {
+    --vt-quad-x: -1;
+    --vt-quad-y: 1;
+}
+
+/*------------------------------------------------------------------------*/
+
+/* Mirror-symmetric tilt: tl/br turn one way, tr/bl the other */
+::view-transition-old(.vt-welcome-quad),
+::view-transition-new(.vt-welcome-quad) {
+    --vt-quad-tilt: calc(var(--vt-quad-x) * var(--vt-quad-y) * -9deg);
+}
+
+/* Anticipation: the quarters crouch (shrink, slightly pulled in) so thin cracks open along the seams,
+   then burst out past the corners, exaggerated with extra distance, growth and a tilt.
+   No tilt during the crouch: tilted quarters would overlap at the center and double the text. */
+@keyframes vt-welcome-quad-fly-out {
+    from {
+        translate: 0 0;
+        scale: 1;
+        rotate: 0deg;
+        animation-timing-function: cubic-bezier(0.3, 0, 0.2, 1);
+    }
+
+    24% {
+        translate: calc(var(--vt-quad-x) * -1%) calc(var(--vt-quad-y) * -1%);
+        scale: 0.95;
+        rotate: 0deg;
+        animation-timing-function: cubic-bezier(0.55, 0, 0.2, 1);
+    }
+
+    72% {
+        opacity: 1;
+    }
+
+    to {
+        translate: calc(var(--vt-quad-x) * 125%) calc(var(--vt-quad-y) * 125%);
+        scale: 1.3;
+        rotate: var(--vt-quad-tilt);
+        opacity: 0;
+    }
+}
+
+/* The quarters rush in tilted, straighten on impact and squash, rebound slightly (stretch), and settle. */
+@keyframes vt-welcome-quad-fly-in {
+    from {
+        translate: calc(var(--vt-quad-x) * 125%) calc(var(--vt-quad-y) * 125%);
+        scale: 1.3;
+        rotate: var(--vt-quad-tilt);
+        opacity: 0;
+        animation-timing-function: cubic-bezier(0.5, 0, 0.75, 0.4);
+    }
+
+    35% {
+        opacity: 1;
+    }
+
+    58% {
+        translate: calc(var(--vt-quad-x) * -1.5%) calc(var(--vt-quad-y) * -1.5%);
+        scale: 0.96;
+        rotate: 0deg;
+        animation-timing-function: cubic-bezier(0.3, 0, 0.3, 1);
+    }
+
+    80% {
+        translate: calc(var(--vt-quad-x) * 0.5%) calc(var(--vt-quad-y) * 0.5%);
+        scale: 1.01;
+        animation-timing-function: ease-in-out;
+    }
+
+    to {
+        translate: 0 0;
+        scale: 1;
+        rotate: 0deg;
+    }
+}
+
+/*------------------------------------------------------------------------*/
+
+::view-transition-old(.vt-welcome-quad) {
+    animation: 900ms linear both vt-welcome-quad-fly-out;
+}
+
+::view-transition-new(.vt-welcome-quad) {
+    animation: 850ms linear both vt-welcome-quad-fly-in;
+}
+
+/*------------------------------------------------------------------------*/
+/* Main page: rises from behind the opening Welcome page, sinks back when the quarters close over it */
+
+@keyframes vt-main-reveal {
+    from {
+        opacity: 0;
+        scale: 0.94;
+    }
+}
+
+@keyframes vt-main-hide {
+    to {
+        opacity: 0;
+        scale: 0.94;
+    }
+}
+
+/*------------------------------------------------------------------------*/
+
+::view-transition-new(.vt-main-reveal) {
+    animation: 700ms cubic-bezier(0.2, 0.8, 0.2, 1) 200ms both vt-main-reveal; /* waits out the quarters' crouch */
+}
+
+::view-transition-old(.vt-main-hide) {
+    animation: 500ms ease-in both vt-main-hide;
+}
+
+/*------------------------------------------------------------------------*/
+
+/* Shared-element logo: morphs between the Welcome page and the header, above both pages.
+   Slow start, fast middle, slow settle; a small pop halfway so it reads as a hand-off. */
+
+@keyframes vt-logo-pop {
+    50% {
+        scale: 1.2;
+    }
+}
+
+::view-transition-group(.vt-logo-share) {
+    --vt-logo-duration: 750ms;
+    z-index: 2;
+    animation-duration: var(--vt-logo-duration);
+    animation-timing-function: cubic-bezier(0.77, 0, 0.23, 1);
+}
+
+::view-transition-image-pair(.vt-logo-share) {
+    animation: var(--vt-logo-duration) ease-in-out both vt-logo-pop;
+}
+
+::view-transition-old(.vt-logo-share),
+::view-transition-new(.vt-logo-share) {
+    height: 100%;
+    animation-duration: var(--vt-logo-duration);
+}
+
+/*------------------------------------------------------------------------*/
+/* Respect user preference */
+
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(*),
+    ::view-transition-image-pair(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+        animation: none !important;
+    }
+}

@@ -1,0 +1,118 @@
+/*
+ * "Sliding doors" alternative to the quadrant transition (see c-view-transitions.css), chosen by appSettings.welcomeTransition.
+ * The Welcome page is two door halves, like shoji in a Japanese house: they unlatch with a small nudge apart,
+ * glide out to the edges revealing the main page, and on the way back glide in, meet with a soft knock, and settle.
+ * Stacking: main page snapshot < doors < shared logo (z-index 2, defined in c-view-transitions.css).
+ */
+
+/*------------------------------------------------------------------------*/
+
+::view-transition-group(.vt-welcome-door) {
+    z-index: 1;
+}
+
+::view-transition-old(.vt-welcome-door-out-l),
+::view-transition-new(.vt-welcome-door-in-l) {
+    --vt-door-dir: -1;
+}
+
+::view-transition-old(.vt-welcome-door-out-r),
+::view-transition-new(.vt-welcome-door-in-r) {
+    --vt-door-dir: 1;
+}
+
+/* The shadow falls from each door's inner edge onto the main page; it is transparent while the doors are shut,
+   otherwise the left door would shade the seam over the right one. */
+::view-transition-old(.vt-welcome-door),
+::view-transition-new(.vt-welcome-door) {
+    --vt-door-shadow-x: calc(var(--vt-door-dir) * -10px);
+}
+
+/*------------------------------------------------------------------------*/
+
+@keyframes vt-welcome-door-open {
+    from {
+        translate: 0 0;
+        box-shadow: var(--vt-door-shadow-x) 0 28px rgb(0 0 0 / 0);
+        animation-timing-function: cubic-bezier(0.2, 0, 0.3, 1);
+    }
+
+    /* Unlatch: a small nudge apart, then a brief hold as the hand takes the door */
+    10% {
+        translate: calc(var(--vt-door-dir) * 1.5%) 0;
+        animation-timing-function: linear;
+    }
+
+    20% {
+        translate: calc(var(--vt-door-dir) * 1.5%) 0;
+        box-shadow: var(--vt-door-shadow-x) 0 28px rgb(0 0 0 / 0.28);
+        animation-timing-function: cubic-bezier(0.55, 0, 0.25, 1);
+    }
+
+    to {
+        translate: calc(var(--vt-door-dir) * 100%) 0;
+        box-shadow: var(--vt-door-shadow-x) 0 28px rgb(0 0 0 / 0.28);
+    }
+}
+
+@keyframes vt-welcome-door-close {
+    from {
+        translate: calc(var(--vt-door-dir) * 100%) 0;
+        box-shadow: var(--vt-door-shadow-x) 0 28px rgb(0 0 0 / 0.28);
+        animation-timing-function: cubic-bezier(0.45, 0, 0.7, 0.75);
+    }
+
+    /* The doors meet in the middle... */
+    76% {
+        translate: 0 0;
+        box-shadow: var(--vt-door-shadow-x) 0 28px rgb(0 0 0 / 0.12);
+        animation-timing-function: cubic-bezier(0.2, 0.7, 0.4, 1);
+    }
+
+    /* ...bounce a little apart on the knock... */
+    86% {
+        translate: calc(var(--vt-door-dir) * 1%) 0;
+        animation-timing-function: cubic-bezier(0.5, 0, 0.6, 1);
+    }
+
+    /* ...and settle shut */
+    to {
+        translate: 0 0;
+        box-shadow: var(--vt-door-shadow-x) 0 28px rgb(0 0 0 / 0);
+    }
+}
+
+/*------------------------------------------------------------------------*/
+
+::view-transition-old(.vt-welcome-door) {
+    animation: 650ms linear both vt-welcome-door-open;
+}
+
+::view-transition-new(.vt-welcome-door) {
+    animation: 720ms linear both vt-welcome-door-close;
+}
+
+/*------------------------------------------------------------------------*/
+/* Main page: comes forward as the doors slide open, steps back as they close over it */
+
+@keyframes vt-main-doors-reveal {
+    from {
+        opacity: 0.4;
+        scale: 0.96;
+    }
+}
+
+@keyframes vt-main-doors-hide {
+    to {
+        opacity: 0;
+        scale: 0.96;
+    }
+}
+
+::view-transition-new(.vt-main-doors-reveal) {
+    animation: 580ms cubic-bezier(0.3, 0, 0.2, 1) 90ms both vt-main-doors-reveal; /* waits out the unlatch */
+}
+
+::view-transition-old(.vt-main-doors-hide) {
+    animation: 580ms ease-in both vt-main-doors-hide;
+}

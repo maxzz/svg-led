@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+    <!-- Temporary app logo: replace this file with the real artwork (keep a square viewBox). -->
+    <defs>
+        <linearGradient id="app-logo-bg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#38bdf8" />
+            <stop offset="1" stop-color="#4f46e5" />
+        </linearGradient>
+        <linearGradient id="app-logo-shine" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ffffff" stop-opacity="0.35" />
+            <stop offset="1" stop-color="#ffffff" stop-opacity="0" />
+        </linearGradient>
+    </defs>
+
+    <rect x="4" y="4" width="120" height="120" rx="30" fill="url(#app-logo-bg)" />
+    <path d="M4 34C4 17.4 17.4 4 34 4h60c16.6 0 30 13.4 30 30v10C90 58 38 58 4 44z" fill="url(#app-logo-shine)" />
+
+    <!-- stacked layers glyph -->
+    <path d="M64 30 98 48 64 66 30 48z" fill="#ffffff" />
+    <path d="M36 62 64 77 92 62 98 65.2 64 83.4 30 65.2z" fill="#ffffff" fill-opacity="0.8" />
+    <path d="M36 79 64 94 92 79 98 82.2 64 100.4 30 82.2z" fill="#ffffff" fill-opacity="0.6" />
+</svg>

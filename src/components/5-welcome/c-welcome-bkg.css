@@ -1,0 +1,35 @@
+/*
+ * Welcome page background: a dot + grid pattern over a radial wash that is light in the center
+ * and darkens towards the edges. Colors derive from the theme's --primary, so changing the theme
+ * recolors it; tweak the variables below to customize.
+ * Patterns are centered, so the piece copies (same size as the page) line up pixel for pixel.
+ */
+.welcome-bkg {
+    --welcome-center: color-mix(in oklab, var(--primary) 4%, white);
+    --welcome-middle: color-mix(in oklab, var(--primary) 14%, oklch(0.93 0.01 250));
+    --welcome-edge: color-mix(in oklab, var(--primary) 45%, oklch(0.6 0.03 250));
+    --welcome-dot: color-mix(in oklab, var(--primary) 32%, transparent);
+    --welcome-line: color-mix(in oklab, var(--primary) 11%, transparent);
+    --welcome-cell: 24px;
+    --welcome-grid: calc(var(--welcome-cell) * 4);
+
+    background:
+        radial-gradient(circle, var(--welcome-dot) 1.1px, transparent 1.6px) 50% 50% / var(--welcome-cell) var(--welcome-cell),
+        linear-gradient(var(--welcome-line) 1px, transparent 1px) 50% 50% / var(--welcome-grid) var(--welcome-grid),
+        linear-gradient(90deg, var(--welcome-line) 1px, transparent 1px) 50% 50% / var(--welcome-grid) var(--welcome-grid),
+        radial-gradient(ellipse 75% 70% at 50% 45% in oklab, var(--welcome-center) 0%, var(--welcome-middle) 55%, var(--welcome-edge) 100%)
+        var(--welcome-edge);
+}
+
+.dark .welcome-bkg {
+    --welcome-center: color-mix(in oklab, var(--primary) 35%, oklch(0.3 0.01 250));
+    --welcome-middle: color-mix(in oklab, var(--primary) 18%, oklch(0.2 0.01 250));
+    --welcome-edge: oklch(0.11 0.01 250);
+    --welcome-dot: oklch(1 0 0 / 16%);
+    --welcome-line: oklch(1 0 0 / 5%);
+}
+
+.welcome-bkg > .welcome-footer {
+    background-color: transparent;
+    border-top-color: transparent;
+}
