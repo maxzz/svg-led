@@ -1,0 +1,31 @@
+import { useAtomValue, useSetAtom } from "jotai";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { cn } from "@/utils/classnames";
+import { SelectionProperties } from "./3-selection-properties";
+import { ToolProperties } from "./4-tool-properties";
+import { DocumentProperties } from "./5-document-properties";
+import { isPropertiesCollapsedAtom, propertiesModeAtom, togglePropertiesCollapsedAtom } from "./9-atoms-properties-popup";
+
+const TITLES = { selection: 'Properties', tool: 'Tool style', document: 'Document' } as const;
+
+/** Docked under the main menu; content depends on the selection and the active tool */
+export function PropertiesPopup() {
+    const mode = useAtomValue(propertiesModeAtom);
+    const collapsed = useAtomValue(isPropertiesCollapsedAtom);
+    const toggle = useSetAtom(togglePropertiesCollapsedAtom);
+
+    return (
+        <div className="w-56 max-h-[calc(100dvh-8rem)] text-xs text-foreground bg-background ring-1 ring-foreground/10 rounded-lg shadow-md overflow-hidden flex flex-col pointer-events-auto">
+            <button className="shrink-0 px-3 h-8 font-medium text-[11px] text-muted-foreground hover:text-foreground flex items-center justify-between" onClick={toggle} type="button">
+                {TITLES[mode]}
+                {collapsed ? <ChevronDown className="size-3.5" /> : <ChevronUp className="size-3.5" />}
+            </button>
+
+            <div className={cn("px-3 pt-1 pb-3 overflow-y-auto flex flex-col gap-3", collapsed && "hidden")}>
+                {mode === 'selection' && <SelectionProperties />}
+                {mode === 'tool' && <ToolProperties />}
+                {mode === 'document' && <DocumentProperties />}
+            </div>
+        </div>
+    );
+}

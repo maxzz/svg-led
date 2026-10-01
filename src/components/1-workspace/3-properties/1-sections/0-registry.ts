@@ -1,0 +1,34 @@
+import { type ComponentType } from "react";
+import { type SvgNode } from "@/svg-core";
+import { ActionsSection } from "./3-actions-section";
+import { BBoxSection, RectCornersSection } from "./2-geometry-sections";
+import { CapJoinSection, DashSection, FillSection, OpacitySection, StrokeSection, StrokeWidthSection } from "./1-style-sections";
+
+export type SectionProps = {
+    ids: string[];
+    nodes: readonly SvgNode[];   // snapshots of the selected nodes, same order as ids
+};
+
+export type PropertySection = {
+    id: string;
+    /** Shown when this returns true for the current selection */
+    appliesTo: (nodes: readonly SvgNode[]) => boolean;
+    Component: ComponentType<SectionProps>;
+};
+
+const always = () => true;
+const someKind = (...kinds: SvgNode['kind'][]) => (nodes: readonly SvgNode[]) => nodes.some((n) => kinds.includes(n.kind));
+const someNotKind = (...kinds: SvgNode['kind'][]) => (nodes: readonly SvgNode[]) => nodes.some((n) => !kinds.includes(n.kind));
+
+/** Sections of the properties popup in display order; add new per-kind sections here */
+export const PROPERTY_SECTIONS: readonly PropertySection[] = [
+    { id: 'stroke', appliesTo: always, Component: StrokeSection },
+    { id: 'fill', appliesTo: someNotKind('line'), Component: FillSection },
+    { id: 'stroke-width', appliesTo: always, Component: StrokeWidthSection },
+    { id: 'dash', appliesTo: always, Component: DashSection },
+    { id: 'cap-join', appliesTo: someKind('path', 'line', 'polyline', 'polygon', 'rect', 'g'), Component: CapJoinSection },
+    { id: 'rect-corners', appliesTo: someKind('rect'), Component: RectCornersSection },
+    { id: 'opacity', appliesTo: always, Component: OpacitySection },
+    { id: 'bbox', appliesTo: always, Component: BBoxSection },
+    { id: 'actions', appliesTo: always, Component: ActionsSection },
+];

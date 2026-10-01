@@ -8,7 +8,7 @@ import { Checkbox } from "@/ui/shadcn/checkbox";
 import { Label } from "@/ui/shadcn/label";
 
 import { MainPage, APP_DESCRIPTION, APP_NAME, navigateToPageAtom } from "./a-ui-app-page";
-import { Section3_Footer } from "@/components/3-footer";
+import { WelcomeFooter } from "./4-welcome-footer";
 
 /** The Welcome page layout, rendered by the page itself and by each of its piece copies. */
 export function WelcomeContent({ logo, className, ...rest }: { logo: ReactNode; } & HTMLAttributes<HTMLDivElement>) {
@@ -32,7 +32,7 @@ export function WelcomeContent({ logo, className, ...rest }: { logo: ReactNode; 
 
             <DontShowAgainCheckbox />
 
-            <Section3_Footer className="welcome-footer" />
+            <WelcomeFooter className="welcome-footer" />
         </div>
     );
 }
