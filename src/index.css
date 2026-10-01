@@ -78,6 +78,7 @@
     --accent: oklch(0.97 0 0);
     --accent-foreground: oklch(0.205 0 0);
     --destructive: oklch(0.577 0.245 27.325);
+    --editor-accent: oklch(0.56 0.19 280);    /* selection, anchors and handles on the canvas */
     --destructive-foreground: oklch(1 0 0);
     --border: oklch(0.922 0 0);
     --input: oklch(0.922 0 0);
@@ -124,6 +125,7 @@
     --accent: oklch(0.269 0 0);
     --accent-foreground: oklch(0.985 0 0);
     --destructive: oklch(0.704 0.191 22.216);
+    --editor-accent: oklch(0.7 0.15 280);
     --destructive-foreground: oklch(0.985 0 0);
     --border: oklch(1 0 0 / 10%);
     --input: oklch(1 0 0 / 15%);
@@ -166,4 +168,15 @@
     html {
         @apply font-sans;
     }
+}
+
+/* Monaco decorations for the lines of the selected elements (class names are set by the code-sync controller) */
+.svgled-code-selected {
+    background-color: color-mix(in oklch, var(--editor-accent) 14%, transparent);
+}
+
+.svgled-code-selected-gutter {
+    margin-left: 3px;
+    width: 3px !important;
+    background-color: var(--editor-accent);
 }

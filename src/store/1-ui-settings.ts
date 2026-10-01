@@ -1,10 +1,6 @@
 import { proxy, subscribe } from 'valtio';
 import { type ThemeMode, themeApplyMode } from '../utils/theme-apply';
-import { type PanelSizes, getValidPanelSizes } from './2-panel-sizes';
-
-const STORE_KEY = "tm-template-shadcn-26";
-const STORE_VER = "v1.0";
-const STORAGE_ID = `${STORE_KEY}__${STORE_VER}`;
+import { STORAGE_KEYS } from './2-persist/1-storage-keys';
 
 /** How the Welcome page opens onto the main page and closes back over it */
 export const WelcomeTransition = {
@@ -18,45 +14,67 @@ function isWelcomeTransition(value: unknown): value is WelcomeTransition {
     return Object.values<unknown>(WelcomeTransition).includes(value);
 }
 
+export interface CodePanelSettings {
+    open: boolean;               // Code panel is slid out
+    width: number;               // Panel width in px
+    sync: boolean;               // Two-way sync between the source code and the canvas
+}
+
+export interface EditorPreferences {
+    showViewBox: boolean;        // Draw the viewBox frame and dim everything outside it
+    showGrid: boolean;           // Draw the grid in document units
+    snapToGrid: boolean;         // Snap dragged points to the grid
+    gridSize: number;            // Grid step in document units
+    precision: number;           // Decimal digits written to the SVG source
+}
+
 export interface AppSettings {
     theme: ThemeMode;            // Theme mode
     showWelcome: boolean;        // Show the Welcome page at startup
     welcomeTransition: WelcomeTransition; // Transition between the Welcome and main pages
-    showFooter: boolean;         // Show footer in main layout
-    panelSizes: PanelSizes;      // ResizablePanelGroup panel sizes
-    expandedSections: string[];  // Expanded accordion sections by name
+    canvasBackground: string;    // Canvas background color; empty string means the theme background
+    codePanel: CodePanelSettings;
+    prefs: EditorPreferences;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
     theme: 'light',
     showWelcome: true,
     welcomeTransition: WelcomeTransition.quadrants,
-    showFooter: true,
-    panelSizes: getValidPanelSizes(),
-    expandedSections: ['resizable-panels', 'pierre-trees'],
+    canvasBackground: '',
+    codePanel: {
+        open: false,
+        width: 420,
+        sync: true,
+    },
+    prefs: {
+        showViewBox: true,
+        showGrid: false,
+        snapToGrid: false,
+        gridSize: 10,
+        precision: 3,
+    },
 };
-
-// Load settings from localStorage
 
 function loadSettings(): AppSettings {
     try {
-        const stored = localStorage.getItem(STORAGE_ID);
+        const stored = localStorage.getItem(STORAGE_KEYS.app);
         if (stored) {
             const parsed = JSON.parse(stored) as Partial<AppSettings>;
-            
+
             // merge stored settings with defaults to ensure new fields are present
             return {
                 ...DEFAULT_SETTINGS,
                 ...parsed,
                 welcomeTransition: isWelcomeTransition(parsed.welcomeTransition) ? parsed.welcomeTransition : DEFAULT_SETTINGS.welcomeTransition,
-                panelSizes: getValidPanelSizes(parsed.panelSizes),
-                expandedSections: parsed.expandedSections ?? DEFAULT_SETTINGS.expandedSections,
+                codePanel: { ...DEFAULT_SETTINGS.codePanel, ...parsed.codePanel },
+                prefs: { ...DEFAULT_SETTINGS.prefs, ...parsed.prefs },
             };
         }
     } catch (e) {
         console.error("Failed to load settings", e);
     }
-    return { ...DEFAULT_SETTINGS };
+    return structuredClone(DEFAULT_SETTINGS);
 }
 
 export const appSettings = proxy<AppSettings>(loadSettings());
@@ -66,7 +84,7 @@ themeApplyMode(appSettings.theme);
 subscribe(appSettings, () => {
     try {
         themeApplyMode(appSettings.theme);
-        localStorage.setItem(STORAGE_ID, JSON.stringify(appSettings));
+        localStorage.setItem(STORAGE_KEYS.app, JSON.stringify(appSettings));
     } catch (e) {
         console.error("Failed to save settings", e);
     }

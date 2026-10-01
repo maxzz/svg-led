@@ -63,8 +63,8 @@ export const welcomeSplitAtom = atom(false);
 
 //---------------------------------------------------------------------------
 
-export const APP_NAME = "Template App";
+export const APP_NAME = "SVG LED";
 
-export const APP_DESCRIPTION = "A starting point for React apps: Tailwind CSS, shadcn/ui, Jotai, and Valtio. Replace this text, the name, and the logo with your own.";
+export const APP_DESCRIPTION = "Edit SVG files in the browser: select shapes, edit anchor points and handles like in Illustrator, fit artwork to the viewBox, and keep the source code in sync.";
 
 //---------------------------------------------------------------------------
