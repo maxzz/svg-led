@@ -2,6 +2,7 @@
     "name": "pm-piggyback",
     "version": "0.26.1",
     "description": "React template with Shadcn UI, Jotai, and Valtio",
+    "license": "MIT",
     "private": true,
     "type": "module",
     "devDependencies": {

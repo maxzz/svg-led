@@ -40,6 +40,7 @@ A full-screen, browser-based SVG editor with Illustrator-style anchor and handle
 - [Tech stack](#tech-stack)
 - [Known limitations and roadmap](#known-limitations-and-roadmap)
 - [Credits](#credits)
+- [License](#license)
 
 ## About
 
@@ -680,3 +681,7 @@ Ideas the architecture already allows:
 - Interaction design inspired by [Excalidraw](https://excalidraw.com/) (workspace layout) and [Adobe Illustrator](https://www.adobe.com/products/illustrator.html) (anchor model, Direct Selection and Pen tool conventions).
 - Development assisted by AI coding agents in [Cursor](https://cursor.com/).
 - Thanks to the authors and maintainers of the open-source projects listed in [Tech stack](#tech-stack), and to the [Geist](https://vercel.com/font), Roboto Condensed and Yanone Kaffeesatz font families distributed through [Fontsource](https://fontsource.org/).
+
+## License
+
+[MIT](LICENSE) © Max Zakharzhevski
