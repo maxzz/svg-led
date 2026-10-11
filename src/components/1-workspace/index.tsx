@@ -11,6 +11,7 @@ export function Workspace() {
     return (
         <div className="relative h-dvh text-xs text-foreground bg-background overflow-hidden flex">
             <CodePanel />
+            
             <div className="relative grow min-w-0">
                 <CanvasRoot />
                 <FloatingUi />

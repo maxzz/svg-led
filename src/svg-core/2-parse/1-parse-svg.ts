@@ -5,6 +5,8 @@ export type ParseSvgResult =
     | { ok: true; doc: SvgDoc; }
     | { ok: false; error: string; };
 
+//---------------------------------------------------------------------------
+
 /** Parses SVG source text into the editor model. Uses the browser DOMParser. */
 export function parseSvg(text: string): ParseSvgResult {
     const dom = new DOMParser().parseFromString(text, 'image/svg+xml');
@@ -35,11 +37,15 @@ export function parseSvg(text: string): ParseSvgResult {
     };
 }
 
+//---------------------------------------------------------------------------
+
 /** Parses an SVG fragment (one or more elements) using the namespace of an <svg> wrapper */
 export function parseSvgFragment(markup: string): SvgNode[] | undefined {
     const rv = parseSvg(`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">${markup}</svg>`);
     return rv.ok ? rv.doc.children : undefined;
 }
+
+//---------------------------------------------------------------------------
 
 export function parseViewBox(text: string | undefined): ViewBox | null {
     if (!text) {
@@ -51,6 +57,8 @@ export function parseViewBox(text: string | undefined): ViewBox | null {
     }
     return { x: n[0], y: n[1], width: n[2], height: n[3] };
 }
+
+//---------------------------------------------------------------------------
 
 function readChildren(parent: Element): SvgNode[] {
     const rv: SvgNode[] = [];

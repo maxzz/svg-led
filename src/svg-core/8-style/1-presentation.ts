@@ -1,5 +1,7 @@
 import { type Attrs } from "../1-model/1-types";
 
+//---------------------------------------------------------------------------
+
 /**
  * Presentation properties can be written as attributes or inside the style attribute;
  * style wins in SVG, so reading checks style first and writing removes the style entry.
@@ -30,6 +32,8 @@ export function setPresentation(attrs: Attrs, prop: string, value: string | unde
     }
 }
 
+//---------------------------------------------------------------------------
+
 export function parseStyle(text: string): Record<string, string> {
     const rv: Record<string, string> = {};
     for (const part of text.split(';')) {
@@ -48,3 +52,5 @@ export function parseStyle(text: string): Record<string, string> {
 export function stringifyStyle(style: Record<string, string>): string {
     return Object.entries(style).map(([k, v]) => `${k}:${v}`).join(';');
 }
+
+//---------------------------------------------------------------------------

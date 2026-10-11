@@ -58,11 +58,15 @@ export type SvgDoc = {
     children: SvgNode[];
 };
 
-export const SHAPE_KINDS: ReadonlySet<SvgNodeKind> = new Set(['rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon']);
+//---------------------------------------------------------------------------
 
 export function isShapeNode(node: SvgNode): node is ShapeNode {
     return SHAPE_KINDS.has(node.kind);
 }
+
+export const SHAPE_KINDS: ReadonlySet<SvgNodeKind> = new Set(['rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon']);
+
+//---------------------------------------------------------------------------
 
 export function isPathNode(node: SvgNode): node is PathNode {
     return node.kind === 'path';

@@ -2,12 +2,7 @@ import { type SvgDoc, type SvgNode, type GroupNode, type Matrix } from "./1-type
 import { IDENTITY, multiply } from "../4-geometry/1-matrix";
 import { parseTransform } from "../2-parse/3-parse-transform";
 
-export type NodeLocation = {
-    node: SvgNode;
-    siblings: SvgNode[];         // array that holds the node (doc.children or group.children)
-    index: number;
-    parents: GroupNode[];        // outermost first
-};
+//---------------------------------------------------------------------------
 
 export function walkNodes(nodes: readonly SvgNode[], visit: (node: SvgNode, parents: GroupNode[]) => void | false, parents: GroupNode[] = []): void {
     for (const node of nodes) {
@@ -19,6 +14,15 @@ export function walkNodes(nodes: readonly SvgNode[], visit: (node: SvgNode, pare
         }
     }
 }
+
+//---------------------------------------------------------------------------
+
+export type NodeLocation = {
+    node: SvgNode;
+    siblings: SvgNode[];         // array that holds the node (doc.children or group.children)
+    index: number;
+    parents: GroupNode[];        // outermost first
+};
 
 export function findNode(doc: SvgDoc, id: string): NodeLocation | undefined {
     return findIn(doc.children, id, []);
@@ -39,6 +43,8 @@ function findIn(siblings: SvgNode[], id: string, parents: GroupNode[]): NodeLoca
     }
 }
 
+//---------------------------------------------------------------------------
+
 export function nodeOwnMatrix(node: SvgNode): Matrix {
     const t = node.attrs.transform;
     return t ? parseTransform(t) : IDENTITY;
@@ -56,6 +62,8 @@ export function parentsMatrix(parents: readonly SvgNode[]): Matrix {
 export function nodeCtm(loc: NodeLocation): Matrix {
     return multiply(parentsMatrix(loc.parents), nodeOwnMatrix(loc.node));
 }
+
+//---------------------------------------------------------------------------
 
 export function allNodeIds(doc: SvgDoc): Set<string> {
     const rv = new Set<string>();
@@ -92,3 +100,5 @@ export function topmostIds(doc: SvgDoc, ids: readonly string[]): string[] {
         }
     );
 }
+
+//---------------------------------------------------------------------------

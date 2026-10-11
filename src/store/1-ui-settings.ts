@@ -37,6 +37,8 @@ export interface AppSettings {
     prefs: EditorPreferences;
 }
 
+//---------------------------------------------------------------------------
+
 const DEFAULT_SETTINGS: AppSettings = {
     theme: 'light',
     showWelcome: true,
@@ -55,6 +57,8 @@ const DEFAULT_SETTINGS: AppSettings = {
         precision: 3,
     },
 };
+
+//---------------------------------------------------------------------------
 
 function loadSettings(): AppSettings {
     try {
@@ -79,13 +83,17 @@ function loadSettings(): AppSettings {
 
 export const appSettings = proxy<AppSettings>(loadSettings());
 
+//---------------------------------------------------------------------------
+
 themeApplyMode(appSettings.theme);
 
-subscribe(appSettings, () => {
-    try {
-        themeApplyMode(appSettings.theme);
-        localStorage.setItem(STORAGE_KEYS.app, JSON.stringify(appSettings));
-    } catch (e) {
-        console.error("Failed to save settings", e);
+subscribe(appSettings,
+    () => {
+        try {
+            themeApplyMode(appSettings.theme);
+            localStorage.setItem(STORAGE_KEYS.app, JSON.stringify(appSettings));
+        } catch (e) {
+            console.error("Failed to save settings", e);
+        }
     }
-});
+);

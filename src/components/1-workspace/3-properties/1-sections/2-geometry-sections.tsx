@@ -8,10 +8,12 @@ import { type SectionProps } from "./0-registry";
 /** Position and size of the whole selection in document units */
 export function BBoxSection({ ids }: SectionProps) {
     const doc = useDocSnapshot();
+    
     const bbox = nodesDocBBox(doc, ids);
     if (!bbox) {
         return null;
     }
+
     return (
         <Section title={ids.length > 1 ? 'Selection bounds' : 'Position and size'}>
             <div className="grid grid-cols-2 gap-1">
@@ -29,7 +31,7 @@ export function RectCornersSection({ ids, nodes }: SectionProps) {
     const rx = commonValue(rects, (r) => r.rx);
     const ry = commonValue(rects, (r) => r.ry);
 
-    const set = (key: 'rx' | 'ry', value: number, both: boolean) => {
+    function set(key: 'rx' | 'ry', value: number, both: boolean) {
         for (const r of rects) {
             const node = getNodeProxy(r.id) as RectNode | undefined;
             if (node) {
@@ -41,7 +43,7 @@ export function RectCornersSection({ ids, nodes }: SectionProps) {
             }
         }
         commitHistory({ mergeKey: `corners:${ids.join(',')}` });
-    };
+    }
 
     const linked = rx !== MIXED && rx === ry;
 

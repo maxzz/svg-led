@@ -1,10 +1,14 @@
 import { type Matrix, type Rect, type ViewBox } from "../1-model/1-types";
 
+//---------------------------------------------------------------------------
+
 export type Padding = { top: number; right: number; bottom: number; left: number; };
 
 export function uniformPadding(n: number): Padding {
     return { top: n, right: n, bottom: n, left: n };
 }
+
+//---------------------------------------------------------------------------
 
 export type FitOptions = {
     padding: Padding;
@@ -37,6 +41,8 @@ export function fitRectMatrix(src: Rect, box: Rect, options: FitOptions): Matrix
 
     return [sx, 0, 0, sy, ox - src.x * sx, oy - src.y * sy];
 }
+
+//---------------------------------------------------------------------------
 
 /** ViewBox that wraps `rect` with the given padding */
 export function viewBoxAround(rect: Rect, padding: Padding): ViewBox {

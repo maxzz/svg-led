@@ -14,7 +14,9 @@ export const propertiesModeAtom = atom<PropertiesMode>(
     }
 );
 
-export const activeToolDefAtom = atom((get) => getTool(get(activeToolIdAtom)));
+export const activeToolDefAtom = atom(
+    (get) => getTool(get(activeToolIdAtom))
+);
 
 export const isPropertiesCollapsedAtom = atom(false);
 

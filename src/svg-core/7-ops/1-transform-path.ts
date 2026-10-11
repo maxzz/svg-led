@@ -12,6 +12,8 @@ export function transformPathData(d: string, m: Matrix, precision: number): stri
     return serializePathSegs(transformSegs(parsePathData(d), m), precision);
 }
 
+//---------------------------------------------------------------------------
+
 export function transformSegs(segs: readonly PathSeg[], m: Matrix): PathSeg[] {
     const rv: PathSeg[] = [];
     const t = (p: Point) => applyMatrix(m, p);
@@ -58,6 +60,8 @@ export function transformSegs(segs: readonly PathSeg[], m: Matrix): PathSeg[] {
     }
     return rv;
 }
+
+//---------------------------------------------------------------------------
 
 function transformArc(s: Extract<PathSeg, { c: 'A'; }>, m: Matrix, det: number): PathSeg | undefined {
     const sweep = det < 0 ? !s.sweep : s.sweep;

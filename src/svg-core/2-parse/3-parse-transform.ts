@@ -1,8 +1,6 @@
 import { type Matrix } from "../1-model/1-types";
 import { IDENTITY, multiply, rotateMatrix } from "../4-geometry/1-matrix";
 
-const FN_RE = /(matrix|translate|scale|rotate|skewX|skewY)\s*\(([^)]*)\)/g;
-
 /** Parses an SVG transform attribute into a single matrix; unknown parts are ignored */
 export function parseTransform(text: string): Matrix {
     let m: Matrix = IDENTITY;
@@ -14,8 +12,11 @@ export function parseTransform(text: string): Matrix {
         const a = match[2].split(/[\s,]+/).filter(Boolean).map(Number);
         m = multiply(m, fnMatrix(fn, a));
     }
+    
     return m;
 }
+
+const FN_RE = /(matrix|translate|scale|rotate|skewX|skewY)\s*\(([^)]*)\)/g;
 
 function fnMatrix(fn: string, a: number[]): Matrix {
     switch (fn) {

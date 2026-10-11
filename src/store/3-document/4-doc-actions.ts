@@ -67,6 +67,8 @@ export function getNodeProxy(id: string): SvgNode | undefined {
     return findNode(docState.doc, id)?.node;
 }
 
+//---------------------------------------------------------------------------
+
 /** Plain copy of the node as it is now (for gestures that recompute from the original on every move) */
 export function cloneNode(id: string): SvgNode | undefined {
     const loc = findNode(docState.doc, id);
@@ -84,6 +86,7 @@ export function addNode(node: SvgNode): void {
     docState.doc.children.push(node);
 }
 
+//---------------------------------------------------------------------------
 // Transforms
 
 export type NodeOriginals = Map<string, SvgNode>;
@@ -122,6 +125,7 @@ export function moveNodes(ids: readonly string[], dx: number, dy: number): void 
     commitHistory({ mergeKey: `nudge:${ids.join(',')}` });
 }
 
+//---------------------------------------------------------------------------
 // Structure
 
 export function deleteNodes(ids: readonly string[]): void {
@@ -162,6 +166,8 @@ function withNewIds(node: SvgNode): SvgNode {
     }
     return node;
 }
+
+//---------------------------------------------------------------------------
 
 export type ReorderDirection = 'front' | 'forward' | 'backward' | 'back';
 
@@ -213,6 +219,8 @@ export function reorderNodes(ids: readonly string[], direction: ReorderDirection
     commitHistory();
 }
 
+//---------------------------------------------------------------------------
+
 /** Wraps nodes that share a parent into a new group; returns the group id */
 export function groupNodes(ids: readonly string[]): string | undefined {
     const doc = docState.doc;
@@ -259,6 +267,8 @@ export function ungroupNodes(ids: readonly string[]): string[] {
     return rv;
 }
 
+//---------------------------------------------------------------------------
+
 export function convertToPath(ids: readonly string[]): void {
     let changed = false;
     for (const id of ids) {
@@ -271,6 +281,7 @@ export function convertToPath(ids: readonly string[]): void {
     changed && commitHistory();
 }
 
+//---------------------------------------------------------------------------
 // Presentation attributes
 
 export function setNodesPresentation(ids: readonly string[], prop: string, value: string | undefined, mergeKey?: string): void {
@@ -289,6 +300,7 @@ export function setNodeNumber(id: string, key: string, value: number): void {
     }
 }
 
+//---------------------------------------------------------------------------
 // ViewBox
 
 export function setViewBox(vb: ViewBox | null): void {

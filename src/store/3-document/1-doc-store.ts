@@ -29,7 +29,8 @@ export function docPrecision(): number {
     return appSettings.prefs.precision;
 }
 
-export const SAMPLE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+export const SAMPLE_SVG = 
+`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
     <rect x="56" y="56" width="400" height="400" rx="48" fill="#e8f1fb" stroke="#1971c2" stroke-width="6"/>
     <path d="M136 320 C136 200 216 152 256 152 C296 152 376 200 376 320" fill="none" stroke="#e03131" stroke-width="12" stroke-linecap="round"/>
     <circle cx="256" cy="320" r="48" fill="#ffd43b" stroke="#2f9e44" stroke-width="6"/>

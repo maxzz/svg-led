@@ -11,6 +11,8 @@ export const viewportAtom = atom<Viewport>({ x: 0, y: 0, zoom: 1 });
 
 export const canvasSizeAtom = atom<{ width: number; height: number; }>({ width: 0, height: 0 });
 
+//---------------------------------------------------------------------------
+
 export function docToScreen(vp: Viewport, p: Point): Point {
     return { x: p.x * vp.zoom + vp.x, y: p.y * vp.zoom + vp.y };
 }
@@ -26,6 +28,8 @@ export function rectToScreen(vp: Viewport, r: Rect): Rect {
 function clampZoom(z: number): number {
     return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z));
 }
+
+//---------------------------------------------------------------------------
 
 /** Zooms keeping the given screen point fixed; defaults to the canvas center */
 export const zoomAtAtom = atom(

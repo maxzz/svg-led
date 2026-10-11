@@ -15,16 +15,18 @@ type ColorRowProps = {
 export function ColorRow({ value, swatches, onChange }: ColorRowProps) {
     const current = value === MIXED ? '' : value ?? '';
 
-    const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    function onKeyDown(e: KeyboardEvent<HTMLInputElement>) {
         if (e.key === 'Enter') {
             e.currentTarget.blur();
         }
-    };
+    }
 
     return (
         <div className="flex flex-col gap-1.5">
             <div className="flex items-center gap-1">
-                {swatches.map((color) => <Swatch color={color} active={sameColor(color, current)} onClick={() => onChange(color)} key={color} />)}
+                {swatches.map(
+                    (color) => <Swatch color={color} active={sameColor(color, current)} onClick={() => onChange(color)} key={color} />
+                )}
 
                 <div className="mx-0.5 w-px h-5 bg-border" />
 

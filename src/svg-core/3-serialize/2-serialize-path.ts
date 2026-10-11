@@ -5,6 +5,7 @@ import { makeFmt } from "./1-format";
 export function serializePathSegs(segs: readonly PathSeg[], precision: number): string {
     const f = makeFmt(precision);
     const parts: string[] = [];
+
     for (const s of segs) {
         switch (s.c) {
             case 'M':
@@ -25,5 +26,6 @@ export function serializePathSegs(segs: readonly PathSeg[], precision: number): 
                 break;
         }
     }
+    
     return parts.join(' ');
 }

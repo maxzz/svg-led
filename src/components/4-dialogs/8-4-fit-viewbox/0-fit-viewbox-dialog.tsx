@@ -8,12 +8,6 @@ import { Input } from "@/ui/shadcn/input";
 import { Label } from "@/ui/shadcn/label";
 import { type FitViewBoxMode, type PaddingSide, applyFitViewBoxAtom, fitViewBoxDialogAtom, fitViewBoxOptionsAtom, setPaddingSideAtom } from "./9-types-fit-viewbox";
 
-const TITLES: Record<FitViewBoxMode, [title: string, description: string]> = {
-    'selection-into-viewbox': ['Fit selection to viewBox', 'Scales and moves the selected elements into the viewBox, keeping the padding free.'],
-    'viewbox-to-selection': ['Fit viewBox to selection', 'Sets the viewBox around the selected elements with the padding added.'],
-    'viewbox-to-content': ['Fit viewBox to content', 'Sets the viewBox around all elements with the padding added.'],
-};
-
 export function FitViewBoxDialog() {
     const [mode, setMode] = useAtom(fitViewBoxDialogAtom);
     const apply = useSetAtom(applyFitViewBoxAtom);
@@ -23,12 +17,17 @@ export function FitViewBoxDialog() {
         <Dialog open={!!mode} onOpenChange={(open) => { !open && setMode(null); }}>
             <DialogContent className="p-0! max-w-sm! gap-0!">
                 <DialogHeader className="px-4 py-3 text-left border-b gap-1">
-                    <DialogTitle className="text-sm">{title}</DialogTitle>
-                    <DialogDescription className="text-xs">{description}</DialogDescription>
+                    <DialogTitle className="text-sm">
+                        {title}
+                        </DialogTitle>
+                    <DialogDescription className="text-xs">
+                        {description}
+                        </DialogDescription>
                 </DialogHeader>
 
                 <form className="px-4 py-4 flex flex-col gap-4" onSubmit={(e) => { e.preventDefault(); apply(); }}>
                     <PaddingEditor />
+
                     {mode === 'selection-into-viewbox' && <ScaleOptions />}
 
                     <DialogFooter className="p-0 m-0 bg-transparent border-0">
@@ -41,6 +40,12 @@ export function FitViewBoxDialog() {
     );
 }
 
+const TITLES: Record<FitViewBoxMode, [title: string, description: string]> = {
+    'selection-into-viewbox': ['Fit selection to viewBox', 'Scales and moves the selected elements into the viewBox, keeping the padding free.'],
+    'viewbox-to-selection': ['Fit viewBox to selection', 'Sets the viewBox around the selected elements with the padding added.'],
+    'viewbox-to-content': ['Fit viewBox to content', 'Sets the viewBox around all elements with the padding added.'],
+};
+
 function PaddingEditor() {
     const [options, setOptions] = useAtom(fitViewBoxOptionsAtom);
 
@@ -51,9 +56,9 @@ function PaddingEditor() {
                 <Button
                     variant="ghost"
                     size="sm"
-                    type="button"
-                    title={options.linked ? 'Edit each side separately' : 'Use one value for all sides'}
                     onClick={() => setOptions({ linked: !options.linked })}
+                    title={options.linked ? 'Edit each side separately' : 'Use one value for all sides'}
+                    type="button"
                 >
                     {options.linked ? <Link className="size-3.5" /> : <Unlink className="size-3.5" />}
                     {options.linked ? 'All sides' : 'Each side'}

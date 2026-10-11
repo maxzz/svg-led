@@ -42,6 +42,7 @@ export function serializeSvg(doc: SvgDoc, options: SerializeOptions): string {
 export function serializeNodes(nodes: readonly SvgNode[], options: SerializeOptions): string {
     const f = makeFmt(options.precision);
     const lines: string[] = [];
+
     for (const node of nodes) {
         writeNode(node, 0, lines, f, options.indent ?? '    ');
     }
@@ -58,6 +59,7 @@ function writeNode(node: SvgNode, depth: number, lines: string[], f: (n: number)
             lines.push(`${pad}<g${attrs}/>`);
             return;
         }
+        
         lines.push(`${pad}<g${attrs}>`);
         for (const child of node.children) {
             writeNode(child, depth + 1, lines, f, indent);

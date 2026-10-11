@@ -144,6 +144,8 @@ export function parsePathData(d: string): PathSeg[] {
     return rv;
 }
 
+//---------------------------------------------------------------------------
+
 class Scanner {
     pos = 0;
     private readonly text: string;

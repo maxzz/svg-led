@@ -60,4 +60,6 @@ export const toolLockedAtom = atom(
 );
 
 /** Points mode is the Illustrator Direct Selection: anchors and handles of the selected elements are editable */
-export const isPointsModeAtom = atom((get) => get(activeToolIdAtom) === ToolId.points);
+export const isPointsModeAtom = atom(
+    (get) => get(activeToolIdAtom) === ToolId.points
+);

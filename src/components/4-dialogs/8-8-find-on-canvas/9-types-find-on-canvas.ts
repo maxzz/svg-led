@@ -30,10 +30,12 @@ export const foundItemsAtom = atom<FoundItem[]>(
         if (!get(isOpenFindOnCanvasAtom)) {
             return [];
         }
+
         const rv: FoundItem[] = [];
         walkNodes(docState.doc.children, (node, parents) => {
             rv.push({ id: node.id, depth: parents.length, ...describe(node) });
         });
+        
         return rv;
     }
 );

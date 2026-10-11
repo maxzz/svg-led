@@ -79,6 +79,7 @@ function ErrorBar() {
     if (!error) {
         return null;
     }
+    
     return (
         <div className="shrink-0 whitespace-pre-wrap px-3 py-1.5 max-h-20 text-[11px] text-destructive bg-destructive/10 border-b overflow-auto">
             {error}

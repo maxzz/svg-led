@@ -10,6 +10,7 @@ export type SourceRange = {
 
 export type SourceMap = Map<string, SourceRange>;
 
+//---------------------------------------------------------------------------
 /**
  * Maps node ids to their element ranges in `text`.
  * Works for any text that parses to `doc`: elements are matched by their order of appearance,

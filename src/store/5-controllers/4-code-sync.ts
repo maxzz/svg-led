@@ -1,15 +1,12 @@
 import { snapshot, subscribe } from "valtio";
-import type * as Monaco from "monaco-editor";
-import { type SvgDoc, buildSourceMap, nodeAtOffset } from "@/svg-core";
-import { type AppStore, appStore } from "../0-app-store";
 import { appSettings } from "../1-ui-settings";
-import { docState, docToText, historyState, loadSvgText } from "../3-document";
-import {
-    type MonacoHandle, codeDirtyAtom, codeErrorAtom, codeTextAtom, monacoHandleAtom, pruneSelectionAtom, selectionAtom, setSelectionAtom, sourceMapAtom,
-} from "../4-editor";
+import { type AppStore, appStore } from "../0-app-store";
 
-const PARSE_DELAY_MS = 400;
-const MARKER_OWNER = 'svg-led';
+import { type SvgDoc, buildSourceMap, nodeAtOffset } from "@/svg-core";
+import { docState, docToText, historyState, loadSvgText } from "../3-document";
+
+import type * as Monaco from "monaco-editor";
+import { type MonacoHandle, codeDirtyAtom, codeErrorAtom, codeTextAtom, monacoHandleAtom, pruneSelectionAtom, selectionAtom, setSelectionAtom, sourceMapAtom } from "../4-editor";
 
 /**
  * Two-way sync between the Monaco editor and the document:
@@ -162,6 +159,9 @@ function attach(store: AppStore, { editor, monaco }: MonacoHandle): () => void {
     };
 }
 
+const PARSE_DELAY_MS = 400;
+const MARKER_OWNER = 'svg-led';
+
 function errorMarker(monaco: typeof Monaco, m: Monaco.editor.ITextModel, error: string): Monaco.editor.IMarkerData {
     // DOMParser errors usually contain "line N" and "column M"
     const line = Number(/line\s+(\d+)/i.exec(error)?.[1] ?? 1);
@@ -176,6 +176,8 @@ function errorMarker(monaco: typeof Monaco, m: Monaco.editor.ITextModel, error: 
         endColumn: m.getLineMaxColumn(lineNumber),
     };
 }
+
+//---------------------------------------------------------------------------
 
 let codeSyncCommands: { apply: () => boolean; reload: () => void; resume: () => boolean; } | null = null;
 
@@ -199,3 +201,5 @@ export function setCodeSync(on: boolean): void {
     }
     appSettings.codePanel.sync = on;
 }
+
+//---------------------------------------------------------------------------

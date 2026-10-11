@@ -3,6 +3,8 @@ import { applyMatrix } from "../4-geometry/1-matrix";
 import { type Cubic, distance, lerp, nearestOnCubic, nearestOnLine, splitCubic } from "../4-geometry/2-bezier";
 import { inferAnchorKind, samePoint } from "./1-path-anchors";
 
+//---------------------------------------------------------------------------
+
 /** Anchor address inside a path: "subpathIndex:anchorIndex" */
 export type AnchorKey = `${number}:${number}`;
 
@@ -36,6 +38,8 @@ export function moveAnchor(a: Anchor, dx: number, dy: number): void {
         a.out = { x: a.out.x + dx, y: a.out.y + dy };
     }
 }
+
+//---------------------------------------------------------------------------
 
 export type HandleSide = 'in' | 'out';
 
@@ -127,6 +131,8 @@ export function deleteAnchors(subpaths: readonly SubPath[], keys: ReadonlySet<st
     return rv;
 }
 
+//---------------------------------------------------------------------------
+
 export function segmentCount(sub: SubPath): number {
     const n = sub.anchors.length;
     return sub.closed ? n : Math.max(0, n - 1);
@@ -164,6 +170,8 @@ export function nearestSegment(subpaths: readonly SubPath[], p: Point): SegmentH
     );
     return best;
 }
+
+//---------------------------------------------------------------------------
 
 /**
  * Inserts an anchor on a segment without changing the shape (de Casteljau split for curves).

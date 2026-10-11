@@ -15,15 +15,15 @@ export function segsToSubpaths(segs: readonly PathSeg[]): SubPath[] {
     let cur: Point = { x: 0, y: 0 };
     let start: Point = { x: 0, y: 0 };
 
-    const ensureSub = (): SubPath => {
+    function ensureSub(): SubPath {
         if (!sub) {
             sub = { anchors: [{ x: start.x, y: start.y, kind: 'corner' }], closed: false };
             rv.push(sub);
         }
         return sub;
-    };
+    }
 
-    const cubicTo = (c1: Point, c2: Point, p: Point) => {
+    function cubicTo(c1: Point, c2: Point, p: Point) {
         const s = ensureSub();
         const prev = s.anchors[s.anchors.length - 1];
         if (!samePoint(c1, prev)) {
@@ -35,7 +35,7 @@ export function segsToSubpaths(segs: readonly PathSeg[]): SubPath[] {
         }
         s.anchors.push(a);
         cur = p;
-    };
+    }
 
     for (const seg of segs) {
         switch (seg.c) {

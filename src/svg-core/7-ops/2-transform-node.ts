@@ -30,6 +30,8 @@ export function transformNode(node: SvgNode, m: Matrix, precision: number): SvgN
     return rv;
 }
 
+//---------------------------------------------------------------------------
+
 /** Baked numbers are rounded to the document precision so the model matches the serialized source */
 function bakeGeometry(node: SvgNode, m: Matrix, precision: number): SvgNode | undefined {
     const fmt = makeFmt(precision);
@@ -91,6 +93,8 @@ function bakeGeometry(node: SvgNode, m: Matrix, precision: number): SvgNode | un
         }
     }
 }
+
+//---------------------------------------------------------------------------
 
 /** Converts a change given in document coordinates into the node's parent coordinates */
 export function docToParentMatrix(mDoc: Matrix, parentCtm: Matrix): Matrix {

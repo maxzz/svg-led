@@ -10,6 +10,7 @@ export function SelectionProperties() {
 
     const ids: string[] = [];
     const nodes: SvgNode[] = [];
+
     for (const id of selection) {
         const loc = findNode(doc, id);
         if (loc) {
@@ -17,6 +18,7 @@ export function SelectionProperties() {
             nodes.push(loc.node);
         }
     }
+
     if (!nodes.length) {
         return null;
     }
@@ -25,7 +27,10 @@ export function SelectionProperties() {
         <div className="select-none text-xs font-medium">
             {nodes.length === 1 ? nodeTitle(nodes[0]) : `${nodes.length} elements`}
         </div>
-        {PROPERTY_SECTIONS.filter((s) => s.appliesTo(nodes)).map(({ id, Component }) => <Component ids={ids} nodes={nodes} key={id} />)}
+
+        {PROPERTY_SECTIONS.filter((s) => s.appliesTo(nodes)).map(
+            ({ id, Component }) => <Component ids={ids} nodes={nodes} key={id} />
+        )}
     </>);
 }
 

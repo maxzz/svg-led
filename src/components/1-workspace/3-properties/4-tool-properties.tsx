@@ -8,7 +8,11 @@ import { activeToolDefAtom } from "./9-atoms-properties-popup";
 /** Style that the active drawing tool gives to new elements */
 export function ToolProperties() {
     const tool = useAtomValue(activeToolDefAtom);
-    return tool.optionsAtom ? <ToolStyleEditor tool={tool as ToolDef & Required<Pick<ToolDef, 'optionsAtom'>>} key={tool.id} /> : null;
+    return (
+        tool.optionsAtom
+            ? <ToolStyleEditor tool={tool as ToolDef & Required<Pick<ToolDef, 'optionsAtom'>>} key={tool.id} />
+            : null
+    );
 }
 
 function ToolStyleEditor({ tool }: { tool: ToolDef & Required<Pick<ToolDef, 'optionsAtom'>>; }) {
@@ -16,15 +20,20 @@ function ToolStyleEditor({ tool }: { tool: ToolDef & Required<Pick<ToolDef, 'opt
     const setOptions = useSetAtom(tool.optionsAtom);
 
     return (<>
-        <div className="select-none text-xs font-medium">New {tool.label.toLowerCase()} style</div>
+        <div className="select-none text-xs font-medium">
+            New {tool.label.toLowerCase()} style
+        </div>
+
         <Section title="Stroke">
             <ColorRow value={options.stroke} swatches={STROKE_SWATCHES} onChange={(stroke) => setOptions({ stroke })} />
         </Section>
+
         {tool.id !== 'line' && (
             <Section title="Fill">
                 <ColorRow value={options.fill} swatches={FILL_SWATCHES} onChange={(fill) => setOptions({ fill })} />
             </Section>
         )}
+        
         <Section title="Stroke width">
             <NumberField className="w-20" value={options.strokeWidth} min={0} step={0.5} onChange={(strokeWidth) => setOptions({ strokeWidth })} />
         </Section>

@@ -1,8 +1,6 @@
 import { atom } from "jotai";
 import { appSettings } from "@/store/1-ui-settings";
 
-export const MIN_PANEL_WIDTH = 260;
-
 /** True while the resize handle is dragged; the slide animation is off then */
 export const isPanelResizingAtom = atom(false);
 
@@ -26,6 +24,8 @@ export const panelResizeMoveAtom = atom(
         }
     }
 );
+
+export const MIN_PANEL_WIDTH = 260;
 
 export const panelResizeUpAtom = atom(
     null,

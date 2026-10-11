@@ -7,20 +7,6 @@ import { isThemeDark } from "@/utils/theme-utils";
 import "./2-monaco-setup";
 import { monacoMountedAtom } from "./9-atoms-monaco-host";
 
-const EDITOR_OPTIONS = {
-    fontSize: 12,
-    lineNumbersMinChars: 3,
-    minimap: { enabled: false },
-    scrollBeyondLastLine: false,
-    wordWrap: 'on',
-    wrappingIndent: 'indent',
-    tabSize: 2,
-    automaticLayout: true,
-    renderLineHighlight: 'gutter',
-    folding: true,
-    glyphMargin: false,
-} as const;
-
 /** Lazy-loaded: pulls the whole Monaco bundle only when the panel opens */
 export default function MonacoHost() {
     const { theme } = useSnapshot(appSettings);
@@ -37,3 +23,17 @@ export default function MonacoHost() {
         />
     );
 }
+
+const EDITOR_OPTIONS = {
+    fontSize: 11,
+    lineNumbersMinChars: 3,
+    minimap: { enabled: false },
+    scrollBeyondLastLine: false,
+    wordWrap: 'on',
+    wrappingIndent: 'indent',
+    tabSize: 2,
+    automaticLayout: true,
+    renderLineHighlight: 'gutter',
+    folding: true,
+    glyphMargin: false,
+} as const;

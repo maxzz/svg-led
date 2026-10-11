@@ -1,6 +1,6 @@
 import { useAtomValue, useSetAtom } from "jotai";
-import { ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/utils/classnames";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { SelectionProperties } from "./3-selection-properties";
 import { ToolProperties } from "./4-tool-properties";
 import { DocumentProperties } from "./5-document-properties";

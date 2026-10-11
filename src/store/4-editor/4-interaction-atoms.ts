@@ -13,6 +13,8 @@ export const isPanningAtom = atom(false);
 /** Last pointer position over the canvas, in document coordinates */
 export const pointerDocAtom = atom<Point | null>(null);
 
+//---------------------------------------------------------------------------
+
 /** Pen tool: the path being drawn */
 export type PenDraft = {
     nodeId: string;
@@ -23,6 +25,8 @@ export type PenDraft = {
 };
 
 export const penDraftAtom = atom<PenDraft | null>(null);
+
+//---------------------------------------------------------------------------
 
 /** Snap guide shown while dragging (document coordinates) */
 export const snapPointAtom = atom<Point | null>(null);

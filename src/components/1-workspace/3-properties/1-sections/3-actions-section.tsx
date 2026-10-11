@@ -32,10 +32,12 @@ export function ActionsSection(_props: SectionProps) {
 function ActionButton({ id, children }: { id: string; children: ReactNode; }) {
     const store = useStore();
     const run = useSetAtom(runCommandAtom);
+    
     const cmd = getCommand(id);
     if (!cmd) {
         return null;
     }
+
     const enabled = !cmd.enabled || cmd.enabled(store.get);
     const title = cmd.shortcut ? `${cmd.label} — ${displayShortcut(cmd.shortcut)}` : cmd.label;
 

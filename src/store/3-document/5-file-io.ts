@@ -15,6 +15,8 @@ let currentHandle: FileSystemFileHandle | null = null;
 
 export type FileResult = { ok: true; } | { ok: false; error: string; } | { ok: false; cancelled: true; };
 
+//---------------------------------------------------------------------------
+
 export async function openSvgFile(): Promise<FileResult> {
     const w = window as FilePickerWindow;
     try {
@@ -40,6 +42,8 @@ export async function loadSvgFile(file: File): Promise<FileResult> {
     return loadSvgText(text, { fileName: file.name, resetUndo: false });
 }
 
+//---------------------------------------------------------------------------
+
 export async function saveSvgFile(): Promise<FileResult> {
     const text = docToText();
     const w = window as FilePickerWindow;
@@ -64,6 +68,8 @@ export function saveSvgFileAs(): Promise<FileResult> {
     currentHandle = null;
     return saveSvgFile();
 }
+
+//---------------------------------------------------------------------------
 
 export function exportSvgDownload(): void {
     downloadBlob(new Blob([docToText()], { type: 'image/svg+xml' }), docState.fileName);
@@ -117,6 +123,8 @@ export async function exportPng(scale: number, background?: string): Promise<Fil
         URL.revokeObjectURL(url);
     }
 }
+
+//---------------------------------------------------------------------------
 
 export function downloadBlob(blob: Blob, fileName: string): void {
     const url = URL.createObjectURL(blob);

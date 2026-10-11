@@ -2,8 +2,6 @@ import { subscribe } from "valtio";
 import { STORAGE_KEYS } from "../2-persist";
 import { SAMPLE_SVG, docToText, historyState, loadSvgText } from "../3-document";
 
-const SAVE_DELAY_MS = 600;
-
 /** Loads the last document (or the sample) and saves the source after every history change */
 export function installAutosave(): () => void {
     let saved: string | null = null;
@@ -33,6 +31,8 @@ export function installAutosave(): () => void {
         window.removeEventListener('beforeunload', save);
     };
 }
+
+const SAVE_DELAY_MS = 600;
 
 function save() {
     try {

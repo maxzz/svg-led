@@ -19,32 +19,38 @@ type NumberFieldProps = {
 export function NumberField({ label, value, onChange, min, step = 1, precision = 2, className }: NumberFieldProps) {
     const text = value === MIXED || value === undefined ? '' : String(+value.toFixed(precision));
 
-    const commit = (raw: string) => {
+    function commit(raw: string) {
         const n = Number(raw);
         if (raw.trim() !== '' && raw !== text && Number.isFinite(n)) {
             onChange(min === undefined ? n : Math.max(min, n));
         }
-    };
+    }
 
-    const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    function onKeyDown(e: KeyboardEvent<HTMLInputElement>) {
         const input = e.currentTarget;
         if (e.key === 'Enter') {
             input.blur();
-        } else if (e.key === 'Escape') {
+        }
+        else if (e.key === 'Escape') {
             input.value = text;
             input.blur();
-        } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        }
+        else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
             e.preventDefault();
             const base = Number(input.value) || 0;
             const delta = (e.key === 'ArrowUp' ? 1 : -1) * step * (e.shiftKey ? 10 : 1);
             const next = min === undefined ? base + delta : Math.max(min, base + delta);
             input.value = String(+next.toFixed(precision)); // committed on Enter or blur; committing now would re-key and drop focus
         }
-    };
+    }
 
     return (
         <label className={cn("px-1.5 h-7 min-w-0 text-xs bg-muted/60 focus-within:ring-1 focus-within:ring-(--editor-accent) rounded-md flex items-center gap-1", className)}>
-            {label && <span className="shrink-0 select-none text-[10px] text-muted-foreground">{label}</span>}
+            {label && (
+                <span className="shrink-0 select-none text-[10px] text-muted-foreground">
+                    {label}
+                </span>
+            )}
             <input
                 className="w-full min-w-0 tabular-nums bg-transparent outline-none"
                 defaultValue={text}

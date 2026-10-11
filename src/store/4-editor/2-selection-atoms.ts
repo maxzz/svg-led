@@ -11,7 +11,9 @@ export const selectedAnchorsAtom = atom<string[]>([]);
 
 export const hoverNodeIdAtom = atom<string | null>(null);
 
-export const hasSelectionAtom = atom((get) => get(selectionAtom).length > 0);
+export const hasSelectionAtom = atom(
+    (get) => get(selectionAtom).length > 0
+);
 
 export function nodeAnchorKey(nodeId: string, key: string): string {
     return `${nodeId}|${key}`;

@@ -5,14 +5,14 @@ import { docState } from "./1-doc-store";
 /** Where a document change came from; the code-sync controller skips changes that came from the code editor */
 export type ChangeOrigin = 'canvas' | 'code' | 'load' | 'history';
 
+//---------------------------------------------------------------------------
+// History state
+
 type Entry = {
     doc: SvgDoc;                 // frozen Valtio snapshot (structural sharing keeps it cheap)
     mergeKey?: string;
     time: number;
 };
-
-const MAX_ENTRIES = 200;
-const MERGE_WINDOW_MS = 800;
 
 const entries: Entry[] = [];
 
@@ -52,6 +52,11 @@ export function commitHistory(options: { mergeKey?: string; origin?: ChangeOrigi
     }
     publish(entries.length - 1, origin);
 }
+
+const MAX_ENTRIES = 200;
+const MERGE_WINDOW_MS = 800;
+
+//---------------------------------------------------------------------------
 
 export function undo(): boolean {
     if (historyState.index <= 0) {

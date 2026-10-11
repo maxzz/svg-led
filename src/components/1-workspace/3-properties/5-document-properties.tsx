@@ -12,13 +12,15 @@ export function DocumentProperties() {
     const run = useSetAtom(runCommandAtom);
     const vb = doc.viewBox;
 
-    const setVb = (key: 'x' | 'y' | 'width' | 'height', value: number) => {
+    function setVb(key: 'x' | 'y' | 'width' | 'height', value: number) {
         const base = vb ?? { x: 0, y: 0, width: 512, height: 512 };
         setViewBox({ ...base, [key]: value });
-    };
+    }
 
     return (<>
-        <div className="select-none text-xs font-medium truncate" title={fileName}>{fileName}</div>
+        <div className="select-none text-xs font-medium truncate" title={fileName}>
+            {fileName}
+        </div>
 
         <Section title="ViewBox">
             {vb
@@ -32,9 +34,14 @@ export function DocumentProperties() {
                 )
                 : <div className="text-muted-foreground">The document has no viewBox.</div>
             }
+
             <div className="flex flex-wrap gap-1">
-                <button className={optionButtonClasses} onClick={() => run('viewbox.toContent')} type="button">Fit to content</button>
-                <button className={optionButtonClasses} onClick={() => run('viewbox.settings')} type="button">Settings...</button>
+                <button className={optionButtonClasses} onClick={() => run('viewbox.toContent')} type="button">
+                    Fit to content
+                </button>
+                <button className={optionButtonClasses} onClick={() => run('viewbox.settings')} type="button">
+                    Settings...
+                </button>
             </div>
         </Section>
 
@@ -51,7 +58,10 @@ export function DocumentProperties() {
 function SizeField({ label, name, value }: { label: string; name: string; value: string | undefined; }) {
     return (
         <label className="px-1.5 h-7 min-w-0 text-xs bg-muted/60 focus-within:ring-1 focus-within:ring-(--editor-accent) rounded-md flex items-center gap-1">
-            <span className="shrink-0 select-none text-[10px] text-muted-foreground">{label}</span>
+            <span className="shrink-0 select-none text-[10px] text-muted-foreground">
+                {label}
+            </span>
+            
             <input
                 className="w-full min-w-0 tabular-nums bg-transparent outline-none"
                 defaultValue={value ?? ''}

@@ -2,6 +2,8 @@ import { type Anchor, type PathNode, type ShapeNode, type SubPath } from "../1-m
 import { KAPPA } from "../4-geometry/2-bezier";
 import { subpathsToPathData } from "../5-anchors/1-path-anchors";
 
+//---------------------------------------------------------------------------
+
 /** Outline of a native shape as anchors (exact for everything except ellipses, which use the standard kappa approximation) */
 export function shapeToSubpaths(node: ShapeNode): SubPath[] {
     switch (node.kind) {
@@ -19,6 +21,8 @@ export function shapeToSubpaths(node: ShapeNode): SubPath[] {
     }
 }
 
+//---------------------------------------------------------------------------
+
 /** "Convert to path": same id and attributes, geometry as path data */
 export function shapeToPath(node: ShapeNode, precision: number): PathNode {
     return {
@@ -29,9 +33,7 @@ export function shapeToPath(node: ShapeNode, precision: number): PathNode {
     };
 }
 
-function corner(x: number, y: number): Anchor {
-    return { x, y, kind: 'corner' };
-}
+//---------------------------------------------------------------------------
 
 function rectSubpath(x: number, y: number, w: number, h: number, rx: number, ry: number): SubPath {
     rx = Math.min(Math.abs(rx), w / 2);
@@ -58,6 +60,10 @@ function rectSubpath(x: number, y: number, w: number, h: number, rx: number, ry:
     };
 }
 
+function corner(x: number, y: number): Anchor {
+    return { x, y, kind: 'corner' };
+}
+
 function ellipseSubpath(cx: number, cy: number, rx: number, ry: number): SubPath {
     const kx = rx * KAPPA;
     const ky = ry * KAPPA;
@@ -71,3 +77,5 @@ function ellipseSubpath(cx: number, cy: number, rx: number, ry: number): SubPath
         ],
     };
 }
+
+//---------------------------------------------------------------------------

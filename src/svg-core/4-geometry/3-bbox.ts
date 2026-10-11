@@ -54,6 +54,8 @@ export function rectContainsPoint(r: Rect, p: Point): boolean {
     return p.x >= r.x && p.x <= r.x + r.width && p.y >= r.y && p.y <= r.y + r.height;
 }
 
+//---------------------------------------------------------------------------
+
 export function subpathsBBox(subpaths: readonly SubPath[]): Rect | null {
     const rects: Rect[] = [];
     for (const sub of subpaths) {
@@ -84,6 +86,8 @@ export function nodeOutline(node: SvgNode): SubPath[] | undefined {
             return shapeToSubpaths(node);
     }
 }
+
+//---------------------------------------------------------------------------
 
 /** Bbox in the node's own coordinates (before its transform attribute) */
 export function localBBox(node: SvgNode, fallback?: BBoxFallback): Rect | null {

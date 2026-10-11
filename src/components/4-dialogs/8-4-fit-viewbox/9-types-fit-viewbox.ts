@@ -5,6 +5,15 @@ import { atomWithDialogOptions } from "@/store/2-persist";
 import { fitNodesToViewBox, fitViewBoxToNodes, topLevelIds } from "@/store/3-document";
 import { selectionAtom, zoomToFitAtom } from "@/store/4-editor";
 
+//---------------------------------------------------------------------------
+
+/** What the dialog fits: selected elements into the viewBox, or the viewBox around the selection/content */
+export type FitViewBoxMode = 'selection-into-viewbox' | 'viewbox-to-selection' | 'viewbox-to-content';
+
+export const fitViewBoxDialogAtom = atom<FitViewBoxMode | null>(null);
+
+//---------------------------------------------------------------------------
+
 export type FitViewBoxDialogOptions = {
     linked: boolean;             // one padding value for all sides
     top: number;
@@ -14,11 +23,6 @@ export type FitViewBoxDialogOptions = {
     keepAspect: boolean;
     center: boolean;
 };
-
-/** What the dialog fits: selected elements into the viewBox, or the viewBox around the selection/content */
-export type FitViewBoxMode = 'selection-into-viewbox' | 'viewbox-to-selection' | 'viewbox-to-content';
-
-export const fitViewBoxDialogAtom = atom<FitViewBoxMode | null>(null);
 
 export const fitViewBoxOptionsAtom = atomWithDialogOptions<FitViewBoxDialogOptions>('fit-viewbox', {
     linked: true,
@@ -30,6 +34,8 @@ export const fitViewBoxOptionsAtom = atomWithDialogOptions<FitViewBoxDialogOptio
     center: true,
 });
 
+//---------------------------------------------------------------------------
+
 export type PaddingSide = keyof Padding;
 
 /** With linked sides, editing one side sets all four */
@@ -40,6 +46,8 @@ export const setPaddingSideAtom = atom(
         set(fitViewBoxOptionsAtom, get(fitViewBoxOptionsAtom).linked ? { top: v, right: v, bottom: v, left: v } : { [side]: v });
     }
 );
+
+//---------------------------------------------------------------------------
 
 export const applyFitViewBoxAtom = atom(
     null,

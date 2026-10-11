@@ -7,7 +7,7 @@ import { COMMANDS, isEditableTarget, matchShortcut, nudgeSelection } from "@/com
 export function installKeyboard(store: AppStore): () => void {
     const ctx = { get: store.get, set: store.set };
 
-    const onKeyDown = (e: KeyboardEvent) => {
+    function onKeyDown(e: KeyboardEvent) {
         if (isEditableTarget(e.target)) {
             return;
         }
@@ -58,22 +58,24 @@ export function installKeyboard(store: AppStore): () => void {
                 store.set(setSelectionAtom, []);
             }
         }
-    };
+    }
 
-    const onKeyUp = (e: KeyboardEvent) => {
+    function onKeyUp(e: KeyboardEvent) {
         if (e.key === ' ') {
             store.set(spaceHeldAtom, false);
         }
-    };
+    }
 
-    const onBlur = () => store.set(spaceHeldAtom, false);
+    function onBlur() {
+        return store.set(spaceHeldAtom, false);
+    }
 
-    window.addEventListener('keydown', onKeyDown);
-    window.addEventListener('keyup', onKeyUp);
-    window.addEventListener('blur', onBlur);
+    const controller = new AbortController();
+    window.addEventListener('keydown', onKeyDown, { signal: controller.signal });
+    window.addEventListener('keyup', onKeyUp, { signal: controller.signal });
+    window.addEventListener('blur', onBlur, { signal: controller.signal });
+    
     return () => {
-        window.removeEventListener('keydown', onKeyDown);
-        window.removeEventListener('keyup', onKeyUp);
-        window.removeEventListener('blur', onBlur);
+        controller.abort();
     };
 }

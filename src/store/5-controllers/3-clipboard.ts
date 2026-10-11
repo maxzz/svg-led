@@ -5,7 +5,8 @@ import { isEditableTarget } from "@/commands";
 
 /** Copy, cut and paste of elements as SVG markup, so they can be pasted into other apps and back */
 export function installClipboard(store: AppStore): () => void {
-    const onCopy = (e: ClipboardEvent, cut: boolean) => {
+
+    function onCopy(e: ClipboardEvent, cut: boolean) {
         const ids = store.get(selectionAtom);
         if (isEditableTarget(e.target) || !ids.length || !e.clipboardData) {
             return;
@@ -16,12 +17,16 @@ export function installClipboard(store: AppStore): () => void {
             deleteNodes(ids);
             store.set(setSelectionAtom, []);
         }
-    };
+    }
 
-    const copy = (e: ClipboardEvent) => onCopy(e, false);
-    const cut = (e: ClipboardEvent) => onCopy(e, true);
+    function copy(e: ClipboardEvent) {
+        return onCopy(e, false);
+    }
+    function cut(e: ClipboardEvent) {
+        return onCopy(e, true);
+    }
 
-    const paste = (e: ClipboardEvent) => {
+    function paste(e: ClipboardEvent) {
         const text = e.clipboardData?.getData('text/plain') ?? '';
         if (isEditableTarget(e.target) || !text.includes('<')) {
             return;
@@ -33,12 +38,12 @@ export function installClipboard(store: AppStore): () => void {
         }
     };
 
-    document.addEventListener('copy', copy);
-    document.addEventListener('cut', cut);
-    document.addEventListener('paste', paste);
+    const controller = new AbortController();
+    document.addEventListener('copy', copy, { signal: controller.signal });
+    document.addEventListener('cut', cut, { signal: controller.signal });
+    document.addEventListener('paste', paste, { signal: controller.signal });
+    
     return () => {
-        document.removeEventListener('copy', copy);
-        document.removeEventListener('cut', cut);
-        document.removeEventListener('paste', paste);
+        controller.abort();
     };
 }

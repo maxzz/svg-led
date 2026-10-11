@@ -1,6 +1,8 @@
 import { type Point, type ShapeNode } from "../1-model/1-types";
 import { constrain45 } from "../5-anchors/2-anchor-ops";
 
+//---------------------------------------------------------------------------
+
 /** Parametric handle of a native shape, in shape-local coordinates */
 export type ShapeHandle = {
     key: string;
@@ -38,6 +40,8 @@ export function getShapeHandles(node: ShapeNode): ShapeHandle[] {
             return node.points.map((p, i) => ({ key: `p${i}`, x: p.x, y: p.y, role: 'point' }));
     }
 }
+
+//---------------------------------------------------------------------------
 
 /**
  * Applies a handle drag. Call it on a copy of the shape as it was when the drag started,

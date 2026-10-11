@@ -11,6 +11,7 @@ export function distanceToOutline(subpaths: readonly SubPath[], p: Point): numbe
 export function pointInOutline(subpaths: readonly SubPath[], p: Point): boolean {
     let inside = false;
     for (const poly of flattenSubpaths(subpaths)) {
+
         for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
             const a = poly[i];
             const b = poly[j];
@@ -30,6 +31,7 @@ export function flattenSubpaths(subpaths: readonly SubPath[], steps = 16): Point
                 pts.push({ x: sub.anchors[0].x, y: sub.anchors[0].y });
             }
             const count = sub.closed ? sub.anchors.length : sub.anchors.length - 1;
+
             for (let seg = 0; seg < count; seg++) {
                 const [a, b] = segmentEnds(sub, seg);
                 const c = segmentCubic(a, b);
