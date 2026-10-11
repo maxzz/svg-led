@@ -51,20 +51,22 @@ export function PenOverlay() {
                 );
             })}
 
-            {sub?.anchors.map((a, ai) => (
-                <rect
-                    key={ai}
-                    data-hit="anchor"
-                    data-nid={draft.nodeId}
-                    data-key={`${draft.si}:${ai}`}
-                    x={a.x - ANCHOR / 2}
-                    y={a.y - ANCHOR / 2}
-                    width={ANCHOR}
-                    height={ANCHOR}
-                    strokeWidth={1}
-                    className={ai === sub.anchors.length - 1 ? "fill-(--editor-accent) stroke-(--editor-accent)" : "fill-background stroke-(--editor-accent)"}
-                />
-            ))}
+            {sub?.anchors.map(
+                (a, ai) => (
+                    <rect
+                        key={ai}
+                        data-hit="anchor"
+                        data-nid={draft.nodeId}
+                        data-key={`${draft.si}:${ai}`}
+                        x={a.x - ANCHOR / 2}
+                        y={a.y - ANCHOR / 2}
+                        width={ANCHOR}
+                        height={ANCHOR}
+                        strokeWidth={1}
+                        className={ai === sub.anchors.length - 1 ? "fill-(--editor-accent) stroke-(--editor-accent)" : "fill-background stroke-(--editor-accent)"}
+                    />
+                )
+            )}
         </g>
     );
 }
@@ -73,30 +75,37 @@ export function PenOverlay() {
 function OpenEndpoints({ doc, ids }: { doc: SvgDoc; ids: string[]; }) {
     const vp = useAtomValue(viewportAtom);
     return (<>
-        {ids.map((id) => {
-            const loc = findNode(doc, id);
-            const m = nodeScreenMatrix(doc, vp, id);
-            if (loc?.node.kind !== 'path' || !m) {
-                return null;
-            }
-            const subs = screenSubpaths(pathDataToSubpaths(loc.node.d), m);
-            return subs.map((s, si) => s.closed ? null : [0, s.anchors.length - 1].map((ai) => {
-                const a = s.anchors[ai];
-                return a && (
-                    <rect
-                        key={`${id}-${si}-${ai}`}
-                        data-hit="anchor"
-                        data-nid={id}
-                        data-key={`${si}:${ai}`}
-                        x={a.x - ANCHOR / 2}
-                        y={a.y - ANCHOR / 2}
-                        width={ANCHOR}
-                        height={ANCHOR}
-                        strokeWidth={1}
-                        className="fill-background stroke-(--editor-accent)"
-                    />
+        {ids.map(
+            (id) => {
+                const loc = findNode(doc, id);
+                const m = nodeScreenMatrix(doc, vp, id);
+                if (loc?.node.kind !== 'path' || !m) {
+                    return null;
+                }
+
+                const subs = screenSubpaths(pathDataToSubpaths(loc.node.d), m);
+                return subs.map(
+                    (s, si) => s.closed ? null : [0, s.anchors.length - 1].map(
+                        (ai) => {
+                            const a = s.anchors[ai];
+                            return a && (
+                                <rect
+                                    data-hit="anchor"
+                                    className="fill-background stroke-(--editor-accent)"
+                                    x={a.x - ANCHOR / 2}
+                                    y={a.y - ANCHOR / 2}
+                                    width={ANCHOR}
+                                    height={ANCHOR}
+                                    strokeWidth={1}
+                                    data-nid={id}
+                                    data-key={`${si}:${ai}`}
+                                    key={`${id}-${si}-${ai}`}
+                                />
+                            );
+                        }
+                    )
                 );
-            }));
-        })}
+            }
+        )}
     </>);
 }

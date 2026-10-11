@@ -1,7 +1,5 @@
 import { useAtomValue } from "jotai";
-import {
-    type Anchor, type Matrix, type SubPath, type SvgDoc, applyMatrix, findNode, getShapeHandles, isShapeNode, pathDataToSubpaths,
-} from "@/svg-core";
+import { type Anchor, type Matrix, type SubPath, type SvgDoc, applyMatrix, findNode, getShapeHandles, isShapeNode, pathDataToSubpaths } from "@/svg-core";
 import { useDocSnapshot } from "@/store/3-document";
 import { anchorsOfNode, hoverNodeIdAtom, selectedAnchorsAtom, selectionAtom, viewportAtom } from "@/store/4-editor";
 import { pointsOptionsAtom } from "@/tools/points/options";
@@ -20,10 +18,12 @@ export function PointsOverlay() {
     return (
         <g>
             {hover && !selection.includes(hover) && <HoverOutline doc={doc} id={hover} />}
-            {selection.map((id) => {
-                const m = nodeScreenMatrix(doc, vp, id);
-                return m ? <NodePoints doc={doc} id={id} m={m} key={id} /> : null;
-            })}
+            {selection.map(
+                (id) => {
+                    const m = nodeScreenMatrix(doc, vp, id);
+                    return m ? <NodePoints doc={doc} id={id} m={m} key={id} /> : null;
+                }
+            )}
         </g>
     );
 }
@@ -95,26 +95,28 @@ function NodePoints({ doc, id, m }: { doc: SvgDoc; id: string; m: Matrix; }) {
 
 function PathAnchors({ subs, nodeId, selected }: { subs: SubPath[]; nodeId: string; selected: Set<string>; }) {
     return (<>
-        {subs.map((s, si) => s.anchors.map((a, ai) => {
-            const key = `${si}:${ai}`;
-            const isSel = selected.has(key);
-            const isFirst = ai === 0 && !s.closed;
-            return (
-                <rect
-                    key={key}
-                    data-hit="anchor"
-                    data-nid={nodeId}
-                    data-key={key}
-                    x={a.x - ANCHOR / 2}
-                    y={a.y - ANCHOR / 2}
-                    width={ANCHOR}
-                    height={ANCHOR}
-                    strokeWidth={isFirst ? 1.5 : 1}
-                    className={isSel ? "fill-(--editor-accent) stroke-(--editor-accent)" : "fill-background stroke-(--editor-accent)"}
-                    style={{ cursor: 'move' }}
-                />
-            );
-        }))}
+        {subs.map(
+            (s, si) => s.anchors.map((a, ai) => {
+                const key = `${si}:${ai}`;
+                const isSel = selected.has(key);
+                const isFirst = ai === 0 && !s.closed;
+                return (
+                    <rect
+                        key={key}
+                        data-hit="anchor"
+                        data-nid={nodeId}
+                        data-key={key}
+                        x={a.x - ANCHOR / 2}
+                        y={a.y - ANCHOR / 2}
+                        width={ANCHOR}
+                        height={ANCHOR}
+                        strokeWidth={isFirst ? 1.5 : 1}
+                        className={isSel ? "fill-(--editor-accent) stroke-(--editor-accent)" : "fill-background stroke-(--editor-accent)"}
+                        style={{ cursor: 'move' }}
+                    />
+                );
+            })
+        )}
     </>);
 }
 
@@ -133,6 +135,7 @@ function PathHandles({ subs, nodeId, selected, showAll }: { subs: SubPath[]; nod
                     const self = selected.has(`${si}:${ai}`);
                     const prevSel = selected.has(`${si}:${(ai - 1 + n) % n}`) && (ai > 0 || s.closed);
                     const nextSel = selected.has(`${si}:${(ai + 1) % n}`) && (ai < n - 1 || s.closed);
+
                     if (a.in && (showAll || self || prevSel)) {
                         items.push({ key: `${si}:${ai}`, anchor: a, side: 'in' });
                     }
@@ -145,25 +148,27 @@ function PathHandles({ subs, nodeId, selected, showAll }: { subs: SubPath[]; nod
     );
 
     return (<>
-        {items.map(({ key, anchor, side }) => {
-            const h = anchor[side]!;
-            return (
-                <g key={`${key}-${side}`}>
-                    <line x1={anchor.x} y1={anchor.y} x2={h.x} y2={h.y} strokeWidth={1} className="stroke-(--editor-accent)/80 pointer-events-none" />
-                    <circle
-                        data-hit="handle"
-                        data-nid={nodeId}
-                        data-key={key}
-                        data-side={side}
-                        cx={h.x}
-                        cy={h.y}
-                        r={KNOB}
-                        strokeWidth={1}
-                        className="fill-(--editor-accent) stroke-background"
-                        style={{ cursor: 'pointer' }}
-                    />
-                </g>
-            );
-        })}
+        {items.map(
+            ({ key, anchor, side }) => {
+                const h = anchor[side]!;
+                return (
+                    <g key={`${key}-${side}`}>
+                        <line x1={anchor.x} y1={anchor.y} x2={h.x} y2={h.y} strokeWidth={1} className="stroke-(--editor-accent)/80 pointer-events-none" />
+                        <circle
+                            data-hit="handle"
+                            data-nid={nodeId}
+                            data-key={key}
+                            data-side={side}
+                            cx={h.x}
+                            cy={h.y}
+                            r={KNOB}
+                            strokeWidth={1}
+                            className="fill-(--editor-accent) stroke-background"
+                            style={{ cursor: 'pointer' }}
+                        />
+                    </g>
+                );
+            }
+        )}
     </>);
 }

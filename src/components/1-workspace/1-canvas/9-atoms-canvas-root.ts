@@ -33,6 +33,8 @@ function toToolEvent(get: Getter, e: CanvasPointerEvent): ToolPointerEvent {
     };
 }
 
+//---------------------------------------------------------------------------
+
 export const canvasPointerDownAtom = atom(
     null,
     (get, set, e: CanvasPointerEvent) => {
@@ -110,6 +112,8 @@ export const canvasPointerLeaveAtom = atom(
     }
 );
 
+//---------------------------------------------------------------------------
+
 export const canvasCursorAtom = atom(
     (get) => {
         if (get(isPanningAtom)) {
@@ -185,6 +189,7 @@ export function canvasRef(el: SVGSVGElement | null) {
             appStore.set(panByAtom, { dx: -(e.deltaY || e.deltaX) * unit, dy: 0 });
             return;
         }
+        
         const speed = e.ctrlKey ? 0.01 : 0.0015; // ctrl+wheel is a trackpad pinch
         appStore.set(zoomByAtom, { factor: Math.exp(-e.deltaY * unit * speed), at });
     };

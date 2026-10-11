@@ -7,7 +7,8 @@ import { NumberField } from "../2-controls/3-number-field";
 import { ColorRow, FILL_SWATCHES, STROKE_SWATCHES } from "../2-controls/4-color-row";
 import { type SectionProps } from "./0-registry";
 
-const prop = (p: string) => (n: SectionProps['nodes'][number]) => getPresentation(n.attrs, p);
+//---------------------------------------------------------------------------
+// Stroke and fill colors
 
 export function StrokeSection({ ids, nodes }: SectionProps) {
     return (
@@ -25,15 +26,12 @@ export function FillSection({ ids, nodes }: SectionProps) {
     );
 }
 
-const WIDTH_OPTIONS: SegmentOption<number>[] = [
-    { value: 1, label: <WidthIcon w={1} />, title: 'Thin' },
-    { value: 2, label: <WidthIcon w={2} />, title: 'Bold' },
-    { value: 4, label: <WidthIcon w={4} />, title: 'Extra bold' },
-];
-
-function WidthIcon({ w }: { w: number; }) {
-    return <span className="w-4 block bg-current rounded-full" style={{ height: w }} />;
+function prop(p: string) {
+    return (n: SectionProps['nodes'][number]) => getPresentation(n.attrs, p);
 }
+
+//---------------------------------------------------------------------------
+// Stroke width
 
 export function StrokeWidthSection({ ids, nodes }: SectionProps) {
     const raw = commonValue(nodes, prop('stroke-width'));
@@ -46,6 +44,38 @@ export function StrokeWidthSection({ ids, nodes }: SectionProps) {
                 <Segmented options={WIDTH_OPTIONS} value={value === MIXED ? undefined : value} onChange={set} />
                 <NumberField className="w-16" value={value} min={0} step={0.5} onChange={set} />
             </div>
+        </Section>
+    );
+}
+
+const WIDTH_OPTIONS: SegmentOption<number>[] = [
+    { value: 1, label: <WidthIcon w={1} />, title: 'Thin' },
+    { value: 2, label: <WidthIcon w={2} />, title: 'Bold' },
+    { value: 4, label: <WidthIcon w={4} />, title: 'Extra bold' },
+];
+
+function WidthIcon({ w }: { w: number; }) {
+    return <span className="w-4 block bg-current rounded-full" style={{ height: w }} />;
+}
+
+//---------------------------------------------------------------------------
+// Stroke style
+
+export function DashSection({ ids, nodes }: SectionProps) {
+    const value = commonValue(nodes, (n) => dashStyleOf(getPresentation(n.attrs, 'stroke-dasharray')));
+
+    function set(style: DashStyle) {
+        const widths = nodes.map(
+            (n) => Number.parseFloat(getPresentation(n.attrs, 'stroke-width') ?? '1') || 1
+        );
+        const w = Math.max(...widths);
+        const dash = style === 'solid' ? undefined : style === 'dashed' ? `${4 * w} ${3 * w}` : `${w} ${2 * w}`;
+        setNodesPresentation(ids, 'stroke-dasharray', dash);
+    }
+
+    return (
+        <Section title="Stroke style">
+            <Segmented options={DASH_OPTIONS} value={value === MIXED ? undefined : value} onChange={set} />
         </Section>
     );
 }
@@ -74,19 +104,16 @@ function dashStyleOf(dash: string | undefined): DashStyle | undefined {
     return a <= (b ?? a) / 1.5 ? 'dotted' : 'dashed';
 }
 
-export function DashSection({ ids, nodes }: SectionProps) {
-    const value = commonValue(nodes, (n) => dashStyleOf(getPresentation(n.attrs, 'stroke-dasharray')));
+//---------------------------------------------------------------------------
+// Line caps and joins
 
-    const set = (style: DashStyle) => {
-        const widths = nodes.map((n) => Number.parseFloat(getPresentation(n.attrs, 'stroke-width') ?? '1') || 1);
-        const w = Math.max(...widths);
-        const dash = style === 'solid' ? undefined : style === 'dashed' ? `${4 * w} ${3 * w}` : `${w} ${2 * w}`;
-        setNodesPresentation(ids, 'stroke-dasharray', dash);
-    };
-
+export function CapJoinSection({ ids, nodes }: SectionProps) {
+    const cap = commonValue(nodes, (n) => getPresentation(n.attrs, 'stroke-linecap') ?? 'butt');
+    const join = commonValue(nodes, (n) => getPresentation(n.attrs, 'stroke-linejoin') ?? 'miter');
     return (
-        <Section title="Stroke style">
-            <Segmented options={DASH_OPTIONS} value={value === MIXED ? undefined : value} onChange={set} />
+        <Section title="Line caps and joins">
+            <Segmented options={CAP_OPTIONS} value={cap === MIXED ? undefined : cap} onChange={(v) => setNodesPresentation(ids, 'stroke-linecap', v === 'butt' ? undefined : v)} />
+            <Segmented options={JOIN_OPTIONS} value={join === MIXED ? undefined : join} onChange={(v) => setNodesPresentation(ids, 'stroke-linejoin', v === 'miter' ? undefined : v)} />
         </Section>
     );
 }
@@ -103,16 +130,7 @@ const JOIN_OPTIONS: SegmentOption<string>[] = [
     { value: 'bevel', label: 'Bevel' },
 ];
 
-export function CapJoinSection({ ids, nodes }: SectionProps) {
-    const cap = commonValue(nodes, (n) => getPresentation(n.attrs, 'stroke-linecap') ?? 'butt');
-    const join = commonValue(nodes, (n) => getPresentation(n.attrs, 'stroke-linejoin') ?? 'miter');
-    return (
-        <Section title="Line caps and joins">
-            <Segmented options={CAP_OPTIONS} value={cap === MIXED ? undefined : cap} onChange={(v) => setNodesPresentation(ids, 'stroke-linecap', v === 'butt' ? undefined : v)} />
-            <Segmented options={JOIN_OPTIONS} value={join === MIXED ? undefined : join} onChange={(v) => setNodesPresentation(ids, 'stroke-linejoin', v === 'miter' ? undefined : v)} />
-        </Section>
-    );
-}
+//---------------------------------------------------------------------------
 
 export function OpacitySection({ ids, nodes }: SectionProps) {
     const raw = commonValue(nodes, (n) => Number.parseFloat(getPresentation(n.attrs, 'opacity') ?? '1'));

@@ -6,6 +6,7 @@ export function Marquee() {
     if (!r) {
         return null;
     }
+    
     return (
         <rect
             x={r.x} y={r.y} width={r.width} height={r.height}

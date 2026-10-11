@@ -12,6 +12,7 @@ export function GridLayer() {
     if (!prefs.showGrid || !(step > 0)) {
         return null;
     }
+
     while (step < 6) {
         step *= 5;
     }
@@ -22,6 +23,7 @@ export function GridLayer() {
                 <path d={`M${step} 0 H0 V${step}`} fill="none" strokeWidth={1} className="stroke-foreground/10" />
             </pattern>
         </defs>
+        
         <rect width="100%" height="100%" fill="url(#editor-grid)" className="pointer-events-none" />
     </>);
 }

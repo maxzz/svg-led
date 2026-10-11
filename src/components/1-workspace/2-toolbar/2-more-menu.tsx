@@ -1,9 +1,7 @@
-import { BringToFront, Copy, EllipsisVertical, Frame, Group, SendToBack, Spline, Trash, Ungroup } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuSeparator, DropdownMenuTrigger } from "@/ui/shadcn/dropdown-menu";
+import { BringToFront, Copy, EllipsisVertical, Frame, Group, SendToBack, Spline, Trash, Ungroup } from "lucide-react";
 import { islandButtonClasses } from "@/ui/local-ui/9-island";
 import { CommandMenuItem } from "./8-command-menu-item";
-
-const ic = "size-4";
 
 /** Object commands that do not deserve a toolbar slot */
 export function MoreMenu() {
@@ -31,3 +29,5 @@ export function MoreMenu() {
         </DropdownMenu>
     );
 }
+
+const ic = "size-4";

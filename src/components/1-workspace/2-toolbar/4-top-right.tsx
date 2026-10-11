@@ -14,6 +14,7 @@ export function TopRightControls() {
             <button className={islandButtonClasses} title="ViewBox settings" onClick={() => run('viewbox.settings')} type="button">
                 <Frame className="size-4" />
             </button>
+            
             <button className={islandButtonClasses} data-active={codePanel.open} title="SVG source — Ctrl+B" onClick={() => run('view.codePanel')} type="button">
                 <Code className="size-4" />
             </button>

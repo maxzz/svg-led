@@ -12,8 +12,6 @@ import {
 import { Island, islandButtonClasses } from "@/ui/local-ui/9-island";
 import { CommandMenuItem } from "./8-command-menu-item";
 
-const ic = "size-4";
-
 export function MainMenu() {
     return (
         <DropdownMenu modal={false}>
@@ -71,6 +69,8 @@ export function MainMenu() {
     );
 }
 
+const ic = "size-4";
+
 function PreferencesSub() {
     const { prefs } = useSnapshot(appSettings);
     const pointsOptions = useAtomValue(pointsOptionsAtom);
@@ -124,17 +124,19 @@ function ThemeRow() {
         <div className="px-2 py-1.5 text-sm flex items-center justify-between">
             Theme
             <div className="p-0.5 bg-muted rounded-md flex gap-0.5">
-                {THEMES.map(([mode, Icon, title]) => (
-                    <button
-                        className={cn("p-1 rounded", theme === mode ? "text-(--editor-accent) bg-background shadow-sm" : "text-muted-foreground hover:text-foreground")}
-                        title={title}
-                        onClick={() => { appSettings.theme = mode; }}
-                        type="button"
-                        key={mode}
-                    >
-                        <Icon className="size-3.5" />
-                    </button>
-                ))}
+                {THEMES.map(
+                    ([mode, Icon, title]) => (
+                        <button
+                            className={cn("p-1 rounded", theme === mode ? "text-(--editor-accent) bg-background shadow-sm" : "text-muted-foreground hover:text-foreground")}
+                            title={title}
+                            onClick={() => { appSettings.theme = mode; }}
+                            type="button"
+                            key={mode}
+                        >
+                            <Icon className="size-3.5" />
+                        </button>
+                    )
+                )}
             </div>
         </div>
     );

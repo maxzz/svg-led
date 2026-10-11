@@ -24,25 +24,27 @@ export function SelectionOverlay() {
 
             {r && (<>
                 <rect
+                    className="stroke-(--editor-accent) pointer-events-none"
                     x={r.x - 4} y={r.y - 4} width={r.width + 8} height={r.height + 8}
                     fill="none" strokeWidth={1} strokeDasharray={selection.length > 1 ? "4 3" : undefined}
-                    className="stroke-(--editor-accent) pointer-events-none"
                 />
-                {CORNERS.map(([corner, fx, fy]) => (
-                    <rect
-                        key={corner}
-                        data-hit="resize"
-                        data-corner={corner}
-                        x={r.x - 4 + fx * (r.width + 8) - HANDLE / 2}
-                        y={r.y - 4 + fy * (r.height + 8) - HANDLE / 2}
-                        width={HANDLE}
-                        height={HANDLE}
-                        rx={2}
-                        strokeWidth={1}
-                        className="fill-background stroke-(--editor-accent)"
-                        style={{ cursor: corner === 'nw' || corner === 'se' ? 'nwse-resize' : 'nesw-resize' }}
-                    />
-                ))}
+                {CORNERS.map(
+                    ([corner, fx, fy]) => (
+                        <rect
+                            key={corner}
+                            data-hit="resize"
+                            data-corner={corner}
+                            x={r.x - 4 + fx * (r.width + 8) - HANDLE / 2}
+                            y={r.y - 4 + fy * (r.height + 8) - HANDLE / 2}
+                            width={HANDLE}
+                            height={HANDLE}
+                            rx={2}
+                            strokeWidth={1}
+                            className="fill-background stroke-(--editor-accent)"
+                            style={{ cursor: corner === 'nw' || corner === 'se' ? 'nwse-resize' : 'nesw-resize' }}
+                        />
+                    )
+                )}
             </>)}
         </g>
     );

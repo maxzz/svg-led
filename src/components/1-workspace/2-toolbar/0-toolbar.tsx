@@ -15,7 +15,9 @@ export function Toolbar() {
             <Island className="pointer-events-auto">
                 <LockButton />
                 <div className="mx-1 w-px h-6 bg-border" />
-                {TOOLS.map((tool) => <ToolButton tool={tool} key={tool.id} />)}
+                {TOOLS.map(
+                    (tool) => <ToolButton tool={tool} key={tool.id} />
+                )}
                 <div className="mx-1 w-px h-6 bg-border" />
                 <MoreMenu />
             </Island>
