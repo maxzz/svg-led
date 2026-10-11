@@ -51,13 +51,13 @@ export function StrokeWidthSection({ ids, nodes }: SectionProps) {
 const DEFAULT_STROKE_WIDTH = 1.5;
 
 const WIDTH_OPTIONS: SegmentOption<number>[] = [
-    { value: 1, label: <WidthIcon w={1} />, title: 'Thin' },
-    { value: 1.5, label: <WidthIcon w={1.5} />, title: 'Medium' },
-    { value: 2, label: <WidthIcon w={2} />, title: 'Bold' },
-    { value: 4, label: <WidthIcon w={4} />, title: 'Extra bold' },
+    { value: 1, label: <WidthIcon w={'0.75px'} />, title: 'Thin' },
+    { value: 1.5, label: <WidthIcon w={2} />, title: 'Medium' },
+    { value: 2, label: <WidthIcon w={4} />, title: 'Bold' },
+    { value: 4, label: <WidthIcon w={6} />, title: 'Extra bold' },
 ];
 
-function WidthIcon({ w }: { w: number; }) {
+function WidthIcon({ w }: { w: number | string; }) {
     return <span className="w-4 block bg-current rounded-full" style={{ height: w }} />;
 }
 
