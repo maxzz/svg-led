@@ -1,3 +1,4 @@
+import { type KeyboardEvent } from "react";
 import { getPresentation } from "@/svg-core";
 import { useSetAtom } from "jotai";
 import { setNodesPresentation } from "@/store/3-document";
@@ -72,6 +73,7 @@ function WidthIcon({ w }: { w: number | string; }) {
 
 export function DashSection({ ids, nodes }: SectionProps) {
     const value = commonValue(nodes, (n) => dashStyleOf(getPresentation(n.attrs, 'stroke-dasharray')));
+    const rawDash = commonValue(nodes, (n) => getPresentation(n.attrs, 'stroke-dasharray'));
 
     function set(style: DashStyle) {
         const widths = nodes.map(
@@ -85,8 +87,81 @@ export function DashSection({ ids, nodes }: SectionProps) {
     return (
         <Section title="Stroke style">
             <Segmented options={DASH_OPTIONS} value={value === MIXED ? undefined : value} onChange={set} />
+            <DashArrayField
+                text={rawDash === MIXED ? '' : normalizeDashArray(rawDash)}
+                mixed={rawDash === MIXED}
+                onCommit={(dash) => setNodesPresentation(ids, 'stroke-dasharray', dash)}
+            />
         </Section>
     );
+}
+
+/** Custom dash array text input. Commits on Enter or blur, Escape reverts. */
+function DashArrayField({ text, mixed, onCommit }: { text: string; mixed: boolean; onCommit: (dash: string | undefined) => void; }) {
+    function commit(input: HTMLInputElement) {
+        if (input.value.trim() === text) {
+            return;
+        }
+        const parsed = parseDashArray(input.value);
+        if (parsed === null) {
+            input.value = text; // invalid input: revert
+            return;
+        }
+        onCommit(parsed);
+    }
+
+    function onKeyDown(e: KeyboardEvent<HTMLInputElement>) {
+        if (e.key === 'Enter') {
+            e.currentTarget.blur();
+        }
+        else if (e.key === 'Escape') {
+            e.currentTarget.value = text;
+            e.currentTarget.blur();
+        }
+    }
+
+    return (
+        <label className="px-1.5 h-7 min-w-0 text-xs bg-muted/60 focus-within:ring-1 focus-within:ring-(--editor-accent) rounded-md flex items-center gap-1">
+            <span className="shrink-0 select-none text-[10px] text-muted-foreground">
+                Dash
+            </span>
+            <input
+                className="w-full min-w-0 tabular-nums bg-transparent outline-none"
+                defaultValue={text}
+                placeholder={mixed ? 'Mixed' : 'e.g. 6 2 1 2'}
+                onBlur={(e) => commit(e.currentTarget)}
+                onKeyDown={onKeyDown}
+                key={`${text}|${mixed}`}
+            />
+        </label>
+    );
+}
+
+/** Canonical display form: numbers separated by single spaces ('' for solid). */
+function normalizeDashArray(dash: string | undefined): string {
+    if (!dash || dash === 'none') {
+        return '';
+    }
+    return dash.split(/[\s,]+/).filter(Boolean).join(' ');
+}
+
+/**
+ * Parses user input into a stroke-dasharray value.
+ * Returns undefined for empty / all-zero (solid), or null when the input is invalid.
+ */
+function parseDashArray(raw: string): string | undefined | null {
+    const text = raw.trim();
+    if (text === '' || text === 'none') {
+        return undefined;
+    }
+    const parts = text.split(/[\s,]+/).map(Number);
+    if (parts.some((n) => !Number.isFinite(n) || n < 0)) {
+        return null;
+    }
+    if (parts.every((n) => n === 0)) {
+        return undefined;
+    }
+    return parts.join(' ');
 }
 
 type DashStyle = 'solid' | 'dashed' | 'dotted';
