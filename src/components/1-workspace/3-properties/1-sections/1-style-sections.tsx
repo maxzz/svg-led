@@ -35,7 +35,7 @@ function prop(p: string) {
 
 export function StrokeWidthSection({ ids, nodes }: SectionProps) {
     const raw = commonValue(nodes, prop('stroke-width'));
-    const value = raw === MIXED ? MIXED : raw === undefined ? 1 : Number.parseFloat(raw);
+    const value = raw === MIXED ? MIXED : raw === undefined ? DEFAULT_STROKE_WIDTH : Number.parseFloat(raw);
     const set = (v: number) => setNodesPresentation(ids, 'stroke-width', String(v));
 
     return (
@@ -48,8 +48,11 @@ export function StrokeWidthSection({ ids, nodes }: SectionProps) {
     );
 }
 
+const DEFAULT_STROKE_WIDTH = 1.5;
+
 const WIDTH_OPTIONS: SegmentOption<number>[] = [
     { value: 1, label: <WidthIcon w={1} />, title: 'Thin' },
+    { value: 1.5, label: <WidthIcon w={1.5} />, title: 'Medium' },
     { value: 2, label: <WidthIcon w={2} />, title: 'Bold' },
     { value: 4, label: <WidthIcon w={4} />, title: 'Extra bold' },
 ];
