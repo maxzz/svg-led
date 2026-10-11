@@ -28,11 +28,11 @@ export type ToolContext = {
     set: Setter;
 };
 
-/** Style defaults a drawing tool applies to new shapes; edited in the properties popup when nothing is selected */
+/** Style defaults a drawing tool applies to new shapes; edited in the properties popup when nothing is selected.
+ * Stroke width is shared by all tools (see lastStrokeWidthAtom). */
 export type ToolStyleOptions = {
     stroke: string;
     fill: string;
-    strokeWidth: number;
 };
 
 export type ToolDef = {

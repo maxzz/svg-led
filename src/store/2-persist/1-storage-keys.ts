@@ -8,6 +8,7 @@ export const STORAGE_KEYS = {
     app: `${APP_PREFIX}__app__v1`,                  // app-level preferences (valtio appSettings)
     toolbar: `${APP_PREFIX}__toolbar__v1`,          // active tool and tool lock
     doc: `${APP_PREFIX}__doc__v1`,                  // autosaved document source
+    strokeWidth: `${APP_PREFIX}__stroke-width__v1`, // last stroke width picked in the properties palette
 } as const;
 
 /** Options of a single tool live under their own key so the shared options object stays small */

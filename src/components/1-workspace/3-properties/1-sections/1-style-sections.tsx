@@ -1,5 +1,7 @@
 import { getPresentation } from "@/svg-core";
+import { useSetAtom } from "jotai";
 import { setNodesPresentation } from "@/store/3-document";
+import { lastStrokeWidthAtom } from "@/store/2-persist";
 import { Slider } from "@/ui/shadcn/slider";
 import { MIXED, commonValue } from "../2-controls/1-mixed";
 import { Section, Segmented, type SegmentOption } from "../2-controls/2-section";
@@ -36,7 +38,11 @@ function prop(p: string) {
 export function StrokeWidthSection({ ids, nodes }: SectionProps) {
     const raw = commonValue(nodes, prop('stroke-width'));
     const value = raw === MIXED ? MIXED : raw === undefined ? DEFAULT_STROKE_WIDTH : Number.parseFloat(raw);
-    const set = (v: number) => setNodesPresentation(ids, 'stroke-width', String(v));
+    const setLastStrokeWidth = useSetAtom(lastStrokeWidthAtom);
+    const set = (v: number) => {
+        setNodesPresentation(ids, 'stroke-width', String(v));
+        setLastStrokeWidth(v);
+    };
 
     return (
         <Section title="Stroke width">
@@ -48,7 +54,7 @@ export function StrokeWidthSection({ ids, nodes }: SectionProps) {
     );
 }
 
-const DEFAULT_STROKE_WIDTH = 1.5;
+const DEFAULT_STROKE_WIDTH = 1;
 
 const WIDTH_OPTIONS: SegmentOption<number>[] = [
     { value: 1, label: <WidthIcon w={'0.75px'} />, title: 'Thin' },

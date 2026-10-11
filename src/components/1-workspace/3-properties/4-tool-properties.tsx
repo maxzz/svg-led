@@ -1,5 +1,6 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { type ToolDef, type ToolStyleOptions } from "@/tools";
+import { lastStrokeWidthAtom } from "@/store/2-persist";
 import { Section } from "./2-controls/2-section";
 import { NumberField } from "./2-controls/3-number-field";
 import { ColorRow, FILL_SWATCHES, STROKE_SWATCHES } from "./2-controls/4-color-row";
@@ -18,6 +19,8 @@ export function ToolProperties() {
 function ToolStyleEditor({ tool }: { tool: ToolDef & Required<Pick<ToolDef, 'optionsAtom'>>; }) {
     const options: ToolStyleOptions = useAtomValue(tool.optionsAtom);
     const setOptions = useSetAtom(tool.optionsAtom);
+    const strokeWidth = useAtomValue(lastStrokeWidthAtom);
+    const setStrokeWidth = useSetAtom(lastStrokeWidthAtom);
 
     return (<>
         <div className="select-none text-xs font-medium">
@@ -35,7 +38,7 @@ function ToolStyleEditor({ tool }: { tool: ToolDef & Required<Pick<ToolDef, 'opt
         )}
         
         <Section title="Stroke width">
-            <NumberField className="w-20" value={options.strokeWidth} min={0} step={0.5} onChange={(strokeWidth) => setOptions({ strokeWidth })} />
+            <NumberField className="w-20" value={strokeWidth} min={0} step={0.5} onChange={setStrokeWidth} />
         </Section>
     </>);
 }

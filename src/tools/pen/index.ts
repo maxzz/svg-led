@@ -3,7 +3,7 @@ import { type Getter, type Setter } from "jotai";
 import { type Anchor, type Point, type SubPath, applyMatrix, constrain45, distance, findNode, newNodeId, parseAnchorKey, pathDataToSubpaths, pullHandles, subpathsToPathData } from "@/svg-core";
 import { commitHistory, docPrecision, docState, getNodeProxy } from "@/store/3-document";
 import { type PenDraft, ToolId, penDraftAtom, selectionAtom, setSelectionAtom } from "@/store/4-editor";
-import { atomWithToolOptions } from "@/store/2-persist";
+import { atomWithToolOptions, lastStrokeWidthAtom } from "@/store/2-persist";
 import { type ToolDef } from "../1-types";
 import { MODIFIERS, isMod } from "../3-modifiers";
 import { docTolerance, nodeMatrices, snapDoc } from "../0-shared/2-tool-helpers";
@@ -12,7 +12,7 @@ import { styleAttrs } from "../0-shared/4-style-attrs";
 
 const M = MODIFIERS.pen;
 
-const penOptionsAtom = atomWithToolOptions(ToolId.pen, { stroke: '#1e1e1e', fill: 'none', strokeWidth: 1.5 });
+const penOptionsAtom = atomWithToolOptions(ToolId.pen, { stroke: '#1e1e1e', fill: 'none' });
 
 /** Pointer is down: dragging pulls handles out of the anchor that was just placed (or of the start anchor when closing) */
 let gesture: { ai: number; startScreen: Point; moved: boolean; closing: boolean; } | null = null;
@@ -52,7 +52,7 @@ export const penTool: ToolDef = {
             const p = snapDoc(e.doc);
             const id = newNodeId();
             const subpaths: SubPath[] = [{ anchors: [{ x: p.x, y: p.y, kind: 'corner' }], closed: false }];
-            docState.doc.children.push({ id, kind: 'path', d: subpathsToPathData(subpaths, docPrecision()), attrs: styleAttrs(get(penOptionsAtom)) });
+            docState.doc.children.push({ id, kind: 'path', d: subpathsToPathData(subpaths, docPrecision()), attrs: styleAttrs(get(penOptionsAtom), get(lastStrokeWidthAtom)) });
             set(penDraftAtom, { nodeId: id, subpaths, si: 0, isNew: true, startCount: 0 });
             set(setSelectionAtom, [id]);
             gesture = { ai: 0, startScreen: e.screen, moved: false, closing: false };
