@@ -69,7 +69,7 @@ export function DashSection({ ids, nodes }: SectionProps) {
 
     function set(style: DashStyle) {
         const widths = nodes.map(
-            (n) => Number.parseFloat(getPresentation(n.attrs, 'stroke-width') ?? '1') || 1
+            (n) => Number.parseFloat(getPresentation(n.attrs, 'stroke-width') ?? String(DEFAULT_STROKE_WIDTH)) || DEFAULT_STROKE_WIDTH
         );
         const w = Math.max(...widths);
         const dash = style === 'solid' ? undefined : style === 'dashed' ? `${4 * w} ${3 * w}` : `${w} ${2 * w}`;

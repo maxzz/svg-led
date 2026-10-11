@@ -12,7 +12,7 @@ import { styleAttrs } from "../0-shared/4-style-attrs";
 
 const M = MODIFIERS.pen;
 
-const penOptionsAtom = atomWithToolOptions(ToolId.pen, { stroke: '#1e1e1e', fill: 'none', strokeWidth: 2 });
+const penOptionsAtom = atomWithToolOptions(ToolId.pen, { stroke: '#1e1e1e', fill: 'none', strokeWidth: 1.5 });
 
 /** Pointer is down: dragging pulls handles out of the anchor that was just placed (or of the start anchor when closing) */
 let gesture: { ai: number; startScreen: Point; moved: boolean; closing: boolean; } | null = null;
