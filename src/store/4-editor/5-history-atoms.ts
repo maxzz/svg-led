@@ -1,9 +1,9 @@
 import { atom } from "jotai";
 import { allNodeIds } from "@/svg-core";
 import { docState, redo, undo } from "../3-document";
-import { selectedAnchorsAtom, selectionAtom } from "./2-selection-atoms";
+import { editingGroupIdAtom, selectedAnchorsAtom, selectionAtom } from "./2-selection-atoms";
 
-/** Keeps only the selected ids that still exist after the document was replaced */
+/** Keeps only the selected ids that still exist after the document was replaced; ends group editing of a removed group */
 export const pruneSelectionAtom = atom(
     null,
     (get, set) => {
@@ -12,6 +12,10 @@ export const pruneSelectionAtom = atom(
         const next = sel.filter((id) => ids.has(id));
         if (next.length !== sel.length) {
             set(selectionAtom, next);
+        }
+        const editing = get(editingGroupIdAtom);
+        if (editing && !ids.has(editing)) {
+            set(editingGroupIdAtom, null);
         }
         set(selectedAnchorsAtom, []);
     }

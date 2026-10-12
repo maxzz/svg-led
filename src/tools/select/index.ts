@@ -1,12 +1,13 @@
 import { MousePointer2 } from "lucide-react";
 import { snapshot } from "valtio";
-import { type Point, type Rect, type SvgDoc, rectFromCorners, rectsIntersect, scaleAround } from "@/svg-core";
+import { type Point, type Rect, type SvgDoc, groupPathIds, rectFromCorners, rectsIntersect, scaleAround } from "@/svg-core";
 import { type NodeOriginals, applyDocMatrix, captureOriginals, commitHistory, docState, duplicateNodes, nodeDocBBox, nodesDocBBox } from "@/store/3-document";
-import { ToolId, marqueeAtom, screenToDoc, selectionAtom, setActiveToolAtom, setSelectionAtom, viewportAtom } from "@/store/4-editor";
+import { ToolId, editingGroupIdAtom, marqueeAtom, screenToDoc, selectionAtom, setActiveToolAtom, setSelectionAtom, viewportAtom } from "@/store/4-editor";
 import { type ToolDef, type ToolPointerEvent } from "../1-types";
 import { MODIFIERS, isMod } from "../3-modifiers";
 import { type MoveGesture, beginMove, endMove, pastThreshold, updateMove } from "../0-shared/3-move-gesture";
 import { hitTestOutlines, docTolerance } from "../0-shared/2-tool-helpers";
+import { selectedGroupOnPath, selectionUnitId } from "../0-shared/4-group-units";
 
 const M = MODIFIERS.select;
 
@@ -22,7 +23,7 @@ export const selectTool: ToolDef = {
     label: 'Selection',
     shortcut: 'v',
     icon: MousePointer2,
-    hint: 'Click to select, Shift+click to add, drag to move (Alt+drag copies), double-click to edit points',
+    hint: 'Click to select, Shift+click to add, drag to move (Alt+drag copies), double-click a group to enter it, Ctrl+click to select inside a group, double-click an element to edit points',
     cursor: 'default',
 
     onPointerDown({ get, set }, e) {
@@ -44,13 +45,34 @@ export const selectTool: ToolDef = {
             }
         }
 
-        if (target.type === 'node' || target.type === 'anchor' || target.type === 'shape-handle' || target.type === 'handle') {
-            const id = target.type === 'node' ? target.topId : target.nodeId;
-
-            if (e.clickCount >= 2 && target.type === 'node') {
-                set(setSelectionAtom, [target.leafId]);
+        if (target.type === 'node' && e.clickCount >= 2) {
+            // Double-click on an element of a selected group enters that group; otherwise the element's points are edited
+            const group = selectedGroupOnPath(docState.doc, target.leafId, selection);
+            set(setSelectionAtom, [target.leafId]);
+            if (group) {
+                set(editingGroupIdAtom, group);
+            } else {
                 set(setActiveToolAtom, ToolId.points);
-                return;
+            }
+            return;
+        }
+
+        if (target.type === 'node' || target.type === 'anchor' || target.type === 'shape-handle' || target.type === 'handle') {
+            let id: string;
+            if (target.type !== 'node') {
+                id = target.nodeId;
+            } else if (isMod(e, M.deepSelect)) {
+                // Ctrl+click selects the element itself and edits its innermost group
+                const path = groupPathIds(docState.doc, target.leafId);
+                set(editingGroupIdAtom, path.length ? path[path.length - 1] : null);
+                id = target.leafId;
+            } else {
+                // A click outside the group being edited ends editing; otherwise the unit is a child of that group
+                const editing = get(editingGroupIdAtom);
+                if (editing && !groupPathIds(docState.doc, target.leafId).includes(editing)) {
+                    set(editingGroupIdAtom, null);
+                }
+                id = selectionUnitId(docState.doc, target.leafId, get(editingGroupIdAtom));
             }
 
             let ids = selection;
@@ -76,6 +98,7 @@ export const selectTool: ToolDef = {
         // empty canvas: rubber band
         const additive = isMod(e, M.toggleSelection);
         if (!additive) {
+            set(editingGroupIdAtom, null);
             set(setSelectionAtom, []);
         }
         const doc = snapshot(docState).doc as SvgDoc;

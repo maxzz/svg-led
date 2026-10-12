@@ -2,12 +2,12 @@ import { type DragEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { type Getter, atom } from "jotai";
 import { toast } from "sonner";
 import { appStore } from "@/store/0-app-store";
-import { insertSvgMarkup, loadSvgFile } from "@/store/3-document";
+import { docState, insertSvgMarkup, loadSvgFile } from "@/store/3-document";
 import {
-    ToolId, activeToolIdAtom, canvasSizeAtom, hoverNodeIdAtom, isPanningAtom, panByAtom, pointerDocAtom, pruneSelectionAtom,
+    ToolId, activeToolIdAtom, canvasSizeAtom, editingGroupIdAtom, hoverNodeIdAtom, isPanningAtom, panByAtom, pointerDocAtom, pruneSelectionAtom,
     screenToDoc, setSelectionAtom, spaceHeldAtom, viewportAtom, zoomByAtom, zoomToFitAtom,
 } from "@/store/4-editor";
-import { type ToolPointerEvent, getTool, resolveTarget } from "@/tools";
+import { type ToolPointerEvent, getTool, resolveTarget, selectionUnitId } from "@/tools";
 
 type CanvasPointerEvent = ReactPointerEvent<SVGSVGElement>;
 
@@ -79,7 +79,9 @@ export const canvasPointerMoveAtom = atom(
         }
 
         const t = ev.target;
-        const hover = t.type === 'node' ? (get(activeToolIdAtom) === ToolId.points ? t.leafId : t.topId) : null;
+        const hover = t.type === 'node'
+            ? (get(activeToolIdAtom) === ToolId.points ? t.leafId : selectionUnitId(docState.doc, t.leafId, get(editingGroupIdAtom)))
+            : null;
         if (get(hoverNodeIdAtom) !== hover) {
             set(hoverNodeIdAtom, hover);
         }
