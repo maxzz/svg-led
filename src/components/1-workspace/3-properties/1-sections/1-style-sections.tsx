@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { getPresentation } from "@/svg-core";
 import { useSetAtom } from "jotai";
 import { setNodesPresentation } from "@/store/3-document";
-import { lastStrokeWidthAtom } from "@/store/2-persist";
+import { type DashStyle, lastDashSettingAtom, lastStrokeWidthAtom, presetDashArray } from "@/store/2-persist";
 import { Slider } from "@/ui/shadcn/slider";
 import { MIXED, commonValue } from "../2-controls/1-mixed";
 import { Section, Segmented, type SegmentOption } from "../2-controls/2-section";
@@ -77,6 +77,7 @@ export function DashSection({ ids, nodes }: SectionProps) {
     const rawDash = commonValue(nodes, (n) => getPresentation(n.attrs, 'stroke-dasharray'));
     const dashText = rawDash === MIXED ? '' : normalizeDashArray(rawDash);
     const [customOpen, setCustomOpen] = useState(false);
+    const setDashSetting = useSetAtom(lastDashSettingAtom);
 
     const widths = nodes.map(
         (n) => Number.parseFloat(getPresentation(n.attrs, 'stroke-width') ?? String(DEFAULT_STROKE_WIDTH)) || DEFAULT_STROKE_WIDTH
@@ -84,16 +85,24 @@ export function DashSection({ ids, nodes }: SectionProps) {
     const w = Math.max(...widths);
 
     // Custom is shown when chosen explicitly, or when the current dash array isn't a preset.
-    const presetTexts = [presetDash('dashed', w), presetDash('dotted', w)].map(normalizeDashArray);
+    const presetTexts = [presetDashArray('dashed', w), presetDashArray('dotted', w)].map(normalizeDashArray);
     const showCustom = customOpen || (dashText !== '' && !presetTexts.includes(dashText));
 
+    // The last choice is remembered and applied to new shapes
     function set(style: DashStyle) {
         if (style === 'custom') {
             setCustomOpen(true);
+            setDashSetting({ dashStyle: 'custom' });
             return;
         }
         setCustomOpen(false);
-        setNodesPresentation(ids, 'stroke-dasharray', presetDash(style, w));
+        setNodesPresentation(ids, 'stroke-dasharray', presetDashArray(style, w));
+        setDashSetting({ dashStyle: style });
+    }
+
+    function commitCustom(dash: string | undefined) {
+        setNodesPresentation(ids, 'stroke-dasharray', dash);
+        setDashSetting({ dashStyle: 'custom', customDash: dash ?? '' });
     }
 
     return (
@@ -111,7 +120,7 @@ export function DashSection({ ids, nodes }: SectionProps) {
                         <DashArrayField
                             text={dashText}
                             mixed={rawDash === MIXED}
-                            onCommit={(dash) => setNodesPresentation(ids, 'stroke-dasharray', dash)}
+                            onCommit={commitCustom}
                         />
                     </motion.div>
                 )}
@@ -122,11 +131,6 @@ export function DashSection({ ids, nodes }: SectionProps) {
 
 /** Must match the `gap-1.5` between children in `Section` (0.375rem). */
 const GAP_PX = 6;
-
-/** Preset dash array for a given stroke width; undefined for solid. */
-function presetDash(style: Exclude<DashStyle, 'custom'>, w: number): string | undefined {
-    return style === 'solid' ? undefined : style === 'dashed' ? `${4 * w} ${3 * w}` : `${w} ${2 * w}`;
-}
 
 /** Custom dash array text input. Commits on Enter or blur, Escape reverts. */
 function DashArrayField({ text, mixed, onCommit }: { text: string; mixed: boolean; onCommit: (dash: string | undefined) => void; }) {
@@ -195,8 +199,6 @@ function parseDashArray(raw: string): string | undefined | null {
     }
     return parts.join(' ');
 }
-
-type DashStyle = 'solid' | 'dashed' | 'dotted' | 'custom';
 
 const DASH_OPTIONS: SegmentOption<DashStyle>[] = [
     { value: 'solid', label: <DashIcon dash="" />, title: 'Solid' },

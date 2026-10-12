@@ -2,7 +2,7 @@ import { type ComponentType } from "react";
 import { type Point, type ShapeNode, newNodeId } from "@/svg-core";
 import { commitHistory, docState, getNodeProxy, replaceNode } from "@/store/3-document";
 import { type ToolId, selectionAtom, setActiveToolAtom, setSelectionAtom, toolLockedAtom } from "@/store/4-editor";
-import { atomWithToolOptions, lastStrokeWidthAtom } from "@/store/2-persist";
+import { atomWithToolOptions, lastStrokeDashArrayAtom, lastStrokeWidthAtom } from "@/store/2-persist";
 import { type ToolDef, type ToolStyleOptions } from "../1-types";
 import { MODIFIERS, isMod } from "../3-modifiers";
 import { docTolerance, snapDoc } from "../0-shared/2-tool-helpers";
@@ -40,7 +40,7 @@ export function createShapeTool(config: ShapeToolConfig): ToolDef {
         onPointerDown({ get, set }, e) {
             const start = snapDoc(e.doc);
             const id = newNodeId();
-            docState.doc.children.push(config.create(id, start, start, styleAttrs(get(optionsAtom), get(lastStrokeWidthAtom))));
+            docState.doc.children.push(config.create(id, start, start, styleAttrs(get(optionsAtom), get(lastStrokeWidthAtom), get(lastStrokeDashArrayAtom))));
             set(setSelectionAtom, [id]);
             drawing = { id, start };
         },

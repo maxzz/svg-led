@@ -3,7 +3,7 @@ import { type Getter, type Setter } from "jotai";
 import { type Anchor, type Point, type SubPath, applyMatrix, constrain45, distance, findNode, newNodeId, parseAnchorKey, pathDataToSubpaths, pullHandles, subpathsToPathData } from "@/svg-core";
 import { commitHistory, docPrecision, docState, getNodeProxy } from "@/store/3-document";
 import { type PenDraft, ToolId, penDraftAtom, selectionAtom, setSelectionAtom } from "@/store/4-editor";
-import { atomWithToolOptions, lastStrokeWidthAtom } from "@/store/2-persist";
+import { atomWithToolOptions, lastStrokeDashArrayAtom, lastStrokeWidthAtom } from "@/store/2-persist";
 import { type ToolDef } from "../1-types";
 import { MODIFIERS, isMod } from "../3-modifiers";
 import { docTolerance, nodeMatrices, snapDoc } from "../0-shared/2-tool-helpers";
@@ -52,7 +52,7 @@ export const penTool: ToolDef = {
             const p = snapDoc(e.doc);
             const id = newNodeId();
             const subpaths: SubPath[] = [{ anchors: [{ x: p.x, y: p.y, kind: 'corner' }], closed: false }];
-            docState.doc.children.push({ id, kind: 'path', d: subpathsToPathData(subpaths, docPrecision()), attrs: styleAttrs(get(penOptionsAtom), get(lastStrokeWidthAtom)) });
+            docState.doc.children.push({ id, kind: 'path', d: subpathsToPathData(subpaths, docPrecision()), attrs: styleAttrs(get(penOptionsAtom), get(lastStrokeWidthAtom), get(lastStrokeDashArrayAtom)) });
             set(penDraftAtom, { nodeId: id, subpaths, si: 0, isNew: true, startCount: 0 });
             set(setSelectionAtom, [id]);
             gesture = { ai: 0, startScreen: e.screen, moved: false, closing: false };

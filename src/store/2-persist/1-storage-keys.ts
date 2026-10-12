@@ -9,6 +9,7 @@ export const STORAGE_KEYS = {
     toolbar: `${APP_PREFIX}__toolbar__v1`,          // active tool and tool lock
     doc: `${APP_PREFIX}__doc__v1`,                  // autosaved document source
     strokeWidth: `${APP_PREFIX}__stroke-width__v1`, // last stroke width picked in the properties palette
+    strokeDash: `${APP_PREFIX}__stroke-dash__v1`,   // last dash style or custom dash array picked in the properties palette
 } as const;
 
 /** Options of a single tool live under their own key so the shared options object stays small */
