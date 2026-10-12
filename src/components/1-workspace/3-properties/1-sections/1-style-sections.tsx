@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { getPresentation } from "@/svg-core";
 import { useSetAtom } from "jotai";
 import { setNodesPresentation } from "@/store/3-document";
-import { type DashStyle, lastDashSettingAtom, lastStrokeWidthAtom, presetDashArray } from "@/store/2-persist";
+import { type DashStyle, type LastStyle, lastDashSettingAtom, lastStrokeWidthAtom, lastStyleAtom, presetDashArray } from "@/store/2-persist";
 import { Slider } from "@/ui/shadcn/slider";
 import { MIXED, commonValue } from "../2-controls/1-mixed";
 import { Section, Segmented, type SegmentOption } from "../2-controls/2-section";
@@ -14,18 +14,29 @@ import { type SectionProps } from "./0-registry";
 //---------------------------------------------------------------------------
 // Stroke and fill colors
 
+/** Applies a style to the selection and remembers it for new shapes */
+function useSetStyle(ids: string[]) {
+    const setLastStyle = useSetAtom(lastStyleAtom);
+    return function setStyle(prop: string, value: string | undefined, last: Partial<LastStyle>) {
+        setNodesPresentation(ids, prop, value);
+        setLastStyle(last);
+    };
+}
+
 export function StrokeSection({ ids, nodes }: SectionProps) {
+    const setStyle = useSetStyle(ids);
     return (
         <Section title="Stroke">
-            <ColorRow value={commonValue(nodes, prop('stroke'))} swatches={STROKE_SWATCHES} onChange={(v) => setNodesPresentation(ids, 'stroke', v)} />
+            <ColorRow value={commonValue(nodes, prop('stroke'))} swatches={STROKE_SWATCHES} onChange={(v) => setStyle('stroke', v, { stroke: v })} />
         </Section>
     );
 }
 
 export function FillSection({ ids, nodes }: SectionProps) {
+    const setStyle = useSetStyle(ids);
     return (
         <Section title="Fill">
-            <ColorRow value={commonValue(nodes, prop('fill'))} swatches={FILL_SWATCHES} onChange={(v) => setNodesPresentation(ids, 'fill', v)} />
+            <ColorRow value={commonValue(nodes, prop('fill'))} swatches={FILL_SWATCHES} onChange={(v) => setStyle('fill', v, { fill: v })} />
         </Section>
     );
 }
@@ -45,6 +56,7 @@ export function StrokeWidthSection({ ids, nodes }: SectionProps) {
         setNodesPresentation(ids, 'stroke-width', String(v));
         setLastStrokeWidth(v);
     };
+    // Stroke width is remembered by lastStrokeWidthAtom, separately from lastStyleAtom
 
     return (
         <Section title="Stroke width">
@@ -100,9 +112,14 @@ export function DashSection({ ids, nodes }: SectionProps) {
         setDashSetting({ dashStyle: style });
     }
 
+    // Remembers the typed array right away, so a shape drawn before the field blurs already gets it
+    function previewCustom(dash: string | undefined) {
+        setDashSetting({ dashStyle: 'custom', customDash: dash ?? '' });
+    }
+
     function commitCustom(dash: string | undefined) {
         setNodesPresentation(ids, 'stroke-dasharray', dash);
-        setDashSetting({ dashStyle: 'custom', customDash: dash ?? '' });
+        previewCustom(dash);
     }
 
     return (
@@ -120,6 +137,7 @@ export function DashSection({ ids, nodes }: SectionProps) {
                         <DashArrayField
                             text={dashText}
                             mixed={rawDash === MIXED}
+                            onPreview={previewCustom}
                             onCommit={commitCustom}
                         />
                     </motion.div>
@@ -133,7 +151,7 @@ export function DashSection({ ids, nodes }: SectionProps) {
 const GAP_PX = 6;
 
 /** Custom dash array text input. Commits on Enter or blur, Escape reverts. */
-function DashArrayField({ text, mixed, onCommit }: { text: string; mixed: boolean; onCommit: (dash: string | undefined) => void; }) {
+function DashArrayField({ text, mixed, onPreview, onCommit }: { text: string; mixed: boolean; onPreview: (dash: string | undefined) => void; onCommit: (dash: string | undefined) => void; }) {
     function commit(input: HTMLInputElement) {
         if (input.value.trim() === text) {
             return;
@@ -165,6 +183,10 @@ function DashArrayField({ text, mixed, onCommit }: { text: string; mixed: boolea
                 className="w-full min-w-0 tabular-nums bg-transparent outline-none"
                 defaultValue={text}
                 placeholder={mixed ? 'Mixed' : 'e.g. 6 2 1 2'}
+                onChange={(e) => {
+                    const parsed = parseDashArray(e.currentTarget.value);
+                    parsed !== null && onPreview(parsed);
+                }}
                 onBlur={(e) => commit(e.currentTarget)}
                 onKeyDown={onKeyDown}
                 key={`${text}|${mixed}`}
@@ -227,12 +249,13 @@ function dashStyleOf(dash: string | undefined): DashStyle | undefined {
 // Line caps and joins
 
 export function CapJoinSection({ ids, nodes }: SectionProps) {
+    const setStyle = useSetStyle(ids);
     const cap = commonValue(nodes, (n) => getPresentation(n.attrs, 'stroke-linecap') ?? 'butt');
     const join = commonValue(nodes, (n) => getPresentation(n.attrs, 'stroke-linejoin') ?? 'miter');
     return (
         <Section title="Line caps and joins">
-            <Segmented options={CAP_OPTIONS} value={cap === MIXED ? undefined : cap} onChange={(v) => setNodesPresentation(ids, 'stroke-linecap', v === 'butt' ? undefined : v)} />
-            <Segmented options={JOIN_OPTIONS} value={join === MIXED ? undefined : join} onChange={(v) => setNodesPresentation(ids, 'stroke-linejoin', v === 'miter' ? undefined : v)} />
+            <Segmented options={CAP_OPTIONS} value={cap === MIXED ? undefined : cap} onChange={(v) => setStyle('stroke-linecap', v === 'butt' ? undefined : v, { linecap: v })} />
+            <Segmented options={JOIN_OPTIONS} value={join === MIXED ? undefined : join} onChange={(v) => setStyle('stroke-linejoin', v === 'miter' ? undefined : v, { linejoin: v })} />
         </Section>
     );
 }
@@ -254,7 +277,8 @@ const JOIN_OPTIONS: SegmentOption<string>[] = [
 export function OpacitySection({ ids, nodes }: SectionProps) {
     const raw = commonValue(nodes, (n) => Number.parseFloat(getPresentation(n.attrs, 'opacity') ?? '1'));
     const percent = raw === MIXED || raw === undefined || Number.isNaN(raw) ? 100 : Math.round(raw * 100);
-    const set = (p: number) => setNodesPresentation(ids, 'opacity', p >= 100 ? undefined : String(p / 100));
+    const setStyle = useSetStyle(ids);
+    const set = (p: number) => setStyle('opacity', p >= 100 ? undefined : String(p / 100), { opacity: p / 100 });
 
     return (
         <Section title={`Opacity${raw === MIXED ? ' (mixed)' : ''}`}>

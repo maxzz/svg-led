@@ -9,7 +9,6 @@ export const rectangleTool = createShapeTool({
     shortcut: 'r',
     icon: Square,
     hint: 'Drag to draw. Shift: square, Alt: from center',
-    defaults: { stroke: '#1e1e1e', fill: 'none' },
     constrain: constrainSquare,
     create: (id, a, b, attrs) => ({
         id,
@@ -30,7 +29,6 @@ export const ellipseTool = createShapeTool({
     shortcut: 'o',
     icon: Circle,
     hint: 'Drag to draw. Shift: circle, Alt: from center',
-    defaults: { stroke: '#1e1e1e', fill: 'none' },
     constrain: constrainSquare,
     create: (id, a, b, attrs) => {
         const rx = Math.abs(b.x - a.x) / 2;
@@ -49,7 +47,6 @@ export const lineTool = createShapeTool({
     shortcut: 'l',
     icon: Minus,
     hint: 'Drag to draw. Shift: 45 degree steps, Alt: from center',
-    defaults: { stroke: '#1e1e1e', fill: 'none' },
     constrain: constrain45,
     create: (id, a, b, attrs) => ({ id, kind: 'line', x1: a.x, y1: a.y, x2: b.x, y2: b.y, attrs }),
 });

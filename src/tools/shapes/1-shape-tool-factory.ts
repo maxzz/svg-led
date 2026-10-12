@@ -2,8 +2,8 @@ import { type ComponentType } from "react";
 import { type Point, type ShapeNode, newNodeId } from "@/svg-core";
 import { commitHistory, docState, getNodeProxy, replaceNode } from "@/store/3-document";
 import { type ToolId, selectionAtom, setActiveToolAtom, setSelectionAtom, toolLockedAtom } from "@/store/4-editor";
-import { atomWithToolOptions, lastStrokeDashArrayAtom, lastStrokeWidthAtom } from "@/store/2-persist";
-import { type ToolDef, type ToolStyleOptions } from "../1-types";
+import { lastStrokeDashArrayAtom, lastStrokeWidthAtom, lastStyleAtom } from "@/store/2-persist";
+import { type ToolDef } from "../1-types";
 import { MODIFIERS, isMod } from "../3-modifiers";
 import { docTolerance, snapDoc } from "../0-shared/2-tool-helpers";
 import { styleAttrs } from "../0-shared/4-style-attrs";
@@ -16,7 +16,6 @@ type ShapeToolConfig = {
     shortcut: string;
     icon: ComponentType<{ className?: string; }>;
     hint: string;
-    defaults: ToolStyleOptions;
     /** Geometry from the drag start and the current point (both already constrained/centered) */
     create: (id: string, a: Point, b: Point, attrs: Record<string, string>) => ShapeNode;
     /** Shift behavior: square, circle or 45 degree line */
@@ -25,7 +24,7 @@ type ShapeToolConfig = {
 
 /** Rectangle, ellipse and line share the same drag-to-draw gesture */
 export function createShapeTool(config: ShapeToolConfig): ToolDef {
-    const optionsAtom = atomWithToolOptions(config.id, config.defaults);
+    const optionsAtom = lastStyleAtom;
     let drawing: { id: string; start: Point; } | null = null;
 
     return {
@@ -40,7 +39,7 @@ export function createShapeTool(config: ShapeToolConfig): ToolDef {
         onPointerDown({ get, set }, e) {
             const start = snapDoc(e.doc);
             const id = newNodeId();
-            docState.doc.children.push(config.create(id, start, start, styleAttrs(get(optionsAtom), get(lastStrokeWidthAtom), get(lastStrokeDashArrayAtom))));
+            docState.doc.children.push(config.create(id, start, start, styleAttrs(get(lastStyleAtom), get(lastStrokeWidthAtom), get(lastStrokeDashArrayAtom))));
             set(setSelectionAtom, [id]);
             drawing = { id, start };
         },

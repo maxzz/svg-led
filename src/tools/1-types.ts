@@ -2,6 +2,7 @@ import { type ComponentType } from "react";
 import { type Getter, type Setter, type WritableAtom } from "jotai";
 import { type Point } from "@/svg-core";
 import { type ToolId } from "@/store/4-editor";
+import { type LastStyle } from "@/store/2-persist";
 
 /** What is under the pointer, resolved from data-* attributes of canvas elements */
 export type CanvasTarget =
@@ -28,12 +29,8 @@ export type ToolContext = {
     set: Setter;
 };
 
-/** Style defaults a drawing tool applies to new shapes; edited in the properties popup when nothing is selected.
- * Stroke width is shared by all tools (see lastStrokeWidthAtom). */
-export type ToolStyleOptions = {
-    stroke: string;
-    fill: string;
-};
+/** Style new shapes are drawn with. Shared by all drawing tools (see lastStyleAtom); stroke width and dash are separate atoms. */
+export type ToolStyleOptions = LastStyle;
 
 export type ToolDef = {
     id: ToolId;
@@ -43,7 +40,7 @@ export type ToolDef = {
     hint: string;                // shown under the toolbar while the tool is active
     cursor: string;
 
-    /** Per-tool options, stored under svg-led__tool:<id>__v1 */
+    /** Style editor of a drawing tool; the shared last style (see lastStyleAtom) */
     optionsAtom?: WritableAtom<ToolStyleOptions, [Partial<ToolStyleOptions>], void>;
 
     onPointerDown?: (ctx: ToolContext, e: ToolPointerEvent) => void;

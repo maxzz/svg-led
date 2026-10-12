@@ -8,6 +8,7 @@ export const STORAGE_KEYS = {
     app: `${APP_PREFIX}__app__v1`,                  // app-level preferences (valtio appSettings)
     toolbar: `${APP_PREFIX}__toolbar__v1`,          // active tool and tool lock
     doc: `${APP_PREFIX}__doc__v1`,                  // autosaved document source
+    style: `${APP_PREFIX}__style__v1`,              // last colors, caps, joins and opacity picked in the properties palette
     strokeWidth: `${APP_PREFIX}__stroke-width__v1`, // last stroke width picked in the properties palette
     strokeDash: `${APP_PREFIX}__stroke-dash__v1`,   // last dash style or custom dash array picked in the properties palette
 } as const;
