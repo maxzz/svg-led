@@ -10,17 +10,22 @@ export const rectangleTool = createShapeTool({
     icon: Square,
     hint: 'Drag to draw. Shift: square, Alt: from center',
     constrain: constrainSquare,
-    create: (id, a, b, attrs) => ({
-        id,
-        kind: 'rect',
-        x: Math.min(a.x, b.x),
-        y: Math.min(a.y, b.y),
-        width: Math.abs(b.x - a.x),
-        height: Math.abs(b.y - a.y),
-        rx: 0,
-        ry: 0,
-        attrs,
-    }),
+    create: (id, a, b, attrs, corner) => {
+        const width = Math.abs(b.x - a.x);
+        const height = Math.abs(b.y - a.y);
+        return {
+            id,
+            kind: 'rect',
+            x: Math.min(a.x, b.x),
+            y: Math.min(a.y, b.y),
+            width,
+            height,
+            // the remembered radius, limited to the rectangle's size (as RectCornersSection does)
+            rx: Math.min(corner.rx, width / 2),
+            ry: Math.min(corner.ry, height / 2),
+            attrs,
+        };
+    },
 });
 
 export const ellipseTool = createShapeTool({

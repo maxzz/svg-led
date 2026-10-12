@@ -1,4 +1,6 @@
 import { type RectNode } from "@/svg-core";
+import { useSetAtom } from "jotai";
+import { lastCornerRadiusAtom } from "@/store/2-persist";
 import { commitHistory, getNodeProxy, nodesDocBBox, setNodesBBox, useDocSnapshot } from "@/store/3-document";
 import { MIXED, commonValue } from "../2-controls/1-mixed";
 import { Section } from "../2-controls/2-section";
@@ -30,8 +32,11 @@ export function RectCornersSection({ ids, nodes }: SectionProps) {
     const rects = nodes.filter((n): n is RectNode => n.kind === 'rect');
     const rx = commonValue(rects, (r) => r.rx);
     const ry = commonValue(rects, (r) => r.ry);
+    const setLastCorner = useSetAtom(lastCornerRadiusAtom);
 
     function set(key: 'rx' | 'ry', value: number, both: boolean) {
+        // remembered for new rectangles; the shapes themselves are clamped to their size
+        setLastCorner(key === 'rx' ? (both ? { rx: value, ry: value } : { rx: value }) : { ry: value });
         for (const r of rects) {
             const node = getNodeProxy(r.id) as RectNode | undefined;
             if (node) {
