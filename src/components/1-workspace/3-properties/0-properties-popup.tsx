@@ -22,13 +22,15 @@ export function PropertiesPopup() {
                 {collapsed ? <ChevronDown className="size-3.5" /> : <ChevronUp className="size-3.5" />}
             </button>
 
-            <ScrollArea fixedWidth className={cn("flex-1 min-h-0", collapsed && "hidden")}>
-                <div className="px-3 pt-1 pb-3 flex flex-col gap-3">
-                    {mode === 'selection' && <SelectionProperties />}
-                    {mode === 'tool' && <ToolProperties />}
-                    {mode === 'document' && <DocumentProperties />}
-                </div>
-            </ScrollArea>
+            <div className={cn("relative flex-1 min-h-0", collapsed && "hidden")}>
+                <ScrollArea fixedWidth className="absolute inset-0">
+                    <div className="px-3 pt-1 pb-3 flex flex-col gap-3">
+                        {mode === 'selection' && <SelectionProperties />}
+                        {mode === 'tool' && <ToolProperties />}
+                        {mode === 'document' && <DocumentProperties />}
+                    </div>
+                </ScrollArea>
+            </div>
         </div>
     );
 }
