@@ -3,7 +3,7 @@ import {
     type GroupNode, type Matrix, type Padding, type FitOptions, type SvgDoc, type SvgNode, type ViewBox,
     docToParentMatrix, findNode, fitRectMatrix, isShapeNode, newNodeId, nodeOwnMatrix, parentsMatrix, parseSvg,
     parseSvgFragment, serializeNodes, serializeSvg, setPresentation, shapeToPath, topmostIds, transformNode, translateMatrix,
-    viewBoxAround, walkNodes, makeFmt, isIdentity, multiply, scaleMatrix, reuseNodeIds, type Rect,
+    viewBoxAround, walkNodes, makeFmt, isIdentity, multiply, scaleMatrix, reuseNodeIds, type Rect, scaleAround, getPresentation,
 } from "@/svg-core";
 import { docPrecision, docState } from "./1-doc-store";
 import { type ChangeOrigin, commitHistory, resetHistory } from "./2-doc-history";
@@ -290,6 +290,60 @@ export function setNodesPresentation(ids: readonly string[], prop: string, value
         node && setPresentation(node.attrs, prop, value);
     }
     commitHistory({ mergeKey: mergeKey ?? `style:${prop}` });
+}
+
+/** Presentation attributes that Copy style and Paste style carry over */
+export const STYLE_PROPS = ['fill', 'stroke', 'stroke-width', 'stroke-dasharray', 'stroke-linecap', 'stroke-linejoin', 'opacity'] as const;
+
+export type StyleSnapshot = Record<string, string | undefined>;
+
+/** Elements that carry the paint: the node itself, or for a group all of its elements (groups have no paint of their own) */
+function styleLeaves(node: SvgNode): SvgNode[] {
+    return node.kind === 'g' ? node.children.flatMap(styleLeaves) : [node];
+}
+
+/** Style of the first element of the node (Copy style) */
+export function readNodeStyle(id: string): StyleSnapshot | undefined {
+    const node = getNodeProxy(id);
+    const leaf = node && styleLeaves(node)[0];
+    if (!leaf) {
+        return;
+    }
+    const rv: StyleSnapshot = {};
+    for (const prop of STYLE_PROPS) {
+        rv[prop] = getPresentation(leaf.attrs, prop);
+    }
+    return rv;
+}
+
+/** Writes the style to every element of the selection; properties missing in the style are removed */
+export function writeNodesStyle(ids: readonly string[], style: StyleSnapshot): void {
+    for (const id of topmostIds(docState.doc, ids)) {
+        const node = getNodeProxy(id);
+        for (const leaf of node ? styleLeaves(node) : []) {
+            for (const prop of STYLE_PROPS) {
+                setPresentation(leaf.attrs, prop, style[prop]);
+            }
+        }
+    }
+    commitHistory();
+}
+
+/** Mirrors the nodes across the vertical (axis 'x') or horizontal (axis 'y') line through the center of their bbox */
+export function flipNodes(ids: readonly string[], axis: 'x' | 'y'): void {
+    const bbox = nodesDocBBox(snapshot(docState).doc as SvgDoc, ids);
+    if (!bbox) {
+        return;
+    }
+    const origin = { x: bbox.x + bbox.width / 2, y: bbox.y + bbox.height / 2 };
+    applyDocMatrix(captureOriginals(ids), axis === 'x' ? scaleAround(-1, 1, origin) : scaleAround(1, -1, origin));
+    commitHistory();
+}
+
+/** Path and shape elements have anchors that the Points tool can edit */
+export function isPointEditable(id: string): boolean {
+    const node = getNodeProxy(id);
+    return !!node && (node.kind === 'path' || isShapeNode(node));
 }
 
 export function setNodeNumber(id: string, key: string, value: number): void {

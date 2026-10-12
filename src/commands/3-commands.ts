@@ -2,13 +2,13 @@ import { toast } from "sonner";
 import { isShapeNode } from "@/svg-core";
 import { appSettings } from "@/store/1-ui-settings";
 import {
-    type FileResult, commitHistory, convertToPath, createEmptyDoc, deleteNodes, docState, duplicateNodes, exportPng, exportSvgDownload,
-    getNodeProxy, groupNodes, historyState, insertSvgMarkup, openSvgFile, reorderNodes, saveSvgFile, saveSvgFileAs, ungroupNodes,
-    topLevelIds, docToText, moveNodes,
+    type FileResult, commitHistory, convertToPath, copyPngToClipboard, createEmptyDoc, deleteNodes, docState, docToText, duplicateNodes,
+    exportPng, exportSvgDownload, flipNodes, getNodeProxy, groupNodes, historyState, insertSvgMarkup, isPointEditable, moveNodes,
+    nodesToText, openSvgFile, readNodeStyle, reorderNodes, saveSvgFile, saveSvgFileAs, topLevelIds, ungroupNodes, writeNodesStyle,
 } from "@/store/3-document";
 import {
-    ToolId, activeToolIdAtom, redoAtom, selectionAtom, setActiveToolAtom, setSelectionAtom, undoAtom, zoomByAtom, zoomResetAtom,
-    zoomToFitAtom, zoomToSelectionAtom,
+    ToolId, activeToolIdAtom, copiedStyleAtom, redoAtom, selectionAtom, setActiveToolAtom, setSelectionAtom, undoAtom, zoomByAtom,
+    zoomResetAtom, zoomToFitAtom, zoomToSelectionAtom,
 } from "@/store/4-editor";
 import { TOOLS } from "@/tools";
 import { doAsyncExecuteConfirmDialogAtom } from "@/components/4-dialogs/8-1-confirmation/9-types-confirmation";
@@ -104,6 +104,54 @@ const EDIT: Command[] = [
             commitHistory(); // duplicateNodes does not commit because Alt+drag commits after the move
         },
     },
+    // Cut and Copy have no shortcut here: the native clipboard events (see store/5-controllers/3-clipboard.ts) handle Ctrl+X and Ctrl+C
+    {
+        id: 'edit.cut', label: 'Cut', group: 'edit', enabled: hasSelection,
+        run: async ({ get, set }) => {
+            const ids = get(selectionAtom);
+            try {
+                await navigator.clipboard.writeText(nodesToText(ids));
+            } catch (e) {
+                toast.error(String(e));
+                return;
+            }
+            deleteNodes(ids);
+            set(setSelectionAtom, []);
+        },
+    },
+    {
+        id: 'edit.copy', label: 'Copy', group: 'edit', enabled: hasSelection,
+        run: async ({ get }) => {
+            try {
+                await navigator.clipboard.writeText(nodesToText(get(selectionAtom)));
+            } catch (e) {
+                toast.error(String(e));
+            }
+        },
+    },
+    {
+        id: 'edit.copyPng', label: 'Copy as PNG', group: 'edit', enabled: hasSelection, keywords: 'image bitmap',
+        run: async ({ get }) => reportFile(await copyPngToClipboard(get(selectionAtom)), 'PNG copied'),
+    },
+    {
+        id: 'edit.copyDrawingPng', label: 'Copy drawing as PNG', group: 'edit', keywords: 'image bitmap all',
+        run: async () => reportFile(await copyPngToClipboard(), 'PNG copied'),
+    },
+    {
+        id: 'edit.copyStyle', label: 'Copy style', group: 'edit', enabled: hasSelection, keywords: 'fill stroke attributes',
+        run: ({ get, set }) => {
+            const style = readNodeStyle(get(selectionAtom)[0]);
+            style && set(copiedStyleAtom, style);
+        },
+    },
+    {
+        id: 'edit.pasteStyle', label: 'Paste style', group: 'edit', keywords: 'fill stroke attributes',
+        enabled: (get) => hasSelection(get) && get(copiedStyleAtom) !== null,
+        run: ({ get }) => {
+            const style = get(copiedStyleAtom);
+            style && writeNodesStyle(get(selectionAtom), style);
+        },
+    },
     {
         id: 'edit.selectAll', label: 'Select all', group: 'edit', shortcut: 'Ctrl+A',
         run: ({ set }) => {
@@ -135,6 +183,13 @@ const OBJECT: Command[] = [
     { id: 'object.forward', label: 'Bring forward', group: 'object', shortcut: 'Ctrl+]', enabled: hasSelection, run: ({ get }) => reorderNodes(get(selectionAtom), 'forward') },
     { id: 'object.backward', label: 'Send backward', group: 'object', shortcut: 'Ctrl+[', enabled: hasSelection, run: ({ get }) => reorderNodes(get(selectionAtom), 'backward') },
     { id: 'object.back', label: 'Send to back', group: 'object', shortcut: 'Ctrl+Shift+[', enabled: hasSelection, run: ({ get }) => reorderNodes(get(selectionAtom), 'back') },
+    { id: 'object.flipH', label: 'Flip horizontal', group: 'object', keywords: 'mirror', enabled: hasSelection, run: ({ get }) => flipNodes(get(selectionAtom), 'x') },
+    { id: 'object.flipV', label: 'Flip vertical', group: 'object', keywords: 'mirror', enabled: hasSelection, run: ({ get }) => flipNodes(get(selectionAtom), 'y') },
+    {
+        id: 'object.editPoints', label: 'Edit points', group: 'object', keywords: 'direct selection anchors handles',
+        enabled: (get) => { const ids = get(selectionAtom); return ids.length === 1 && isPointEditable(ids[0]); },
+        run: ({ set }) => set(setActiveToolAtom, ToolId.points),
+    },
 ];
 
 const VIEWBOX: Command[] = [

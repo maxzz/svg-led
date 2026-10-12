@@ -1,4 +1,4 @@
-import { type ComponentProps } from "react"; // 05.09.26
+import { type ComponentProps } from "react"; // 05.09.26, 10.12.26
 import { cn } from "@/utils/classnames";
 import { ChevronRightIcon, CheckIcon } from "lucide-react";
 import { ContextMenu as ContextMenuPrimitive } from "radix-ui";
@@ -40,32 +40,34 @@ export function ContextMenuContent({ className, ...rest }: ComponentProps<typeof
 }
 
 const contentClasses = "\
-p-1 min-w-36 max-h-(--radix-context-menu-content-available-height) origin-(--radix-context-menu-content-transform-origin) \
+py-1 min-w-36 max-h-(--radix-context-menu-content-available-height) origin-(--radix-context-menu-content-transform-origin) \
 \
 text-popover-foreground \
 bg-popover \
-duration-100 \
-\
-data-[side=bottom]:slide-in-from-top-2 \
-data-[side=left]:slide-in-from-right-2 \
-data-[side=right]:slide-in-from-left-2 \
-data-[side=top]:slide-in-from-bottom-2 \
-\
-data-open:animate-in \
-data-open:fade-in-0 \
-data-open:zoom-in-95 \
-\
-data-closed:animate-out \
-data-closed:fade-out-0 \
-data-closed:zoom-out-95 \
+font-light \
 \
 ring-1 \
 ring-foreground/10 \
-rounded-lg \
+rounded \
 shadow-md \
 overflow-x-hidden \
 overflow-y-auto \
 z-50";
+
+// duration-100 \
+// \
+// data-[side=bottom]:slide-in-from-top-2 \
+// data-[side=left]:slide-in-from-right-2 \
+// data-[side=right]:slide-in-from-left-2 \
+// data-[side=top]:slide-in-from-bottom-2 \
+// \
+// data-open:animate-in \
+// data-open:fade-in-0 \
+// data-open:zoom-in-95 \
+// \
+// data-closed:animate-out \
+// data-closed:fade-out-0 \
+// data-closed:zoom-out-95 \
 
 export function ContextMenuItem({ className, inset, variant = "default", ...rest }: ComponentProps<typeof ContextMenuPrimitive.Item> & { inset?: boolean; variant?: "default" | "destructive"; }) {
     return (
@@ -80,7 +82,7 @@ export function ContextMenuItem({ className, inset, variant = "default", ...rest
 }
 
 const itemClasses = "\
-group/context-menu-item relative px-1.5 py-1 text-sm \
+group/context-menu-item relative px-4 py-1 text-[11px] \
 \
 focus:text-accent-foreground \
 focus:bg-accent \
@@ -101,7 +103,7 @@ focus:*:[svg]:text-accent-foreground \
 \
 data-[variant=destructive]:*:[svg]:text-destructive \
 \
-rounded-md \
+rounded \
 outline-hidden \
 cursor-default \
 select-none \
@@ -122,7 +124,7 @@ export function ContextMenuSubTrigger({ className, inset, children, ...rest }: C
 }
 
 const subTriggerClasses = "\
-px-1.5 py-1 text-sm \
+px-4 py-1 text-[11px] \
 \
 focus:text-accent-foreground \
 focus:bg-accent \
@@ -135,7 +137,7 @@ data-open:text-accent-foreground \
 [&_svg]:shrink-0 \
 [&_svg:not([class*='size-'])]:size-4 \
 \
-rounded-md \
+rounded \
 outline-hidden \
 select-none \
 cursor-default \
@@ -152,7 +154,7 @@ export function ContextMenuSubContent({ className, ...rest }: ComponentProps<typ
 }
 
 const subContentClasses = "\
-p-1 min-w-32 origin-(--radix-context-menu-content-transform-origin) \
+py-1 min-w-32 origin-(--radix-context-menu-content-transform-origin) \
 \
 text-popover-foreground \
 bg-popover \
@@ -172,8 +174,8 @@ data-closed:fade-out-0 \
 data-closed:zoom-out-95 \
 \
 border \
-rounded-lg \
-shadow-lg \
+rounded \
+shadow-md \
 overflow-hidden \
 z-50";
 
@@ -197,7 +199,7 @@ export function ContextMenuCheckboxItem({ className, children, checked, inset, .
 }
 
 const checkboxItemClasses = "\
-relative pr-8 pl-1.5 py-1 text-sm \
+relative pr-8 pl-4 py-1 text-[11px] \
 \
 focus:bg-accent \
 focus:text-accent-foreground \
@@ -211,7 +213,7 @@ data-disabled:opacity-50 \
 [&_svg:not([class*='size-'])]:size-4 \
 \
 outline-hidden \
-rounded-md \
+rounded \
 cursor-default \
 select-none \
 flex items-center gap-1.5";
@@ -235,9 +237,7 @@ export function ContextMenuRadioItem({ className, children, inset, ...rest }: Co
 }
 
 const radioItemClasses = "\
-relative pr-8 pl-1.5 py-1 \
-\
-text-sm \
+relative pr-8 pl-4 py-1 text-[11px] \
 \
 focus:bg-accent \
 focus:text-accent-foreground \
@@ -251,7 +251,7 @@ data-disabled:opacity-50 \
 [&_svg:not([class*='size-'])]:size-4 \
 \
 outline-hidden \
-rounded-md \
+rounded \
 select-none \
 cursor-default \
 flex items-center gap-1.5";
@@ -261,7 +261,7 @@ export function ContextMenuLabel({ className, inset, ...rest }: ComponentProps<t
         <ContextMenuPrimitive.Label
             data-slot="context-menu-label"
             data-inset={inset}
-            className={cn("px-1.5 py-1 text-xs font-medium text-muted-foreground data-inset:pl-7", className)}
+            className={cn("px-4 py-1 text-[11px] font-medium text-muted-foreground data-inset:pl-7", className)}
             {...rest}
         />
     );
@@ -271,7 +271,7 @@ export function ContextMenuSeparator({ className, ...rest }: ComponentProps<type
     return (
         <ContextMenuPrimitive.Separator
             data-slot="context-menu-separator"
-            className={cn("-mx-1 my-1 h-px bg-border", className)}
+            className={cn("-mx-4 my-1 h-px bg-border", className)}
             {...rest}
         />
     );
@@ -281,7 +281,7 @@ export function ContextMenuShortcut({ className, ...rest }: ComponentProps<"span
     return (
         <span
             data-slot="context-menu-shortcut"
-            className={cn("ml-auto text-xs tracking-widest text-muted-foreground group-focus/context-menu-item:text-accent-foreground", className)}
+            className={cn("ml-auto text-[11px] tracking-widest text-muted-foreground group-focus/context-menu-item:text-accent-foreground", className)}
             {...rest}
         />
     );

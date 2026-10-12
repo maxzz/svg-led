@@ -1,5 +1,5 @@
 import { snapshot } from "valtio";
-import { type SvgDoc, serializeSvg } from "@/svg-core";
+import { type SvgDoc, findNode, serializeSvg, topmostIds } from "@/svg-core";
 import { docPrecision, docState } from "./1-doc-store";
 import { docToText, loadSvgText } from "./4-doc-actions";
 import { nodesDocBBox } from "./3-doc-geometry";
@@ -77,7 +77,47 @@ export function exportSvgDownload(): void {
 
 /** Rasterizes the document at its viewBox size (or content bbox) times `scale` */
 export async function exportPng(scale: number, background?: string): Promise<FileResult> {
+    const blob = await rasterizeDocument(snapshot(docState).doc as SvgDoc, scale, background);
+    if (!blob.ok) {
+        return blob;
+    }
+    downloadBlob(blob.blob, docState.fileName.replace(/\.svg$/i, '') + (scale !== 1 ? `@${scale}x` : '') + '.png');
+    return { ok: true };
+}
+
+/** Puts a PNG on the clipboard: the nodes `ids`, or the whole drawing when `ids` is empty */
+export async function copyPngToClipboard(ids: readonly string[] = []): Promise<FileResult> {
     const doc = snapshot(docState).doc as SvgDoc;
+    let target = doc;
+    if (ids.length) {
+        const bbox = nodesDocBBox(doc, ids);
+        if (!bbox) {
+            return { ok: false, error: 'Nothing to copy' };
+        }
+        const pad = 4;
+        target = {
+            ...doc,
+            viewBox: { x: bbox.x - pad, y: bbox.y - pad, width: bbox.width + 2 * pad, height: bbox.height + 2 * pad },
+            children: topmostIds(doc, ids).map((id) => findNode(doc, id)!.node),
+        };
+    }
+
+    const rv = await rasterizeDocument(target, 2);
+    if (!rv.ok) {
+        return rv;
+    }
+    try {
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': rv.blob })]);
+        return { ok: true };
+    } catch (e) {
+        return { ok: false, error: String(e) };
+    }
+}
+
+type RasterResult = { ok: true; blob: Blob; } | { ok: false; error: string; };
+
+/** Renders the document's viewBox (or content bbox) to a PNG blob at `scale` */
+async function rasterizeDocument(doc: SvgDoc, scale: number, background?: string): Promise<RasterResult> {
     const box = doc.viewBox ?? nodesDocBBox(doc, doc.children.map((n) => n.id));
     if (!box) {
         return { ok: false, error: 'Nothing to export' };
@@ -112,11 +152,7 @@ export async function exportPng(scale: number, background?: string): Promise<Fil
         ctx.drawImage(img, 0, 0, width, height);
 
         const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
-        if (!blob) {
-            return { ok: false, error: 'PNG encoding failed' };
-        }
-        downloadBlob(blob, docState.fileName.replace(/\.svg$/i, '') + (scale !== 1 ? `@${scale}x` : '') + '.png');
-        return { ok: true };
+        return blob ? { ok: true, blob } : { ok: false, error: 'PNG encoding failed' };
     } catch (e) {
         return { ok: false, error: String(e) };
     } finally {
