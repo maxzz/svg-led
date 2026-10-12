@@ -239,18 +239,8 @@ export const pointsTool: ToolDef = {
         }
 
         if ((e.key === 'Delete' || e.key === 'Backspace') && selectedAnchors.length) {
-            const byNode = new Map<string, Set<string>>();
-            for (const full of selectedAnchors) {
-                const [nodeId, key] = splitNodeAnchorKey(full);
-                if (!key.startsWith('h:')) {
-                    byNode.set(nodeId, (byNode.get(nodeId) ?? new Set()).add(key));
-                }
-            }
-            for (const [nodeId, keys] of byNode) {
-                deletePathAnchors(nodeId, keys);
-            }
+            deleteSelectedAnchors(selectedAnchors);
             set(selectedAnchorsAtom, []);
-            byNode.size && commitHistory();
             return true;
         }
 
@@ -356,6 +346,44 @@ function writePath(id: string, subs: SubPath[]): void {
 function deletePathAnchors(nodeId: string, keys: Set<string>): void {
     const subs = pathSubpaths(nodeId);
     subs && writePath(nodeId, deleteAnchors(subs, keys));
+}
+
+/** Anchor keys of path elements grouped by node id (shape handles are skipped) */
+function pathAnchorKeysByNode(keys: readonly string[]): Map<string, Set<string>> {
+    const byNode = new Map<string, Set<string>>();
+    for (const full of keys) {
+        const [nodeId, key] = splitNodeAnchorKey(full);
+        if (!key.startsWith('h:')) {
+            byNode.set(nodeId, (byNode.get(nodeId) ?? new Set()).add(key));
+        }
+    }
+    return byNode;
+}
+
+/** Deletes the selected anchors of path elements (Delete key and the canvas context menu) */
+export function deleteSelectedAnchors(keys: readonly string[]): void {
+    const byNode = pathAnchorKeysByNode(keys);
+    for (const [nodeId, anchorKeys] of byNode) {
+        deletePathAnchors(nodeId, anchorKeys);
+    }
+    byNode.size && commitHistory();
+}
+
+/** Switches the selected anchors of path elements between smooth and corner */
+export function toggleSelectedAnchors(keys: readonly string[]): void {
+    const byNode = pathAnchorKeysByNode(keys);
+    for (const [nodeId, anchorKeys] of byNode) {
+        const subs = pathSubpaths(nodeId);
+        if (!subs) {
+            continue;
+        }
+        for (const key of anchorKeys) {
+            const [si, ai] = parseAnchorKey(key);
+            subs[si] && toggleAnchorKind(subs[si], ai);
+        }
+        writePath(nodeId, subs);
+    }
+    byNode.size && commitHistory();
 }
 
 /** Ctrl+click near a segment of one of the candidate paths inserts an anchor there */
