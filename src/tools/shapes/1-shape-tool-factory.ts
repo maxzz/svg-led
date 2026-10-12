@@ -2,8 +2,8 @@ import { type ComponentType } from "react";
 import { type Point, type ShapeNode, newNodeId } from "@/svg-core";
 import { commitHistory, docState, getNodeProxy, replaceNode } from "@/store/3-document";
 import { type ToolId, selectionAtom, setActiveToolAtom, setSelectionAtom, toolLockedAtom } from "@/store/4-editor";
-import { type CornerRadius, lastCornerRadiusAtom, lastStrokeDashArrayAtom, lastStrokeWidthAtom, lastStyleAtom } from "@/store/2-persist";
-import { type ToolDef } from "../1-types";
+import { type CornerRadius, newShapeStyleAtom } from "@/store/2-persist";
+import { type NewShapeKind, type ToolDef } from "../1-types";
 import { MODIFIERS, isMod } from "../3-modifiers";
 import { docTolerance, snapDoc } from "../0-shared/2-tool-helpers";
 import { styleAttrs } from "../0-shared/4-style-attrs";
@@ -16,6 +16,8 @@ type ShapeToolConfig = {
     shortcut: string;
     icon: ComponentType<{ className?: string; }>;
     hint: string;
+    /** Element kind created; the panel shows the new-shape properties that apply to it */
+    kind: NewShapeKind;
     /** Geometry from the drag start and the current point (both already constrained/centered) */
     create: (id: string, a: Point, b: Point, attrs: Record<string, string>, corner: CornerRadius) => ShapeNode;
     /** Shift behavior: square, circle or 45 degree line */
@@ -24,7 +26,6 @@ type ShapeToolConfig = {
 
 /** Rectangle, ellipse and line share the same drag-to-draw gesture */
 export function createShapeTool(config: ShapeToolConfig): ToolDef {
-    const optionsAtom = lastStyleAtom;
     let drawing: { id: string; start: Point; corner: CornerRadius; } | null = null;
 
     return {
@@ -34,13 +35,14 @@ export function createShapeTool(config: ShapeToolConfig): ToolDef {
         icon: config.icon,
         hint: config.hint,
         cursor: 'crosshair',
-        optionsAtom,
+        newShapeKind: config.kind,
 
         onPointerDown({ get, set }, e) {
             const start = snapDoc(e.doc);
             const id = newNodeId();
-            const corner = get(lastCornerRadiusAtom);
-            docState.doc.children.push(config.create(id, start, start, styleAttrs(get(lastStyleAtom), get(lastStrokeWidthAtom), get(lastStrokeDashArrayAtom)), corner));
+            const style = get(newShapeStyleAtom);
+            const corner: CornerRadius = { rx: style.rx, ry: style.ry };
+            docState.doc.children.push(config.create(id, start, start, styleAttrs(style), corner));
             set(setSelectionAtom, [id]);
             drawing = { id, start, corner };
         },

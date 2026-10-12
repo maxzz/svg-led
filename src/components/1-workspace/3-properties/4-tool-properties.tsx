@@ -1,44 +1,41 @@
-import { useAtomValue, useSetAtom } from "jotai";
-import { type ToolDef, type ToolStyleOptions } from "@/tools";
-import { lastStrokeWidthAtom } from "@/store/2-persist";
-import { Section } from "./2-controls/2-section";
-import { NumberField } from "./2-controls/3-number-field";
-import { ColorRow, FILL_SWATCHES, STROKE_SWATCHES } from "./2-controls/4-color-row";
+import { useAtomValue } from "jotai";
+import { type SvgNode } from "@/svg-core";
+import { type NewShapeStyle, newShapeStyleAtom } from "@/store/2-persist";
+import { type NewShapeKind, type ToolDef } from "@/tools";
+import { styleAttrs } from "@/tools/0-shared/4-style-attrs";
+import { PROPERTY_SECTIONS } from "./1-sections/0-registry";
 import { activeToolDefAtom } from "./9-atoms-properties-popup";
 
-/** Style that the active drawing tool gives to new elements */
+/** Panel of a creation tool: the properties its new shapes are created with, limited to those that apply to its kind */
 export function ToolProperties() {
-    const tool = useAtomValue(activeToolDefAtom);
-    return (
-        tool.optionsAtom
-            ? <ToolStyleEditor tool={tool as ToolDef & Required<Pick<ToolDef, 'optionsAtom'>>} key={tool.id} />
-            : null
-    );
+    const tool: ToolDef = useAtomValue(activeToolDefAtom);
+    return tool.newShapeKind
+        ? <NewShapeProperties kind={tool.newShapeKind} label={tool.label} key={tool.id} />
+        : null;
 }
 
-function ToolStyleEditor({ tool }: { tool: ToolDef & Required<Pick<ToolDef, 'optionsAtom'>>; }) {
-    const options: ToolStyleOptions = useAtomValue(tool.optionsAtom);
-    const setOptions = useSetAtom(tool.optionsAtom);
-    const strokeWidth = useAtomValue(lastStrokeWidthAtom);
-    const setStrokeWidth = useSetAtom(lastStrokeWidthAtom);
+function NewShapeProperties({ kind, label }: { kind: NewShapeKind; label: string; }) {
+    const style = useAtomValue(newShapeStyleAtom);
+    const nodes = [newShapeNode(kind, style)];
 
     return (<>
         <div className="select-none text-xs font-medium">
-            New {tool.label.toLowerCase()} style
+            New {label.toLowerCase()} style
         </div>
 
-        <Section title="Stroke">
-            <ColorRow value={options.stroke} swatches={STROKE_SWATCHES} onChange={(stroke) => setOptions({ stroke })} />
-        </Section>
-
-        {tool.id !== 'line' && (
-            <Section title="Fill">
-                <ColorRow value={options.fill} swatches={FILL_SWATCHES} onChange={(fill) => setOptions({ fill })} />
-            </Section>
+        {PROPERTY_SECTIONS.filter((s) => !s.selectionOnly && s.appliesTo(nodes)).map(
+            ({ id, Component }) => <Component mode="newShape" ids={[]} nodes={nodes} key={id} />
         )}
-        
-        <Section title="Stroke width">
-            <NumberField className="w-20" value={strokeWidth} min={0} step={0.5} onChange={setStrokeWidth} />
-        </Section>
     </>);
+}
+
+/** Stand-in for a shape of this kind drawn with the new-shape style, so the sections can read its values */
+function newShapeNode(kind: NewShapeKind, s: NewShapeStyle): SvgNode {
+    const attrs = styleAttrs(s);
+    switch (kind) {
+        case 'rect': return { id: '', kind, x: 0, y: 0, width: 1, height: 1, rx: s.rx, ry: s.ry, attrs };
+        case 'ellipse': return { id: '', kind, cx: 0, cy: 0, rx: 1, ry: 1, attrs };
+        case 'line': return { id: '', kind, x1: 0, y1: 0, x2: 1, y2: 0, attrs };
+        case 'path': return { id: '', kind, d: '', attrs };
+    }
 }

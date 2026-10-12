@@ -1,42 +1,32 @@
 import { useState, type KeyboardEvent } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { getPresentation } from "@/svg-core";
-import { useSetAtom } from "jotai";
-import { setNodesPresentation } from "@/store/3-document";
-import { type DashStyle, type LastStyle, lastDashSettingAtom, lastStrokeWidthAtom, lastStyleAtom, presetDashArray } from "@/store/2-persist";
+import { type DashStyle, presetDashArray } from "@/store/2-persist";
 import { Slider } from "@/ui/shadcn/slider";
 import { MIXED, commonValue } from "../2-controls/1-mixed";
 import { Section, Segmented, type SegmentOption } from "../2-controls/2-section";
 import { NumberField } from "../2-controls/3-number-field";
 import { ColorRow, FILL_SWATCHES, STROKE_SWATCHES } from "../2-controls/4-color-row";
 import { type SectionProps } from "./0-registry";
+import { useStyleWriter } from "./0-style-writer";
 
 //---------------------------------------------------------------------------
 // Stroke and fill colors
 
-/** Applies a style to the selection and remembers it for new shapes */
-function useSetStyle(ids: string[]) {
-    const setLastStyle = useSetAtom(lastStyleAtom);
-    return function setStyle(prop: string, value: string | undefined, last: Partial<LastStyle>) {
-        setNodesPresentation(ids, prop, value);
-        setLastStyle(last);
-    };
-}
-
-export function StrokeSection({ ids, nodes }: SectionProps) {
-    const setStyle = useSetStyle(ids);
+export function StrokeSection({ mode, ids, nodes }: SectionProps) {
+    const write = useStyleWriter(mode, ids);
     return (
         <Section title="Stroke">
-            <ColorRow value={commonValue(nodes, prop('stroke'))} swatches={STROKE_SWATCHES} onChange={(v) => setStyle('stroke', v, { stroke: v })} />
+            <ColorRow value={commonValue(nodes, prop('stroke'))} swatches={STROKE_SWATCHES} onChange={(v) => { write.selection('stroke', v); write.defaults({ stroke: v }); }} />
         </Section>
     );
 }
 
-export function FillSection({ ids, nodes }: SectionProps) {
-    const setStyle = useSetStyle(ids);
+export function FillSection({ mode, ids, nodes }: SectionProps) {
+    const write = useStyleWriter(mode, ids);
     return (
         <Section title="Fill">
-            <ColorRow value={commonValue(nodes, prop('fill'))} swatches={FILL_SWATCHES} onChange={(v) => setStyle('fill', v, { fill: v })} />
+            <ColorRow value={commonValue(nodes, prop('fill'))} swatches={FILL_SWATCHES} onChange={(v) => { write.selection('fill', v); write.defaults({ fill: v }); }} />
         </Section>
     );
 }
@@ -48,15 +38,14 @@ function prop(p: string) {
 //---------------------------------------------------------------------------
 // Stroke width
 
-export function StrokeWidthSection({ ids, nodes }: SectionProps) {
+export function StrokeWidthSection({ mode, ids, nodes }: SectionProps) {
     const raw = commonValue(nodes, prop('stroke-width'));
     const value = raw === MIXED ? MIXED : raw === undefined ? DEFAULT_STROKE_WIDTH : Number.parseFloat(raw);
-    const setLastStrokeWidth = useSetAtom(lastStrokeWidthAtom);
+    const write = useStyleWriter(mode, ids);
     const set = (v: number) => {
-        setNodesPresentation(ids, 'stroke-width', String(v));
-        setLastStrokeWidth(v);
+        write.selection('stroke-width', String(v));
+        write.defaults({ strokeWidth: v });
     };
-    // Stroke width is remembered by lastStrokeWidthAtom, separately from lastStyleAtom
 
     return (
         <Section title="Stroke width">
@@ -84,12 +73,12 @@ function WidthIcon({ w }: { w: number | string; }) {
 //---------------------------------------------------------------------------
 // Stroke style
 
-export function DashSection({ ids, nodes }: SectionProps) {
+export function DashSection({ mode, ids, nodes }: SectionProps) {
     const value = commonValue(nodes, (n) => dashStyleOf(getPresentation(n.attrs, 'stroke-dasharray')));
     const rawDash = commonValue(nodes, (n) => getPresentation(n.attrs, 'stroke-dasharray'));
     const dashText = rawDash === MIXED ? '' : normalizeDashArray(rawDash);
     const [customOpen, setCustomOpen] = useState(false);
-    const setDashSetting = useSetAtom(lastDashSettingAtom);
+    const write = useStyleWriter(mode, ids);
 
     const widths = nodes.map(
         (n) => Number.parseFloat(getPresentation(n.attrs, 'stroke-width') ?? String(DEFAULT_STROKE_WIDTH)) || DEFAULT_STROKE_WIDTH
@@ -100,25 +89,24 @@ export function DashSection({ ids, nodes }: SectionProps) {
     const presetTexts = [presetDashArray('dashed', w), presetDashArray('dotted', w)].map(normalizeDashArray);
     const showCustom = customOpen || (dashText !== '' && !presetTexts.includes(dashText));
 
-    // The last choice is remembered and applied to new shapes
     function set(style: DashStyle) {
         if (style === 'custom') {
             setCustomOpen(true);
-            setDashSetting({ dashStyle: 'custom' });
+            write.defaults({ dashStyle: 'custom' });
             return;
         }
         setCustomOpen(false);
-        setNodesPresentation(ids, 'stroke-dasharray', presetDashArray(style, w));
-        setDashSetting({ dashStyle: style });
+        write.selection('stroke-dasharray', presetDashArray(style, w));
+        write.defaults({ dashStyle: style });
     }
 
-    // Remembers the typed array right away, so a shape drawn before the field blurs already gets it
+    // In the new-shape panel the typed array is stored right away, so a shape created before the field blurs already gets it
     function previewCustom(dash: string | undefined) {
-        setDashSetting({ dashStyle: 'custom', customDash: dash ?? '' });
+        write.defaults({ dashStyle: 'custom', customDash: dash ?? '' });
     }
 
     function commitCustom(dash: string | undefined) {
-        setNodesPresentation(ids, 'stroke-dasharray', dash);
+        write.selection('stroke-dasharray', dash);
         previewCustom(dash);
     }
 
@@ -248,14 +236,14 @@ function dashStyleOf(dash: string | undefined): DashStyle | undefined {
 //---------------------------------------------------------------------------
 // Line caps and joins
 
-export function CapJoinSection({ ids, nodes }: SectionProps) {
-    const setStyle = useSetStyle(ids);
+export function CapJoinSection({ mode, ids, nodes }: SectionProps) {
+    const write = useStyleWriter(mode, ids);
     const cap = commonValue(nodes, (n) => getPresentation(n.attrs, 'stroke-linecap') ?? 'butt');
     const join = commonValue(nodes, (n) => getPresentation(n.attrs, 'stroke-linejoin') ?? 'miter');
     return (
         <Section title="Line caps and joins">
-            <Segmented options={CAP_OPTIONS} value={cap === MIXED ? undefined : cap} onChange={(v) => setStyle('stroke-linecap', v === 'butt' ? undefined : v, { linecap: v })} />
-            <Segmented options={JOIN_OPTIONS} value={join === MIXED ? undefined : join} onChange={(v) => setStyle('stroke-linejoin', v === 'miter' ? undefined : v, { linejoin: v })} />
+            <Segmented options={CAP_OPTIONS} value={cap === MIXED ? undefined : cap} onChange={(v) => { write.selection('stroke-linecap', v === 'butt' ? undefined : v); write.defaults({ linecap: v }); }} />
+            <Segmented options={JOIN_OPTIONS} value={join === MIXED ? undefined : join} onChange={(v) => { write.selection('stroke-linejoin', v === 'miter' ? undefined : v); write.defaults({ linejoin: v }); }} />
         </Section>
     );
 }
@@ -274,11 +262,14 @@ const JOIN_OPTIONS: SegmentOption<string>[] = [
 
 //---------------------------------------------------------------------------
 
-export function OpacitySection({ ids, nodes }: SectionProps) {
+export function OpacitySection({ mode, ids, nodes }: SectionProps) {
     const raw = commonValue(nodes, (n) => Number.parseFloat(getPresentation(n.attrs, 'opacity') ?? '1'));
     const percent = raw === MIXED || raw === undefined || Number.isNaN(raw) ? 100 : Math.round(raw * 100);
-    const setStyle = useSetStyle(ids);
-    const set = (p: number) => setStyle('opacity', p >= 100 ? undefined : String(p / 100), { opacity: p / 100 });
+    const write = useStyleWriter(mode, ids);
+    const set = (p: number) => {
+        write.selection('opacity', p >= 100 ? undefined : String(p / 100));
+        write.defaults({ opacity: p / 100 });
+    };
 
     return (
         <Section title={`Opacity${raw === MIXED ? ' (mixed)' : ''}`}>

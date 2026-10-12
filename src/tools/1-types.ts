@@ -1,8 +1,10 @@
 import { type ComponentType } from "react";
-import { type Getter, type Setter, type WritableAtom } from "jotai";
+import { type Getter, type Setter } from "jotai";
 import { type Point } from "@/svg-core";
 import { type ToolId } from "@/store/4-editor";
-import { type LastStyle } from "@/store/2-persist";
+
+/** Kinds of element a drawing tool creates. Its panel shows the new-shape properties that apply to the kind. */
+export type NewShapeKind = 'rect' | 'ellipse' | 'line' | 'path';
 
 /** What is under the pointer, resolved from data-* attributes of canvas elements */
 export type CanvasTarget =
@@ -29,9 +31,6 @@ export type ToolContext = {
     set: Setter;
 };
 
-/** Style new shapes are drawn with. Shared by all drawing tools (see lastStyleAtom); stroke width and dash are separate atoms. */
-export type ToolStyleOptions = LastStyle;
-
 export type ToolDef = {
     id: ToolId;
     label: string;
@@ -40,8 +39,8 @@ export type ToolDef = {
     hint: string;                // shown under the toolbar while the tool is active
     cursor: string;
 
-    /** Style editor of a drawing tool; the shared last style (see lastStyleAtom) */
-    optionsAtom?: WritableAtom<ToolStyleOptions, [Partial<ToolStyleOptions>], void>;
+    /** Kind of element this tool creates; the properties panel then edits the new-shape style */
+    newShapeKind?: NewShapeKind;
 
     onPointerDown?: (ctx: ToolContext, e: ToolPointerEvent) => void;
     onPointerMove?: (ctx: ToolContext, e: ToolPointerEvent) => void;

@@ -4,13 +4,16 @@ import { getTool } from "@/tools";
 
 export type PropertiesMode = 'selection' | 'tool' | 'document';
 
-/** Selected elements win; with an empty selection a drawing tool shows its style defaults, otherwise the document */
+/**
+ * A creation tool shows the properties new shapes are created with, even while something is selected.
+ * Otherwise the selection is shown, or the document when nothing is selected.
+ */
 export const propertiesModeAtom = atom<PropertiesMode>(
     (get) => {
-        if (get(selectionAtom).length) {
-            return 'selection';
+        if (getTool(get(activeToolIdAtom)).newShapeKind) {
+            return 'tool';
         }
-        return getTool(get(activeToolIdAtom)).optionsAtom ? 'tool' : 'document';
+        return get(selectionAtom).length ? 'selection' : 'document';
     }
 );
 

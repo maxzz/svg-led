@@ -1,11 +1,10 @@
 import { type RectNode } from "@/svg-core";
-import { useSetAtom } from "jotai";
-import { lastCornerRadiusAtom } from "@/store/2-persist";
 import { commitHistory, getNodeProxy, nodesDocBBox, setNodesBBox, useDocSnapshot } from "@/store/3-document";
 import { MIXED, commonValue } from "../2-controls/1-mixed";
 import { Section } from "../2-controls/2-section";
 import { NumberField } from "../2-controls/3-number-field";
 import { type SectionProps } from "./0-registry";
+import { useStyleWriter } from "./0-style-writer";
 
 /** Position and size of the whole selection in document units */
 export function BBoxSection({ ids }: SectionProps) {
@@ -28,15 +27,18 @@ export function BBoxSection({ ids }: SectionProps) {
     );
 }
 
-export function RectCornersSection({ ids, nodes }: SectionProps) {
+export function RectCornersSection({ mode, ids, nodes }: SectionProps) {
     const rects = nodes.filter((n): n is RectNode => n.kind === 'rect');
     const rx = commonValue(rects, (r) => r.rx);
     const ry = commonValue(rects, (r) => r.ry);
-    const setLastCorner = useSetAtom(lastCornerRadiusAtom);
+    const write = useStyleWriter(mode, ids);
 
     function set(key: 'rx' | 'ry', value: number, both: boolean) {
-        // remembered for new rectangles; the shapes themselves are clamped to their size
-        setLastCorner(key === 'rx' ? (both ? { rx: value, ry: value } : { rx: value }) : { ry: value });
+        if (mode === 'newShape') {
+            // the radius new rectangles are created with; each shape is clamped to its size when drawn
+            write.defaults(key === 'rx' ? (both ? { rx: value, ry: value } : { rx: value }) : { ry: value });
+            return;
+        }
         for (const r of rects) {
             const node = getNodeProxy(r.id) as RectNode | undefined;
             if (node) {
