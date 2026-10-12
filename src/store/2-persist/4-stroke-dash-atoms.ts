@@ -10,6 +10,21 @@ export function presetDashArray(style: Exclude<DashStyle, 'custom'>, w: number):
     return style === 'solid' ? undefined : style === 'dashed' ? `${4 * w} ${3 * w}` : `${w} ${2 * w}`;
 }
 
+/** Canonical form of a dash array: numbers separated by single spaces ('' for solid) */
+function canonicalDash(dash: string | undefined): string {
+    return !dash || dash === 'none' ? '' : dash.split(/[\s,]+/).filter(Boolean).join(' ');
+}
+
+/** Dash setting that reproduces a shape's dash array: a preset when it matches one at this width, otherwise custom */
+export function dashSettingFromArray(dash: string | undefined, w: number): { dashStyle: DashStyle; customDash: string; } {
+    const text = canonicalDash(dash);
+    if (!text) {
+        return { dashStyle: 'solid', customDash: '' };
+    }
+    const preset = (['dashed', 'dotted'] as const).find((style) => canonicalDash(presetDashArray(style, w)) === text);
+    return preset ? { dashStyle: preset, customDash: '' } : { dashStyle: 'custom', customDash: text };
+}
+
 /** Dash style last chosen in the properties palette, plus the last custom dash array text */
 export const lastDashSettingAtom = atomWithStoredOptions(STORAGE_KEYS.strokeDash, {
     dashStyle: 'solid' as DashStyle,
