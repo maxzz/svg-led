@@ -1,4 +1,5 @@
-import { type KeyboardEvent } from "react";
+import { useState, type KeyboardEvent } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import { getPresentation } from "@/svg-core";
 import { useSetAtom } from "jotai";
 import { setNodesPresentation } from "@/store/3-document";
@@ -74,26 +75,57 @@ function WidthIcon({ w }: { w: number | string; }) {
 export function DashSection({ ids, nodes }: SectionProps) {
     const value = commonValue(nodes, (n) => dashStyleOf(getPresentation(n.attrs, 'stroke-dasharray')));
     const rawDash = commonValue(nodes, (n) => getPresentation(n.attrs, 'stroke-dasharray'));
+    const dashText = rawDash === MIXED ? '' : normalizeDashArray(rawDash);
+    const [customOpen, setCustomOpen] = useState(false);
+
+    const widths = nodes.map(
+        (n) => Number.parseFloat(getPresentation(n.attrs, 'stroke-width') ?? String(DEFAULT_STROKE_WIDTH)) || DEFAULT_STROKE_WIDTH
+    );
+    const w = Math.max(...widths);
+
+    // Custom is shown when chosen explicitly, or when the current dash array isn't a preset.
+    const presetTexts = [presetDash('dashed', w), presetDash('dotted', w)].map(normalizeDashArray);
+    const showCustom = customOpen || (dashText !== '' && !presetTexts.includes(dashText));
 
     function set(style: DashStyle) {
-        const widths = nodes.map(
-            (n) => Number.parseFloat(getPresentation(n.attrs, 'stroke-width') ?? String(DEFAULT_STROKE_WIDTH)) || DEFAULT_STROKE_WIDTH
-        );
-        const w = Math.max(...widths);
-        const dash = style === 'solid' ? undefined : style === 'dashed' ? `${4 * w} ${3 * w}` : `${w} ${2 * w}`;
-        setNodesPresentation(ids, 'stroke-dasharray', dash);
+        if (style === 'custom') {
+            setCustomOpen(true);
+            return;
+        }
+        setCustomOpen(false);
+        setNodesPresentation(ids, 'stroke-dasharray', presetDash(style, w));
     }
 
     return (
         <Section title="Stroke style">
-            <Segmented options={DASH_OPTIONS} value={value === MIXED ? undefined : value} onChange={set} />
-            <DashArrayField
-                text={rawDash === MIXED ? '' : normalizeDashArray(rawDash)}
-                mixed={rawDash === MIXED}
-                onCommit={(dash) => setNodesPresentation(ids, 'stroke-dasharray', dash)}
-            />
+            <Segmented options={DASH_OPTIONS} value={showCustom ? 'custom' : value === MIXED ? undefined : value} onChange={set} />
+            <AnimatePresence initial={false}>
+                {showCustom && (
+                    <motion.div
+                        className="overflow-hidden"
+                        initial={{ height: 0, opacity: 0, marginTop: -GAP_PX }}
+                        animate={{ height: 'auto', opacity: 1, marginTop: 0 }}
+                        exit={{ height: 0, opacity: 0, marginTop: -GAP_PX }}
+                        transition={{ duration: 0.2, ease: 'easeOut' }}
+                    >
+                        <DashArrayField
+                            text={dashText}
+                            mixed={rawDash === MIXED}
+                            onCommit={(dash) => setNodesPresentation(ids, 'stroke-dasharray', dash)}
+                        />
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </Section>
     );
+}
+
+/** Must match the `gap-1.5` between children in `Section` (0.375rem). */
+const GAP_PX = 6;
+
+/** Preset dash array for a given stroke width; undefined for solid. */
+function presetDash(style: Exclude<DashStyle, 'custom'>, w: number): string | undefined {
+    return style === 'solid' ? undefined : style === 'dashed' ? `${4 * w} ${3 * w}` : `${w} ${2 * w}`;
 }
 
 /** Custom dash array text input. Commits on Enter or blur, Escape reverts. */
@@ -164,12 +196,13 @@ function parseDashArray(raw: string): string | undefined | null {
     return parts.join(' ');
 }
 
-type DashStyle = 'solid' | 'dashed' | 'dotted';
+type DashStyle = 'solid' | 'dashed' | 'dotted' | 'custom';
 
 const DASH_OPTIONS: SegmentOption<DashStyle>[] = [
     { value: 'solid', label: <DashIcon dash="" />, title: 'Solid' },
     { value: 'dashed', label: <DashIcon dash="4 2" />, title: 'Dashed' },
     { value: 'dotted', label: <DashIcon dash="1 2" />, title: 'Dotted' },
+    { value: 'custom', label: 'Custom', title: 'Custom dash array' },
 ];
 
 function DashIcon({ dash }: { dash: string; }) {
