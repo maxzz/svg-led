@@ -1,5 +1,6 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { cn } from "@/utils/classnames";
+import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { SelectionProperties } from "./3-selection-properties";
 import { ToolProperties } from "./4-tool-properties";
@@ -21,11 +22,13 @@ export function PropertiesPopup() {
                 {collapsed ? <ChevronDown className="size-3.5" /> : <ChevronUp className="size-3.5" />}
             </button>
 
-            <div className={cn("px-3 pt-1 pb-3 overflow-y-auto flex flex-col gap-3", collapsed && "hidden")}>
-                {mode === 'selection' && <SelectionProperties />}
-                {mode === 'tool' && <ToolProperties />}
-                {mode === 'document' && <DocumentProperties />}
-            </div>
+            <ScrollArea fixedWidth viewportClassName="max-h-[calc(100dvh-10rem)]" className={cn(collapsed && "hidden")}>
+                <div className="px-3 pt-1 pb-3 flex flex-col gap-3">
+                    {mode === 'selection' && <SelectionProperties />}
+                    {mode === 'tool' && <ToolProperties />}
+                    {mode === 'document' && <DocumentProperties />}
+                </div>
+            </ScrollArea>
         </div>
     );
 }
