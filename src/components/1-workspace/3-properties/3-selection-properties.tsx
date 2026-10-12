@@ -29,7 +29,7 @@ export function SelectionProperties() {
         </div>
 
         {PROPERTY_SECTIONS.filter((s) => s.appliesTo(nodes)).map(
-            ({ id, Component }) => <Component ids={ids} nodes={nodes} key={id} />
+            ({ id, Component }) => <Component mode="selection" ids={ids} nodes={nodes} key={id} />
         )}
     </>);
 }

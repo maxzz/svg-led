@@ -8,10 +8,15 @@ export const STORAGE_KEYS = {
     app: `${APP_PREFIX}__app__v1`,                  // app-level preferences (valtio appSettings)
     toolbar: `${APP_PREFIX}__toolbar__v1`,          // active tool and tool lock
     doc: `${APP_PREFIX}__doc__v1`,                  // autosaved document source
-    cornerRadius: `${APP_PREFIX}__corner-radius__v1`, // last rectangle corner radius picked in the properties palette
-    style: `${APP_PREFIX}__style__v1`,              // last colors, caps, joins and opacity picked in the properties palette
-    strokeWidth: `${APP_PREFIX}__stroke-width__v1`, // last stroke width picked in the properties palette
-    strokeDash: `${APP_PREFIX}__stroke-dash__v1`,   // last dash style or custom dash array picked in the properties palette
+    newShape: `${APP_PREFIX}__new-shape__v1`,       // properties new shapes are created with; shared by all creation tools
+} as const;
+
+/** Keys the separate per-property atoms used before `newShape`. Read once to migrate their values, then removed. */
+export const LEGACY_STYLE_KEYS = {
+    style: `${APP_PREFIX}__style__v1`,              // colors, caps, joins and opacity
+    strokeWidth: `${APP_PREFIX}__stroke-width__v1`, // stroke width
+    strokeDash: `${APP_PREFIX}__stroke-dash__v1`,   // dash style and custom dash array
+    cornerRadius: `${APP_PREFIX}__corner-radius__v1`, // rectangle corner radius
 } as const;
 
 /** Options of a single tool live under their own key so the shared options object stays small */
