@@ -9,6 +9,7 @@ export const MODIFIERS = {
         toggleSelection: 'shift',        // Shift+click adds or removes an element
         constrainAxis: 'shift',          // move only horizontally or vertically
         duplicateDrag: 'alt',            // Alt+drag moves a copy
+        deepSelect: 'ctrl',              // Ctrl+click selects an element inside a group
         resizeKeepAspect: 'shift',
         resizeFromCenter: 'alt',
     },
@@ -37,6 +38,7 @@ export const MODIFIER_DESCRIPTIONS: ModifierDescriptions = {
         toggleSelection: 'click to add or remove an element from the selection',
         constrainAxis: 'drag to move only horizontally or vertically',
         duplicateDrag: 'drag to move a copy',
+        deepSelect: 'click to select an element inside a group',
         resizeKeepAspect: 'resize keeping the aspect ratio',
         resizeFromCenter: 'resize from the center',
     },

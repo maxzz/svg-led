@@ -28,6 +28,11 @@ export function findNode(doc: SvgDoc, id: string): NodeLocation | undefined {
     return findIn(doc.children, id, []);
 }
 
+/** Ids of the groups around a node, outermost first; the node itself is not included */
+export function groupPathIds(doc: SvgDoc, id: string): string[] {
+    return findNode(doc, id)?.parents.map((p) => p.id) ?? [];
+}
+
 function findIn(siblings: SvgNode[], id: string, parents: GroupNode[]): NodeLocation | undefined {
     for (let index = 0; index < siblings.length; index++) {
         const node = siblings[index];

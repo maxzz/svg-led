@@ -1,7 +1,7 @@
 import { useAtomValue } from "jotai";
 import { type SvgDoc, findNode } from "@/svg-core";
 import { nodesDocBBox, useDocSnapshot } from "@/store/3-document";
-import { hoverNodeIdAtom, rectToScreen, selectionAtom, viewportAtom } from "@/store/4-editor";
+import { editingGroupIdAtom, hoverNodeIdAtom, rectToScreen, selectionAtom, viewportAtom } from "@/store/4-editor";
 import { nodeScreenMatrix, outlineScreenD } from "./0-overlay-geometry";
 
 const HANDLE = 8;
@@ -12,9 +12,16 @@ export function SelectionOverlay() {
     const vp = useAtomValue(viewportAtom);
     const selection = useAtomValue(selectionAtom);
     const hover = useAtomValue(hoverNodeIdAtom);
+    const editing = useAtomValue(editingGroupIdAtom);
 
     const bbox = selection.length ? nodesDocBBox(doc, selection) : null;
     const r = bbox && rectToScreen(vp, bbox);
+
+    const editingBBox = editing ? nodesDocBBox(doc, [editing]) : null;
+    const editingRect = editingBBox && rectToScreen(vp, editingBBox);
+
+    // a selected group or several elements show a dashed box, a single element a solid one
+    const dashed = selection.length > 1 || selection.some((id) => findNode(doc, id)?.node.kind === 'g');
 
     return (
         <g>
@@ -22,11 +29,19 @@ export function SelectionOverlay() {
 
             {selection.map((id) => <Outline doc={doc} id={id} key={id} className="stroke-(--editor-accent)" />)}
 
+            {editingRect && (
+                <rect
+                    className="stroke-(--editor-accent) pointer-events-none"
+                    x={editingRect.x - 4} y={editingRect.y - 4} width={editingRect.width + 8} height={editingRect.height + 8}
+                    fill="none" strokeWidth={1} strokeDasharray="4 3"
+                />
+            )}
+
             {r && (<>
                 <rect
                     className="stroke-(--editor-accent) pointer-events-none"
                     x={r.x - 4} y={r.y - 4} width={r.width + 8} height={r.height + 8}
-                    fill="none" strokeWidth={1} strokeDasharray={selection.length > 1 ? "4 3" : undefined}
+                    fill="none" strokeWidth={1} strokeDasharray={dashed ? "4 3" : undefined}
                 />
                 {CORNERS.map(
                     ([corner, fx, fy]) => (

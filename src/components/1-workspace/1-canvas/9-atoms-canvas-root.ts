@@ -2,17 +2,31 @@ import { type DragEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { type Getter, atom } from "jotai";
 import { toast } from "sonner";
 import { appStore } from "@/store/0-app-store";
-import { insertSvgMarkup, loadSvgFile } from "@/store/3-document";
+import { docState, insertSvgMarkup, loadSvgFile } from "@/store/3-document";
 import {
-    ToolId, activeToolIdAtom, canvasSizeAtom, hoverNodeIdAtom, isPanningAtom, panByAtom, pointerDocAtom, pruneSelectionAtom,
+    ToolId, activeToolIdAtom, canvasSizeAtom, editingGroupIdAtom, hoverNodeIdAtom, isPanningAtom, panByAtom, pointerDocAtom, pruneSelectionAtom,
     screenToDoc, setSelectionAtom, spaceHeldAtom, viewportAtom, zoomByAtom, zoomToFitAtom,
 } from "@/store/4-editor";
-import { type ToolPointerEvent, getTool, resolveTarget } from "@/tools";
+import { type Point } from "@/svg-core";
+import { type ToolPointerEvent, getTool, resolveTarget, selectionUnitId } from "@/tools";
 
 type CanvasPointerEvent = ReactPointerEvent<SVGSVGElement>;
 
 let pan: { x: number; y: number; } | null = null;
 let toolGesture = false;
+
+/** Pointer-down click count: `detail` is 0 on pointerdown in some browsers, so the count is tracked here */
+const DOUBLE_CLICK_MS = 500;
+const DOUBLE_CLICK_PX = 5;
+let lastDown = { time: -Infinity, x: 0, y: 0, count: 0 };
+
+function nextClickCount(screen: Point): number {
+    const now = performance.now();
+    const near = Math.hypot(screen.x - lastDown.x, screen.y - lastDown.y) <= DOUBLE_CLICK_PX;
+    const count = near && now - lastDown.time <= DOUBLE_CLICK_MS ? lastDown.count + 1 : 1;
+    lastDown = { time: now, x: screen.x, y: screen.y, count };
+    return count;
+}
 
 function canvasPoint(e: { clientX: number; clientY: number; currentTarget: Element; }) {
     const r = e.currentTarget.getBoundingClientRect();
@@ -28,7 +42,7 @@ function toToolEvent(get: Getter, e: CanvasPointerEvent): ToolPointerEvent {
         shift: e.shiftKey,
         alt: e.altKey,
         ctrl: e.ctrlKey || e.metaKey,
-        clickCount: e.detail,
+        clickCount: 1,                  // set on pointer down, see nextClickCount
         target: resolveTarget(e.target as Element),
     };
 }
@@ -57,7 +71,9 @@ export const canvasPointerDownAtom = atom(
 
         toolGesture = true;
         set(hoverNodeIdAtom, null);
-        getTool(toolId).onPointerDown?.({ get, set }, toToolEvent(get, e));
+        const ev = toToolEvent(get, e);
+        ev.clickCount = nextClickCount(ev.screen);
+        getTool(toolId).onPointerDown?.({ get, set }, ev);
     }
 );
 
@@ -79,7 +95,9 @@ export const canvasPointerMoveAtom = atom(
         }
 
         const t = ev.target;
-        const hover = t.type === 'node' ? (get(activeToolIdAtom) === ToolId.points ? t.leafId : t.topId) : null;
+        const hover = t.type === 'node'
+            ? (get(activeToolIdAtom) === ToolId.points ? t.leafId : selectionUnitId(docState.doc, t.leafId, get(editingGroupIdAtom)))
+            : null;
         if (get(hoverNodeIdAtom) !== hover) {
             set(hoverNodeIdAtom, hover);
         }

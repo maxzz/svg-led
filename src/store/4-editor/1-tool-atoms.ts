@@ -1,6 +1,6 @@
 import { type Getter, type Setter, atom } from "jotai";
 import { STORAGE_KEYS, atomWithStoredOptions } from "../2-persist";
-import { selectedAnchorsAtom } from "./2-selection-atoms";
+import { editingGroupIdAtom, selectedAnchorsAtom } from "./2-selection-atoms";
 
 export const ToolId = {
     hand: 'hand',
@@ -50,6 +50,9 @@ export const setActiveToolAtom = atom(
         set(toolbarStateAtom, { tool: id });
         if (id !== ToolId.points) {
             set(selectedAnchorsAtom, []);
+        }
+        if (id !== ToolId.select && id !== ToolId.points) {
+            set(editingGroupIdAtom, null); // group editing belongs to the selection tools only
         }
     }
 );

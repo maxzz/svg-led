@@ -1,7 +1,15 @@
 import { atom } from "jotai";
+import { groupPathIds } from "@/svg-core";
+import { docState } from "../3-document";
 
 /** Selected node ids (internal ids, see SvgNode.id) */
 export const selectionAtom = atom<string[]>([]);
+
+/**
+ * Group being edited (see SvgNode.id of a group), or null.
+ * While set, a click selects the children of this group one by one instead of the whole group.
+ */
+export const editingGroupIdAtom = atom<string | null>(null);
 
 /**
  * Selected anchors and shape handles in points mode.
@@ -41,5 +49,19 @@ export const setSelectionAtom = atom(
     (_get, set, ids: string[]) => {
         set(selectionAtom, ids);
         set(selectedAnchorsAtom, []);
+    }
+);
+
+/** Escape while editing a group: leave the group for its parent group (or the top level), which becomes selected */
+export const exitGroupEditingAtom = atom(
+    null,
+    (get, set) => {
+        const editing = get(editingGroupIdAtom);
+        if (!editing) {
+            return;
+        }
+        const path = groupPathIds(docState.doc, editing);
+        set(editingGroupIdAtom, path.length ? path[path.length - 1] : null);
+        set(setSelectionAtom, [editing]);
     }
 );
