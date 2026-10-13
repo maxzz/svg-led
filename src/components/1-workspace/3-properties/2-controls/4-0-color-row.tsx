@@ -39,7 +39,7 @@ export function ColorRow({ value, swatches, defaultShade = 4, onChange }: ColorR
                         </button>
                     </PopoverTrigger>
 
-                    <PopoverContent className="w-auto" side="right" align="start">
+                    <PopoverContent className="w-52" side="right" align="start">
                         <ColorPalette current={current} onChange={onChange} defaultShade={defaultShade} />
                     </PopoverContent>
                 </Popover>
