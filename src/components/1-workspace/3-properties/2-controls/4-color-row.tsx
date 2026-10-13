@@ -1,13 +1,23 @@
-import { lazy, Suspense, type KeyboardEvent } from "react";
+import { lazy, Suspense, useState, type KeyboardEvent } from "react";
 import { cn } from "@/utils/classnames";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
 import { MIXED, type MaybeMixed } from "./1-mixed";
 
-// Color.js and the picker UI load the first time the picker opens.
+// Color.js and the full picker load only when "Custom color" is first opened.
 const ColorPickerPanel = lazy(() => import("./6-color-picker-panel"));
 
 export const STROKE_SWATCHES = ['#1e1e1e', '#e03131', '#2f9e44', '#1971c2', '#f08c00'];
 export const FILL_SWATCHES = ['none', '#ffc9c9', '#b2f2bb', '#a5d8ff', '#ffec99'];
+
+/** Palette shown in the popover. Rows: neutrals, then hues from light to dark. */
+const PALETTE = [
+    'none',
+    '#1e1e1e', '#495057', '#868e96', '#ced4da', '#f8f9fa',
+    '#ffc9c9', '#ff8787', '#fa5252', '#e03131', '#c92a2a',
+    '#b2f2bb', '#69db7c', '#40c057', '#2f9e44', '#2b8a3e',
+    '#a5d8ff', '#4dabf7', '#228be6', '#1971c2', '#1864ab',
+    '#ffec99', '#ffd43b', '#fcc419', '#f08c00', '#e8590c',
+];
 
 type ColorRowProps = {
     value: MaybeMixed<string | undefined> | undefined;
@@ -15,9 +25,10 @@ type ColorRowProps = {
     onChange: (value: string) => void;
 };
 
-/** Swatches, a color picker popover and a text field for any CSS color */
+/** Swatches, a palette popover and a text field for any CSS color */
 export function ColorRow({ value, swatches, onChange }: ColorRowProps) {
     const current = value === MIXED ? '' : value ?? '';
+    const [open, setOpen] = useState(false);
 
     function onKeyDown(e: KeyboardEvent<HTMLInputElement>) {
         if (e.key === 'Enter') {
@@ -34,16 +45,14 @@ export function ColorRow({ value, swatches, onChange }: ColorRowProps) {
 
                 <div className="mx-0.5 w-px h-5 bg-border" />
 
-                <Popover>
+                <Popover open={open} onOpenChange={setOpen}>
                     <PopoverTrigger asChild>
                         <button className="relative size-6 ring-1 ring-foreground/15 rounded-md overflow-hidden cursor-pointer" style={{ background: CHECKERS }} title="Pick a color" type="button">
                             {isPaint(current) && <span className="absolute inset-0" style={{ background: current }} />}
                         </button>
                     </PopoverTrigger>
                     <PopoverContent className="w-64" side="right" align="start">
-                        <Suspense fallback={<div className="h-64" />}>
-                            <ColorPickerPanel value={current} onChange={onChange} />
-                        </Suspense>
+                        <ColorPopoverBody current={current} onChange={onChange} onPicked={() => setOpen(false)} />
                     </PopoverContent>
                 </Popover>
             </div>
@@ -61,10 +70,52 @@ export function ColorRow({ value, swatches, onChange }: ColorRowProps) {
     );
 }
 
-function Swatch({ color, active, onClick }: { color: string; active: boolean; onClick: () => void; }) {
+/**
+ * Popover content: the palette first (no extra loading). "Custom color" at the bottom
+ * switches to the full picker, which is lazy-loaded on first use. Remounting on each
+ * open resets the view back to the palette.
+ */
+function ColorPopoverBody({ current, onChange, onPicked }: { current: string; onChange: (css: string) => void; onPicked: () => void; }) {
+    const [custom, setCustom] = useState(false);
+
+    if (!custom) {
+        return (
+            <div className="flex flex-col gap-2">
+                <div className="grid grid-cols-5 gap-1.5">
+                    {PALETTE.map((color) => (
+                        <Swatch
+                            color={color}
+                            active={sameColor(color, current)}
+                            onClick={() => { onChange(color); onPicked(); }}
+                            key={color}
+                            className="h-7 w-full"
+                        />
+                    ))}
+                </div>
+
+                <button className="h-7 text-xs bg-muted/60 hover:bg-muted rounded-md cursor-pointer" onClick={() => setCustom(true)} type="button">
+                    Custom color…
+                </button>
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex flex-col gap-2">
+            <button className="self-start text-xs text-muted-foreground hover:text-foreground cursor-pointer" onClick={() => setCustom(false)} type="button">
+                ← Palette
+            </button>
+            <Suspense fallback={<div className="h-64" />}>
+                <ColorPickerPanel value={current} onChange={onChange} />
+            </Suspense>
+        </div>
+    );
+}
+
+function Swatch({ color, active, onClick, className = "size-6" }: { color: string; active: boolean; onClick: () => void; className?: string; }) {
     return (
         <button
-            className={cn("size-6 ring-1 ring-foreground/15 rounded-md cursor-pointer", active && "ring-2 ring-(--editor-accent) ring-offset-1 ring-offset-background")}
+            className={cn("ring-1 ring-foreground/15 rounded-md cursor-pointer", className, active && "ring-2 ring-(--editor-accent) ring-offset-1 ring-offset-background")}
             style={{ background: color === 'none' ? CHECKERS : color }}
             title={color}
             onClick={onClick}
