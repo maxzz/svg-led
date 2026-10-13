@@ -1,9 +1,9 @@
 import { useState, type KeyboardEvent, type PointerEvent } from "react";
 import { Segmented, type SegmentOption } from "./2-section";
 import { NumberField } from "./3-number-field";
-import { CHECKERS } from "./4-color-row";
-import { COLOR_MODELS, type ColorModelId, type Hsv, type Triple, formatColor, formatHsv, hsvOf, modelOf, modelValues, valuesOf } from "./5-color-model";
-import { EyeDropperButton, hasEyeDropper } from "./7-eyedropper-button";
+import { CHECKERS } from "./4-0-color-row";
+import { COLOR_MODELS, type ColorModelId, type Hsv, type Triple, formatColor, formatHsv, hsvOf, modelOf, modelValues, valuesOf } from "./4-9-color-model";
+import { EyeDropperButton, hasEyeDropper } from "./4-2-eyedropper-button";
 
 type ColorPickerPanelProps = {
     value: string;
@@ -54,7 +54,9 @@ export default function ColorPickerPanel({ value, onChange }: ColorPickerPanelPr
             <SaturationArea hue={hsv.h} s={hsv.s} v={hsv.v} onChange={(s, v) => setHsv({ ...hsv, s, v })} />
 
             <div className="flex items-center gap-2">
-                {hasEyeDropper() && <EyeDropperButton onPick={(hex) => setHsv({ ...hsvOf(hex, hsv.h), a: hsv.a })} />}
+                {hasEyeDropper() && (
+                    <EyeDropperButton onPick={(hex) => setHsv({ ...hsvOf(hex, hsv.h), a: hsv.a })} />
+                )}
                 <Bar label="Hue" t={hsv.h / 360} background={HUE_GRADIENT} onChange={(t) => setHsv({ ...hsv, h: t * 360 })} />
             </div>
 
@@ -63,9 +65,10 @@ export default function ColorPickerPanel({ value, onChange }: ColorPickerPanelPr
             <Segmented options={MODEL_OPTIONS} value={model} onChange={setModel} />
 
             <div className="grid grid-cols-4 gap-1" key={model}>
-                {fields.map((f, i) => (
-                    <NumberField key={i} label={f.label} value={values[i]} precision={f.precision} min={f.min} onChange={(n) => setField(i, n)} />
-                ))}
+                {fields.map(
+                    (f, i) => <NumberField key={i} label={f.label} value={values[i]} precision={f.precision} min={f.min} onChange={(n) => setField(i, n)} />
+
+                )}
                 <NumberField label="A" value={hsv.a * 100} precision={0} min={0} onChange={(n) => setHsv({ ...hsv, a: clamp01(n / 100) })} />
             </div>
         </div>
@@ -76,6 +79,7 @@ export default function ColorPickerPanel({ value, onChange }: ColorPickerPanelPr
 
 /** Saturation (x) and brightness (y) for the current hue. Arrow keys move the handle when focused. */
 function SaturationArea({ hue, s, v, onChange }: { hue: number; s: number; v: number; onChange: (s: number, v: number) => void; }) {
+
     function pick(e: PointerEvent<HTMLDivElement>) {
         const r = e.currentTarget.getBoundingClientRect();
         onChange(clamp01((e.clientX - r.left) / r.width), clamp01(1 - (e.clientY - r.top) / r.height));
@@ -96,12 +100,12 @@ function SaturationArea({ hue, s, v, onChange }: { hue: number; s: number; v: nu
         <div
             className="relative h-36 touch-none focus-visible:ring-1 focus-visible:ring-(--editor-accent) outline-none rounded-md cursor-crosshair"
             style={{ background: `linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, hsl(${hue} 100% 50%))` }}
-            role="application"
-            aria-label="Saturation and brightness"
-            tabIndex={0}
             onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); pick(e); }}
             onPointerMove={(e) => { if (e.currentTarget.hasPointerCapture(e.pointerId)) pick(e); }}
             onKeyDown={onKeyDown}
+            tabIndex={0}
+            role="application"
+            aria-label="Saturation and brightness"
         >
             <div className="absolute size-3.5 -translate-x-1/2 -translate-y-1/2 border-2 border-white rounded-full shadow-[0_0_0_1px_rgb(0_0_0/0.35)] pointer-events-none" style={{ left: `${s * 100}%`, top: `${(1 - v) * 100}%` }} />
         </div>
@@ -110,6 +114,7 @@ function SaturationArea({ hue, s, v, onChange }: { hue: number; s: number; v: nu
 
 /** Horizontal slider for a 0..1 value over a gradient. Arrow keys step it when focused. */
 function Bar({ label, t, background, checkered, onChange }: { label: string; t: number; background: string; checkered?: boolean; onChange: (t: number) => void; }) {
+
     function pick(e: PointerEvent<HTMLDivElement>) {
         const r = e.currentTarget.getBoundingClientRect();
         onChange(clamp01((e.clientX - r.left) / r.width));
@@ -128,15 +133,15 @@ function Bar({ label, t, background, checkered, onChange }: { label: string; t: 
         <div
             className="relative grow h-3 touch-none focus-visible:ring-(--editor-accent) outline-none ring-1 ring-foreground/15 rounded-full cursor-pointer"
             style={{ background: checkered ? `${background}, ${CHECKERS}` : background }}
+            onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); pick(e); }}
+            onPointerMove={(e) => { if (e.currentTarget.hasPointerCapture(e.pointerId)) pick(e); }}
+            onKeyDown={onKeyDown}
+            tabIndex={0}
             role="slider"
             aria-label={label}
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={Math.round(t * 100)}
-            tabIndex={0}
-            onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); pick(e); }}
-            onPointerMove={(e) => { if (e.currentTarget.hasPointerCapture(e.pointerId)) pick(e); }}
-            onKeyDown={onKeyDown}
         >
             <div className="absolute top-1/2 size-3.5 -translate-x-1/2 -translate-y-1/2 bg-white rounded-full shadow-[0_0_0_1px_rgb(0_0_0/0.35)] pointer-events-none" style={{ left: `${t * 100}%` }} />
         </div>
@@ -147,11 +152,13 @@ function Bar({ label, t, background, checkered, onChange }: { label: string; t: 
 
 const HUE_GRADIENT = 'linear-gradient(to right, #f00, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00)';
 
-const MODEL_OPTIONS: SegmentOption<ColorModelId>[] = (Object.keys(COLOR_MODELS) as ColorModelId[]).map((id) => ({
-    value: id,
-    label: COLOR_MODELS[id].label,
-    title: COLOR_MODELS[id].fn ? `CSS ${COLOR_MODELS[id].fn}()` : 'Hex',
-}));
+const MODEL_OPTIONS: SegmentOption<ColorModelId>[] = (Object.keys(COLOR_MODELS) as ColorModelId[]).map(
+    (id) => ({
+        value: id,
+        label: COLOR_MODELS[id].label,
+        title: COLOR_MODELS[id].fn ? `CSS ${COLOR_MODELS[id].fn}()` : 'Hex',
+    })
+);
 
 function clamp01(n: number): number {
     return Math.min(1, Math.max(0, n));

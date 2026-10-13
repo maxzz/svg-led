@@ -1,77 +1,14 @@
 import { useState, type KeyboardEvent } from "react";
 import { cn } from "@/utils/classnames";
 import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
+
 import { MIXED, type MaybeMixed } from "./1-mixed";
-import { EyeDropperButton, hasEyeDropper } from "./7-eyedropper-button";
-
-//---------------------------------------------------------------------------
-// Full picker (Color.js + picker UI), loaded on demand.
-// Hovering the selector button starts the load; clicking it opens the picker once the module is ready.
-// The picker never mounts with a placeholder, so the palette stays put while it loads.
-
-type PickerModule = typeof import("./6-color-picker-panel");
-
-let pickerModule: PickerModule | null = null;
-let pickerLoad: Promise<PickerModule> | null = null;
-
-function loadColorPicker(): Promise<PickerModule> {
-    pickerLoad ??= import("./6-color-picker-panel").then(
-        (m) => (pickerModule = m),
-        (err) => {
-            pickerLoad = null;
-            throw err;
-        },
-    );
-    return pickerLoad;
-}
-
-//---------------------------------------------------------------------------
-
-export const STROKE_SWATCHES = ['#1e1e1e', '#e03131', '#2f9e44', '#1971c2', '#f08c00'];
-export const FILL_SWATCHES = ['none', '#ffc9c9', '#b2f2bb', '#a5d8ff', '#ffec99'];
-
-// Excalidraw's palette (packages/common/src/colors.ts). Each family has five shades, lightest first.
-const FAMILIES = {
-    gray:   ["#f8f9fa", "#e9ecef", "#ced4da", "#868e96", "#343a40"],
-    bronze: ["#f8f1ee", "#eaddd7", "#d2bab0", "#a18072", "#846358"],
-    cyan:   ["#e3fafc", "#99e9f2", "#3bc9db", "#15aabf", "#0c8599"],
-    blue:   ["#e7f5ff", "#a5d8ff", "#4dabf7", "#228be6", "#1971c2"],
-    violet: ["#f3f0ff", "#d0bfff", "#9775fa", "#7950f2", "#6741d9"],
-    grape:  ["#f8f0fc", "#eebefa", "#da77f2", "#be4bdb", "#9c36b5"],
-    pink:   ["#fff0f6", "#fcc2d7", "#f783ac", "#e64980", "#c2255c"],
-    green:  ["#ebfbee", "#b2f2bb", "#69db7c", "#40c057", "#2f9e44"],
-    teal:   ["#e6fcf5", "#96f2d7", "#38d9a9", "#12b886", "#099268"],
-    yellow: ["#fff9db", "#ffec99", "#ffd43b", "#fab005", "#f08c00"],
-    orange: ["#fff4e6", "#ffd8a8", "#ffa94d", "#fd7e14", "#e8590c"],
-    red:    ["#fff5f5", "#ffc9c9", "#ff8787", "#fa5252", "#e03131"],
-} as const;
-
-type PaletteCell = { key: string; id: string; fixed?: string; shades?: readonly string[]; };
-
-/** Grid order and hotkeys follow Excalidraw. `transparent` is stored as `none` for SVG. */
-const PALETTE_CELLS: readonly PaletteCell[] = [
-    { key: 'q', id: 'transparent', fixed: 'none' },
-    { key: 'w', id: 'white', fixed: '#ffffff' },
-    { key: 'e', id: 'gray', shades: FAMILIES.gray },
-    { key: 'r', id: 'black', fixed: '#1e1e1e' },
-    { key: 't', id: 'bronze', shades: FAMILIES.bronze },
-    { key: 'a', id: 'cyan', shades: FAMILIES.cyan },
-    { key: 's', id: 'blue', shades: FAMILIES.blue },
-    { key: 'd', id: 'violet', shades: FAMILIES.violet },
-    { key: 'f', id: 'grape', shades: FAMILIES.grape },
-    { key: 'g', id: 'pink', shades: FAMILIES.pink },
-    { key: 'z', id: 'green', shades: FAMILIES.green },
-    { key: 'x', id: 'teal', shades: FAMILIES.teal },
-    { key: 'c', id: 'yellow', shades: FAMILIES.yellow },
-    { key: 'v', id: 'orange', shades: FAMILIES.orange },
-    { key: 'b', id: 'red', shades: FAMILIES.red },
-];
+import { EyeDropperButton, hasEyeDropper } from "./4-2-eyedropper-button";
 
 type ColorRowProps = {
     value: MaybeMixed<string | undefined> | undefined;
     swatches: readonly string[];
-    /** Shade index (0-4) used when a palette family is picked. Excalidraw uses 4 for strokes and 1 for fills. */
-    defaultShade?: number;
+    defaultShade?: number; // Shade index (0-4) used when a palette family is picked. Excalidraw uses 4 for strokes and 1 for fills.
     onChange: (value: string) => void;
 };
 
@@ -149,10 +86,13 @@ function ColorPalette({ current, onChange, defaultShade }: { current: string; on
             setPickerOpen(true);
             return;
         }
-        loadColorPicker().then((m) => {
-            setPicker(m);
-            setPickerOpen(true);
-        }, () => {});
+        loadColorPicker().then(
+            (m) => {
+                setPicker(m);
+                setPickerOpen(true);
+            },
+            () => { } // failed to load the picker
+        );
     }
 
     // Hotkeys like Excalidraw: q..b pick a color, Shift+1..5 pick a shade of the selected family.
@@ -180,52 +120,127 @@ function ColorPalette({ current, onChange, defaultShade }: { current: string; on
             <PopoverAnchor asChild>
                 <div className="flex flex-col gap-3">
                     <div className="flex flex-col gap-3" onKeyDown={onKeyDown}>
-                        <div className="text-sm">Colors</div>
+                        <div className="text-xs">
+                            Colors
+                        </div>
                         <div className="grid grid-cols-5 gap-1.5">
-                            {PALETTE_CELLS.map((cell) => (
-                                <PaletteCellButton
-                                    key={cell.id}
-                                    color={cellColor(cell, shade)}
-                                    label={cell.key}
-                                    title={cell.id}
-                                    active={matched?.cell.id === cell.id}
-                                    onClick={() => pick(cell, shade)}
-                                />
-                            ))}
+                            {PALETTE_CELLS.map(
+                                (cell) => (
+                                    <PaletteCellButton
+                                        key={cell.id}
+                                        color={cellColor(cell, shade)}
+                                        label={cell.key}
+                                        title={cell.id}
+                                        active={matched?.cell.id === cell.id}
+                                        onClick={() => pick(cell, shade)}
+                                    />
+                                )
+                            )}
                         </div>
 
-                        <div className="text-sm">Shades</div>
+                        <div className="text-xs">
+                            Shades
+                        </div>
                         <div className="grid grid-cols-5 gap-1.5">
                             {family?.shades
-                                ? family.shades.map((color, i) => (
-                                    <PaletteCellButton
-                                        key={i}
-                                        color={color}
-                                        label={`⇧${i + 1}`}
-                                        title={`${family.id} ${i + 1}`}
-                                        active={i === shade}
-                                        onClick={() => pick(family, i)}
-                                    />
-                                ))
+                                ? family.shades.map(
+                                    (color, i) => (
+                                        <PaletteCellButton
+                                            key={i}
+                                            color={color}
+                                            label={`⇧${i + 1}`}
+                                            title={`${family.id} ${i + 1}`}
+                                            active={i === shade}
+                                            onClick={() => pick(family, i)}
+                                        />
+                                    )
+                                )
                                 : Array.from({ length: 5 }, (_, i) => <div key={i} className="h-9 bg-muted/60 rounded-md" />)}
                         </div>
                     </div>
 
-                    <div className="text-sm">Hex code</div>
+                    <div className="text-xs">
+                        Hex code
+                    </div>
                     <div className="flex items-center gap-1.5">
                         <HexField value={current} onChange={onChange} />
                         <PickerButton current={current} />
-                        {hasEyeDropper() && <EyeDropperButton onPick={onChange} />}
+                        {hasEyeDropper() && (
+                            <EyeDropperButton onPick={onChange} />
+                        )}
                     </div>
                 </div>
             </PopoverAnchor>
 
             <PopoverContent className="w-64" side="right" align="start" sideOffset={8}>
-                {picker && <picker.default value={current} onChange={onChange} />}
+                {picker && (
+                    <picker.default value={current} onChange={onChange} />
+                )}
             </PopoverContent>
         </Popover>
     );
 }
+
+//---------------------------------------------------------------------------
+// Full picker (Color.js + picker UI), loaded on demand.
+// Hovering the selector button starts the load; clicking it opens the picker once the module is ready.
+// The picker never mounts with a placeholder, so the palette stays put while it loads.
+
+type PickerModule = typeof import("./4-1-color-picker-panel");
+
+let pickerModule: PickerModule | null = null;
+let pickerLoad: Promise<PickerModule> | null = null;
+
+function loadColorPicker(): Promise<PickerModule> {
+    pickerLoad ??= import("./4-1-color-picker-panel").then(
+        (m) => (pickerModule = m),
+        (err) => {
+            pickerLoad = null;
+            throw err;
+        },
+    );
+    return pickerLoad;
+}
+
+//---------------------------------------------------------------------------
+// Palette
+
+// Excalidraw's palette (packages/common/src/colors.ts). Each family has five shades, lightest first.
+const FAMILIES = {
+    gray:   /**/["#f8f9fa", "#e9ecef", "#ced4da", "#868e96", "#343a40"],
+    bronze: /**/["#f8f1ee", "#eaddd7", "#d2bab0", "#a18072", "#846358"],
+    cyan:   /**/["#e3fafc", "#99e9f2", "#3bc9db", "#15aabf", "#0c8599"],
+    blue:   /**/["#e7f5ff", "#a5d8ff", "#4dabf7", "#228be6", "#1971c2"],
+    violet: /**/["#f3f0ff", "#d0bfff", "#9775fa", "#7950f2", "#6741d9"],
+    grape:  /**/["#f8f0fc", "#eebefa", "#da77f2", "#be4bdb", "#9c36b5"],
+    pink:   /**/["#fff0f6", "#fcc2d7", "#f783ac", "#e64980", "#c2255c"],
+    green:  /**/["#ebfbee", "#b2f2bb", "#69db7c", "#40c057", "#2f9e44"],
+    teal:   /**/["#e6fcf5", "#96f2d7", "#38d9a9", "#12b886", "#099268"],
+    yellow: /**/["#fff9db", "#ffec99", "#ffd43b", "#fab005", "#f08c00"],
+    orange: /**/["#fff4e6", "#ffd8a8", "#ffa94d", "#fd7e14", "#e8590c"],
+    red:    /**/["#fff5f5", "#ffc9c9", "#ff8787", "#fa5252", "#e03131"],
+} as const;
+
+type PaletteCell = { key: string; id: string; fixed?: string; shades?: readonly string[]; };
+
+/** Grid order and hotkeys follow Excalidraw. `transparent` is stored as `none` for SVG. */
+const PALETTE_CELLS: readonly PaletteCell[] = [
+    { key: 'q', id: 'transparent',  /**/fixed: 'none' },
+    { key: 'w', id: 'white',      /**/fixed: '#ffffff' },
+    { key: 'e', id: 'gray',       /**/shades: FAMILIES.gray },
+    { key: 'r', id: 'black',      /**/fixed: '#1e1e1e' },
+    { key: 't', id: 'bronze',       /**/shades: FAMILIES.bronze },
+    { key: 'a', id: 'cyan',       /**/shades: FAMILIES.cyan },
+    { key: 's', id: 'blue',       /**/shades: FAMILIES.blue },
+    { key: 'd', id: 'violet',     /**/shades: FAMILIES.violet },
+    { key: 'f', id: 'grape',        /**/shades: FAMILIES.grape },
+    { key: 'g', id: 'pink',       /**/shades: FAMILIES.pink },
+    { key: 'z', id: 'green',      /**/shades: FAMILIES.green },
+    { key: 'x', id: 'teal',       /**/shades: FAMILIES.teal },
+    { key: 'c', id: 'yellow',     /**/shades: FAMILIES.yellow },
+    { key: 'v', id: 'orange',     /**/shades: FAMILIES.orange },
+    { key: 'b', id: 'red',        /**/shades: FAMILIES.red },
+];
 
 /** Hex text field. Shows the hex digits (with `#`) for hex colors, otherwise the raw CSS text. */
 function HexField({ value, onChange }: { value: string; onChange: (css: string) => void; }) {
@@ -242,7 +257,9 @@ function HexField({ value, onChange }: { value: string; onChange: (css: string) 
 
     return (
         <div className="grow px-2 h-7 min-w-0 bg-muted/60 focus-within:ring-1 focus-within:ring-(--editor-accent) rounded-md flex items-center gap-1">
-            {isHex && <span className="text-xs font-mono text-muted-foreground">#</span>}
+            {isHex && <span className="text-xs font-mono text-muted-foreground">
+                #
+            </span>}
             <input
                 className="grow min-w-0 text-xs font-mono bg-transparent outline-none"
                 aria-label="Hex code"
@@ -263,11 +280,13 @@ function PickerButton({ current }: { current: string; }) {
             <button
                 className="relative shrink-0 size-7 ring-1 ring-foreground/15 rounded-md overflow-hidden cursor-pointer"
                 style={{ background: CHECKERS }}
-                onPointerEnter={() => { loadColorPicker().catch(() => {}); }}
+                onPointerEnter={() => { loadColorPicker().catch(() => { }); }}
                 title="Open the color picker"
                 type="button"
             >
-                {isPaint(current) && <span className="absolute inset-0" style={{ background: current }} />}
+                {isPaint(current) && (
+                    <span className="absolute inset-0" style={{ background: current }} />
+                )}
             </button>
         </PopoverTrigger>
     );
@@ -278,8 +297,8 @@ function PaletteCellButton({ color, label, title, active, onClick }: { color: st
         <button
             className={cn("relative h-9 w-full ring-1 ring-foreground/15 rounded-md cursor-pointer", active && "ring-2 ring-(--editor-accent) ring-offset-1 ring-offset-background")}
             style={{ background: color === 'none' ? CHECKERS : color }}
-            title={title}
             onClick={onClick}
+            title={title}
             type="button"
         >
             <span className={cn("absolute right-1 bottom-0.5 font-mono text-[10px] leading-none pointer-events-none", isDarkHex(color) ? "text-white/85" : "text-black/60")}>
@@ -292,6 +311,7 @@ function PaletteCellButton({ color, label, title, active, onClick }: { color: st
 /** Finds the palette cell that holds `value`, and the shade index if it's a family color. */
 function matchCell(value: string): { cell: PaletteCell; shade: number | null; } | null {
     const v = value.toLowerCase() === 'transparent' ? 'none' : value.toLowerCase();
+
     for (const cell of PALETTE_CELLS) {
         if (cell.fixed !== undefined) {
             if (cell.fixed.toLowerCase() === v) {
@@ -304,6 +324,7 @@ function matchCell(value: string): { cell: PaletteCell; shade: number | null; } 
             }
         }
     }
+
     return null;
 }
 
@@ -325,8 +346,8 @@ function Swatch({ color, active, onClick }: { color: string; active: boolean; on
         <button
             className={cn("size-6 ring-1 ring-foreground/15 rounded-md cursor-pointer", active && "ring-2 ring-(--editor-accent) ring-offset-1 ring-offset-background")}
             style={{ background: color === 'none' ? CHECKERS : color }}
-            title={color}
             onClick={onClick}
+            title={color}
             type="button"
         />
     );
@@ -341,3 +362,8 @@ function isPaint(value: string): boolean {
 function sameColor(a: string, b: string): boolean {
     return a.toLowerCase() === b.toLowerCase();
 }
+
+//---------------------------------------------------------------------------
+
+export const STROKE_SWATCHES = /**/['#1e1e1e', '#e03131', '#2f9e44', '#1971c2', '#f08c00'];
+export const FILL_SWATCHES =   /**/[/**/ 'none', '#ffc9c9', '#b2f2bb', '#a5d8ff', '#ffec99'];

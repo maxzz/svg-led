@@ -2,13 +2,9 @@ import { IconColorPicker } from "@/ui/icons/normal/editor-manual-fields";
 
 type EyeDropperApi = { open: () => Promise<{ sRGBHex: string; }>; };
 
-/** Chromium's EyeDropper API. Other browsers don't have it, so the button is hidden there. */
-export function hasEyeDropper(): boolean {
-    return 'EyeDropper' in window;
-}
-
 /** Samples a color from anywhere on screen. Escape cancels. */
 export function EyeDropperButton({ onPick }: { onPick: (hex: string) => void; }) {
+    
     const EyeDropper = (window as unknown as { EyeDropper: new () => EyeDropperApi; }).EyeDropper;
 
     async function pick() {
@@ -24,4 +20,9 @@ export function EyeDropperButton({ onPick }: { onPick: (hex: string) => void; })
             <IconColorPicker className="size-4" />
         </button>
     );
+}
+
+/** Chromium's EyeDropper API. Other browsers don't have it, so the button is hidden there. */
+export function hasEyeDropper(): boolean {
+    return 'EyeDropper' in window;
 }

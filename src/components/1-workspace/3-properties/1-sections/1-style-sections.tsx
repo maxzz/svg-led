@@ -6,7 +6,7 @@ import { Slider } from "@/ui/shadcn/slider";
 import { MIXED, commonValue } from "../2-controls/1-mixed";
 import { Section, Segmented, type SegmentOption } from "../2-controls/2-section";
 import { NumberField } from "../2-controls/3-number-field";
-import { ColorRow, FILL_SWATCHES, STROKE_SWATCHES } from "../2-controls/4-color-row";
+import { ColorRow, FILL_SWATCHES, STROKE_SWATCHES } from "../2-controls/4-0-color-row";
 import { type SectionProps } from "./0-registry";
 import { useStyleWriter } from "./0-style-writer";
 

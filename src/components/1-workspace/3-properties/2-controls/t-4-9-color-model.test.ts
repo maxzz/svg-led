@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatColor, formatHsv, hsvOf, modelOf, modelValues, valuesOf } from "./5-color-model";
+import { formatColor, formatHsv, hsvOf, modelOf, modelValues, valuesOf } from "./4-9-color-model";
 
 describe("formatColor", () => {
     it("writes hex, with alpha only when translucent", () => {
