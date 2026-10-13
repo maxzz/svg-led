@@ -8,13 +8,14 @@ import { MODIFIERS, isMod } from "../3-modifiers";
 import { type MoveGesture, beginMove, endMove, pastThreshold, updateMove } from "../0-shared/3-move-gesture";
 import { hitTestOutlines, docTolerance } from "../0-shared/2-tool-helpers";
 import { selectedGroupOnPath, selectionUnitId } from "../0-shared/4-group-units";
+import { clearSnapGuides, collectSnapTargets, setSnapGuides, snapActive, snapBox, snapThreshold } from "@/snapping";
 
 const M = MODIFIERS.select;
 
 type Gesture =
     | { type: 'move'; move: MoveGesture; }
     | { type: 'marquee'; startScreen: Point; base: string[]; bboxes: Map<string, Rect>; }
-    | { type: 'resize'; originals: NodeOriginals; bbox: Rect; corner: 'nw' | 'ne' | 'se' | 'sw'; moved: boolean; startScreen: Point; };
+    | { type: 'resize'; originals: NodeOriginals; bbox: Rect; corner: 'nw' | 'ne' | 'se' | 'sw'; moved: boolean; startScreen: Point; snapTargets: Rect[]; };
 
 let gesture: Gesture | null = null;
 
@@ -33,7 +34,10 @@ export const selectTool: ToolDef = {
         if (target.type === 'resize' && selection.length) {
             const bbox = nodesDocBBox(snapshot(docState).doc as SvgDoc, selection);
             if (bbox) {
-                gesture = { type: 'resize', originals: captureOriginals(selection), bbox, corner: target.corner, moved: false, startScreen: e.screen };
+                gesture = {
+                    type: 'resize', originals: captureOriginals(selection), bbox, corner: target.corner, moved: false, startScreen: e.screen,
+                    snapTargets: collectSnapTargets(docState.doc as SvgDoc, selection),
+                };
             }
             return;
         }
@@ -116,7 +120,7 @@ export const selectTool: ToolDef = {
         }
         switch (gesture.type) {
             case 'move':
-                updateMove(gesture.move, e, isMod(e, M.constrainAxis));
+                updateMove(gesture.move, e, isMod(e, M.constrainAxis), isMod(e, M.snapToObjects));
                 break;
             case 'marquee': {
                 const screenRect = rectFromCorners(gesture.startScreen, e.screen);
@@ -133,12 +137,22 @@ export const selectTool: ToolDef = {
                     return;
                 }
                 gesture.moved = true;
-                applyDocMatrix(gesture.originals, resizeMatrix(gesture.bbox, gesture.corner, e));
+                // the dragged corner snaps to edges and centers of other elements
+                let corner = e.doc;
+                if (snapActive(isMod(e, M.snapToObjects))) {
+                    const off = snapBox({ x: e.doc.x, y: e.doc.y, width: 0, height: 0 }, gesture.snapTargets, { threshold: snapThreshold(), spacing: false, axes: ['x', 'y'] });
+                    corner = { x: e.doc.x + off.dx, y: e.doc.y + off.dy };
+                    setSnapGuides(off.guides);
+                } else {
+                    clearSnapGuides();
+                }
+                applyDocMatrix(gesture.originals, resizeMatrix(gesture.bbox, gesture.corner, { ...e, doc: corner }));
                 break;
         }
     },
 
     onPointerUp({ set }) {
+        clearSnapGuides();
         if (!gesture) {
             return;
         }

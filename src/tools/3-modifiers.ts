@@ -10,12 +10,14 @@ export const MODIFIERS = {
         constrainAxis: 'shift',          // move only horizontally or vertically
         duplicateDrag: 'alt',            // Alt+drag moves a copy
         deepSelect: 'ctrl',              // Ctrl+click selects an element inside a group
+        snapToObjects: 'ctrl',           // Ctrl held while dragging snaps to other elements (also on in Preferences)
         resizeKeepAspect: 'shift',
         resizeFromCenter: 'alt',
     },
     points: {
         toggleAnchor: 'shift',           // Shift+click adds or removes an anchor
         constrainAngle: 'shift',         // handles snap to 45 degrees
+        snapToObjects: 'ctrl',           // Ctrl held while dragging an anchor snaps to other elements
         breakHandle: 'alt',              // Alt+drag on a handle moves it alone (smooth -> cusp)
         convertAnchor: 'alt',            // Alt+click toggles corner/smooth, Alt+drag pulls out handles
         addDeletePoint: 'ctrl',          // Ctrl+click on a segment adds, on an anchor deletes
@@ -39,12 +41,14 @@ export const MODIFIER_DESCRIPTIONS: ModifierDescriptions = {
         constrainAxis: 'drag to move only horizontally or vertically',
         duplicateDrag: 'drag to move a copy',
         deepSelect: 'click to select an element inside a group',
+        snapToObjects: 'drag to snap to other elements (even when snapping is off in Preferences)',
         resizeKeepAspect: 'resize keeping the aspect ratio',
         resizeFromCenter: 'resize from the center',
     },
     points: {
         toggleAnchor: 'click to add or remove an anchor from the selection',
         constrainAngle: 'drag a handle to snap its angle to 45°',
+        snapToObjects: 'drag an anchor to snap to other elements (even when snapping is off in Preferences)',
         breakHandle: 'drag a handle to move it alone (smooth becomes cusp)',
         convertAnchor: 'click an anchor to toggle corner and smooth, drag to pull out handles',
         addDeletePoint: 'click a segment to add an anchor, click an anchor to delete it',

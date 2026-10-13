@@ -24,6 +24,7 @@ export interface EditorPreferences {
     showViewBox: boolean;        // Draw the viewBox frame and dim everything outside it
     showGrid: boolean;           // Draw the grid in document units
     snapToGrid: boolean;         // Snap dragged points to the grid
+    snapToObjects: boolean;      // Snap dragged elements to the edges and centers of other elements (Ctrl also snaps while dragging)
     gridSize: number;            // Grid step in document units
     precision: number;           // Decimal digits written to the SVG source
 }
@@ -53,6 +54,7 @@ const DEFAULT_SETTINGS: AppSettings = {
         showViewBox: true,
         showGrid: false,
         snapToGrid: false,
+        snapToObjects: false,
         gridSize: 10,
         precision: 3,
     },
