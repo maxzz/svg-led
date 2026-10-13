@@ -2,7 +2,7 @@ import { MousePointer } from "lucide-react";
 import { snapshot } from "valtio";
 import { toast } from "sonner";
 import {
-    type Matrix, type Point, type ShapeNode, type SubPath, type SvgDoc, type SvgNode, applyMatrix, applyShapeHandle, applyToVector,
+    type Matrix, type Point, type Rect, type ShapeNode, type SubPath, type SvgDoc, type SvgNode, applyMatrix, applyShapeHandle, applyToVector,
     constrain45, deleteAnchors, findNode, getAnchor, getShapeHandles, insertAnchor, isShapeNode, matrixScale, moveAnchor, nearestSegment,
     nodeCtm, parseAnchorKey, pathDataToSubpaths, pullHandles, rectContainsPoint, rectFromCorners, setHandle, subpathsToPathData,
     toggleAnchorKind, walkNodes,
@@ -16,6 +16,7 @@ import { type ToolDef, type ToolPointerEvent } from "../1-types";
 import { MODIFIERS, isMod } from "../3-modifiers";
 import { docTolerance, hitTestOutlines, nodeMatrices, snapValue } from "../0-shared/2-tool-helpers";
 import { type MoveGesture, beginMove, endMove, pastThreshold, updateMove } from "../0-shared/3-move-gesture";
+import { type SnapAxis, clearSnapGuides, collectSnapTargets, setSnapGuides, snapActive, snapBox, snapThreshold } from "@/snapping";
 
 const M = MODIFIERS.points;
 
@@ -23,7 +24,7 @@ type PathOriginal = { kind: 'path'; subs: SubPath[]; inv: Matrix; };
 type ShapeOriginal = { kind: 'shape'; node: ShapeNode; inv: Matrix; ctm: Matrix; };
 
 type Gesture =
-    | { type: 'anchors'; startDoc: Point; startScreen: Point; moved: boolean; originals: Map<string, PathOriginal | ShapeOriginal>; keys: string[]; }
+    | { type: 'anchors'; startDoc: Point; startScreen: Point; moved: boolean; originals: Map<string, PathOriginal | ShapeOriginal>; keys: string[]; startBox: Rect | null; snapTargets: Rect[]; }
     | { type: 'handle'; nodeId: string; key: string; side: 'in' | 'out'; subs: SubPath[]; inv: Matrix; moved: boolean; }
     | { type: 'alt-anchor'; nodeId: string; key: string; subs: SubPath[]; inv: Matrix; startScreen: Point; moved: boolean; }
     | { type: 'node-move'; move: MoveGesture; }
@@ -187,7 +188,7 @@ export const pointsTool: ToolDef = {
             }
 
             case 'node-move':
-                updateMove(gesture.move, e, e.shift);
+                updateMove(gesture.move, e, e.shift, isMod(e, M.snapToObjects));
                 break;
 
             case 'marquee': {
@@ -202,6 +203,7 @@ export const pointsTool: ToolDef = {
     },
 
     onPointerUp({ set }) {
+        clearSnapGuides();
         if (!gesture) {
             return;
         }
@@ -278,7 +280,14 @@ function beginAnchorsGesture(keys: string[], e: ToolPointerEvent): Extract<Gestu
             originals.set(nodeId, { kind: 'shape', node, inv: m.inv, ctm: m.ctm });
         }
     }
-    return { type: 'anchors', startDoc: e.doc, startScreen: e.screen, moved: false, originals, keys };
+    // snapping works on the box around the selected anchors; the anchored elements are not snap targets
+    const keySet = new Set(keys);
+    const anchorPoints = collectAnchorCandidates().filter((c) => keySet.has(c.full)).map((c) => c.doc);
+    return {
+        type: 'anchors', startDoc: e.doc, startScreen: e.screen, moved: false, originals, keys,
+        startBox: pointsBox(anchorPoints),
+        snapTargets: collectSnapTargets(docState.doc as SvgDoc, [...originals.keys()]),
+    };
 }
 
 function moveAnchorsGesture(g: Extract<Gesture, { type: 'anchors'; }>, e: ToolPointerEvent): void {
@@ -288,10 +297,39 @@ function moveAnchorsGesture(g: Extract<Gesture, { type: 'anchors'; }>, e: ToolPo
     g.moved = true;
     let dx = snapValue(e.doc.x - g.startDoc.x);
     let dy = snapValue(e.doc.y - g.startDoc.y);
+    let axes: SnapAxis[] = ['x', 'y'];
     if (e.shift) {
-        Math.abs(dx) > Math.abs(dy) ? (dy = 0) : (dx = 0);
+        if (Math.abs(dx) > Math.abs(dy)) {
+            dy = 0;
+            axes = ['x'];
+        } else {
+            dx = 0;
+            axes = ['y'];
+        }
+    }
+
+    if (g.startBox && snapActive(isMod(e, M.snapToObjects))) {
+        const box = { ...g.startBox, x: g.startBox.x + dx, y: g.startBox.y + dy };
+        const off = snapBox(box, g.snapTargets, { threshold: snapThreshold(), spacing: true, axes });
+        dx += off.dx;
+        dy += off.dy;
+        setSnapGuides(off.guides);
+    } else {
+        clearSnapGuides();
     }
     applyAnchorsDelta(g, { x: dx, y: dy }, e.shift);
+}
+
+/** Bounding box of a set of points in document coordinates; a single point gives a zero-size box */
+function pointsBox(points: Point[]): Rect | null {
+    if (!points.length) {
+        return null;
+    }
+    const xs = points.map((p) => p.x);
+    const ys = points.map((p) => p.y);
+    const x = Math.min(...xs);
+    const y = Math.min(...ys);
+    return { x, y, width: Math.max(...xs) - x, height: Math.max(...ys) - y };
 }
 
 function applyAnchorsDelta(g: Extract<Gesture, { type: 'anchors'; }>, delta: Point, constrain: boolean): void {

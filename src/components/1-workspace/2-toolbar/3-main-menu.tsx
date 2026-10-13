@@ -93,6 +93,9 @@ function PreferencesSub() {
                 <DropdownMenuCheckboxItem checked={prefs.snapToGrid} onSelect={keepOpen} onCheckedChange={(v) => { appSettings.prefs.snapToGrid = !!v; }}>
                     Snap to grid
                 </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem checked={prefs.snapToObjects} onSelect={keepOpen} onCheckedChange={(v) => { appSettings.prefs.snapToObjects = !!v; }}>
+                    Snap to objects
+                </DropdownMenuCheckboxItem>
                 <DropdownMenuCheckboxItem checked={pointsOptions.showAllHandles} onSelect={keepOpen} onCheckedChange={(v) => setPointsOptions({ showAllHandles: !!v })}>
                     Show all control handles
                 </DropdownMenuCheckboxItem>
