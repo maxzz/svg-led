@@ -1,6 +1,10 @@
-import { type KeyboardEvent } from "react";
+import { lazy, Suspense, type KeyboardEvent } from "react";
 import { cn } from "@/utils/classnames";
+import { Popover, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
 import { MIXED, type MaybeMixed } from "./1-mixed";
+
+// Color.js and the picker UI load the first time the picker opens.
+const ColorPickerPanel = lazy(() => import("./6-color-picker-panel"));
 
 export const STROKE_SWATCHES = ['#1e1e1e', '#e03131', '#2f9e44', '#1971c2', '#f08c00'];
 export const FILL_SWATCHES = ['none', '#ffc9c9', '#b2f2bb', '#a5d8ff', '#ffec99'];
@@ -11,7 +15,7 @@ type ColorRowProps = {
     onChange: (value: string) => void;
 };
 
-/** Swatches, a system color picker and a text field for any CSS color */
+/** Swatches, a color picker popover and a text field for any CSS color */
 export function ColorRow({ value, swatches, onChange }: ColorRowProps) {
     const current = value === MIXED ? '' : value ?? '';
 
@@ -30,15 +34,18 @@ export function ColorRow({ value, swatches, onChange }: ColorRowProps) {
 
                 <div className="mx-0.5 w-px h-5 bg-border" />
 
-                <label className="relative size-6 ring-1 ring-foreground/15 rounded-md overflow-hidden cursor-pointer" title="Pick a color">
-                    <span className="absolute inset-0" style={{ background: isPaint(current) ? current : CHECKERS }} />
-                    <input
-                        className="absolute inset-0 opacity-0 cursor-pointer"
-                        type="color"
-                        value={toHexColor(current)}
-                        onChange={(e) => onChange(e.currentTarget.value)}
-                    />
-                </label>
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <button className="relative size-6 ring-1 ring-foreground/15 rounded-md overflow-hidden cursor-pointer" style={{ background: CHECKERS }} title="Pick a color" type="button">
+                            {isPaint(current) && <span className="absolute inset-0" style={{ background: current }} />}
+                        </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-64" side="right" align="start">
+                        <Suspense fallback={<div className="h-64" />}>
+                            <ColorPickerPanel value={current} onChange={onChange} />
+                        </Suspense>
+                    </PopoverContent>
+                </Popover>
             </div>
 
             <input
@@ -66,7 +73,7 @@ function Swatch({ color, active, onClick }: { color: string; active: boolean; on
     );
 }
 
-const CHECKERS = 'repeating-conic-gradient(#d4d4d8 0% 25%, #fafafa 0% 50%) 50% / 8px 8px';
+export const CHECKERS = 'repeating-conic-gradient(#d4d4d8 0% 25%, #fafafa 0% 50%) 50% / 8px 8px';
 
 function isPaint(value: string): boolean {
     return !!value && value !== 'none' && value !== 'transparent' && !value.startsWith('url(');
@@ -74,24 +81,4 @@ function isPaint(value: string): boolean {
 
 function sameColor(a: string, b: string): boolean {
     return a.toLowerCase() === b.toLowerCase();
-}
-
-let ctx2d: CanvasRenderingContext2D | null | undefined;
-
-/** Any CSS color to #rrggbb for <input type="color">; non-paint values become black */
-export function toHexColor(value: string): string {
-    if (!isPaint(value)) {
-        return '#000000';
-    }
-    if (/^#[0-9a-f]{6}$/i.test(value)) {
-        return value;
-    }
-    ctx2d ??= document.createElement('canvas').getContext('2d');
-    if (!ctx2d) {
-        return '#000000';
-    }
-    ctx2d.fillStyle = '#000000';
-    ctx2d.fillStyle = value;
-    const normalized = ctx2d.fillStyle;
-    return normalized.startsWith('#') ? normalized : '#000000';
 }
