@@ -1,11 +1,31 @@
-import { lazy, Suspense, useState, type KeyboardEvent } from "react";
+import { useState, type KeyboardEvent } from "react";
 import { cn } from "@/utils/classnames";
-import { Popover, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
+import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
 import { MIXED, type MaybeMixed } from "./1-mixed";
 import { EyeDropperButton, hasEyeDropper } from "./7-eyedropper-button";
 
-// The full picker (and Color.js) load only when its popover is first opened.
-const ColorPickerPanel = lazy(() => import("./6-color-picker-panel"));
+//---------------------------------------------------------------------------
+// Full picker (Color.js + picker UI), loaded on demand.
+// Hovering the selector button starts the load; clicking it opens the picker once the module is ready.
+// The picker never mounts with a placeholder, so the palette stays put while it loads.
+
+type PickerModule = typeof import("./6-color-picker-panel");
+
+let pickerModule: PickerModule | null = null;
+let pickerLoad: Promise<PickerModule> | null = null;
+
+function loadColorPicker(): Promise<PickerModule> {
+    pickerLoad ??= import("./6-color-picker-panel").then(
+        (m) => (pickerModule = m),
+        (err) => {
+            pickerLoad = null;
+            throw err;
+        },
+    );
+    return pickerLoad;
+}
+
+//---------------------------------------------------------------------------
 
 export const STROKE_SWATCHES = ['#1e1e1e', '#e03131', '#2f9e44', '#1971c2', '#f08c00'];
 export const FILL_SWATCHES = ['none', '#ffc9c9', '#b2f2bb', '#a5d8ff', '#ffec99'];
@@ -102,10 +122,12 @@ export function ColorRow({ value, swatches, defaultShade = 4, onChange }: ColorR
 
 /**
  * Excalidraw-style palette: color families, their shades, and a hex row.
- * The selector button opens the full picker in a second popover.
+ * The selector button opens the full picker in a second popover, anchored to the palette's right edge.
  */
 function ColorPalette({ current, onChange, defaultShade }: { current: string; onChange: (css: string) => void; defaultShade: number; }) {
     const [activeShade, setActiveShade] = useState(defaultShade);
+    const [pickerOpen, setPickerOpen] = useState(false);
+    const [picker, setPicker] = useState<PickerModule | null>(pickerModule);
 
     // Which cell the current value belongs to. Its shade (if any) drives the grid and shade row.
     const matched = matchCell(current);
@@ -115,6 +137,22 @@ function ColorPalette({ current, onChange, defaultShade }: { current: string; on
     function pick(cell: PaletteCell, index: number) {
         setActiveShade(index);
         onChange(cellColor(cell, index));
+    }
+
+    /** Opens the full picker. The popover only opens once its module is loaded, so nothing flashes. */
+    function requestPicker(open: boolean) {
+        if (!open) {
+            setPickerOpen(false);
+            return;
+        }
+        if (picker) {
+            setPickerOpen(true);
+            return;
+        }
+        loadColorPicker().then((m) => {
+            setPicker(m);
+            setPickerOpen(true);
+        }, () => {});
     }
 
     // Hotkeys like Excalidraw: q..b pick a color, Shift+1..5 pick a shade of the selected family.
@@ -138,46 +176,54 @@ function ColorPalette({ current, onChange, defaultShade }: { current: string; on
     }
 
     return (
-        <div className="flex flex-col gap-3">
-            <div className="flex flex-col gap-3" onKeyDown={onKeyDown}>
-                <div className="text-sm">Colors</div>
-                <div className="grid grid-cols-5 gap-1.5">
-                    {PALETTE_CELLS.map((cell) => (
-                        <PaletteCellButton
-                            key={cell.id}
-                            color={cellColor(cell, shade)}
-                            label={cell.key}
-                            title={cell.id}
-                            active={matched?.cell.id === cell.id}
-                            onClick={() => pick(cell, shade)}
-                        />
-                    ))}
-                </div>
+        <Popover open={pickerOpen} onOpenChange={requestPicker}>
+            <PopoverAnchor asChild>
+                <div className="flex flex-col gap-3">
+                    <div className="flex flex-col gap-3" onKeyDown={onKeyDown}>
+                        <div className="text-sm">Colors</div>
+                        <div className="grid grid-cols-5 gap-1.5">
+                            {PALETTE_CELLS.map((cell) => (
+                                <PaletteCellButton
+                                    key={cell.id}
+                                    color={cellColor(cell, shade)}
+                                    label={cell.key}
+                                    title={cell.id}
+                                    active={matched?.cell.id === cell.id}
+                                    onClick={() => pick(cell, shade)}
+                                />
+                            ))}
+                        </div>
 
-                <div className="text-sm">Shades</div>
-                <div className="grid grid-cols-5 gap-1.5">
-                    {family?.shades
-                        ? family.shades.map((color, i) => (
-                            <PaletteCellButton
-                                key={i}
-                                color={color}
-                                label={`⇧${i + 1}`}
-                                title={`${family.id} ${i + 1}`}
-                                active={i === shade}
-                                onClick={() => pick(family, i)}
-                            />
-                        ))
-                        : Array.from({ length: 5 }, (_, i) => <div key={i} className="h-9 bg-muted/60 rounded-md" />)}
-                </div>
-            </div>
+                        <div className="text-sm">Shades</div>
+                        <div className="grid grid-cols-5 gap-1.5">
+                            {family?.shades
+                                ? family.shades.map((color, i) => (
+                                    <PaletteCellButton
+                                        key={i}
+                                        color={color}
+                                        label={`⇧${i + 1}`}
+                                        title={`${family.id} ${i + 1}`}
+                                        active={i === shade}
+                                        onClick={() => pick(family, i)}
+                                    />
+                                ))
+                                : Array.from({ length: 5 }, (_, i) => <div key={i} className="h-9 bg-muted/60 rounded-md" />)}
+                        </div>
+                    </div>
 
-            <div className="text-sm">Hex code</div>
-            <div className="flex items-center gap-1.5">
-                <HexField value={current} onChange={onChange} />
-                <PickerButton current={current} onChange={onChange} />
-                {hasEyeDropper() && <EyeDropperButton onPick={onChange} />}
-            </div>
-        </div>
+                    <div className="text-sm">Hex code</div>
+                    <div className="flex items-center gap-1.5">
+                        <HexField value={current} onChange={onChange} />
+                        <PickerButton current={current} />
+                        {hasEyeDropper() && <EyeDropperButton onPick={onChange} />}
+                    </div>
+                </div>
+            </PopoverAnchor>
+
+            <PopoverContent className="w-64" side="right" align="start" sideOffset={8}>
+                {picker && <picker.default value={current} onChange={onChange} />}
+            </PopoverContent>
+        </Popover>
     );
 }
 
@@ -210,23 +256,20 @@ function HexField({ value, onChange }: { value: string; onChange: (css: string) 
     );
 }
 
-/** Square showing the current color. Opens the full picker in a second popover. */
-function PickerButton({ current, onChange }: { current: string; onChange: (css: string) => void; }) {
-    const [open, setOpen] = useState(false);
-
+/** Square showing the current color. Toggles the full picker popover. Hovering it starts loading the picker. */
+function PickerButton({ current }: { current: string; }) {
     return (
-        <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-                <button className="relative shrink-0 size-7 ring-1 ring-foreground/15 rounded-md overflow-hidden cursor-pointer" style={{ background: CHECKERS }} title="Open the color picker" type="button">
-                    {isPaint(current) && <span className="absolute inset-0" style={{ background: current }} />}
-                </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-64" side="right" align="start" sideOffset={8}>
-                <Suspense fallback={<div className="h-64" />}>
-                    <ColorPickerPanel value={current} onChange={onChange} />
-                </Suspense>
-            </PopoverContent>
-        </Popover>
+        <PopoverTrigger asChild>
+            <button
+                className="relative shrink-0 size-7 ring-1 ring-foreground/15 rounded-md overflow-hidden cursor-pointer"
+                style={{ background: CHECKERS }}
+                onPointerEnter={() => { loadColorPicker().catch(() => {}); }}
+                title="Open the color picker"
+                type="button"
+            >
+                {isPaint(current) && <span className="absolute inset-0" style={{ background: current }} />}
+            </button>
+        </PopoverTrigger>
     );
 }
 
