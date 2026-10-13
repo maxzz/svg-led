@@ -17,7 +17,7 @@ export function StrokeSection({ mode, ids, nodes }: SectionProps) {
     const write = useStyleWriter(mode, ids);
     return (
         <Section title="Stroke">
-            <ColorRow value={commonValue(nodes, prop('stroke'))} swatches={STROKE_SWATCHES} onChange={(v) => { write.selection('stroke', v); write.defaults({ stroke: v }); }} />
+            <ColorRow value={commonValue(nodes, prop('stroke'))} swatches={STROKE_SWATCHES} defaultShade={4} onChange={(v) => { write.selection('stroke', v); write.defaults({ stroke: v }); }} />
         </Section>
     );
 }
@@ -26,7 +26,7 @@ export function FillSection({ mode, ids, nodes }: SectionProps) {
     const write = useStyleWriter(mode, ids);
     return (
         <Section title="Fill">
-            <ColorRow value={commonValue(nodes, prop('fill'))} swatches={FILL_SWATCHES} onChange={(v) => { write.selection('fill', v); write.defaults({ fill: v }); }} />
+            <ColorRow value={commonValue(nodes, prop('fill'))} swatches={FILL_SWATCHES} defaultShade={1} onChange={(v) => { write.selection('fill', v); write.defaults({ fill: v }); }} />
         </Section>
     );
 }

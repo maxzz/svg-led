@@ -49,6 +49,10 @@ function vendorChunkName(id: string): string | null {
     if (pkg === '@react-spring/web' || pkg.startsWith('@react-spring/')) {
         return 'react-spring';
     }
+    // Only the color picker imports it; its own chunk keeps it out of the eager vendor chunk.
+    if (pkg === 'colorjs.io') {
+        return 'colorjs';
+    }
 
     return 'vendor';
 }
