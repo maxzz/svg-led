@@ -2,31 +2,61 @@ import { lazy, Suspense, useState, type KeyboardEvent } from "react";
 import { cn } from "@/utils/classnames";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
 import { MIXED, type MaybeMixed } from "./1-mixed";
+import { EyeDropperButton, hasEyeDropper } from "./7-eyedropper-button";
 
-// Color.js and the full picker load only when "Custom color" is first opened.
+// The full picker (and Color.js) load only when its popover is first opened.
 const ColorPickerPanel = lazy(() => import("./6-color-picker-panel"));
 
 export const STROKE_SWATCHES = ['#1e1e1e', '#e03131', '#2f9e44', '#1971c2', '#f08c00'];
 export const FILL_SWATCHES = ['none', '#ffc9c9', '#b2f2bb', '#a5d8ff', '#ffec99'];
 
-/** Palette shown in the popover. Rows: neutrals, then hues from light to dark. */
-const PALETTE = [
-    'none',
-    '#1e1e1e', '#495057', '#868e96', '#ced4da', '#f8f9fa',
-    '#ffc9c9', '#ff8787', '#fa5252', '#e03131', '#c92a2a',
-    '#b2f2bb', '#69db7c', '#40c057', '#2f9e44', '#2b8a3e',
-    '#a5d8ff', '#4dabf7', '#228be6', '#1971c2', '#1864ab',
-    '#ffec99', '#ffd43b', '#fcc419', '#f08c00', '#e8590c',
+// Excalidraw's palette (packages/common/src/colors.ts). Each family has five shades, lightest first.
+const FAMILIES = {
+    gray:   ["#f8f9fa", "#e9ecef", "#ced4da", "#868e96", "#343a40"],
+    bronze: ["#f8f1ee", "#eaddd7", "#d2bab0", "#a18072", "#846358"],
+    cyan:   ["#e3fafc", "#99e9f2", "#3bc9db", "#15aabf", "#0c8599"],
+    blue:   ["#e7f5ff", "#a5d8ff", "#4dabf7", "#228be6", "#1971c2"],
+    violet: ["#f3f0ff", "#d0bfff", "#9775fa", "#7950f2", "#6741d9"],
+    grape:  ["#f8f0fc", "#eebefa", "#da77f2", "#be4bdb", "#9c36b5"],
+    pink:   ["#fff0f6", "#fcc2d7", "#f783ac", "#e64980", "#c2255c"],
+    green:  ["#ebfbee", "#b2f2bb", "#69db7c", "#40c057", "#2f9e44"],
+    teal:   ["#e6fcf5", "#96f2d7", "#38d9a9", "#12b886", "#099268"],
+    yellow: ["#fff9db", "#ffec99", "#ffd43b", "#fab005", "#f08c00"],
+    orange: ["#fff4e6", "#ffd8a8", "#ffa94d", "#fd7e14", "#e8590c"],
+    red:    ["#fff5f5", "#ffc9c9", "#ff8787", "#fa5252", "#e03131"],
+} as const;
+
+type PaletteCell = { key: string; id: string; fixed?: string; shades?: readonly string[]; };
+
+/** Grid order and hotkeys follow Excalidraw. `transparent` is stored as `none` for SVG. */
+const PALETTE_CELLS: readonly PaletteCell[] = [
+    { key: 'q', id: 'transparent', fixed: 'none' },
+    { key: 'w', id: 'white', fixed: '#ffffff' },
+    { key: 'e', id: 'gray', shades: FAMILIES.gray },
+    { key: 'r', id: 'black', fixed: '#1e1e1e' },
+    { key: 't', id: 'bronze', shades: FAMILIES.bronze },
+    { key: 'a', id: 'cyan', shades: FAMILIES.cyan },
+    { key: 's', id: 'blue', shades: FAMILIES.blue },
+    { key: 'd', id: 'violet', shades: FAMILIES.violet },
+    { key: 'f', id: 'grape', shades: FAMILIES.grape },
+    { key: 'g', id: 'pink', shades: FAMILIES.pink },
+    { key: 'z', id: 'green', shades: FAMILIES.green },
+    { key: 'x', id: 'teal', shades: FAMILIES.teal },
+    { key: 'c', id: 'yellow', shades: FAMILIES.yellow },
+    { key: 'v', id: 'orange', shades: FAMILIES.orange },
+    { key: 'b', id: 'red', shades: FAMILIES.red },
 ];
 
 type ColorRowProps = {
     value: MaybeMixed<string | undefined> | undefined;
     swatches: readonly string[];
+    /** Shade index (0-4) used when a palette family is picked. Excalidraw uses 4 for strokes and 1 for fills. */
+    defaultShade?: number;
     onChange: (value: string) => void;
 };
 
 /** Swatches, a palette popover and a text field for any CSS color */
-export function ColorRow({ value, swatches, onChange }: ColorRowProps) {
+export function ColorRow({ value, swatches, defaultShade = 4, onChange }: ColorRowProps) {
     const current = value === MIXED ? '' : value ?? '';
     const [open, setOpen] = useState(false);
 
@@ -52,7 +82,7 @@ export function ColorRow({ value, swatches, onChange }: ColorRowProps) {
                         </button>
                     </PopoverTrigger>
                     <PopoverContent className="w-64" side="right" align="start">
-                        <ColorPopoverBody current={current} onChange={onChange} onPicked={() => setOpen(false)} />
+                        <ColorPalette current={current} onChange={onChange} defaultShade={defaultShade} />
                     </PopoverContent>
                 </Popover>
             </div>
@@ -71,51 +101,186 @@ export function ColorRow({ value, swatches, onChange }: ColorRowProps) {
 }
 
 /**
- * Popover content: the palette first (no extra loading). "Custom color" at the bottom
- * switches to the full picker, which is lazy-loaded on first use. Remounting on each
- * open resets the view back to the palette.
+ * Excalidraw-style palette: color families, their shades, and a hex row.
+ * The selector button opens the full picker in a second popover.
  */
-function ColorPopoverBody({ current, onChange, onPicked }: { current: string; onChange: (css: string) => void; onPicked: () => void; }) {
-    const [custom, setCustom] = useState(false);
+function ColorPalette({ current, onChange, defaultShade }: { current: string; onChange: (css: string) => void; defaultShade: number; }) {
+    const [activeShade, setActiveShade] = useState(defaultShade);
 
-    if (!custom) {
-        return (
-            <div className="flex flex-col gap-2">
+    // Which cell the current value belongs to. Its shade (if any) drives the grid and shade row.
+    const matched = matchCell(current);
+    const shade = matched?.shade ?? activeShade;
+    const family = matched && matched.shade !== null ? matched.cell : null;
+
+    function pick(cell: PaletteCell, index: number) {
+        setActiveShade(index);
+        onChange(cellColor(cell, index));
+    }
+
+    // Hotkeys like Excalidraw: q..b pick a color, Shift+1..5 pick a shade of the selected family.
+    function onKeyDown(e: KeyboardEvent<HTMLDivElement>) {
+        if (e.ctrlKey || e.metaKey || e.altKey) {
+            return;
+        }
+        const digit = /^Digit([1-5])$/.exec(e.code)?.[1];
+        if (e.shiftKey) {
+            if (digit && family) {
+                e.preventDefault();
+                pick(family, Number(digit) - 1);
+            }
+            return;
+        }
+        const cell = PALETTE_CELLS.find((c) => c.key === e.key);
+        if (cell) {
+            e.preventDefault();
+            pick(cell, shade);
+        }
+    }
+
+    return (
+        <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3" onKeyDown={onKeyDown}>
+                <div className="text-sm">Colors</div>
                 <div className="grid grid-cols-5 gap-1.5">
-                    {PALETTE.map((color) => (
-                        <Swatch
-                            color={color}
-                            active={sameColor(color, current)}
-                            onClick={() => { onChange(color); onPicked(); }}
-                            key={color}
-                            className="h-7 w-full"
+                    {PALETTE_CELLS.map((cell) => (
+                        <PaletteCellButton
+                            key={cell.id}
+                            color={cellColor(cell, shade)}
+                            label={cell.key}
+                            title={cell.id}
+                            active={matched?.cell.id === cell.id}
+                            onClick={() => pick(cell, shade)}
                         />
                     ))}
                 </div>
 
-                <button className="h-7 text-xs bg-muted/60 hover:bg-muted rounded-md cursor-pointer" onClick={() => setCustom(true)} type="button">
-                    Custom color…
-                </button>
+                <div className="text-sm">Shades</div>
+                <div className="grid grid-cols-5 gap-1.5">
+                    {family?.shades
+                        ? family.shades.map((color, i) => (
+                            <PaletteCellButton
+                                key={i}
+                                color={color}
+                                label={`⇧${i + 1}`}
+                                title={`${family.id} ${i + 1}`}
+                                active={i === shade}
+                                onClick={() => pick(family, i)}
+                            />
+                        ))
+                        : Array.from({ length: 5 }, (_, i) => <div key={i} className="h-9 bg-muted/60 rounded-md" />)}
+                </div>
             </div>
-        );
-    }
 
-    return (
-        <div className="flex flex-col gap-2">
-            <button className="self-start text-xs text-muted-foreground hover:text-foreground cursor-pointer" onClick={() => setCustom(false)} type="button">
-                ← Palette
-            </button>
-            <Suspense fallback={<div className="h-64" />}>
-                <ColorPickerPanel value={current} onChange={onChange} />
-            </Suspense>
+            <div className="text-sm">Hex code</div>
+            <div className="flex items-center gap-1.5">
+                <HexField value={current} onChange={onChange} />
+                <PickerButton current={current} onChange={onChange} />
+                {hasEyeDropper() && <EyeDropperButton onPick={onChange} />}
+            </div>
         </div>
     );
 }
 
-function Swatch({ color, active, onClick, className = "size-6" }: { color: string; active: boolean; onClick: () => void; className?: string; }) {
+/** Hex text field. Shows the hex digits (with `#`) for hex colors, otherwise the raw CSS text. */
+function HexField({ value, onChange }: { value: string; onChange: (css: string) => void; }) {
+    const isHex = value.startsWith('#');
+    const text = isHex ? value.slice(1) : value;
+
+    function commit(raw: string) {
+        const v = raw.trim();
+        if (!v || v === text) {
+            return;
+        }
+        onChange(/^#?[0-9a-f]{3,8}$/i.test(v) ? `#${v.replace(/^#/, '')}` : v);
+    }
+
+    return (
+        <div className="grow px-2 h-7 min-w-0 bg-muted/60 focus-within:ring-1 focus-within:ring-(--editor-accent) rounded-md flex items-center gap-1">
+            {isHex && <span className="text-xs font-mono text-muted-foreground">#</span>}
+            <input
+                className="grow min-w-0 text-xs font-mono bg-transparent outline-none"
+                aria-label="Hex code"
+                defaultValue={text}
+                spellCheck={false}
+                onBlur={(e) => commit(e.currentTarget.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
+                key={value}
+            />
+        </div>
+    );
+}
+
+/** Square showing the current color. Opens the full picker in a second popover. */
+function PickerButton({ current, onChange }: { current: string; onChange: (css: string) => void; }) {
+    const [open, setOpen] = useState(false);
+
+    return (
+        <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+                <button className="relative shrink-0 size-7 ring-1 ring-foreground/15 rounded-md overflow-hidden cursor-pointer" style={{ background: CHECKERS }} title="Open the color picker" type="button">
+                    {isPaint(current) && <span className="absolute inset-0" style={{ background: current }} />}
+                </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-64" side="right" align="start" sideOffset={8}>
+                <Suspense fallback={<div className="h-64" />}>
+                    <ColorPickerPanel value={current} onChange={onChange} />
+                </Suspense>
+            </PopoverContent>
+        </Popover>
+    );
+}
+
+function PaletteCellButton({ color, label, title, active, onClick }: { color: string; label: string; title: string; active: boolean; onClick: () => void; }) {
     return (
         <button
-            className={cn("ring-1 ring-foreground/15 rounded-md cursor-pointer", className, active && "ring-2 ring-(--editor-accent) ring-offset-1 ring-offset-background")}
+            className={cn("relative h-9 w-full ring-1 ring-foreground/15 rounded-md cursor-pointer", active && "ring-2 ring-(--editor-accent) ring-offset-1 ring-offset-background")}
+            style={{ background: color === 'none' ? CHECKERS : color }}
+            title={title}
+            onClick={onClick}
+            type="button"
+        >
+            <span className={cn("absolute right-1 bottom-0.5 font-mono text-[10px] leading-none pointer-events-none", isDarkHex(color) ? "text-white/85" : "text-black/60")}>
+                {label}
+            </span>
+        </button>
+    );
+}
+
+/** Finds the palette cell that holds `value`, and the shade index if it's a family color. */
+function matchCell(value: string): { cell: PaletteCell; shade: number | null; } | null {
+    const v = value.toLowerCase() === 'transparent' ? 'none' : value.toLowerCase();
+    for (const cell of PALETTE_CELLS) {
+        if (cell.fixed !== undefined) {
+            if (cell.fixed.toLowerCase() === v) {
+                return { cell, shade: null };
+            }
+        } else {
+            const i = cell.shades?.indexOf(v) ?? -1;
+            if (i >= 0) {
+                return { cell, shade: i };
+            }
+        }
+    }
+    return null;
+}
+
+function cellColor(cell: PaletteCell, index: number): string {
+    return cell.fixed ?? cell.shades?.[index] ?? '';
+}
+
+/** Perceived brightness (YIQ) of a #rrggbb color. Decides whether the cell label is light or dark. */
+function isDarkHex(color: string): boolean {
+    if (!/^#[0-9a-f]{6}$/i.test(color)) {
+        return false;
+    }
+    const n = parseInt(color.slice(1), 16);
+    return ((n >> 16) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000 < 160;
+}
+
+function Swatch({ color, active, onClick }: { color: string; active: boolean; onClick: () => void; }) {
+    return (
+        <button
+            className={cn("size-6 ring-1 ring-foreground/15 rounded-md cursor-pointer", active && "ring-2 ring-(--editor-accent) ring-offset-1 ring-offset-background")}
             style={{ background: color === 'none' ? CHECKERS : color }}
             title={color}
             onClick={onClick}

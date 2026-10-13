@@ -1,9 +1,9 @@
 import { useState, type KeyboardEvent, type PointerEvent } from "react";
-import { IconColorPicker } from "@/ui/icons/normal/editor-manual-fields";
 import { Segmented, type SegmentOption } from "./2-section";
 import { NumberField } from "./3-number-field";
 import { CHECKERS } from "./4-color-row";
 import { COLOR_MODELS, type ColorModelId, type Hsv, type Triple, formatColor, formatHsv, hsvOf, modelOf, modelValues, valuesOf } from "./5-color-model";
+import { EyeDropperButton, hasEyeDropper } from "./7-eyedropper-button";
 
 type ColorPickerPanelProps = {
     value: string;
@@ -54,7 +54,7 @@ export default function ColorPickerPanel({ value, onChange }: ColorPickerPanelPr
             <SaturationArea hue={hsv.h} s={hsv.s} v={hsv.v} onChange={(s, v) => setHsv({ ...hsv, s, v })} />
 
             <div className="flex items-center gap-2">
-                {'EyeDropper' in window && <EyeDropperButton onPick={(hex) => setHsv({ ...hsvOf(hex, hsv.h), a: hsv.a })} />}
+                {hasEyeDropper() && <EyeDropperButton onPick={(hex) => setHsv({ ...hsvOf(hex, hsv.h), a: hsv.a })} />}
                 <Bar label="Hue" t={hsv.h / 360} background={HUE_GRADIENT} onChange={(t) => setHsv({ ...hsv, h: t * 360 })} />
             </div>
 
@@ -140,27 +140,6 @@ function Bar({ label, t, background, checkered, onChange }: { label: string; t: 
         >
             <div className="absolute top-1/2 size-3.5 -translate-x-1/2 -translate-y-1/2 bg-white rounded-full shadow-[0_0_0_1px_rgb(0_0_0/0.35)] pointer-events-none" style={{ left: `${t * 100}%` }} />
         </div>
-    );
-}
-
-type EyeDropperApi = { open: () => Promise<{ sRGBHex: string; }>; };
-
-/** Samples a color from anywhere on screen (Chromium's EyeDropper API). Escape cancels. */
-function EyeDropperButton({ onPick }: { onPick: (hex: string) => void; }) {
-    const EyeDropper = (window as unknown as { EyeDropper: new () => EyeDropperApi; }).EyeDropper;
-
-    async function pick() {
-        try {
-            onPick((await new EyeDropper().open()).sRGBHex);
-        } catch {
-            // cancelled
-        }
-    }
-
-    return (
-        <button className="shrink-0 size-7 bg-muted/60 hover:bg-muted rounded-md flex items-center justify-center cursor-pointer" title="Pick a color from the screen" type="button" onClick={pick}>
-            <IconColorPicker className="size-4" />
-        </button>
     );
 }
 
