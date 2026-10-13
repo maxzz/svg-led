@@ -5,6 +5,9 @@ import { displayShortcut, getCommand, runCommandAtom } from "@/commands";
 import { Section, optionButtonClasses } from "../2-controls/2-section";
 import { type SectionProps } from "./0-registry";
 
+//---------------------------------------------------------------------------
+// Layers and actions
+
 export function ActionsSection(_props: SectionProps) {
     return (<>
         <Section title="Layers">

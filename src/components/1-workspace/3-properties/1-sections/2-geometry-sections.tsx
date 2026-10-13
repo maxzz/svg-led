@@ -6,6 +6,9 @@ import { NumberField } from "../2-controls/3-number-field";
 import { type SectionProps } from "./0-registry";
 import { useStyleWriter } from "./0-style-writer";
 
+//---------------------------------------------------------------------------
+// Bounding box
+
 /** Position and size of the whole selection in document units */
 export function BBoxSection({ ids }: SectionProps) {
     const doc = useDocSnapshot();
@@ -26,6 +29,9 @@ export function BBoxSection({ ids }: SectionProps) {
         </Section>
     );
 }
+
+//---------------------------------------------------------------------------
+// Rect corners
 
 export function RectCornersSection({ mode, ids, nodes }: SectionProps) {
     const rects = nodes.filter((n): n is RectNode => n.kind === 'rect');

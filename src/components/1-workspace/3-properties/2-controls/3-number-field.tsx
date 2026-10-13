@@ -51,6 +51,7 @@ export function NumberField({ label, value, onChange, min, step = 1, precision =
                     {label}
                 </span>
             )}
+            
             <input
                 className="w-full min-w-0 tabular-nums bg-transparent outline-none"
                 defaultValue={text}

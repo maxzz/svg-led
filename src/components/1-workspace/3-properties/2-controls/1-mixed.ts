@@ -9,6 +9,7 @@ export function commonValue<I, T>(items: readonly I[], read: (item: I) => T): Ma
     }
     
     const first = read(items[0]);
+    
     for (let i = 1; i < items.length; i++) {
         if (read(items[i]) !== first) {
             return MIXED;
