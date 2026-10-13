@@ -38,7 +38,8 @@ export function ColorRow({ value, swatches, defaultShade = 4, onChange }: ColorR
                             {isPaint(current) && <span className="absolute inset-0" style={{ background: current }} />}
                         </button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-64" side="right" align="start">
+
+                    <PopoverContent className="w-auto" side="right" align="start">
                         <ColorPalette current={current} onChange={onChange} defaultShade={defaultShade} />
                     </PopoverContent>
                 </Popover>
@@ -123,7 +124,7 @@ function ColorPalette({ current, onChange, defaultShade }: { current: string; on
                         <div className="text-xs">
                             Colors
                         </div>
-                        <div className="grid grid-cols-5 gap-1.5">
+                        <div className="grid grid-cols-5 gap-y-1.5">
                             {PALETTE_CELLS.map(
                                 (cell) => (
                                     <PaletteCellButton
@@ -141,7 +142,7 @@ function ColorPalette({ current, onChange, defaultShade }: { current: string; on
                         <div className="text-xs">
                             Shades
                         </div>
-                        <div className="grid grid-cols-5 gap-1.5">
+                        <div className="grid grid-cols-5 gap-y-1.5">
                             {family?.shades
                                 ? family.shades.map(
                                     (color, i) => (
@@ -295,7 +296,7 @@ function PickerButton({ current }: { current: string; }) {
 function PaletteCellButton({ color, label, title, active, onClick }: { color: string; label: string; title: string; active: boolean; onClick: () => void; }) {
     return (
         <button
-            className={cn("relative h-9 w-full ring-1 ring-foreground/15 rounded-md cursor-pointer", active && "ring-2 ring-(--editor-accent) ring-offset-1 ring-offset-background")}
+            className={cn("relative size-8 ring-1 ring-foreground/15 rounded-md cursor-pointer", active && "ring-2 ring-(--editor-accent) ring-offset-1 ring-offset-background")}
             style={{ background: color === 'none' ? CHECKERS : color }}
             onClick={onClick}
             title={title}
