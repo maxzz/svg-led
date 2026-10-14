@@ -127,6 +127,9 @@ function ViewBoxFields() {
     const isDirty = !!vb && !!draft && (draft.x !== vb.x || draft.y !== vb.y || draft.width !== vb.width || draft.height !== vb.height);
     const matchedPreset = vb && vb.width === vb.height && VIEWBOX_PRESETS.includes(vb.width) ? String(vb.width) : "";
 
+    /** Live edit of one draft field; fields show the applied value, so typing isn't re-keyed */
+    const editDraft = (k: "x" | "y" | "width" | "height") => (n: number) => setDraft((d) => (d ? { ...d, [k]: n } : d));
+
     function onPick(v: string) {
         if (v === 'none') {
             setVb(null);
@@ -139,11 +142,11 @@ function ViewBoxFields() {
 
     return (
         <div className="grid grid-cols-[repeat(4,max-content)_1fr] gap-1">
-            {vb && draft && (<>
-                <NumberField className="max-w-16" label="X" value={draft.x} onChange={(x) => setDraft({ ...draft, x })} />
-                <NumberField className="max-w-16" label="Y" value={draft.y} onChange={(y) => setDraft({ ...draft, y })} />
-                <NumberField className="max-w-16" label="W" value={draft.width} min={0.01} onChange={(width) => setDraft({ ...draft, width })} />
-                <NumberField className="max-w-16" label="H" value={draft.height} min={0.01} onChange={(height) => setDraft({ ...draft, height })} />
+            {vb && (<>
+                <NumberField className="max-w-16" label="X" value={vb.x} onInput={editDraft("x")} onChange={editDraft("x")} />
+                <NumberField className="max-w-16" label="Y" value={vb.y} onInput={editDraft("y")} onChange={editDraft("y")} />
+                <NumberField className="max-w-16" label="W" value={vb.width} min={0.01} onInput={editDraft("width")} onChange={editDraft("width")} />
+                <NumberField className="max-w-16" label="H" value={vb.height} min={0.01} onInput={editDraft("height")} onChange={editDraft("height")} />
             </>)}
 
             <div className={vb ? "relative min-w-0 justify-self-end" : "relative min-w-0 justify-self-end col-span-full"}>
