@@ -125,7 +125,12 @@ function ViewBoxFields() {
     }
 
     const isDirty = !!vb && !!draft && (draft.x !== vb.x || draft.y !== vb.y || draft.width !== vb.width || draft.height !== vb.height);
-    const matchedPreset = vb && vb.width === vb.height && VIEWBOX_PRESETS.includes(vb.width) ? String(vb.width) : "";
+    // Shown value: "None" without a viewBox, the matching preset size, or "Custom" for any other size
+    const selectValue = !vb
+        ? "none"
+        : vb.width === vb.height && VIEWBOX_PRESETS.includes(vb.width)
+            ? String(vb.width)
+            : "custom";
 
     /** Live edit of one draft field; fields show the applied value, so typing isn't re-keyed */
     const editDraft = (k: "x" | "y" | "width" | "height") => (n: number) => setDraft((d) => (d ? { ...d, [k]: n } : d));
@@ -150,7 +155,7 @@ function ViewBoxFields() {
             </>)}
 
             <div className={vb ? "relative min-w-0 justify-self-end" : "relative min-w-0 justify-self-end col-span-full"}>
-                <Select value={matchedPreset} onValueChange={onPick}>
+                <Select value={selectValue} onValueChange={onPick}>
                     <SelectTrigger className="min-w-0 tabular-nums" size="sm" aria-label="Square presets">
                         <SelectValue placeholder="Square" />
                     </SelectTrigger>
