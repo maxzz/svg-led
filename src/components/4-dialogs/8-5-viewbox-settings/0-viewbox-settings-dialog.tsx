@@ -38,8 +38,6 @@ function Body() {
     const { fileName } = useSnapshot(docState);
     const { prefs } = useSnapshot(appSettings);
 
-    const setVb = useSetAtom(setViewBoxAndFitAtom);
-    const addVb = useSetAtom(addViewBoxAtom);
     const sizeFromVb = useSetAtom(sizeFromViewBoxAtom);
     const run = useSetAtom(runCommandAtom);
     const close = useSetAtom(isOpenViewBoxSettingsDialogAtom);
@@ -59,10 +57,10 @@ function Body() {
                 <Switch id={showId} checked={prefs.showViewBox} onCheckedChange={(v) => { appSettings.prefs.showViewBox = v; }} />
             </div>
 
+            <ViewBoxFields />
+
             {viewBox
                 ? (<>
-                    <ViewBoxFields />
-
                     <div className="flex flex-wrap gap-1.5">
                         <Button variant="outline" size="sm" type="button" onClick={() => fit('viewbox.toContent')}>
                             Fit to content...
@@ -82,14 +80,9 @@ function Body() {
                     </div>
                 </>)
                 : (
-                    <div className="flex items-center justify-between gap-2">
-                        <span className="text-muted-foreground">
-                            The document has no viewBox.
-                        </span>
-                        <Button size="sm" type="button" onClick={addVb}>
-                            Add viewBox
-                        </Button>
-                    </div>
+                    <span className="text-muted-foreground">
+                        The document has no viewBox.
+                    </span>
                 )
             }
 
@@ -111,39 +104,44 @@ function Body() {
                         <SizeField label="H" name="height" value={rootAttrs.height} />
                     </div>
                 </div>
-
-                {viewBox && (
-                    <div className="flex flex-wrap items-center justify-end gap-1.5">
-                        <Button variant="ghost" size="sm" type="button" className="text-destructive" onClick={() => setVb(null)}>
-                            Remove viewBox
-                        </Button>
-                    </div>
-                )}
             </div>
         </div>
     );
 }
 
-/** X/Y/W/H fields and square presets; reads the viewBox and updates it directly */
+/** X/Y/W/H fields (when a viewBox exists) and the square presets list with None/Custom */
 function ViewBoxFields() {
     const vb = useDocSnapshot().viewBox;
     const setVb = useSetAtom(setViewBoxAndFitAtom);
+    const addVb = useSetAtom(addViewBoxAtom);
 
-    if (!vb) return null;
+    function onPick(v: string) {
+        if (v === 'none') {
+            setVb(null);
+        } else if (v === 'custom') {
+            if (!vb) addVb();
+        } else {
+            setVb({ x: 0, y: 0, width: Number(v), height: Number(v) });
+        }
+    }
 
     return (
         <div className="grid grid-cols-[repeat(4,max-content)_1fr] gap-1">
-            <NumberField className="max-w-16" label="X" value={vb.x} onChange={(x) => setVb({ ...vb, x })} />
-            <NumberField className="max-w-16" label="Y" value={vb.y} onChange={(y) => setVb({ ...vb, y })} />
-            <NumberField className="max-w-16" label="W" value={vb.width} min={0.01} onChange={(width) => setVb({ ...vb, width })} />
-            <NumberField className="max-w-16" label="H" value={vb.height} min={0.01} onChange={(height) => setVb({ ...vb, height })} />
+            {vb && (<>
+                <NumberField className="max-w-16" label="X" value={vb.x} onChange={(x) => setVb({ ...vb, x })} />
+                <NumberField className="max-w-16" label="Y" value={vb.y} onChange={(y) => setVb({ ...vb, y })} />
+                <NumberField className="max-w-16" label="W" value={vb.width} min={0.01} onChange={(width) => setVb({ ...vb, width })} />
+                <NumberField className="max-w-16" label="H" value={vb.height} min={0.01} onChange={(height) => setVb({ ...vb, height })} />
+            </>)}
 
-            <Select onValueChange={(v) => setVb({ x: 0, y: 0, width: Number(v), height: Number(v) })}>
-                <SelectTrigger className="justify-self-end min-w-0 tabular-nums" size="sm" aria-label="Square presets">
+            <Select onValueChange={onPick}>
+                <SelectTrigger className={vb ? "justify-self-end min-w-0 tabular-nums" : "col-span-full justify-self-end min-w-0 tabular-nums"} size="sm" aria-label="Square presets">
                     <SelectValue placeholder="Square" />
                 </SelectTrigger>
 
                 <SelectContent position="popper" align="end">
+                    <SelectItem value="none">None</SelectItem>
+                    <SelectItem value="custom">Custom</SelectItem>
                     {VIEWBOX_PRESETS.map(
                         (n) => (
                             <SelectItem className="tabular-nums" value={String(n)} key={n}>
