@@ -1,4 +1,4 @@
-import { useId } from "react";
+import { useId, useState } from "react";
 import { useAtom, useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
 import { appSettings } from "@/store/1-ui-settings";
@@ -115,6 +115,18 @@ function ViewBoxFields() {
     const setVb = useSetAtom(setViewBoxAndFitAtom);
     const addVb = useSetAtom(addViewBoxAtom);
 
+    // Draft values for the X/Y/W/H fields; applied only by the Apply button.
+    // Reset whenever the viewBox changes from outside (presets, undo, canvas, Custom).
+    const [draft, setDraft] = useState(vb);
+    const [prevVb, setPrevVb] = useState(vb);
+    if (vb !== prevVb) {
+        setPrevVb(vb);
+        setDraft(vb);
+    }
+
+    const isDirty = !!vb && !!draft && (draft.x !== vb.x || draft.y !== vb.y || draft.width !== vb.width || draft.height !== vb.height);
+    const matchedPreset = vb && vb.width === vb.height && VIEWBOX_PRESETS.includes(vb.width) ? String(vb.width) : "";
+
     function onPick(v: string) {
         if (v === 'none') {
             setVb(null);
@@ -127,30 +139,38 @@ function ViewBoxFields() {
 
     return (
         <div className="grid grid-cols-[repeat(4,max-content)_1fr] gap-1">
-            {vb && (<>
-                <NumberField className="max-w-16" label="X" value={vb.x} onChange={(x) => setVb({ ...vb, x })} />
-                <NumberField className="max-w-16" label="Y" value={vb.y} onChange={(y) => setVb({ ...vb, y })} />
-                <NumberField className="max-w-16" label="W" value={vb.width} min={0.01} onChange={(width) => setVb({ ...vb, width })} />
-                <NumberField className="max-w-16" label="H" value={vb.height} min={0.01} onChange={(height) => setVb({ ...vb, height })} />
+            {vb && draft && (<>
+                <NumberField className="max-w-16" label="X" value={draft.x} onChange={(x) => setDraft({ ...draft, x })} />
+                <NumberField className="max-w-16" label="Y" value={draft.y} onChange={(y) => setDraft({ ...draft, y })} />
+                <NumberField className="max-w-16" label="W" value={draft.width} min={0.01} onChange={(width) => setDraft({ ...draft, width })} />
+                <NumberField className="max-w-16" label="H" value={draft.height} min={0.01} onChange={(height) => setDraft({ ...draft, height })} />
             </>)}
 
-            <Select onValueChange={onPick}>
-                <SelectTrigger className={vb ? "justify-self-end min-w-0 tabular-nums" : "col-span-full justify-self-end min-w-0 tabular-nums"} size="sm" aria-label="Square presets">
-                    <SelectValue placeholder="Square" />
-                </SelectTrigger>
+            <div className={vb ? "relative min-w-0 justify-self-end" : "relative min-w-0 justify-self-end col-span-full"}>
+                <Select value={matchedPreset} onValueChange={onPick}>
+                    <SelectTrigger className="min-w-0 tabular-nums" size="sm" aria-label="Square presets">
+                        <SelectValue placeholder="Square" />
+                    </SelectTrigger>
 
-                <SelectContent position="popper" align="end">
-                    <SelectItem value="none">None</SelectItem>
-                    <SelectItem value="custom">Custom</SelectItem>
-                    {VIEWBOX_PRESETS.map(
-                        (n) => (
-                            <SelectItem className="tabular-nums" value={String(n)} key={n}>
-                                {n} × {n}
-                            </SelectItem>
-                        )
-                    )}
-                </SelectContent>
-            </Select>
+                    <SelectContent position="popper" align="end">
+                        <SelectItem value="none">None</SelectItem>
+                        <SelectItem value="custom">Custom</SelectItem>
+                        {VIEWBOX_PRESETS.map(
+                            (n) => (
+                                <SelectItem className="tabular-nums" value={String(n)} key={n}>
+                                    {n} × {n}
+                                </SelectItem>
+                            )
+                        )}
+                    </SelectContent>
+                </Select>
+
+                {isDirty && (
+                    <Button size="sm" type="button" className="absolute inset-0 w-full tabular-nums" onClick={() => { if (draft) setVb(draft); }}>
+                        Apply
+                    </Button>
+                )}
+            </div>
         </div>
     );
 }
