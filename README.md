@@ -676,11 +676,13 @@ Ideas the architecture already allows:
 
 ## Credits
 
-- Created by **Max Zakharzhevski**.
-- Built on the author's React template with shadcn/ui, Jotai and Valtio.
 - Interaction design inspired by [Excalidraw](https://excalidraw.com/) (workspace layout) and [Adobe Illustrator](https://www.adobe.com/products/illustrator.html) (anchor model, Direct Selection and Pen tool conventions).
-- Development assisted by AI coding agents in [Cursor](https://cursor.com/).
+- I extend my deep respect and appreciation to Daishi Kato for creating and maintaining the [Jotai](https://github.com/pmndrs/jotai) and [Valtio](https://github.com/pmndrs/valtio) libraries.
+- Thanks  to the authors and maintainers of the excellent color processing package [color.js](https://github.com/color-js/color.js)
 - Thanks to the authors and maintainers of the open-source projects listed in [Tech stack](#tech-stack), and to the [Geist](https://vercel.com/font), Roboto Condensed and Yanone Kaffeesatz font families distributed through [Fontsource](https://fontsource.org/).
+- Built on the author's React template with [shadcn/ui](https://github.com/shadcn-ui/ui).
+- Created by **Max Zakharzhevski**.
+- Development assisted by AI coding agents in [Cursor](https://cursor.com/).
 
 ## License
 
