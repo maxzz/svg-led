@@ -17,33 +17,33 @@ export function ViewBoxSettingsDialog() {
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogContent className="p-0! max-w-md! gap-0!">
+            <DialogContent className="p-0! max-w-100! gap-0!">
                 <DialogHeader className="px-4 py-3 text-left border-b gap-1">
                     <DialogTitle className="text-sm">
                         ViewBox
                     </DialogTitle>
-                    <DialogDescription className="text-xs">
+                    <DialogDescription className="text-xs sr-only">
                         The viewBox defines the visible area and the coordinate system of the SVG.
                     </DialogDescription>
                 </DialogHeader>
 
-                {isOpen && <ViewBoxSettingsBody />}
+                {isOpen && <Body />}
             </DialogContent>
         </Dialog>
     );
 }
 
-function ViewBoxSettingsBody() {
-    const doc = useDocSnapshot();
+function Body() {
+    const { viewBox, rootAttrs } = useDocSnapshot();
     const { fileName } = useSnapshot(docState);
     const { prefs } = useSnapshot(appSettings);
+
     const setVb = useSetAtom(setViewBoxAndFitAtom);
     const addVb = useSetAtom(addViewBoxAtom);
     const sizeFromVb = useSetAtom(sizeFromViewBoxAtom);
     const run = useSetAtom(runCommandAtom);
     const close = useSetAtom(isOpenViewBoxSettingsDialogAtom);
     const showId = useId();
-    const vb = doc.viewBox;
 
     function fit(id: string) {
         close(false);
@@ -59,7 +59,7 @@ function ViewBoxSettingsBody() {
                 <Switch id={showId} checked={prefs.showViewBox} onCheckedChange={(v) => { appSettings.prefs.showViewBox = v; }} />
             </div>
 
-            {vb
+            {viewBox
                 ? (<>
                     <ViewBoxFields />
 
@@ -107,12 +107,12 @@ function ViewBoxSettingsBody() {
                         Size attributes
                     </span>
                     <div className="grid grid-cols-2 gap-1.5">
-                        <SizeField label="W" name="width" value={doc.rootAttrs.width} />
-                        <SizeField label="H" name="height" value={doc.rootAttrs.height} />
+                        <SizeField label="W" name="width" value={rootAttrs.width} />
+                        <SizeField label="H" name="height" value={rootAttrs.height} />
                     </div>
                 </div>
 
-                {vb && (
+                {viewBox && (
                     <div className="flex flex-wrap items-center justify-end gap-1.5">
                         <Button variant="ghost" size="sm" type="button" className="text-destructive" onClick={() => setVb(null)}>
                             Remove viewBox
@@ -132,21 +132,21 @@ function ViewBoxFields() {
     if (!vb) return null;
 
     return (
-        <div className="grid grid-cols-5 gap-1.5">
-            <NumberField label="X" value={vb.x} onChange={(x) => setVb({ ...vb, x })} />
-            <NumberField label="Y" value={vb.y} onChange={(y) => setVb({ ...vb, y })} />
-            <NumberField label="W" value={vb.width} min={0.01} onChange={(width) => setVb({ ...vb, width })} />
-            <NumberField label="H" value={vb.height} min={0.01} onChange={(height) => setVb({ ...vb, height })} />
+        <div className="grid grid-cols-[repeat(4,max-content)_1fr] gap-1">
+            <NumberField className="max-w-16" label="X" value={vb.x} onChange={(x) => setVb({ ...vb, x })} />
+            <NumberField className="max-w-16" label="Y" value={vb.y} onChange={(y) => setVb({ ...vb, y })} />
+            <NumberField className="max-w-16" label="W" value={vb.width} min={0.01} onChange={(width) => setVb({ ...vb, width })} />
+            <NumberField className="max-w-16" label="H" value={vb.height} min={0.01} onChange={(height) => setVb({ ...vb, height })} />
 
             <Select onValueChange={(v) => setVb({ x: 0, y: 0, width: Number(v), height: Number(v) })}>
-                <SelectTrigger className="w-full min-w-0" size="sm" aria-label="Square presets">
+                <SelectTrigger className="justify-self-end min-w-0 tabular-nums" size="sm" aria-label="Square presets">
                     <SelectValue placeholder="Square" />
                 </SelectTrigger>
 
                 <SelectContent position="popper" align="end">
                     {VIEWBOX_PRESETS.map(
                         (n) => (
-                            <SelectItem value={String(n)} key={n}>
+                            <SelectItem className="tabular-nums" value={String(n)} key={n}>
                                 {n} × {n}
                             </SelectItem>
                         )
@@ -164,6 +164,7 @@ function SizeField({ label, name, value }: { label: string; name: string; value:
             <span className="shrink-0 select-none text-[10px] text-muted-foreground">
                 {label}
             </span>
+
             <input
                 className="w-full min-w-0 tabular-nums bg-transparent outline-none"
                 defaultValue={value ?? ''}
