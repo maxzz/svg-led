@@ -119,7 +119,7 @@ function ViewBoxFields() {
         if (v === 'none') {
             setVb(null);
         } else if (v === 'custom') {
-            if (!vb) addVb();
+            addVb();
         } else {
             setVb({ x: 0, y: 0, width: Number(v), height: Number(v) });
         }
