@@ -71,6 +71,14 @@ export function RectCornersSection({ mode, ids, nodes }: SectionProps) {
         commitHistory({ mergeKey: `corners:${ids.join(',')}` });
     }
 
+    /** Opens the popup on a field; when it appears, the link button shows whether rx and ry are equal */
+    function openOn(key: CornerKey) {
+        if (active === null) {
+            setLinked(typeof rx === 'number' && rx === ry);
+        }
+        setActive(key);
+    }
+
     /** Sets ry of each shape, clamped to its height; in the new-shape panel it sets the default instead */
     function writeRy(next: (r: RectNode) => number) {
         if (mode === 'newShape') {
@@ -114,10 +122,10 @@ export function RectCornersSection({ mode, ids, nodes }: SectionProps) {
             <Popover open={active !== null} onOpenChange={(open) => !open && setActive(null)}>
                 <PopoverAnchor asChild>
                     <div className="grid grid-cols-2 gap-1">
-                        <div className="contents" data-corner-field onFocus={() => setActive('rx')}>
+                        <div className="contents" data-corner-field onFocus={() => openOn('rx')}>
                             <NumberField label="rx" value={rx} min={0} onChange={(v) => set('rx', v, linked)} />
                         </div>
-                        <div className="contents" data-corner-field onFocus={() => setActive('ry')}>
+                        <div className="contents" data-corner-field onFocus={() => openOn('ry')}>
                             <NumberField label="ry" value={ry} min={0} onChange={(v) => set('ry', v, linked)} />
                         </div>
                     </div>
