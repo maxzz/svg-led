@@ -61,28 +61,7 @@ function ViewBoxSettingsBody() {
 
             {vb
                 ? (<>
-                    <div className="grid grid-cols-5 gap-1.5">
-                        <NumberField label="X" value={vb.x} onChange={(x) => setVb({ ...vb, x })} />
-                        <NumberField label="Y" value={vb.y} onChange={(y) => setVb({ ...vb, y })} />
-                        <NumberField label="W" value={vb.width} min={0.01} onChange={(width) => setVb({ ...vb, width })} />
-                        <NumberField label="H" value={vb.height} min={0.01} onChange={(height) => setVb({ ...vb, height })} />
-
-                        <Select onValueChange={(v) => setVb({ x: 0, y: 0, width: Number(v), height: Number(v) })}>
-                            <SelectTrigger className="w-full min-w-0" size="sm" aria-label="Square presets">
-                                <SelectValue placeholder="Square" />
-                            </SelectTrigger>
-
-                            <SelectContent position="popper" align="end">
-                                {VIEWBOX_PRESETS.map(
-                                    (n) => (
-                                        <SelectItem value={String(n)} key={n}>
-                                            {n} × {n}
-                                        </SelectItem>
-                                    )
-                                )}
-                            </SelectContent>
-                        </Select>
-                    </div>
+                    <ViewBoxFields />
 
                     <div className="flex flex-wrap gap-1.5">
                         <Button variant="outline" size="sm" type="button" onClick={() => fit('viewbox.toContent')}>
@@ -141,6 +120,39 @@ function ViewBoxSettingsBody() {
                     </div>
                 )}
             </div>
+        </div>
+    );
+}
+
+/** X/Y/W/H fields and square presets; reads the viewBox and updates it directly */
+function ViewBoxFields() {
+    const vb = useDocSnapshot().viewBox;
+    const setVb = useSetAtom(setViewBoxAndFitAtom);
+
+    if (!vb) return null;
+
+    return (
+        <div className="grid grid-cols-5 gap-1.5">
+            <NumberField label="X" value={vb.x} onChange={(x) => setVb({ ...vb, x })} />
+            <NumberField label="Y" value={vb.y} onChange={(y) => setVb({ ...vb, y })} />
+            <NumberField label="W" value={vb.width} min={0.01} onChange={(width) => setVb({ ...vb, width })} />
+            <NumberField label="H" value={vb.height} min={0.01} onChange={(height) => setVb({ ...vb, height })} />
+
+            <Select onValueChange={(v) => setVb({ x: 0, y: 0, width: Number(v), height: Number(v) })}>
+                <SelectTrigger className="w-full min-w-0" size="sm" aria-label="Square presets">
+                    <SelectValue placeholder="Square" />
+                </SelectTrigger>
+
+                <SelectContent position="popper" align="end">
+                    {VIEWBOX_PRESETS.map(
+                        (n) => (
+                            <SelectItem value={String(n)} key={n}>
+                                {n} × {n}
+                            </SelectItem>
+                        )
+                    )}
+                </SelectContent>
+            </Select>
         </div>
     );
 }
