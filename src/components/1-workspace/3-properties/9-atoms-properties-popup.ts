@@ -2,18 +2,20 @@ import { atom } from "jotai";
 import { activeToolIdAtom, selectionAtom } from "@/store/4-editor";
 import { getTool } from "@/tools";
 
-export type PropertiesMode = 'selection' | 'tool' | 'document';
+/** `null` means the popup is hidden (nothing selected and no creation tool active) */
+export type PropertiesMode = 'selection' | 'tool' | null;
 
 /**
  * A creation tool shows the properties new shapes are created with, even while something is selected.
- * Otherwise the selection is shown, or the document when nothing is selected.
+ * Otherwise the selection is shown, or nothing when nothing is selected.
+ * Document info (file name, size attributes, viewBox) lives in the ViewBox settings dialog.
  */
 export const propertiesModeAtom = atom<PropertiesMode>(
     (get) => {
         if (getTool(get(activeToolIdAtom)).newShapeKind) {
             return 'tool';
         }
-        return get(selectionAtom).length ? 'selection' : 'document';
+        return get(selectionAtom).length ? 'selection' : null;
     }
 );
 

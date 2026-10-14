@@ -2,7 +2,7 @@ import { useId } from "react";
 import { useAtom, useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
 import { appSettings } from "@/store/1-ui-settings";
-import { useDocSnapshot } from "@/store/3-document";
+import { docState, setRootAttr, useDocSnapshot } from "@/store/3-document";
 import { runCommandAtom } from "@/commands";
 import { NumberField } from "@/components/1-workspace/3-properties/2-controls/3-number-field";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/ui/shadcn/dialog";
@@ -34,6 +34,7 @@ export function ViewBoxSettingsDialog() {
 
 function ViewBoxSettingsBody() {
     const doc = useDocSnapshot();
+    const { fileName } = useSnapshot(docState);
     const { prefs } = useSnapshot(appSettings);
     const setVb = useSetAtom(setViewBoxAndFitAtom);
     const addVb = useSetAtom(addViewBoxAtom);
@@ -50,11 +51,25 @@ function ViewBoxSettingsBody() {
 
     return (
         <div className="px-4 py-4 text-xs flex flex-col gap-4">
+            <div className="text-xs font-medium truncate" title={fileName}>
+                {fileName}
+            </div>
+
             <div className="flex items-center justify-between">
                 <Label className="text-xs" htmlFor={showId}>
                     Show the viewBox frame on the canvas
                 </Label>
                 <Switch id={showId} checked={prefs.showViewBox} onCheckedChange={(v) => { appSettings.prefs.showViewBox = v; }} />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+                <span className="text-muted-foreground">
+                    Size attributes
+                </span>
+                <div className="grid grid-cols-2 gap-1.5">
+                    <SizeField label="W" name="width" value={doc.rootAttrs.width} />
+                    <SizeField label="H" name="height" value={doc.rootAttrs.height} />
+                </div>
             </div>
 
             {vb
@@ -114,5 +129,24 @@ function ViewBoxSettingsBody() {
                 )
             }
         </div>
+    );
+}
+
+/** width/height may hold units ("24px", "100%"), so this is a text field; empty removes the attribute */
+function SizeField({ label, name, value }: { label: string; name: string; value: string | undefined; }) {
+    return (
+        <label className="px-1.5 h-7 min-w-0 text-xs bg-muted/60 focus-within:ring-1 focus-within:ring-(--editor-accent) rounded-md flex items-center gap-1">
+            <span className="shrink-0 select-none text-[10px] text-muted-foreground">
+                {label}
+            </span>
+            <input
+                className="w-full min-w-0 tabular-nums bg-transparent outline-none"
+                defaultValue={value ?? ''}
+                placeholder="auto"
+                onBlur={(e) => { const v = e.currentTarget.value.trim(); v !== (value ?? '') && setRootAttr(name, v || undefined); }}
+                onKeyDown={(e) => { e.key === 'Enter' && e.currentTarget.blur(); }}
+                key={value ?? ''}
+            />
+        </label>
     );
 }
