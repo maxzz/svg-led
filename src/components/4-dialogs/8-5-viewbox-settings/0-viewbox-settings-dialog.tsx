@@ -8,6 +8,7 @@ import { NumberField } from "@/components/1-workspace/3-properties/2-controls/3-
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/ui/shadcn/dialog";
 import { Button } from "@/ui/shadcn/button";
 import { Label } from "@/ui/shadcn/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
 import { Switch } from "@/ui/shadcn/switch";
 import { VIEWBOX_PRESETS, addViewBoxAtom, isOpenViewBoxSettingsDialogAtom, setViewBoxAndFitAtom, sizeFromViewBoxAtom } from "./9-types-viewbox-settings";
 
@@ -51,10 +52,6 @@ function ViewBoxSettingsBody() {
 
     return (
         <div className="px-4 py-4 text-xs flex flex-col gap-4">
-            <div className="text-xs font-medium truncate" title={fileName}>
-                {fileName}
-            </div>
-
             <div className="flex items-center justify-between">
                 <Label className="text-xs" htmlFor={showId}>
                     Show the viewBox frame on the canvas
@@ -62,38 +59,29 @@ function ViewBoxSettingsBody() {
                 <Switch id={showId} checked={prefs.showViewBox} onCheckedChange={(v) => { appSettings.prefs.showViewBox = v; }} />
             </div>
 
-            <div className="flex flex-col gap-1.5">
-                <span className="text-muted-foreground">
-                    Size attributes
-                </span>
-                <div className="grid grid-cols-2 gap-1.5">
-                    <SizeField label="W" name="width" value={doc.rootAttrs.width} />
-                    <SizeField label="H" name="height" value={doc.rootAttrs.height} />
-                </div>
-            </div>
-
             {vb
                 ? (<>
-                    <div className="grid grid-cols-4 gap-1.5">
+                    <div className="grid grid-cols-5 gap-1.5">
                         <NumberField label="X" value={vb.x} onChange={(x) => setVb({ ...vb, x })} />
                         <NumberField label="Y" value={vb.y} onChange={(y) => setVb({ ...vb, y })} />
                         <NumberField label="W" value={vb.width} min={0.01} onChange={(width) => setVb({ ...vb, width })} />
                         <NumberField label="H" value={vb.height} min={0.01} onChange={(height) => setVb({ ...vb, height })} />
-                    </div>
 
-                    <div className="flex flex-col gap-1.5">
-                        <span className="text-muted-foreground">
-                            Square presets
-                        </span>
-                        <div className="flex flex-wrap gap-1">
-                            {VIEWBOX_PRESETS.map(
-                                (n) => (
-                                    <Button variant="outline" size="xs" type="button" onClick={() => setVb({ x: 0, y: 0, width: n, height: n })} key={n}>
-                                        {n}
-                                    </Button>
-                                )
-                            )}
-                        </div>
+                        <Select onValueChange={(v) => setVb({ x: 0, y: 0, width: Number(v), height: Number(v) })}>
+                            <SelectTrigger className="w-full min-w-0" size="sm" aria-label="Square presets">
+                                <SelectValue placeholder="Square" />
+                            </SelectTrigger>
+
+                            <SelectContent position="popper" align="end">
+                                {VIEWBOX_PRESETS.map(
+                                    (n) => (
+                                        <SelectItem value={String(n)} key={n}>
+                                            {n} × {n}
+                                        </SelectItem>
+                                    )
+                                )}
+                            </SelectContent>
+                        </Select>
                     </div>
 
                     <div className="flex flex-wrap gap-1.5">
@@ -108,12 +96,9 @@ function ViewBoxSettingsBody() {
                         </Button>
                     </div>
 
-                    <div className="flex flex-wrap items-center justify-between gap-1.5">
+                    <div className="flex flex-wrap items-center gap-1.5">
                         <Button variant="ghost" size="sm" type="button" onClick={sizeFromVb}>
                             Set width and height from viewBox
-                        </Button>
-                        <Button variant="ghost" size="sm" type="button" className="text-destructive" onClick={() => setVb(null)}>
-                            Remove viewBox
                         </Button>
                     </div>
                 </>)
@@ -128,6 +113,34 @@ function ViewBoxSettingsBody() {
                     </div>
                 )
             }
+
+            <div className="flex flex-col gap-3 pt-3 border-t">
+                <span className="text-muted-foreground">
+                    File
+                </span>
+
+                <div className="text-xs font-medium truncate" title={fileName}>
+                    {fileName}
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                    <span className="text-muted-foreground">
+                        Size attributes
+                    </span>
+                    <div className="grid grid-cols-2 gap-1.5">
+                        <SizeField label="W" name="width" value={doc.rootAttrs.width} />
+                        <SizeField label="H" name="height" value={doc.rootAttrs.height} />
+                    </div>
+                </div>
+
+                {vb && (
+                    <div className="flex flex-wrap items-center justify-end gap-1.5">
+                        <Button variant="ghost" size="sm" type="button" className="text-destructive" onClick={() => setVb(null)}>
+                            Remove viewBox
+                        </Button>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
