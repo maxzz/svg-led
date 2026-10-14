@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link, Unlink } from "lucide-react";
 import { type RectNode } from "@/svg-core";
 import { commitHistory, getNodeProxy, nodesDocBBox, setNodesBBox, useDocSnapshot } from "@/store/3-document";
@@ -48,6 +48,8 @@ export function RectCornersSection({ mode, ids, nodes }: SectionProps) {
     const [active, setActive] = useState<CornerKey | null>(null);
     /** When on, rx and ry change together */
     const [linked, setLinked] = useState(false);
+    /** ry of each shape (by id) as it was before linking, restored on unlink */
+    const savedRy = useRef<Map<string, number> | null>(null);
 
     function set(key: CornerKey, value: number, both: boolean) {
         if (mode === 'newShape') {
@@ -67,6 +69,33 @@ export function RectCornersSection({ mode, ids, nodes }: SectionProps) {
             }
         }
         commitHistory({ mergeKey: `corners:${ids.join(',')}` });
+    }
+
+    /** Sets ry of each shape, clamped to its height; in the new-shape panel it sets the default instead */
+    function writeRy(next: (r: RectNode) => number) {
+        if (mode === 'newShape') {
+            rects[0] && write.defaults({ ry: next(rects[0]) });
+            return;
+        }
+        for (const r of rects) {
+            const node = getNodeProxy(r.id) as RectNode | undefined;
+            if (node) {
+                node.ry = Math.min(next(r), node.height / 2);
+            }
+        }
+        commitHistory();
+    }
+
+    function toggleLink() {
+        if (!linked) {
+            savedRy.current = new Map(rects.map((r) => [r.id, r.ry]));
+            writeRy((r) => r.rx); // ry adopts rx
+        }
+        else {
+            writeRy((r) => savedRy.current?.get(r.id) ?? r.ry); // ry goes back to its value before linking
+            savedRy.current = null;
+        }
+        setLinked(!linked);
     }
 
     /** Slider range: half of the largest size among the selected rects (or 100 when there are none) */
@@ -116,7 +145,7 @@ export function RectCornersSection({ mode, ids, nodes }: SectionProps) {
                         size="icon-xs"
                         aria-pressed={linked}
                         title={linked ? 'Unlink rx and ry' : 'Link rx and ry'}
-                        onClick={() => setLinked(!linked)}
+                        onClick={toggleLink}
                     >
                         {linked ? <Link /> : <Unlink />}
                     </Button>
