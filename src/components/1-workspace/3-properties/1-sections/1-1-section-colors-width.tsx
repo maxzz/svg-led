@@ -1,16 +1,17 @@
-import { getPresentation } from "@/svg-core";
-import { MIXED, commonValue } from "../2-controls/1-mixed";
+import { type SectionProps } from "./9-registry";
 import { Section, Segmented, type SegmentOption } from "../2-controls/2-section";
 import { NumberField } from "../2-controls/3-number-field";
-import { ColorRow, FILL_SWATCHES, STROKE_SWATCHES } from "../2-controls/4-0-color-row";
-import { type SectionProps } from "./9-registry";
 import { useStyleWriter } from "./8-style-writer";
+
+import { getPresentation } from "@/svg-core";
+import { MIXED, commonValue } from "../2-controls/1-mixed";
+import { ColorRow, FILL_SWATCHES, STROKE_SWATCHES } from "../2-controls/4-0-color-row";
 import { DEFAULT_STROKE_WIDTH } from "./1-2-section-dash";
 
 //---------------------------------------------------------------------------
 // Stroke and fill colors
 
-export function StrokeSection({ mode, ids, nodes }: SectionProps) {
+export function Section_Stroke({ mode, ids, nodes }: SectionProps) {
     const write = useStyleWriter(mode, ids);
     return (
         <Section title="Stroke">
@@ -19,7 +20,7 @@ export function StrokeSection({ mode, ids, nodes }: SectionProps) {
     );
 }
 
-export function FillSection({ mode, ids, nodes }: SectionProps) {
+export function Section_Fill({ mode, ids, nodes }: SectionProps) {
     const write = useStyleWriter(mode, ids);
     return (
         <Section title="Fill">
@@ -35,7 +36,7 @@ function prop(p: string) {
 //---------------------------------------------------------------------------
 // Stroke width
 
-export function StrokeWidthSection({ mode, ids, nodes }: SectionProps) {
+export function Section_StrokeWidth({ mode, ids, nodes }: SectionProps) {
     const raw = commonValue(nodes, prop('stroke-width'));
     const value = raw === MIXED ? MIXED : raw === undefined ? DEFAULT_STROKE_WIDTH : Number.parseFloat(raw);
     const write = useStyleWriter(mode, ids);

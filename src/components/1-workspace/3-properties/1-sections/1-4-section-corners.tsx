@@ -4,18 +4,20 @@ import { Popover, PopoverAnchor, PopoverContent } from "@/ui/shadcn/popover";
 import { Slider } from "@/ui/shadcn/slider";
 import { Link, Unlink } from "lucide-react";
 
-import { Section } from "../2-controls/2-section";
-import { NumberField } from "../2-controls/3-number-field";
-import { commitHistory, getNodeProxy } from "@/store/3-document";
-import { commonValue } from "../2-controls/1-mixed";
-import { useStyleWriter } from "./8-style-writer";
-import { type RectNode } from "@/svg-core";
 import { type SectionProps } from "./9-registry";
+import { Section } from "../2-controls/2-section";
+import { useStyleWriter } from "./8-style-writer";
+
+import { commitHistory, getNodeProxy } from "@/store/3-document";
+import { NumberField } from "../2-controls/3-number-field";
+import { commonValue } from "../2-controls/1-mixed";
+
+import { type RectNode } from "@/svg-core";
 
 //---------------------------------------------------------------------------
 // Rect corners
 
-export function RectCornersSection({ mode, ids, nodes }: SectionProps) {
+export function Section_RectCorners({ mode, ids, nodes }: SectionProps) {
     const rects = nodes.filter((n): n is RectNode => n.kind === 'rect');
     const rx = commonValue(rects, (r) => r.rx);
     const ry = commonValue(rects, (r) => r.ry);

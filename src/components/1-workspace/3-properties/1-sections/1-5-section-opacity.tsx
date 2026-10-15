@@ -1,13 +1,14 @@
-import { getPresentation } from "@/svg-core";
 import { Slider } from "@/ui/shadcn/slider";
-import { MIXED, commonValue } from "../2-controls/1-mixed";
-import { Section } from "../2-controls/2-section";
 import { type SectionProps } from "./9-registry";
+import { Section } from "../2-controls/2-section";
 import { useStyleWriter } from "./8-style-writer";
+
+import { getPresentation } from "@/svg-core";
+import { MIXED, commonValue } from "../2-controls/1-mixed";
 
 //---------------------------------------------------------------------------
 
-export function OpacitySection({ mode, ids, nodes }: SectionProps) {
+export function Section_Opacity({ mode, ids, nodes }: SectionProps) {
     const raw = commonValue(nodes, (n) => Number.parseFloat(getPresentation(n.attrs, 'opacity') ?? '1'));
     const percent = raw === MIXED || raw === undefined || Number.isNaN(raw) ? 100 : Math.round(raw * 100);
     const write = useStyleWriter(mode, ids);

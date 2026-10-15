@@ -1,15 +1,16 @@
 import { useSnapshot } from "valtio";
 import { appSettings } from "@/store/1-ui-settings";
+import { type SectionProps } from "./9-registry";
+import { NumberField } from "../2-controls/3-number-field";
+
 import { nodesDocBBox, setNodesBBox, useDocSnapshot } from "@/store/3-document";
 import { CollapsibleSection } from "../2-controls/2-section";
-import { NumberField } from "../2-controls/3-number-field";
-import { type SectionProps } from "./9-registry";
 
 //---------------------------------------------------------------------------
 // Bounding box
 
 /** Position and size of the whole selection in document units */
-export function BBoxSection({ ids }: SectionProps) {
+export function Section_BBox({ ids }: SectionProps) {
     const doc = useDocSnapshot();
     const { propertySections } = useSnapshot(appSettings);
 

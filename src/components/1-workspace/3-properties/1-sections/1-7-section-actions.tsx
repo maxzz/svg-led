@@ -1,14 +1,15 @@
 import { type ReactNode } from "react";
 import { useSetAtom, useStore } from "jotai";
 import { ArrowDown, ArrowUp, BringToFront, Copy, Frame, Group, SendToBack, Spline, Trash, Ungroup } from "lucide-react";
-import { displayShortcut, getCommand, runCommandAtom } from "@/commands";
-import { Section, optionButtonClasses } from "../2-controls/2-section";
 import { type SectionProps } from "./9-registry";
+import { Section, optionButtonClasses } from "../2-controls/2-section";
+
+import { displayShortcut, getCommand, runCommandAtom } from "@/commands";
 
 //---------------------------------------------------------------------------
 // Layers and actions
 
-export function ActionsSection(_props: SectionProps) {
+export function Section_Actions(_props: SectionProps) {
     return (<>
         <Section title="Layers">
             <div className="flex gap-1">

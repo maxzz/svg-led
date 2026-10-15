@@ -1,18 +1,20 @@
 import { useState, type KeyboardEvent } from "react";
 import { AnimatePresence, motion } from "motion/react";
+
+import { type SectionProps } from "./9-registry";
+import { Section, Segmented, type SegmentOption } from "../2-controls/2-section";
+import { useStyleWriter } from "./8-style-writer";
+
 import { getPresentation } from "@/svg-core";
 import { type DashStyle, presetDashArray } from "@/store/2-persist";
 import { MIXED, commonValue } from "../2-controls/1-mixed";
-import { Section, Segmented, type SegmentOption } from "../2-controls/2-section";
-import { type SectionProps } from "./9-registry";
-import { useStyleWriter } from "./8-style-writer";
 
 export const DEFAULT_STROKE_WIDTH = 1;
 
 //---------------------------------------------------------------------------
 // Stroke style
 
-export function DashSection({ mode, ids, nodes }: SectionProps) {
+export function Section_Dash({ mode, ids, nodes }: SectionProps) {
     const value = commonValue(nodes, (n) => dashStyleOf(getPresentation(n.attrs, 'stroke-dasharray')));
     const rawDash = commonValue(nodes, (n) => getPresentation(n.attrs, 'stroke-dasharray'));
     const dashText = rawDash === MIXED ? '' : normalizeDashArray(rawDash);

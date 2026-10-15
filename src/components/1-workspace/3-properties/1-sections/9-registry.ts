@@ -1,13 +1,13 @@
 import { type ComponentType } from "react";
 import { type SvgNode } from "@/svg-core";
 
-import { FillSection, StrokeSection, StrokeWidthSection } from "./1-1-section-colors-width";
-import { DashSection } from "./1-2-section-dash";
-import { CapJoinSection } from "./1-3-section-cap-join";
-import { RectCornersSection } from "./1-4-section-corners";
-import { BBoxSection } from "./1-5-section-geometry";
-import { ActionsSection } from "./1-6-section-actions";
-import { OpacitySection } from "./1-7-section-opacity";
+import { Section_Fill, Section_Stroke, Section_StrokeWidth } from "./1-1-section-colors-width";
+import { Section_Dash } from "./1-2-section-dash";
+import { Section_CapsJoins } from "./1-3-section-caps-joins";
+import { Section_RectCorners } from "./1-4-section-corners";
+import { Section_BBox } from "./1-6-section-geometry";
+import { Section_Actions } from "./1-7-section-actions";
+import { Section_Opacity } from "./1-5-section-opacity";
 
 /** 'selection': edits the selected elements. 'newShape': edits the properties new shapes are created with. */
 export type SectionMode = 'selection' | 'newShape';
@@ -39,13 +39,13 @@ function someNotKind(...kinds: SvgNode['kind'][]) {
 
 /** Sections of the properties popup in display order; add new per-kind sections here */
 export const PROPERTY_SECTIONS: readonly PropertySection[] = [
-    { id: 'stroke',       /**/ appliesTo: always,                                                       /**/ Component: StrokeSection },
-    { id: 'fill',         /**/ appliesTo: someNotKind('line'),                                          /**/ Component: FillSection },
-    { id: 'stroke-width', /**/ appliesTo: always,                                                       /**/ Component: StrokeWidthSection },
-    { id: 'dash',         /**/ appliesTo: always,                                                       /**/ Component: DashSection },
-    { id: 'cap-join',     /**/ appliesTo: someKind('path', 'line', 'polyline', 'polygon', 'rect', 'g'), /**/ Component: CapJoinSection },
-    { id: 'rect-corners', /**/ appliesTo: someKind('rect'),                                             /**/ Component: RectCornersSection },
-    { id: 'opacity',      /**/ appliesTo: always,                                                       /**/ Component: OpacitySection },
-    { id: 'bbox',         /**/ appliesTo: always,                                                       /**/ Component: BBoxSection, selectionOnly: true },
-    { id: 'actions',      /**/ appliesTo: always,                                                       /**/ Component: ActionsSection, selectionOnly: true },
+    { id: 'stroke',       /**/ appliesTo: always,                                                       /**/ Component: Section_Stroke },
+    { id: 'fill',         /**/ appliesTo: someNotKind('line'),                                          /**/ Component: Section_Fill },
+    { id: 'stroke-width', /**/ appliesTo: always,                                                       /**/ Component: Section_StrokeWidth },
+    { id: 'dash',         /**/ appliesTo: always,                                                       /**/ Component: Section_Dash },
+    { id: 'cap-join',     /**/ appliesTo: someKind('path', 'line', 'polyline', 'polygon', 'rect', 'g'), /**/ Component: Section_CapsJoins },
+    { id: 'rect-corners', /**/ appliesTo: someKind('rect'),                                             /**/ Component: Section_RectCorners },
+    { id: 'opacity',      /**/ appliesTo: always,                                                       /**/ Component: Section_Opacity },
+    { id: 'bbox',         /**/ appliesTo: always,                                                       /**/ Component: Section_BBox, selectionOnly: true },
+    { id: 'actions',      /**/ appliesTo: always,                                                       /**/ Component: Section_Actions, selectionOnly: true },
 ];

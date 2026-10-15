@@ -1,4 +1,5 @@
 import { useSetAtom } from "jotai";
+
 import { setNodesPresentation } from "@/store/3-document";
 import { type NewShapeStyle, newShapeStyleAtom } from "@/store/2-persist";
 import { type SectionMode } from "./9-registry";
