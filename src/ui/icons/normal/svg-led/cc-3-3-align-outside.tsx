@@ -2,7 +2,7 @@ import { type HTMLAttributes, type SVGProps } from "react";
 import { classNames } from "@/utils";
 
 // Source: src/assets/icons/SVG/cc-align3.svg
-export function IconAlignOutside({ className, title, ...rest }: HTMLAttributes<SVGSVGElement> & SVGProps<SVGSVGElement>) {
+export function IconAlign_3_Outside({ className, title, ...rest }: HTMLAttributes<SVGSVGElement> & SVGProps<SVGSVGElement>) {
     return (
         <svg className={classNames(className)} viewBox="0 0 24 24" {...rest}>
             {title && <title>{title}</title>}

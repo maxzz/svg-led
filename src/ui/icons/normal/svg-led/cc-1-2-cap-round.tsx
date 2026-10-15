@@ -2,7 +2,7 @@ import { type HTMLAttributes, type SVGProps } from "react";
 import { classNames } from "@/utils";
 
 // Source: src/assets/icons/SVG/cc-cap2.svg
-export function IconCapRound({ className, title, ...rest }: HTMLAttributes<SVGSVGElement> & SVGProps<SVGSVGElement>) {
+export function IconCap_2_Round({ className, title, ...rest }: HTMLAttributes<SVGSVGElement> & SVGProps<SVGSVGElement>) {
     return (
         <svg className={classNames(className)} viewBox="0 0 24 24" {...rest}>
             {title && <title>{title}</title>}
