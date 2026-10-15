@@ -29,7 +29,7 @@ export function CanvasRoot() {
             <svg
                 ref={canvasRef}
                 className={classNames(
-                    "absolute inset-0 select-none size-full bg-background touch-none transition-opacity duration-500 ease-out",
+                    "absolute inset-0 select-none size-full bg-background touch-none transition-opacity duration-300 ease-in",
                     ready ? "opacity-100" : "opacity-0",
                 )}
                 style={{ cursor, backgroundColor: canvasBackground || undefined }}
