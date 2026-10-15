@@ -4,6 +4,7 @@ import { useStyleWriter } from "./8-style-writer";
 
 import { getPresentation } from "@/svg-core";
 import { MIXED, commonValue } from "../2-controls/1-mixed";
+import { IconCapButt, IconCapRound, IconCapSquare, IconJoinBevel, IconJoinMiter, IconJoinRound } from "@/ui/icons/normal/svg-led";
 
 //---------------------------------------------------------------------------
 // Line caps and joins
@@ -21,13 +22,13 @@ export function Section_CapsJoins({ mode, ids, nodes }: SectionProps) {
 }
 
 const CAP_OPTIONS: SegmentOption<string>[] = [
-    { value: 'butt', label: 'Butt' },
-    { value: 'round', label: 'Round' },
-    { value: 'square', label: 'Square' },
+    { value: 'butt', label: <IconCapButt />, title: 'Butt cap' },
+    { value: 'round', label: <IconCapRound />, title: 'Round cap' },
+    { value: 'square', label: <IconCapSquare />, title: 'Square cap' },
 ];
 
 const JOIN_OPTIONS: SegmentOption<string>[] = [
-    { value: 'miter', label: 'Miter' },
-    { value: 'round', label: 'Round' },
-    { value: 'bevel', label: 'Bevel' },
+    { value: 'miter', label: <IconJoinMiter />, title: 'Miter join' },
+    { value: 'round', label: <IconJoinRound />, title: 'Round join' },
+    { value: 'bevel', label: <IconJoinBevel />, title: 'Bevel join' },
 ];
