@@ -1,7 +1,8 @@
 import { type ComponentType } from "react";
 import { type SvgNode } from "@/svg-core";
 import { ActionsSection } from "./3-actions-section";
-import { BBoxSection, RectCornersSection } from "./2-geometry-sections";
+import { BBoxSection } from "./2-geometry-sections";
+import { RectCornersSection } from "./2-rect-corners-section";
 import { CapJoinSection, DashSection, FillSection, OpacitySection, StrokeSection, StrokeWidthSection } from "./1-style-sections";
 
 /** 'selection': edits the selected elements. 'newShape': edits the properties new shapes are created with. */
