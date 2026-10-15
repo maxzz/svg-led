@@ -11,6 +11,7 @@ type NumberFieldProps = {
     min?: number;
     step?: number;
     precision?: number;
+    disabled?: boolean;
     className?: string;
 };
 
@@ -18,7 +19,7 @@ type NumberFieldProps = {
  * Uncontrolled input re-keyed by the value, so outside changes (undo, dragging on the canvas)
  * replace the text. Commits on Enter or blur; ArrowUp/ArrowDown step the text (Shift x10).
  */
-export function NumberField({ label, value, onChange, onInput, min, step = 1, precision = 2, className }: NumberFieldProps) {
+export function NumberField({ label, value, onChange, onInput, min, step = 1, precision = 2, disabled, className }: NumberFieldProps) {
     const text = value === MIXED || value === undefined ? '' : String(+value.toFixed(precision));
 
     function clamp(n: number) {
@@ -60,7 +61,7 @@ export function NumberField({ label, value, onChange, onInput, min, step = 1, pr
     }
 
     return (
-        <label className={cn("px-1.5 h-7 min-w-0 text-xs bg-muted/60 focus-within:ring-1 focus-within:ring-(--editor-accent) rounded-md flex items-center gap-1", className)}>
+        <label className={cn("px-1.5 h-7 min-w-0 text-xs bg-muted/60 focus-within:ring-1 focus-within:ring-(--editor-accent) rounded-md flex items-center gap-1", disabled && "opacity-40", className)}>
             {label && (
                 <span className="shrink-0 select-none text-[10px] text-muted-foreground">
                     {label}
@@ -72,6 +73,7 @@ export function NumberField({ label, value, onChange, onInput, min, step = 1, pr
                 defaultValue={text}
                 placeholder={value === MIXED ? 'Mixed' : ''}
                 inputMode="decimal"
+                disabled={disabled}
                 onChange={(e) => onTyped(e.currentTarget.value)}
                 onBlur={(e) => commit(e.currentTarget.value)}
                 onKeyDown={onKeyDown}

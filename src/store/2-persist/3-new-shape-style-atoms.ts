@@ -16,10 +16,14 @@ export type NewShapeStyle = {
     customDash: string;
     linecap: string;
     linejoin: string;
+    miterlimit: number;
     opacity: number;
     rx: number;
     ry: number;
 };
+
+/** SVG default for stroke-miterlimit */
+export const DEFAULT_MITER_LIMIT = 4;
 
 export const NEW_SHAPE_STYLE_DEFAULTS: NewShapeStyle = {
     stroke: '#1e1e1e',
@@ -29,6 +33,7 @@ export const NEW_SHAPE_STYLE_DEFAULTS: NewShapeStyle = {
     customDash: '',
     linecap: 'butt',
     linejoin: 'miter',
+    miterlimit: DEFAULT_MITER_LIMIT,
     opacity: 1,
     rx: 0,
     ry: 0,
