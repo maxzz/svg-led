@@ -3,7 +3,7 @@ import { useSetAtom, useStore } from "jotai";
 import { ArrowDown, ArrowUp, BringToFront, Copy, Frame, Group, SendToBack, Spline, Trash, Ungroup } from "lucide-react";
 import { displayShortcut, getCommand, runCommandAtom } from "@/commands";
 import { Section, optionButtonClasses } from "../2-controls/2-section";
-import { type SectionProps } from "./0-registry";
+import { type SectionProps } from "./9-registry";
 
 //---------------------------------------------------------------------------
 // Layers and actions

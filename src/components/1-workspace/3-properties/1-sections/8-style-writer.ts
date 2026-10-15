@@ -1,7 +1,7 @@
 import { useSetAtom } from "jotai";
 import { setNodesPresentation } from "@/store/3-document";
 import { type NewShapeStyle, newShapeStyleAtom } from "@/store/2-persist";
-import { type SectionMode } from "./0-registry";
+import { type SectionMode } from "./9-registry";
 
 export type StyleWriter = {
     /** Changes an attribute of the selected elements. Ignored in the new-shape panel. */

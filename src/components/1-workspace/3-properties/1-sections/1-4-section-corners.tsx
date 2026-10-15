@@ -8,9 +8,9 @@ import { Section } from "../2-controls/2-section";
 import { NumberField } from "../2-controls/3-number-field";
 import { commitHistory, getNodeProxy } from "@/store/3-document";
 import { commonValue } from "../2-controls/1-mixed";
-import { useStyleWriter } from "./0-style-writer";
+import { useStyleWriter } from "./8-style-writer";
 import { type RectNode } from "@/svg-core";
-import { type SectionProps } from "./0-registry";
+import { type SectionProps } from "./9-registry";
 
 //---------------------------------------------------------------------------
 // Rect corners

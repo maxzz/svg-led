@@ -2,7 +2,7 @@ import { useAtomValue } from "jotai";
 import { type SvgNode, findNode } from "@/svg-core";
 import { useDocSnapshot } from "@/store/3-document";
 import { selectionAtom } from "@/store/4-editor";
-import { PROPERTY_SECTIONS } from "./1-sections/0-registry";
+import { PROPERTY_SECTIONS } from "./1-sections/9-registry";
 
 export function SelectionProperties() {
     const doc = useDocSnapshot();

@@ -2,8 +2,8 @@ import { getPresentation } from "@/svg-core";
 import { Slider } from "@/ui/shadcn/slider";
 import { MIXED, commonValue } from "../2-controls/1-mixed";
 import { Section } from "../2-controls/2-section";
-import { type SectionProps } from "./0-registry";
-import { useStyleWriter } from "./0-style-writer";
+import { type SectionProps } from "./9-registry";
+import { useStyleWriter } from "./8-style-writer";
 
 //---------------------------------------------------------------------------
 

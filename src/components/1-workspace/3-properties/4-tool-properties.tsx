@@ -3,7 +3,7 @@ import { type SvgNode } from "@/svg-core";
 import { type NewShapeStyle, newShapeStyleAtom } from "@/store/2-persist";
 import { type NewShapeKind, type ToolDef } from "@/tools";
 import { styleAttrs } from "@/tools/0-shared/4-style-attrs";
-import { PROPERTY_SECTIONS } from "./1-sections/0-registry";
+import { PROPERTY_SECTIONS } from "./1-sections/9-registry";
 import { activeToolDefAtom } from "./9-atoms-properties-popup";
 
 /** Panel of a creation tool: the properties its new shapes are created with, limited to those that apply to its kind */

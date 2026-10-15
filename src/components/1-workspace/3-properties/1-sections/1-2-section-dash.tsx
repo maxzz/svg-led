@@ -4,8 +4,8 @@ import { getPresentation } from "@/svg-core";
 import { type DashStyle, presetDashArray } from "@/store/2-persist";
 import { MIXED, commonValue } from "../2-controls/1-mixed";
 import { Section, Segmented, type SegmentOption } from "../2-controls/2-section";
-import { type SectionProps } from "./0-registry";
-import { useStyleWriter } from "./0-style-writer";
+import { type SectionProps } from "./9-registry";
+import { useStyleWriter } from "./8-style-writer";
 
 export const DEFAULT_STROKE_WIDTH = 1;
 

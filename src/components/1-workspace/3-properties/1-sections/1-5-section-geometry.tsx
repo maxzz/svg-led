@@ -3,7 +3,7 @@ import { appSettings } from "@/store/1-ui-settings";
 import { nodesDocBBox, setNodesBBox, useDocSnapshot } from "@/store/3-document";
 import { CollapsibleSection } from "../2-controls/2-section";
 import { NumberField } from "../2-controls/3-number-field";
-import { type SectionProps } from "./0-registry";
+import { type SectionProps } from "./9-registry";
 
 //---------------------------------------------------------------------------
 // Bounding box
