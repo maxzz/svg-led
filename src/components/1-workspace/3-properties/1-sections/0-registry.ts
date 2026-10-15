@@ -3,7 +3,8 @@ import { type SvgNode } from "@/svg-core";
 import { ActionsSection } from "./3-actions-section";
 import { BBoxSection } from "./2-geometry-sections";
 import { RectCornersSection } from "./2-rect-corners-section";
-import { CapJoinSection, DashSection, FillSection, OpacitySection, StrokeSection, StrokeWidthSection } from "./1-style-sections";
+import { CapJoinSection, FillSection, OpacitySection, StrokeSection, StrokeWidthSection } from "./1-1-section-colors";
+import { DashSection } from "./1-2-section-dash";
 
 /** 'selection': edits the selected elements. 'newShape': edits the properties new shapes are created with. */
 export type SectionMode = 'selection' | 'newShape';
