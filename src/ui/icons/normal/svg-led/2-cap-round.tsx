@@ -1,18 +1,14 @@
 import { type HTMLAttributes, type SVGProps } from "react";
 import { classNames } from "@/utils";
 
+// Source: src/assets/icons/SVG/cc-cap2.svg
 export function IconCapRound({ className, title, ...rest }: HTMLAttributes<SVGSVGElement> & SVGProps<SVGSVGElement>) {
     return (
-        <svg className={classNames("fill-none stroke-current", className)} viewBox="0 0 24 24" {...rest}>
+        <svg className={classNames(className)} viewBox="0 0 24 24" {...rest}>
             {title && <title>{title}</title>}
-            <defs>
-                <mask id="stroke-cap-round-mask" maskUnits="userSpaceOnUse" x={0} y={0} width={24} height={24}>
-                    <rect width={24} height={24} fill="#fff" />
-                    <path d="M8 12H16" fill="none" stroke="#000" strokeWidth={1} />
-                    <circle cx={8} cy={12} r={1.5} fill="#000" />
-                </mask>
-            </defs>
-            <path d="M8 12H16" strokeWidth={6} strokeLinecap="round" mask="url(#stroke-cap-round-mask)" />
+            <path d="M20.03,21h-8.01c-4.43,0-8.01-4.03-8.01-9S7.59,3,12.01,3h8.01v18Z" fill="currentColor" />
+            <rect x={10} y={10} width={4} height={4} fill="#000" />
+            <line x1={11.99} y1={12} x2={20.01} y2={12} fill="none" stroke="#000" strokeMiterlimit={10} />
         </svg>
     );
 }

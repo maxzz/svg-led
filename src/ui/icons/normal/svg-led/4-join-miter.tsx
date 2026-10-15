@@ -1,18 +1,15 @@
 import { type HTMLAttributes, type SVGProps } from "react";
 import { classNames } from "@/utils";
 
+// Source: src/assets/icons/SVG/cc-corner1.svg
 export function IconJoinMiter({ className, title, ...rest }: HTMLAttributes<SVGSVGElement> & SVGProps<SVGSVGElement>) {
     return (
-        <svg className={classNames("fill-none stroke-current", className)} viewBox="0 0 24 24" {...rest}>
+        <svg className={classNames(className)} viewBox="0 0 24 24" {...rest}>
             {title && <title>{title}</title>}
-            <defs>
-                <mask id="stroke-join-miter-mask" maskUnits="userSpaceOnUse" x={0} y={0} width={24} height={24}>
-                    <rect width={24} height={24} fill="#fff" />
-                    <path d="M7 17V7H17" fill="none" stroke="#000" strokeWidth={1} />
-                    <circle cx={7} cy={7} r={1.5} fill="#000" />
-                </mask>
-            </defs>
-            <path d="M7 17V7H17" strokeWidth={5} strokeLinejoin="miter" strokeLinecap="butt" mask="url(#stroke-join-miter-mask)" />
+            <polygon points="21 3 21 14 14 14 14 21 3 21 3 3 21 3" fill="currentColor" />
+            <rect x={7.5} y={7.5} width={4} height={4} fill="#000" />
+            <line x1={9.5} y1={10} x2={9.5} y2={21} fill="none" stroke="#000" strokeMiterlimit={10} />
+            <line x1={9.5} y1={9.5} x2={21.01} y2={9.5} fill="none" stroke="#000" strokeMiterlimit={10} />
         </svg>
     );
 }
