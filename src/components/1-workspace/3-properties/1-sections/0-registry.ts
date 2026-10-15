@@ -1,9 +1,11 @@
 import { type ComponentType } from "react";
 import { type SvgNode } from "@/svg-core";
-import { ActionsSection } from "./3-actions-section";
-import { BBoxSection } from "./2-geometry-sections";
-import { RectCornersSection } from "./2-rect-corners-section";
-import { CapJoinSection, FillSection, OpacitySection, StrokeSection, StrokeWidthSection } from "./1-1-section-colors";
+import { ActionsSection } from "./1-6-section-actions";
+import { BBoxSection } from "./1-5-section-geometry";
+import { RectCornersSection } from "./1-4-section-corners";
+import { FillSection, StrokeSection, StrokeWidthSection } from "./1-1-section-colors-width";
+import { CapJoinSection } from "./1-3-section-cap-join";
+import { OpacitySection } from "./1-7-section-opacity";
 import { DashSection } from "./1-2-section-dash";
 
 /** 'selection': edits the selected elements. 'newShape': edits the properties new shapes are created with. */
