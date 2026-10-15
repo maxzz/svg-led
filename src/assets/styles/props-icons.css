@@ -1,0 +1,23 @@
+/* caps and corners */
+
+@theme inline {
+    --color-cc-sample-background: var(--cc-sample-background);  /* background of the sample line */
+    --color-cc-sample-outline: var(--cc-sample-outline);        /* outline of the thin line */
+    --color-cc-sample-line: var(--cc-sample-line);              /* line of the sample line */
+    --color-cc-selected-bg: var(--cc-selected-bg);              /* background of the selected button */
+}
+
+:root {
+    --cc-sample-background: oklch(0.83 0 0);
+    --cc-sample-line: oklch(0 0 0);
+    --cc-sample-outline: oklch(1 0 0);
+    --cc-selected-bg: oklch(39.1% 0.09 240.876);
+}
+    
+
+.dark {
+    --cc-sample-background: oklch(0.45 0 0);
+    --cc-sample-line: oklch(1 0 0);
+    --cc-sample-outline: oklch(0 0 0);
+    --cc-selected-bg: oklch(39.1% 0.09 240.876);
+}
