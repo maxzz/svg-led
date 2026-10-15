@@ -27,5 +27,6 @@ export * from "./editor-swap-popup";
 export * from "./logos";
 export * from "./lucid-react";
 export * from "./radix-icons";
+export * from "./svg-led";
 
 export * from "./40-sunnyvale";
