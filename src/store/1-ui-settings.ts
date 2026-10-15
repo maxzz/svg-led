@@ -29,12 +29,17 @@ export interface EditorPreferences {
     precision: number;           // Decimal digits written to the SVG source
 }
 
+export interface PropertySectionsSettings {
+    bboxOpen: boolean;           // "Position and size" section is expanded
+}
+
 export interface AppSettings {
     theme: ThemeMode;            // Theme mode
     showWelcome: boolean;        // Show the Welcome page at startup
     welcomeTransition: WelcomeTransition; // Transition between the Welcome and main pages
     canvasBackground: string;    // Canvas background color; empty string means the theme background
     codePanel: CodePanelSettings;
+    propertySections: PropertySectionsSettings; // Expanded state of collapsible property sections
     prefs: EditorPreferences;
 }
 
@@ -49,6 +54,9 @@ const DEFAULT_SETTINGS: AppSettings = {
         open: false,
         width: 420,
         sync: true,
+    },
+    propertySections: {
+        bboxOpen: false,
     },
     prefs: {
         showViewBox: true,
@@ -74,6 +82,7 @@ function loadSettings(): AppSettings {
                 ...parsed,
                 welcomeTransition: isWelcomeTransition(parsed.welcomeTransition) ? parsed.welcomeTransition : DEFAULT_SETTINGS.welcomeTransition,
                 codePanel: { ...DEFAULT_SETTINGS.codePanel, ...parsed.codePanel },
+                propertySections: { ...DEFAULT_SETTINGS.propertySections, ...parsed.propertySections },
                 prefs: { ...DEFAULT_SETTINGS.prefs, ...parsed.prefs },
             };
         }

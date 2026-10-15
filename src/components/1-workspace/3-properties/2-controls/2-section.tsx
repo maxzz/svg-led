@@ -1,4 +1,6 @@
 import { type ReactNode } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import { ChevronRight } from "lucide-react";
 import { cn } from "@/utils/classnames";
 
 export function Section({ title, children, className }: { title: string; children: ReactNode; className?: string; }) {
@@ -9,6 +11,34 @@ export function Section({ title, children, className }: { title: string; childre
             </h3>
             
             {children}
+        </section>
+    );
+}
+
+/** Section whose body slides open and closed like an accordion item; the caller owns the open state */
+export function CollapsibleSection({ title, open, onOpenChange, children }: { title: string; open: boolean; onOpenChange: (open: boolean) => void; children: ReactNode; }) {
+    return (
+        <section className="flex flex-col gap-1.5">
+            <h3 className="text-[11px]">
+                <button className="select-none w-full text-left text-muted-foreground hover:text-foreground flex items-center gap-1 cursor-pointer" type="button" aria-expanded={open} onClick={() => onOpenChange(!open)}>
+                    <ChevronRight className={cn("shrink-0 size-3 transition-transform duration-200", open && "rotate-90")} />
+                    {title}
+                </button>
+            </h3>
+
+            <AnimatePresence initial={false}>
+                {open && (
+                    <motion.div
+                        className="overflow-hidden flex flex-col gap-1.5"
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2, ease: 'easeOut' }}
+                    >
+                        {children}
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </section>
     );
 }
