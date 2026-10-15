@@ -179,6 +179,9 @@ export const canvasDropAtom = atom(
 
 let fitted = false;
 
+/** False until the first fit to the viewBox has set the viewport; the canvas stays transparent until then */
+export const canvasReadyAtom = atom(false);
+
 /** Stable ref callback (module-level, so React calls it only on mount and unmount) */
 export function canvasRef(el: SVGSVGElement | null) {
     if (!el) {
@@ -192,6 +195,7 @@ export function canvasRef(el: SVGSVGElement | null) {
             if (!fitted && width > 0 && height > 0) {
                 fitted = true;
                 appStore.set(zoomToFitAtom);
+                appStore.set(canvasReadyAtom, true);
             }
         }
     );
