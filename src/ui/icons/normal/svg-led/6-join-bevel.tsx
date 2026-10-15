@@ -5,7 +5,14 @@ export function IconJoinBevel({ className, title, ...rest }: HTMLAttributes<SVGS
     return (
         <svg className={classNames("fill-none stroke-current", className)} viewBox="0 0 24 24" {...rest}>
             {title && <title>{title}</title>}
-            <path d="M8 17V8h8" strokeWidth={2} strokeLinejoin="bevel" />
+            <defs>
+                <mask id="stroke-join-bevel-mask" maskUnits="userSpaceOnUse" x={0} y={0} width={24} height={24}>
+                    <rect width={24} height={24} fill="#fff" />
+                    <path d="M7 17V7H17" fill="none" stroke="#000" strokeWidth={1} />
+                    <circle cx={7} cy={7} r={1.5} fill="#000" />
+                </mask>
+            </defs>
+            <path d="M7 17V7H17" strokeWidth={5} strokeLinejoin="bevel" strokeLinecap="butt" mask="url(#stroke-join-bevel-mask)" />
         </svg>
     );
 }
