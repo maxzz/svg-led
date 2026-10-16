@@ -98,6 +98,7 @@ last:border-r-0 \
 \
 data-[active=true]:relative \
 data-[active=true]:z-10 \
+data-[active=true]:border-r-0 \
 \
 focus-visible:relative \
 focus-visible:z-10 \
