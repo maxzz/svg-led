@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { type SectionProps } from "./9-registry";
-import { Section, Segmented, segmentButtonClasses, segmentGroupClasses, type SegmentOption } from "../2-controls/2-section";
+import { type SegmentOption, Section, Segmented, segmentButtonClasses, segmentGroupClasses } from "../2-controls/2-section";
 import { NumberField } from "../2-controls/3-number-field";
 import { useStyleWriter } from "./8-style-writer";
 import { Popover, PopoverAnchor, PopoverContent } from "@/ui/shadcn/popover";
@@ -9,7 +9,7 @@ import { Slider } from "@/ui/shadcn/slider";
 
 import { getPresentation } from "@/svg-core";
 import { DEFAULT_MITER_LIMIT, MAX_MITER_LIMIT } from "@/store/2-persist";
-import { MIXED, commonValue, type MaybeMixed } from "../2-controls/1-mixed";
+import { type MaybeMixed, MIXED, commonValue } from "../2-controls/1-mixed";
 import { IconCap_1_Butt, IconCap_2_Round, IconCap_3_Square, IconCorner_3_Bevel, IconCorner_1_Miter, IconCorner_2_Round } from "@/ui/icons/normal/svg-led";
 
 //---------------------------------------------------------------------------
@@ -67,7 +67,7 @@ function MiterLimitField({ visible, value, onChange }: { visible: boolean; value
         <AnimatePresence initial={false}>
             {visible && (
                 <motion.div
-                    className="ml-auto overflow-hidden"
+                    className="ml-auto -my-0.5 p-0.5 overflow-hidden"
                     initial={{ width: 0, opacity: 0 }}
                     animate={{ width: 'auto', opacity: 1 }}
                     exit={{ width: 0, opacity: 0 }}
