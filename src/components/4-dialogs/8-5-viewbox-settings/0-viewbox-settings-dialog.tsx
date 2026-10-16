@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { type ReactNode, useId, useState } from "react";
 import { useAtom, useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
 import { appSettings } from "@/store/1-ui-settings";
@@ -6,11 +6,12 @@ import { docState, setRootAttr, useDocSnapshot } from "@/store/3-document";
 import { runCommandAtom } from "@/commands";
 import { NumberField } from "@/components/1-workspace/3-properties/2-controls/3-number-field";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/ui/shadcn/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
 import { Button } from "@/ui/shadcn/button";
 import { Label } from "@/ui/shadcn/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
 import { Switch } from "@/ui/shadcn/switch";
-import { VIEWBOX_PRESETS, addViewBoxAtom, isOpenViewBoxSettingsDialogAtom, setViewBoxAndFitAtom, sizeFromViewBoxAtom } from "./9-types-viewbox-settings";
+import { VIEWBOX_PRESETS, addViewBoxAtom, isOpenViewBoxSettingsDialogAtom, isOpenViewBoxSettingsPopoverAtom, setViewBoxAndFitAtom, sizeFromViewBoxAtom } from "./9-types-viewbox-settings";
 
 export function ViewBoxSettingsDialog() {
     const [isOpen, setIsOpen] = useAtom(isOpenViewBoxSettingsDialogAtom);
@@ -27,24 +28,44 @@ export function ViewBoxSettingsDialog() {
                     </DialogDescription>
                 </DialogHeader>
 
-                {isOpen && <Body />}
+                {isOpen && <Body onDone={() => setIsOpen(false)} />}
             </DialogContent>
         </Dialog>
     );
 }
 
-function Body() {
+/** Same settings as the dialog, shown as a popover anchored to its child (e.g. a toolbar button) */
+export function ViewBoxSettingsPopover({ children }: { children: ReactNode; }) {
+    const [isOpen, setIsOpen] = useAtom(isOpenViewBoxSettingsPopoverAtom);
+
+    return (
+        <Popover open={isOpen} onOpenChange={setIsOpen}>
+            <PopoverTrigger asChild>
+                {children}
+            </PopoverTrigger>
+
+            <PopoverContent className="p-0 w-100 gap-0" align="end" side="bottom" sideOffset={6}>
+                <div className="px-4 py-3 border-b text-sm font-medium">
+                    ViewBox
+                </div>
+
+                <Body onDone={() => setIsOpen(false)} />
+            </PopoverContent>
+        </Popover>
+    );
+}
+
+function Body({ onDone }: { onDone: () => void; }) {
     const { viewBox, rootAttrs } = useDocSnapshot();
     const { fileName } = useSnapshot(docState);
     const { prefs } = useSnapshot(appSettings);
 
     const sizeFromVb = useSetAtom(sizeFromViewBoxAtom);
     const run = useSetAtom(runCommandAtom);
-    const close = useSetAtom(isOpenViewBoxSettingsDialogAtom);
     const showId = useId();
 
     function fit(id: string) {
-        close(false);
+        onDone();
         run(id);
     }
 
