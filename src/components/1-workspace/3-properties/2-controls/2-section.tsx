@@ -72,10 +72,12 @@ text-xs \
 text-foreground/80 \
 bg-muted/60 \
 hover:bg-muted \
+\
+data-[active=true]:ring-1 \
 data-[active=true]:text-(--editor-accent) \
 data-[active=true]:bg-(--editor-accent)/12 \
-data-[active=true]:ring-1 \
 data-[active=true]:ring-(--editor-accent)/40 \
+\
 disabled:opacity-40 \
 rounded-md \
 flex items-center justify-center \
@@ -85,4 +87,18 @@ cursor-pointer";
 export const segmentGroupClasses = "gap-0 rounded-md ring-1 ring-foreground/15 overflow-hidden";
 
 /** Button classes for a Segmented row shown as one control: square corners, divider on the right of each option */
-export const segmentButtonClasses = "rounded-none first:rounded-l-md last:rounded-r-md border-r border-foreground/15 last:border-r-0 data-[active=true]:ring-inset focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-(--editor-accent)";
+export const segmentButtonClasses = "\
+px-1 \
+rounded-none \
+first:rounded-l-md \
+last:rounded-r-md \
+border-r \
+border-foreground/15 \
+last:border-r-0 \
+\
+data-[active=true]:ring-inset \
+\
+focus-visible:outline-none \
+focus-visible:ring-1 \
+focus-visible:ring-inset \
+focus-visible:ring-(--editor-accent)";
