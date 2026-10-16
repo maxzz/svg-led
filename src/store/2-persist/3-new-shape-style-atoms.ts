@@ -24,6 +24,7 @@ export type NewShapeStyle = {
 
 /** SVG default for stroke-miterlimit */
 export const DEFAULT_MITER_LIMIT = 4;
+export const MAX_MITER_LIMIT = 20;
 
 export const NEW_SHAPE_STYLE_DEFAULTS: NewShapeStyle = {
     stroke: '#1e1e1e',

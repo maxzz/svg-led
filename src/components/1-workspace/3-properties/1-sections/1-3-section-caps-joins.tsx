@@ -8,7 +8,7 @@ import { Popover, PopoverAnchor, PopoverContent } from "@/ui/shadcn/popover";
 import { Slider } from "@/ui/shadcn/slider";
 
 import { getPresentation } from "@/svg-core";
-import { DEFAULT_MITER_LIMIT } from "@/store/2-persist";
+import { DEFAULT_MITER_LIMIT, MAX_MITER_LIMIT } from "@/store/2-persist";
 import { MIXED, commonValue, type MaybeMixed } from "../2-controls/1-mixed";
 import { IconCap_1_Butt, IconCap_2_Round, IconCap_3_Square, IconCorner_3_Bevel, IconCorner_1_Miter, IconCorner_2_Round } from "@/ui/icons/normal/svg-led";
 
@@ -54,7 +54,7 @@ function MiterLimitField({ visible, value, onChange }: { visible: boolean; value
 
     const numeric = typeof value === 'number' ? value : undefined;
     /** Slider range: 1 to at least 10, or to the current value when it is larger */
-    const sliderMax = Math.max(10, numeric ?? 0);
+    const sliderMax = Math.max(MAX_MITER_LIMIT, numeric ?? 0);
 
     /** Clicks and focus moves inside the field must not close the popup */
     function keepOpenOnField(e: Event) {
