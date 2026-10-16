@@ -85,4 +85,4 @@ cursor-pointer";
 export const segmentGroupClasses = "gap-0 rounded-md ring-1 ring-foreground/15 overflow-hidden";
 
 /** Button classes for a Segmented row shown as one control: square corners, divider on the right of each option */
-export const segmentButtonClasses = "rounded-none border-r border-foreground/15 last:border-r-0 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-(--editor-accent)";
+export const segmentButtonClasses = "rounded-none border-r border-foreground/15 last:border-r-0 data-[active=true]:ring-inset focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-(--editor-accent)";
