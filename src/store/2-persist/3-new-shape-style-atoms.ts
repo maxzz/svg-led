@@ -22,14 +22,14 @@ export type NewShapeStyle = {
     ry: number;
 };
 
-/** SVG default for stroke-miterlimit */
+/** SVG default for stroke-miterlimit. https://developer.mozilla.org/en-US/docs/Web/SVG/Reference/Attribute/stroke-miterlimit */
 export const DEFAULT_MITER_LIMIT = 4;
-export const MAX_MITER_LIMIT = 20;
+export const MAX_MITER_LIMIT = 100;
 
 export const NEW_SHAPE_STYLE_DEFAULTS: NewShapeStyle = {
-    stroke: '#1e1e1e',
+    stroke: '#fff',
     fill: 'none',
-    strokeWidth: 1,
+    strokeWidth: 1, // TODO: should it be relative to the viewBox?
     dashStyle: 'solid',
     customDash: '',
     linecap: 'butt',

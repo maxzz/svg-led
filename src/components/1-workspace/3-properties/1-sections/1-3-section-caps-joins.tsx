@@ -87,7 +87,7 @@ function MiterLimitField({ visible, value, onChange }: { visible: boolean; value
                         </PopoverAnchor>
 
                         <PopoverContent
-                            className="p-2 w-40 flex-row items-center gap-1.5"
+                            className="p-2 w-40 flex-row rounded items-center gap-1.5"
                             side="bottom"
                             align="end"
                             onOpenAutoFocus={(e) => e.preventDefault()}

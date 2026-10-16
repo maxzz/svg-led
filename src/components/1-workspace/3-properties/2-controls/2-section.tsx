@@ -9,7 +9,7 @@ export function Section({ title, children, className }: { title: string; childre
             <h3 className="select-none text-[11px] text-muted-foreground">
                 {title}
             </h3>
-            
+
             {children}
         </section>
     );
@@ -46,12 +46,17 @@ export function CollapsibleSection({ title, open, onOpenChange, children }: { ti
 export type SegmentOption<T extends string | number> = { value: T; label: ReactNode; title?: string; };
 
 /** Row of option buttons; value may be undefined (nothing active) for mixed selections */
-export function Segmented<T extends string | number>({ options, value, onChange }: { options: readonly SegmentOption<T>[]; value: T | undefined; onChange: (value: T) => void; }) {
+export function Segmented<T extends string | number>({ options, value, onChange, className, buttonClassName }: {
+    options: readonly SegmentOption<T>[]; value: T | undefined;
+    onChange: (value: T) => void;
+    className?: string;
+    buttonClassName?: string;
+}) {
     return (
-        <div className="flex flex-wrap items-center gap-1">
+        <div className={cn("flex flex-wrap items-center gap-1", className)}>
             {options.map(
                 (o) => (
-                    <button className={optionButtonClasses} data-active={o.value === value} title={o.title} onClick={() => onChange(o.value)} type="button" key={String(o.value)}>
+                    <button className={cn(optionButtonClasses, buttonClassName)} data-active={o.value === value} title={o.title} onClick={() => onChange(o.value)} type="button" key={String(o.value)}>
                         {o.label}
                     </button>
                 )

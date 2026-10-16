@@ -43,7 +43,7 @@ grow \
 relative \
 bg-muted \
 \
-data-horizontal:h-0.75 \
+data-horizontal:h-0.5 \
 data-horizontal:w-full \
 \
 data-vertical:h-full \
