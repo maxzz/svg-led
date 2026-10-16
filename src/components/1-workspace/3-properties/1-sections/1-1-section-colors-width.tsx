@@ -9,7 +9,7 @@ import { Slider } from "@/ui/shadcn/slider";
 import { getPresentation } from "@/svg-core";
 import { MIXED, commonValue, type MaybeMixed } from "../2-controls/1-mixed";
 import { ColorRow, FILL_SWATCHES, STROKE_SWATCHES } from "../2-controls/4-0-color-row";
-import { DEFAULT_STROKE_WIDTH } from "./1-2-section-dash";
+import { DEFAULT_STROKE_WIDTH, MAX_STROKE_WIDTH } from "@/store/2-persist/3-new-shape-style-atoms";
 
 //---------------------------------------------------------------------------
 // Stroke and fill colors
@@ -76,7 +76,7 @@ function StrokeWidthField({ value, onChange }: { value: MaybeMixed<number> | und
 
     const numeric = typeof value === 'number' ? value : undefined;
     /** Slider range: 0 to at least 10, or to the current value when it is larger */
-    const sliderMax = Math.max(10, numeric ?? 0);
+    const sliderMax = Math.max(MAX_STROKE_WIDTH, numeric ?? 0);
 
     /** Clicks and focus moves inside the field must not close the popup */
     function keepOpenOnField(e: Event) {

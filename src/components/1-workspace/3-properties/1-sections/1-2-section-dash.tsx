@@ -8,8 +8,7 @@ import { useStyleWriter } from "./8-style-writer";
 import { getPresentation } from "@/svg-core";
 import { type DashStyle, presetDashArray } from "@/store/2-persist";
 import { MIXED, commonValue } from "../2-controls/1-mixed";
-
-export const DEFAULT_STROKE_WIDTH = 1;
+import { DEFAULT_STROKE_WIDTH } from "@/store/2-persist/3-new-shape-style-atoms";
 
 //---------------------------------------------------------------------------
 // Stroke style
