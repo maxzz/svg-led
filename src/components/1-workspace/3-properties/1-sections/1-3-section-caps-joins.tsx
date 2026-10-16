@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { useSnapshot } from "valtio";
 import { AnimatePresence, motion } from "motion/react";
+import { appSettings } from "@/store/1-ui-settings";
 import { type SectionProps } from "./9-registry";
-import { type SegmentOption, Section, Segmented, segmentButtonClasses, segmentGroupClasses } from "../2-controls/2-section";
+import { type SegmentOption, CollapsibleSection, Segmented, segmentButtonClasses, segmentGroupClasses } from "../2-controls/2-section";
 import { NumberField } from "../2-controls/3-number-field";
 import { useStyleWriter } from "./8-style-writer";
 import { Popover, PopoverAnchor, PopoverContent } from "@/ui/shadcn/popover";
@@ -18,6 +20,7 @@ import { classNames } from "@/utils";
 
 export function Section_CapsJoins({ mode, ids, nodes }: SectionProps) {
     const write = useStyleWriter(mode, ids);
+    const { propertySections } = useSnapshot(appSettings);
     const cap = commonValue(nodes, (n) => getPresentation(n.attrs, 'stroke-linecap') ?? 'butt');
     const join = commonValue(nodes, (n) => getPresentation(n.attrs, 'stroke-linejoin') ?? 'miter');
     const miterlimit = commonValue(nodes, (n) => Number(getPresentation(n.attrs, 'stroke-miterlimit') ?? DEFAULT_MITER_LIMIT));
@@ -25,7 +28,11 @@ export function Section_CapsJoins({ mode, ids, nodes }: SectionProps) {
     const miterApplies = join === MIXED || join === 'miter'; // The miter limit only affects miter joins, so its field is hidden for round and bevel
 
     return (
-        <Section title="Line caps and joins">
+        <CollapsibleSection
+            title="Line caps and joins"
+            open={propertySections.capsJoinsOpen}
+            onOpenChange={(open) => { appSettings.propertySections.capsJoinsOpen = open; }}
+        >
             <div className="flex items-center 1gap-1">
                 <RowPrefix>
                     Cap
@@ -55,7 +62,7 @@ export function Section_CapsJoins({ mode, ids, nodes }: SectionProps) {
                     onChange={(v) => { write.selection('stroke-miterlimit', v === DEFAULT_MITER_LIMIT ? undefined : String(v)); write.defaults({ miterlimit: v }); }}
                 />
             </div>
-        </Section>
+        </CollapsibleSection>
     );
 }
 

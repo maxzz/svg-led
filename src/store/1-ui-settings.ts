@@ -31,6 +31,7 @@ export interface EditorPreferences {
 
 export interface PropertySectionsSettings {
     bboxOpen: boolean;           // "Position and size" section is expanded
+    capsJoinsOpen: boolean;      // "Line caps and joins" section is expanded
 }
 
 export interface AppSettings {
@@ -57,6 +58,7 @@ const DEFAULT_SETTINGS: AppSettings = {
     },
     propertySections: {
         bboxOpen: false,
+        capsJoinsOpen: false,
     },
     prefs: {
         showViewBox: true,
