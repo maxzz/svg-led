@@ -11,6 +11,7 @@ import { getPresentation } from "@/svg-core";
 import { DEFAULT_MITER_LIMIT, MAX_MITER_LIMIT } from "@/store/2-persist";
 import { type MaybeMixed, MIXED, commonValue } from "../2-controls/1-mixed";
 import { IconCap_1_Butt, IconCap_2_Round, IconCap_3_Square, IconCorner_3_Bevel, IconCorner_1_Miter, IconCorner_2_Round } from "@/ui/icons/normal/svg-led";
+import { classNames } from "@/utils";
 
 //---------------------------------------------------------------------------
 // Line caps and joins
@@ -29,14 +30,25 @@ export function Section_CapsJoins({ mode, ids, nodes }: SectionProps) {
                 <RowPrefix>
                     Cap
                 </RowPrefix>
-                <Segmented className={segmentGroupClasses} buttonClassName={segmentButtonClasses} options={CAP_OPTIONS} value={cap === MIXED ? undefined : cap} onChange={(v) => { write.selection('stroke-linecap', v === 'butt' ? undefined : v); write.defaults({ linecap: v }); }} />
+                <Segmented
+                    className={segmentGroupClasses}
+                    buttonClassName={classNames(segmentButtonClasses, "h-6.5 px-0.75")}
+                    options={CAP_OPTIONS} value={cap === MIXED ? undefined : cap}
+                    onChange={(v) => { write.selection('stroke-linecap', v === 'butt' ? undefined : v); write.defaults({ linecap: v }); }}
+                />
             </div>
 
             <div className="flex items-center 1gap-1">
                 <RowPrefix>
                     Corner
                 </RowPrefix>
-                <Segmented className={segmentGroupClasses} buttonClassName={segmentButtonClasses} options={JOIN_OPTIONS} value={join === MIXED ? undefined : join} onChange={(v) => { write.selection('stroke-linejoin', v === 'miter' ? undefined : v); write.defaults({ linejoin: v }); }} />
+                <Segmented
+                    className={segmentGroupClasses}
+                    buttonClassName={classNames(segmentButtonClasses, "h-6.5 px-0.75")}
+                    options={JOIN_OPTIONS}
+                    value={join === MIXED ? undefined : join}
+                    onChange={(v) => { write.selection('stroke-linejoin', v === 'miter' ? undefined : v); write.defaults({ linejoin: v }); }}
+                />
                 <MiterLimitField
                     visible={miterApplies}
                     value={miterlimit}
