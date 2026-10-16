@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { type SectionProps } from "./9-registry";
-import { Section, Segmented, type SegmentOption } from "../2-controls/2-section";
+import { Section, Segmented, segmentButtonClasses, segmentGroupClasses, type SegmentOption } from "../2-controls/2-section";
 import { NumberField } from "../2-controls/3-number-field";
 import { useStyleWriter } from "./8-style-writer";
 import { Popover, PopoverAnchor, PopoverContent } from "@/ui/shadcn/popover";
@@ -29,14 +29,14 @@ export function Section_CapsJoins({ mode, ids, nodes }: SectionProps) {
                 <RowPrefix>
                     Cap
                 </RowPrefix>
-                <Segmented options={CAP_OPTIONS} value={cap === MIXED ? undefined : cap} onChange={(v) => { write.selection('stroke-linecap', v === 'butt' ? undefined : v); write.defaults({ linecap: v }); }} />
+                <Segmented className={segmentGroupClasses} buttonClassName={segmentButtonClasses} options={CAP_OPTIONS} value={cap === MIXED ? undefined : cap} onChange={(v) => { write.selection('stroke-linecap', v === 'butt' ? undefined : v); write.defaults({ linecap: v }); }} />
             </div>
 
             <div className="flex items-center 1gap-1">
                 <RowPrefix>
                     Corner
                 </RowPrefix>
-                <Segmented options={JOIN_OPTIONS} value={join === MIXED ? undefined : join} onChange={(v) => { write.selection('stroke-linejoin', v === 'miter' ? undefined : v); write.defaults({ linejoin: v }); }} />
+                <Segmented className={segmentGroupClasses} buttonClassName={segmentButtonClasses} options={JOIN_OPTIONS} value={join === MIXED ? undefined : join} onChange={(v) => { write.selection('stroke-linejoin', v === 'miter' ? undefined : v); write.defaults({ linejoin: v }); }} />
                 <MiterLimitField
                     visible={miterApplies}
                     value={miterlimit}

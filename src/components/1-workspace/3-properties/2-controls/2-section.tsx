@@ -80,3 +80,9 @@ disabled:opacity-40 \
 rounded-md \
 flex items-center justify-center \
 cursor-pointer";
+
+/** Container for a Segmented row that reads as one control: a single outlined box with dividers between the options */
+export const segmentGroupClasses = "gap-0 rounded-md ring-1 ring-foreground/15 overflow-hidden";
+
+/** Button classes for a Segmented row shown as one control: square corners, divider on the right of each option */
+export const segmentButtonClasses = "rounded-none border-r border-foreground/15 last:border-r-0";
