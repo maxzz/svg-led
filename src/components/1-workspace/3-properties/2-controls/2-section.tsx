@@ -84,21 +84,23 @@ flex items-center justify-center \
 cursor-pointer";
 
 /** Container for a Segmented row that reads as one control: a single outlined box with dividers between the options */
-export const segmentGroupClasses = "gap-0 rounded-md ring-1 ring-foreground/15 overflow-hidden";
+export const segmentGroupClasses = "gap-0 rounded-md border border-foreground/15";
 
 /** Button classes for a Segmented row shown as one control: square corners, divider on the right of each option */
 export const segmentButtonClasses = "\
 px-1 \
 rounded-none \
-first:rounded-l-md \
-last:rounded-r-md \
+first:rounded-l-[7px] \
+last:rounded-r-[7px] \
 border-r \
 border-foreground/15 \
 last:border-r-0 \
 \
-data-[active=true]:ring-inset \
+data-[active=true]:relative \
+data-[active=true]:z-10 \
 \
+focus-visible:relative \
+focus-visible:z-10 \
 focus-visible:outline-none \
 focus-visible:ring-1 \
-focus-visible:ring-inset \
 focus-visible:ring-(--editor-accent)";
