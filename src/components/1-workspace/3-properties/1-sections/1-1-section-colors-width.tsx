@@ -1,10 +1,13 @@
+import { useState } from "react";
 import { type SectionProps } from "./9-registry";
 import { Section, Segmented, type SegmentOption } from "../2-controls/2-section";
 import { NumberField } from "../2-controls/3-number-field";
 import { useStyleWriter } from "./8-style-writer";
+import { Popover, PopoverAnchor, PopoverContent } from "@/ui/shadcn/popover";
+import { Slider } from "@/ui/shadcn/slider";
 
 import { getPresentation } from "@/svg-core";
-import { MIXED, commonValue } from "../2-controls/1-mixed";
+import { MIXED, commonValue, type MaybeMixed } from "../2-controls/1-mixed";
 import { ColorRow, FILL_SWATCHES, STROKE_SWATCHES } from "../2-controls/4-0-color-row";
 import { DEFAULT_STROKE_WIDTH } from "./1-2-section-dash";
 
@@ -49,7 +52,7 @@ export function Section_StrokeWidth({ mode, ids, nodes }: SectionProps) {
         <Section title="Stroke width">
             <div className="flex items-center gap-1">
                 <Segmented options={WIDTH_OPTIONS} value={value === MIXED ? undefined : value} onChange={set} />
-                <NumberField className="w-16" value={value} min={0} step={0.5} onChange={set} />
+                <StrokeWidthField value={value} onChange={set} />
             </div>
         </Section>
     );
@@ -64,4 +67,50 @@ const WIDTH_OPTIONS: SegmentOption<number>[] = [
 
 function WidthIcon({ w }: { w: number | string; }) {
     return <span className="w-4 block bg-current rounded-full" style={{ height: w }} />;
+}
+
+/** Stroke width field. Its popup slider opens while the field is focused. */
+function StrokeWidthField({ value, onChange }: { value: MaybeMixed<number> | undefined; onChange: (value: number) => void; }) {
+    /** Popup is open while the field is focused */
+    const [active, setActive] = useState(false);
+
+    const numeric = typeof value === 'number' ? value : undefined;
+    /** Slider range: 0 to at least 10, or to the current value when it is larger */
+    const sliderMax = Math.max(10, numeric ?? 0);
+
+    /** Clicks and focus moves inside the field must not close the popup */
+    function keepOpenOnField(e: Event) {
+        if ((e.target as Element).closest?.('[data-stroke-width-field]')) {
+            e.preventDefault();
+        }
+    }
+
+    return (
+        <Popover open={active} onOpenChange={setActive}>
+            <PopoverAnchor asChild>
+                <div className="w-16" data-stroke-width-field onFocus={() => setActive(true)}>
+                    <NumberField value={value} min={0} step={0.5} onChange={onChange} />
+                </div>
+            </PopoverAnchor>
+
+            <PopoverContent
+                className="p-2 w-40 flex-row rounded items-center gap-1.5"
+                side="bottom"
+                align="end"
+                onOpenAutoFocus={(e) => e.preventDefault()}
+                onCloseAutoFocus={(e) => e.preventDefault()}
+                onFocusOutside={keepOpenOnField}
+                onPointerDownOutside={keepOpenOnField}
+            >
+                <Slider
+                    className="min-w-0 flex-1"
+                    min={0}
+                    max={sliderMax}
+                    step={0.1}
+                    value={[numeric ?? 0]}
+                    onValueChange={([v]) => onChange(v)}
+                />
+            </PopoverContent>
+        </Popover>
+    );
 }
