@@ -27,6 +27,7 @@ export interface EditorPreferences {
     snapToObjects: boolean;      // Snap dragged elements to the edges and centers of other elements (Ctrl also snaps while dragging)
     gridSize: number;            // Grid step in document units
     precision: number;           // Decimal digits written to the SVG source
+    fitAvoidsProperties: boolean; // Zoom to fit centers content in the area left of the Properties panel
 }
 
 export interface PropertySectionsSettings {
@@ -76,6 +77,7 @@ const DEFAULT_SETTINGS: AppSettings = {
         snapToObjects: false,
         gridSize: 10,
         precision: 3,
+        fitAvoidsProperties: false,
     },
     monaco: {
         fontFamily: MONACO_DEFAULT_FONT_FAMILY,
