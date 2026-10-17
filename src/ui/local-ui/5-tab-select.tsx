@@ -76,7 +76,7 @@ export function TabSelect<T extends string>({ items, value, onValueChange, orien
                             tabIndex={selected ? 0 : -1}
                             disabled={item.disabled}
                             className={cn(
-                                "relative whitespace-normal px-2.5 py-2 text-xs text-left focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1 focus-visible:outline-ring rounded-md cursor-pointer",
+                                "relative whitespace-normal px-2.5 py-2 text-xs text-left focus-visible:ring-[1px] focus-visible:ring-ring/50 focus-visible:outline-1 focus-visible:outline-ring rounded cursor-pointer",
                                 vertical && "w-full justify-start",
                                 selected ? "text-foreground z-10" : "text-foreground/60 hover:text-foreground",
                                 itemClassName,
