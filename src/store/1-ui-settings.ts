@@ -34,6 +34,12 @@ export interface PropertySectionsSettings {
     capsJoinsOpen: boolean;      // "Line caps and joins" section is expanded
 }
 
+export interface MonacoSettings {
+    fontFamily: string;          // Editor font family (CSS font-family list)
+    fontSize: number;            // Editor font size in px
+    minimap: boolean;            // Show the minimap in the code panel
+}
+
 export interface AppSettings {
     theme: ThemeMode;            // Theme mode
     showWelcome: boolean;        // Show the Welcome page at startup
@@ -42,9 +48,12 @@ export interface AppSettings {
     codePanel: CodePanelSettings;
     propertySections: PropertySectionsSettings; // Expanded state of collapsible property sections
     prefs: EditorPreferences;
+    monaco: MonacoSettings;      // Monaco code editor options
 }
 
 //---------------------------------------------------------------------------
+
+export const MONACO_DEFAULT_FONT_FAMILY = "Consolas, 'Courier New', monospace";
 
 const DEFAULT_SETTINGS: AppSettings = {
     theme: 'light',
@@ -68,6 +77,11 @@ const DEFAULT_SETTINGS: AppSettings = {
         gridSize: 10,
         precision: 3,
     },
+    monaco: {
+        fontFamily: MONACO_DEFAULT_FONT_FAMILY,
+        fontSize: 10,
+        minimap: false,
+    },
 };
 
 //---------------------------------------------------------------------------
@@ -86,6 +100,7 @@ function loadSettings(): AppSettings {
                 codePanel: { ...DEFAULT_SETTINGS.codePanel, ...parsed.codePanel },
                 propertySections: { ...DEFAULT_SETTINGS.propertySections, ...parsed.propertySections },
                 prefs: { ...DEFAULT_SETTINGS.prefs, ...parsed.prefs },
+                monaco: { ...DEFAULT_SETTINGS.monaco, ...parsed.monaco },
             };
         }
     } catch (e) {

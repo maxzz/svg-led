@@ -1,19 +1,28 @@
-import { useId } from "react";
+import { type ComponentType, useState } from "react";
 import { useAtom } from "jotai";
-import { useSnapshot } from "valtio";
-import { appSettings, WelcomeTransition } from "@/store/1-ui-settings";
+import { TabSelect } from "@/ui/local-ui/5-tab-select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/ui/shadcn/dialog";
-import { Label } from "@/ui/shadcn/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
-import { Switch } from "@/ui/shadcn/switch";
 import { isOpenOptionsDialogAtom } from "./9-types-options";
+import { Tab_Monaco } from "./1-tab-monaco";
+import { Tab_General } from "./2-tab-general";
+
+type OptionsTabId = 'monaco' | 'general';
+
+const optionsTabs: { id: OptionsTabId; label: string; Panel: ComponentType; }[] = [
+    { id: 'monaco', label: 'Monaco editor', Panel: Tab_Monaco },
+    { id: 'general', label: 'General', Panel: Tab_General },
+];
 
 export function OptionsDialog() {
     const [isOpen, setIsOpen] = useAtom(isOpenOptionsDialogAtom);
+    const [tabId, setTabId] = useState<OptionsTabId>(optionsTabs[0].id);
+
+    const activeTab = optionsTabs.find((item) => item.id === tabId) ?? optionsTabs[0];
+    const Panel = activeTab.Panel;
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogContent className="p-0! max-w-sm! gap-0!" modal>
+            <DialogContent className="p-0! max-w-none! w-[min(40rem,calc(100vw-2rem))] h-[min(28rem,calc(100vh-4rem))] text-xs overflow-hidden flex flex-col gap-0" modal>
                 <DialogHeader className="px-4 py-3 text-left border-b gap-0">
                     <DialogTitle className="text-sm">
                         Options
@@ -23,59 +32,21 @@ export function OptionsDialog() {
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="px-4 py-4 flex flex-col gap-4">
-                    <WelcomeTransitionSelect />
-                    <SnapToObjectsSwitch />
+                <div className="min-h-0 flex flex-1 gap-0 overflow-hidden">
+                    <TabSelect<OptionsTabId>
+                        aria-label="Options"
+                        className="shrink-0 min-h-0 w-44 bg-muted/30 border-r overflow-y-auto"
+                        items={optionsTabs.map((item) => ({ value: item.id, label: item.label }))}
+                        orientation="vertical"
+                        value={activeTab.id}
+                        onValueChange={setTabId}
+                    />
+
+                    <div className="min-w-0 min-h-0 flex-1 overflow-y-auto px-4 py-3">
+                        <Panel />
+                    </div>
                 </div>
             </DialogContent>
         </Dialog>
     );
 }
-
-function WelcomeTransitionSelect() {
-    const { welcomeTransition } = useSnapshot(appSettings);
-    const id = useId();
-
-    return (
-        <div className="flex items-center justify-between gap-4">
-            <Label htmlFor={id}>
-                Welcome page transition
-            </Label>
-
-            <Select value={welcomeTransition} onValueChange={(value) => { appSettings.welcomeTransition = value as WelcomeTransition; }}>
-                <SelectTrigger id={id} className="min-w-36" size="sm">
-                    <SelectValue />
-                </SelectTrigger>
-
-                <SelectContent position="popper" align="end">
-                    {TRANSITION_ITEMS.map(
-                        ([label, value]) => (
-                            <SelectItem value={value} key={value}>
-                                {label}
-                            </SelectItem>
-                        )
-                    )}
-                </SelectContent>
-            </Select>
-        </div>
-    );
-}
-
-function SnapToObjectsSwitch() {
-    const { prefs } = useSnapshot(appSettings);
-    const id = useId();
-
-    return (
-        <div className="flex items-center justify-between gap-4">
-            <Label htmlFor={id}>
-                Snap to objects (hold Ctrl while dragging to snap temporarily)
-            </Label>
-            <Switch id={id} checked={prefs.snapToObjects} onCheckedChange={(v) => { appSettings.prefs.snapToObjects = v; }} />
-        </div>
-    );
-}
-
-const TRANSITION_ITEMS: readonly (readonly [label: string, value: WelcomeTransition])[] = [
-    ["Split into quarters", WelcomeTransition.quadrants],
-    ["Sliding doors", WelcomeTransition.doors],
-];

@@ -1,6 +1,6 @@
 import { useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
-import { appSettings } from "@/store/1-ui-settings";
+import { appSettings, MONACO_DEFAULT_FONT_FAMILY } from "@/store/1-ui-settings";
 
 import { docToText } from "@/store/3-document";
 import { isThemeDark } from "@/utils/theme-utils";
@@ -11,7 +11,7 @@ import "./2-monaco-setup";
 
 /** Lazy-loaded: pulls the whole Monaco bundle only when the panel opens */
 export default function MonacoHost() {
-    const { theme } = useSnapshot(appSettings);
+    const { theme, monaco } = useSnapshot(appSettings);
     const onMount = useSetAtom(monacoMountedAtom);
 
     return (
@@ -19,7 +19,12 @@ export default function MonacoHost() {
             defaultLanguage="xml"
             defaultValue={docToText()}
             theme={isThemeDark(theme) ? 'vs-dark' : 'vs'}
-            options={EDITOR_OPTIONS}
+            options={{
+                ...EDITOR_OPTIONS,
+                fontFamily: monaco.fontFamily.trim() || MONACO_DEFAULT_FONT_FAMILY,
+                fontSize: monaco.fontSize,
+                minimap: { enabled: monaco.minimap },
+            }}
             onMount={(editor, monaco) => onMount({ editor, monaco })}
             loading={<div className="p-3 text-muted-foreground">Loading editor...</div>}
         />
@@ -27,9 +32,7 @@ export default function MonacoHost() {
 }
 
 const EDITOR_OPTIONS = {
-    fontSize: 10,
     lineNumbersMinChars: 3,
-    minimap: { enabled: false },
     scrollBeyondLastLine: false,
     wordWrap: 'on',
     wrappingIndent: 'indent',
