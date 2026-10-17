@@ -76,7 +76,7 @@ export function TabSelect<T extends string>({ items, value, onValueChange, orien
                             tabIndex={selected ? 0 : -1}
                             disabled={item.disabled}
                             className={cn(
-                                "relative whitespace-normal px-2.5 py-2 text-xs text-left focus-visible:ring-[1px] focus-visible:ring-ring/50 focus-visible:outline-1 focus-visible:outline-ring rounded cursor-pointer",
+                                "relative group whitespace-normal px-2.5 py-2 text-xs text-left focus-visible:outline-none rounded cursor-pointer",
                                 vertical && "w-full justify-start",
                                 selected ? "text-foreground z-10" : "text-foreground/60 hover:text-foreground",
                                 itemClassName,
@@ -88,7 +88,7 @@ export function TabSelect<T extends string>({ items, value, onValueChange, orien
                                     layoutId={`${groupId}-highlight`}
                                     aria-hidden
                                     initial={false}
-                                    className="absolute inset-0 bg-background shadow-sm pointer-events-none z-0"
+                                    className="absolute inset-0 bg-background shadow-sm group-focus-visible:ring-[1px] group-focus-visible:ring-ring/50 group-focus-visible:outline-1 group-focus-visible:outline-ring pointer-events-none z-0"
                                     style={{ borderRadius: "var(--radius-md)" }}
                                     transition={highlightTransition}
                                 />
