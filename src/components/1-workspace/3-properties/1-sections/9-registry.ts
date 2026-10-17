@@ -10,6 +10,9 @@ import { Section_Actions } from "./1-7-section-actions";
 import { Section_Opacity } from "./1-5-section-opacity";
 import { Section_Align } from "./1-8-section-align";
 
+//---------------------------------------------------------------------------
+// Types
+
 /** 'selection': edits the selected elements. 'newShape': edits the properties new shapes are created with. */
 export type SectionMode = 'selection' | 'newShape';
 
@@ -21,12 +24,13 @@ export type SectionProps = {
 
 export type PropertySection = {
     id: string;
-    /** Shown when this returns true for the current selection (or for the stand-in node of a new shape) */
-    appliesTo: (nodes: readonly SvgNode[]) => boolean;
+    appliesTo: (nodes: readonly SvgNode[]) => boolean; // Shown when this returns true for the current selection (or for the stand-in node of a new shape)
     Component: ComponentType<SectionProps>;
-    /** Only meaningful for selected elements (position, actions); hidden in the new-shape panel */
-    selectionOnly?: boolean;
+    selectionOnly?: boolean;    // Only meaningful for selected elements (position, actions); hidden in the new-shape panel
 };
+
+//---------------------------------------------------------------------------
+// Applies-to functions
 
 function always() {
     return true;
@@ -37,6 +41,9 @@ function someKind(...kinds: SvgNode['kind'][]) {
 function someNotKind(...kinds: SvgNode['kind'][]) {
     return (nodes: readonly SvgNode[]) => nodes.some((n) => !kinds.includes(n.kind));
 }
+
+//---------------------------------------------------------------------------
+// Property sections
 
 /** Sections of the properties popup in display order; add new per-kind sections here */
 export const PROPERTY_SECTIONS: readonly PropertySection[] = [
