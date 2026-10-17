@@ -59,22 +59,32 @@ export const panByAtom = atom(
     }
 );
 
+/**
+ * Viewport that fits a document rect into the canvas with a margin in pixels.
+ * `leftInset` reserves canvas pixels on the left (e.g. under the Properties panel); the content is centered in what remains.
+ */
+export function fitRectViewport(size: { width: number; height: number; }, rect: Rect, leftInset = 0): Viewport | null {
+    if (!size.width || !size.height) {
+        return null;
+    }
+    const margin = 80; // keeps the content clear of the floating toolbar
+    const areaX = Math.min(leftInset, size.width);
+    const areaW = Math.max(size.width - areaX, 1);
+    const w = Math.max(rect.width, 1e-6);
+    const h = Math.max(rect.height, 1e-6);
+    const zoom = clampZoom(Math.min((areaW - 2 * margin) / w, (size.height - 2 * margin) / h));
+    return {
+        zoom,
+        x: areaX + (areaW - w * zoom) / 2 - rect.x * zoom,
+        y: (size.height - h * zoom) / 2 - rect.y * zoom,
+    };
+}
+
 /** Fits a document rect into the canvas with a margin in pixels */
 export const zoomToRectAtom = atom(
     null,
     (get, set, rect: Rect | null) => {
-        const size = get(canvasSizeAtom);
-        if (!rect || !size.width || !size.height) {
-            return;
-        }
-        const margin = 80; // keeps the content clear of the floating toolbar
-        const w = Math.max(rect.width, 1e-6);
-        const h = Math.max(rect.height, 1e-6);
-        const zoom = clampZoom(Math.min((size.width - 2 * margin) / w, (size.height - 2 * margin) / h));
-        set(viewportAtom, {
-            zoom,
-            x: (size.width - w * zoom) / 2 - rect.x * zoom,
-            y: (size.height - h * zoom) / 2 - rect.y * zoom,
-        });
+        const vp = rect && fitRectViewport(get(canvasSizeAtom), rect);
+        vp && set(viewportAtom, vp);
     }
 );

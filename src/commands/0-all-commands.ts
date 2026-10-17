@@ -18,6 +18,7 @@ import { isOpenShortcutsHelpDialogAtom } from "@/components/4-dialogs/8-6-shortc
 import { isOpenCommandPaletteAtom } from "@/components/4-dialogs/8-7-command-palette/9-types-command-palette";
 import { isOpenFindOnCanvasAtom } from "@/components/4-dialogs/8-8-find-on-canvas/9-types-find-on-canvas";
 import { isOpenOptionsDialogAtom } from "@/components/4-dialogs/8-3-options/9-types-options";
+import { PROPERTIES_POPUP_RIGHT_EDGE_PX, propertiesModeAtom } from "@/components/1-workspace/3-properties/9-atoms-properties-popup";
 import { type Command } from "./9-command-types";
 
 const hasSelection = (get: Parameters<NonNullable<Command['enabled']>>[0]) => get(selectionAtom).length > 0;
@@ -204,7 +205,13 @@ const VIEW: Command[] = [
     { id: 'view.zoomIn', label: 'Zoom in', group: 'view', shortcut: 'Ctrl+=', run: ({ set }) => set(zoomByAtom, { factor: 1.25 }) },
     { id: 'view.zoomOut', label: 'Zoom out', group: 'view', shortcut: 'Ctrl+-', run: ({ set }) => set(zoomByAtom, { factor: 0.8 }) },
     { id: 'view.zoomReset', label: 'Zoom to 100%', group: 'view', shortcut: 'Ctrl+0', run: ({ set }) => set(zoomResetAtom) },
-    { id: 'view.zoomFit', label: 'Zoom to fit all', group: 'view', shortcut: 'Shift+1', run: ({ set }) => set(zoomToFitAtom) },
+    {
+        id: 'view.zoomFit', label: 'Zoom to fit all', group: 'view', shortcut: 'Shift+1',
+        run: ({ get, set }) => {
+            const leavePropertiesSpace = appSettings.prefs.fitAvoidsProperties && get(propertiesModeAtom) !== null;
+            set(zoomToFitAtom, { leftInset: leavePropertiesSpace ? PROPERTIES_POPUP_RIGHT_EDGE_PX : 0 });
+        },
+    },
     { id: 'view.zoomSelection', label: 'Zoom to selection', group: 'view', shortcut: 'Shift+2', run: ({ set }) => set(zoomToSelectionAtom) },
     { id: 'view.grid', label: 'Toggle grid', group: 'view', shortcut: "Ctrl+'", run: () => { appSettings.prefs.showGrid = !appSettings.prefs.showGrid; } },
     { id: 'view.snap', label: 'Toggle snap to grid', group: 'view', run: () => { appSettings.prefs.snapToGrid = !appSettings.prefs.snapToGrid; } },

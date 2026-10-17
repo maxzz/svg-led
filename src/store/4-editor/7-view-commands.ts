@@ -3,15 +3,17 @@ import { snapshot } from "valtio";
 import { type SvgDoc, unionRects } from "@/svg-core";
 import { docState, nodesDocBBox } from "../3-document";
 import { selectionAtom } from "./2-selection-atoms";
-import { zoomAtAtom, zoomToRectAtom } from "./3-viewport-atoms";
+import { canvasSizeAtom, fitRectViewport, viewportAtom, zoomAtAtom, zoomToRectAtom } from "./3-viewport-atoms";
 
-/** Shows the viewBox and all content */
+/** Shows the viewBox and all content; `leftInset` (canvas px) keeps that much of the left edge free, e.g. for the Properties panel */
 export const zoomToFitAtom = atom(
     null,
-    (_get, set) => {
+    (get, set, opts?: { leftInset?: number; }) => {
         const doc = snapshot(docState).doc as SvgDoc;
         const content = nodesDocBBox(doc, doc.children.map((n) => n.id));
-        set(zoomToRectAtom, unionRects([doc.viewBox, content]) ?? { x: 0, y: 0, width: 512, height: 512 });
+        const rect = unionRects([doc.viewBox, content]) ?? { x: 0, y: 0, width: 512, height: 512 };
+        const vp = fitRectViewport(get(canvasSizeAtom), rect, opts?.leftInset);
+        vp && set(viewportAtom, vp);
     }
 );
 
