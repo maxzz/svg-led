@@ -8,6 +8,7 @@ import { Section_RectCorners } from "./1-4-section-corners";
 import { Section_BBox } from "./1-6-section-geometry";
 import { Section_Actions } from "./1-7-section-actions";
 import { Section_Opacity } from "./1-5-section-opacity";
+import { Section_Align } from "./1-8-section-align";
 
 /** 'selection': edits the selected elements. 'newShape': edits the properties new shapes are created with. */
 export type SectionMode = 'selection' | 'newShape';
@@ -46,6 +47,7 @@ export const PROPERTY_SECTIONS: readonly PropertySection[] = [
     { id: 'cap-join',     /**/ appliesTo: someKind('path', 'line', 'polyline', 'polygon', 'rect', 'g'), /**/ Component: Section_CapsJoins },
     { id: 'rect-corners', /**/ appliesTo: someKind('rect'),                                             /**/ Component: Section_RectCorners },
     { id: 'opacity',      /**/ appliesTo: always,                                                       /**/ Component: Section_Opacity },
+    { id: 'align',        /**/ appliesTo: always,                                                       /**/ Component: Section_Align, selectionOnly: true },
     { id: 'bbox',         /**/ appliesTo: always,                                                       /**/ Component: Section_BBox, selectionOnly: true },
     { id: 'actions',      /**/ appliesTo: always,                                                       /**/ Component: Section_Actions, selectionOnly: true },
 ];
