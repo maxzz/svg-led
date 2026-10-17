@@ -18,7 +18,7 @@ import { isOpenShortcutsHelpDialogAtom } from "@/components/4-dialogs/8-6-shortc
 import { isOpenCommandPaletteAtom } from "@/components/4-dialogs/8-7-command-palette/9-types-command-palette";
 import { isOpenFindOnCanvasAtom } from "@/components/4-dialogs/8-8-find-on-canvas/9-types-find-on-canvas";
 import { isOpenOptionsDialogAtom } from "@/components/4-dialogs/8-3-options/9-types-options";
-import { type Command } from "./1-types";
+import { type Command } from "./9-command-types";
 
 const hasSelection = (get: Parameters<NonNullable<Command['enabled']>>[0]) => get(selectionAtom).length > 0;
 
