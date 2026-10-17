@@ -193,14 +193,8 @@ const OBJECT: Command[] = [
 ];
 
 const VIEWBOX: Command[] = [
-    {
-        id: 'viewbox.fitSelection', label: 'Fit selection to viewBox...', group: 'viewbox', shortcut: 'Ctrl+Alt+F', keywords: 'scale padding',
-        enabled: hasSelection, run: ({ set }) => set(fitViewBoxDialogAtom, 'selection-into-viewbox'),
-    },
-    {
-        id: 'viewbox.toSelection', label: 'Fit viewBox to selection...', group: 'viewbox', enabled: hasSelection,
-        run: ({ set }) => set(fitViewBoxDialogAtom, 'viewbox-to-selection'),
-    },
+    { id: 'viewbox.fitSelection', label: 'Fit selection to viewBox...', group: 'viewbox', shortcut: 'Ctrl+Alt+F', keywords: 'scale padding', enabled: hasSelection, run: ({ set }) => set(fitViewBoxDialogAtom, 'selection-into-viewbox'), },
+    { id: 'viewbox.toSelection', label: 'Fit viewBox to selection...', group: 'viewbox', enabled: hasSelection, run: ({ set }) => set(fitViewBoxDialogAtom, 'viewbox-to-selection'), },
     { id: 'viewbox.toContent', label: 'Fit viewBox to content...', group: 'viewbox', run: ({ set }) => set(fitViewBoxDialogAtom, 'viewbox-to-content') },
     { id: 'viewbox.settings', label: 'ViewBox settings...', group: 'viewbox', run: ({ set }) => set(isOpenViewBoxSettingsDialogAtom, true) },
     { id: 'viewbox.toggle', label: 'Show viewBox', group: 'viewbox', run: () => { appSettings.prefs.showViewBox = !appSettings.prefs.showViewBox; } },
@@ -225,14 +219,12 @@ const HELP: Command[] = [
     { id: 'help.options', label: 'Options...', group: 'help', keywords: 'settings preferences welcome', run: ({ set }) => set(isOpenOptionsDialogAtom, true) },
 ];
 
-const TOOL_COMMANDS: Command[] = TOOLS.map((tool) => ({
-    id: `tool.${tool.id}`,
-    label: `${tool.label} tool`,
-    group: 'tools',
-    shortcut: tool.shortcut.toUpperCase(),
-    enabled: (get) => get(activeToolIdAtom) !== tool.id,
-    run: ({ set }) => set(setActiveToolAtom, tool.id),
-}));
+const TOOL_COMMANDS: Command[] = TOOLS.map((tool) => (
+    {
+        id: `tool.${tool.id}`, label: `${tool.label} tool`, group: 'tools', shortcut: tool.shortcut.toUpperCase(),
+        enabled: (get) => get(activeToolIdAtom) !== tool.id, run: ({ set }) => set(setActiveToolAtom, tool.id),
+    }
+));
 
 //---------------------------------------------------------------------------
 
