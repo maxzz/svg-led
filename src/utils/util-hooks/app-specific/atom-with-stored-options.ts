@@ -1,7 +1,6 @@
 import { type WritableAtom, atom } from "jotai";
-import { dialogOptionsKey, toolOptionsKey } from "./1-storage-keys";
 
-type OptionsAtom<T> = WritableAtom<T, [update: Partial<T>], void>;
+export type OptionsAtom<T> = WritableAtom<T, [update: Partial<T>], void>;
 
 /**
  * Atom with an object value stored under its own localStorage key.
@@ -25,13 +24,8 @@ export function atomWithStoredOptions<T extends object>(key: string, defaults: T
     );
 }
 
-export function atomWithToolOptions<T extends object>(toolId: string, defaults: T): OptionsAtom<T> {
-    return atomWithStoredOptions(toolOptionsKey(toolId), defaults);
-}
-
-export function atomWithDialogOptions<T extends object>(dialogId: string, defaults: T): OptionsAtom<T> {
-    return atomWithStoredOptions(dialogOptionsKey(dialogId), defaults);
-}
+//---------------------------------------------------------------------------
+// Load options
 
 function loadOptions<T extends object>(key: string, defaults: T): T {
     try {
@@ -51,10 +45,12 @@ function loadOptions<T extends object>(key: string, defaults: T): T {
 /** Drops keys that are no longer part of the options so removed options do not linger in storage */
 function pickKnownKeys<T extends object>(parsed: Record<string, unknown>, defaults: T): Partial<T> {
     const rv: Record<string, unknown> = {};
+
     for (const key of Object.keys(defaults)) {
         if (key in parsed && typeof parsed[key] === typeof (defaults as Record<string, unknown>)[key]) {
             rv[key] = parsed[key];
         }
     }
+    
     return rv as Partial<T>;
 }

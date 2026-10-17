@@ -9,7 +9,7 @@ import { Slider } from "@/ui/shadcn/slider";
 import { getPresentation } from "@/svg-core";
 import { MIXED, commonValue, type MaybeMixed } from "../2-controls/1-mixed";
 import { ColorRow, FILL_SWATCHES, STROKE_SWATCHES } from "../2-controls/4-0-color-row";
-import { DEFAULT_STROKE_WIDTH, MAX_STROKE_WIDTH } from "@/store/2-persist/3-new-shape-style-atoms";
+import { DEFAULT_STROKE_WIDTH, MAX_STROKE_WIDTH } from "@/store/2-persist/1-new-shape-style-atoms";
 
 //---------------------------------------------------------------------------
 // Stroke and fill colors

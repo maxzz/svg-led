@@ -1,6 +1,6 @@
 import { proxy, subscribe } from 'valtio';
 import { type ThemeMode, themeApplyMode } from '../utils/theme-apply';
-import { STORAGE_KEYS } from './2-persist/1-storage-keys';
+import { STORAGE_KEYS } from './2-persist/8-storage-keys';
 
 /** How the Welcome page opens onto the main page and closes back over it */
 export const WelcomeTransition = {

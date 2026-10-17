@@ -1,8 +1,23 @@
-import { LEGACY_STYLE_KEYS, STORAGE_KEYS } from "./1-storage-keys";
-import { atomWithStoredOptions } from "./2-atom-with-options";
-import { type DashStyle } from "./4-stroke-dash-atoms";
+import { LEGACY_STYLE_KEYS, STORAGE_KEYS } from "./8-storage-keys";
+import { atomWithStoredOptions } from "../../utils/util-hooks/app-specific/atom-with-stored-options";
+import { type DashStyle } from "./7-stroke-dash-atoms";
+
+//---------------------------------------------------------------------------
 
 export type CornerRadius = { rx: number; ry: number; };
+
+//---------------------------------------------------------------------------
+// Constants
+
+/** SVG default for stroke-miterlimit. https://developer.mozilla.org/en-US/docs/Web/SVG/Reference/Attribute/stroke-miterlimit */
+export const DEFAULT_MITER_LIMIT = 4;  //TODO: should it be relative to the viewBox?
+export const MAX_MITER_LIMIT = 100;    //TODO: should it be relative to the viewBox?
+
+export const DEFAULT_STROKE_WIDTH = 1; //TODO: should it be relative to the viewBox?
+export const MAX_STROKE_WIDTH = 100;   //TODO: should it be relative to the viewBox?
+
+//---------------------------------------------------------------------------
+// Types and atoms
 
 /**
  * Every property a new shape can be created with. One object serves all creation tools;
@@ -22,13 +37,6 @@ export type NewShapeStyle = {
     ry: number;
 };
 
-/** SVG default for stroke-miterlimit. https://developer.mozilla.org/en-US/docs/Web/SVG/Reference/Attribute/stroke-miterlimit */
-export const DEFAULT_MITER_LIMIT = 4;  //TODO: should it be relative to the viewBox?
-export const MAX_MITER_LIMIT = 100;    //TODO: should it be relative to the viewBox?
-
-export const DEFAULT_STROKE_WIDTH = 1; //TODO: should it be relative to the viewBox?
-export const MAX_STROKE_WIDTH = 100;   //TODO: should it be relative to the viewBox?
-
 export const NEW_SHAPE_STYLE_DEFAULTS: NewShapeStyle = {
     stroke: '#fff',
     fill: 'none',
@@ -45,6 +53,9 @@ export const NEW_SHAPE_STYLE_DEFAULTS: NewShapeStyle = {
 
 /** Properties new shapes are created with. Independent of the selection; changed only in the new-shape panel. */
 export const newShapeStyleAtom = atomWithStoredOptions<NewShapeStyle>(STORAGE_KEYS.newShape, migrateLegacyStyle());
+
+//---------------------------------------------------------------------------
+// Migration
 
 /**
  * Values saved by the per-property atoms are carried over once, the first time the new key is missing.

@@ -1,11 +1,13 @@
 import { useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
-import Editor from "@monaco-editor/react";
 import { appSettings } from "@/store/1-ui-settings";
+
 import { docToText } from "@/store/3-document";
 import { isThemeDark } from "@/utils/theme-utils";
-import "./2-monaco-setup";
+
 import { monacoMountedAtom } from "./9-atoms-monaco-host";
+import Editor from "@monaco-editor/react";
+import "./2-monaco-setup";
 
 /** Lazy-loaded: pulls the whole Monaco bundle only when the panel opens */
 export default function MonacoHost() {
@@ -25,7 +27,7 @@ export default function MonacoHost() {
 }
 
 const EDITOR_OPTIONS = {
-    fontSize: 11,
+    fontSize: 10,
     lineNumbersMinChars: 3,
     minimap: { enabled: false },
     scrollBeyondLastLine: false,

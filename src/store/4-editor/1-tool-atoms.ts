@@ -1,5 +1,6 @@
 import { type Getter, type Setter, atom } from "jotai";
-import { STORAGE_KEYS, atomWithStoredOptions } from "../2-persist";
+import { STORAGE_KEYS } from "../2-persist";
+import { atomWithStoredOptions } from "../../utils/util-hooks/app-specific/atom-with-stored-options";
 import { editingGroupIdAtom, selectedAnchorsAtom } from "./2-selection-atoms";
 
 export const ToolId = {
