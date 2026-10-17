@@ -1,4 +1,4 @@
-import { type KeyboardEvent, type ReactNode, useId, useRef } from "react";
+import { type KeyboardEvent, type ReactNode, useId, useRef } from "react"; // 10.17.26
 import { LayoutGroup, motion } from "motion/react";
 import { cn } from "@/utils/classnames";
 
@@ -55,48 +55,50 @@ export function TabSelect<T extends string>({ items, value, onValueChange, orien
         <LayoutGroup id={groupId}>
             <motion.div
                 layoutScroll
-                role="tablist"
-                aria-orientation={orientation}
-                aria-label={ariaLabel}
                 className={cn("p-2 gap-0.5 flex", vertical ? "flex-col items-stretch" : "flex-row items-center", className)}
                 onKeyDown={onKeyDown}
+                aria-orientation={orientation}
+                aria-label={ariaLabel}
+                role="tablist"
             >
-                {items.map((item) => {
-                    const selected = item.value === value;
-                    return (
-                        <button
-                            key={item.value}
-                            ref={(node) => {
-                                if (node) itemRefs.current.set(item.value, node);
-                                else itemRefs.current.delete(item.value);
-                            }}
-                            type="button"
-                            role="tab"
-                            aria-selected={selected}
-                            tabIndex={selected ? 0 : -1}
-                            disabled={item.disabled}
-                            className={cn(
-                                "relative group whitespace-normal px-2.5 py-2 text-xs text-left focus-visible:outline-none rounded cursor-pointer",
-                                vertical && "w-full justify-start",
-                                selected ? "text-foreground z-10" : "text-foreground/60 hover:text-foreground",
-                                itemClassName,
-                            )}
-                            onClick={() => onValueChange(item.value)}
-                        >
-                            {selected && (
-                                <motion.div
-                                    layoutId={`${groupId}-highlight`}
-                                    aria-hidden
-                                    initial={false}
-                                    className="absolute inset-0 bg-background shadow-sm group-focus-visible:ring-[1px] group-focus-visible:ring-ring/50 group-focus-visible:outline-1 group-focus-visible:outline-ring pointer-events-none z-0"
-                                    style={{ borderRadius: "var(--radius-md)" }}
-                                    transition={highlightTransition}
-                                />
-                            )}
-                            <span className="relative z-10">{item.label}</span>
-                        </button>
-                    );
-                })}
+                {items.map(
+                    (item) => {
+                        const selected = item.value === value;
+                        return (
+                            <button
+                                ref={(node) => { if (node) itemRefs.current.set(item.value, node); else itemRefs.current.delete(item.value); }}
+                                className={cn(
+                                    "relative group whitespace-normal px-2.5 py-2 text-xs text-left focus-visible:outline-none rounded cursor-pointer",
+                                    vertical && "w-full justify-start",
+                                    selected ? "text-foreground z-10" : "text-foreground/60 hover:text-foreground",
+                                    itemClassName,
+                                )}
+                                tabIndex={selected ? 0 : -1}
+                                disabled={item.disabled}
+                                onClick={() => onValueChange(item.value)}
+                                key={item.value}
+                                aria-selected={selected}
+                                role="tab"
+                                type="button"
+                            >
+                                {selected && (
+                                    <motion.div
+                                        className="absolute inset-0 bg-background shadow-sm group-focus-visible:ring-[1px] group-focus-visible:ring-ring/50 group-focus-visible:outline-1 group-focus-visible:outline-ring pointer-events-none z-0"
+                                        style={{ borderRadius: "var(--radius-md)" }}
+                                        layoutId={`${groupId}-highlight`}
+                                        initial={false}
+                                        transition={highlightTransition}
+                                        aria-hidden
+                                    />
+                                )}
+
+                                <span className="relative z-10">
+                                    {item.label}
+                                </span>
+                            </button>
+                        );
+                    }
+                )}
             </motion.div>
         </LayoutGroup>
     );

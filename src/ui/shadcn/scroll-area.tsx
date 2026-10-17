@@ -1,5 +1,5 @@
-import { forwardRef, type ElementRef, type ComponentPropsWithoutRef, type ComponentProps } from "react"; //01.17.26
-import { ScrollArea as Prim } from "radix-ui"
+import { type ComponentPropsWithoutRef, type ComponentProps } from "react"; // 01.17.26
+import { ScrollArea as Prim } from "radix-ui";
 import { cn } from "@/utils";
 
 export type ScrollAreaProps = ComponentProps<typeof Prim.Root> & {
@@ -86,8 +86,8 @@ export function ScrollBar({ className, orientation = "vertical", ...rest }: Comp
             orientation={orientation}
             className={cn(
                 "select-none transition-colors flex touch-none",
-                orientation === "vertical" && "w-2.5 h-full border-l border-l-transparent p-px",
-                orientation === "horizontal" && "h-2.5 border-t border-t-transparent p-px",
+                orientation === "vertical" && "w-1.5 h-full border-l border-l-transparent p-px",
+                orientation === "horizontal" && "h-1.5 border-t border-t-transparent p-px",
                 className
             )}
             {...rest}
