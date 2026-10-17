@@ -215,10 +215,7 @@ const VIEW: Command[] = [
     { id: 'view.grid', label: 'Toggle grid', group: 'view', shortcut: "Ctrl+'", run: () => { appSettings.prefs.showGrid = !appSettings.prefs.showGrid; } },
     { id: 'view.snap', label: 'Toggle snap to grid', group: 'view', run: () => { appSettings.prefs.snapToGrid = !appSettings.prefs.snapToGrid; } },
     { id: 'view.codePanel', label: 'Toggle SVG source panel', group: 'view', shortcut: 'Ctrl+B', keywords: 'code monaco editor', run: () => { appSettings.codePanel.open = !appSettings.codePanel.open; } },
-    {
-        id: 'view.theme', label: 'Toggle dark theme', group: 'view',
-        run: () => { appSettings.theme = appSettings.theme === 'dark' ? 'light' : 'dark'; },
-    },
+    { id: 'view.theme', label: 'Toggle dark theme', group: 'view', run: () => { appSettings.theme = appSettings.theme === 'dark' ? 'light' : 'dark'; }, },
 ];
 
 const HELP: Command[] = [
@@ -237,12 +234,17 @@ const TOOL_COMMANDS: Command[] = TOOLS.map((tool) => ({
     run: ({ set }) => set(setActiveToolAtom, tool.id),
 }));
 
-export const NUDGE_KEYS: Record<string, [number, number]> = {
-    ArrowLeft: [-1, 0],
-    ArrowRight: [1, 0],
-    ArrowUp: [0, -1],
-    ArrowDown: [0, 1],
-};
+//---------------------------------------------------------------------------
+
+export const COMMANDS: readonly Command[] = [...FILE, ...EDIT, ...OBJECT, ...VIEWBOX, ...VIEW, ...HELP, ...TOOL_COMMANDS];
+
+const byId = new Map(COMMANDS.map((c) => [c.id, c]));
+
+export function getCommand(id: string): Command | undefined {
+    return byId.get(id);
+}
+
+//---------------------------------------------------------------------------
 
 export function nudgeSelection(ids: string[], key: string, big: boolean): boolean {
     const dir = NUDGE_KEYS[key];
@@ -254,10 +256,11 @@ export function nudgeSelection(ids: string[], key: string, big: boolean): boolea
     return true;
 }
 
-export const COMMANDS: readonly Command[] = [...FILE, ...EDIT, ...OBJECT, ...VIEWBOX, ...VIEW, ...HELP, ...TOOL_COMMANDS];
+const NUDGE_KEYS: Record<string, [number, number]> = {
+    ArrowLeft: [-1, 0],
+    ArrowRight: [1, 0],
+    ArrowUp: [0, -1],
+    ArrowDown: [0, 1],
+};
 
-const byId = new Map(COMMANDS.map((c) => [c.id, c]));
-
-export function getCommand(id: string): Command | undefined {
-    return byId.get(id);
-}
+//---------------------------------------------------------------------------
