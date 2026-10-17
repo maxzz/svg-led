@@ -67,6 +67,8 @@ export function NumberField({ label, value, onChange, onInput, min, step = 1, pr
                     {label}
                 </span>
             )}
+            {/* Divider between label and input */}
+            {label && <span className="self-stretch shrink-0 w-px bg-border/75" aria-hidden />}
             
             <input
                 className="w-full min-w-0 tabular-nums bg-transparent outline-none"
