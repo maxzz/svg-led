@@ -22,7 +22,7 @@ export function OptionsDialog() {
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogContent className="p-0! max-w-none! w-[min(40rem,calc(100vw-2rem))] h-[min(28rem,calc(100vh-4rem))] text-xs overflow-hidden flex flex-col gap-0" modal>
+            <DialogContent className="p-0! max-w-none! w-[min(40rem,calc(100vw-2rem))]! h-[min(28rem,calc(100vh-4rem))] text-xs overflow-hidden flex flex-col gap-0" modal>
                 <DialogHeader className="px-4 py-3 text-left border-b gap-0">
                     <DialogTitle className="text-sm">
                         Options
