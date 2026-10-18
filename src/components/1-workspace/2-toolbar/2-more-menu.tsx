@@ -1,10 +1,14 @@
+import { useSnapshot } from "valtio";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuSeparator, DropdownMenuTrigger } from "@/ui/shadcn/dropdown-menu";
 import { BringToFront, Copy, EllipsisVertical, Frame, Group, SendToBack, Spline, Trash, Ungroup } from "lucide-react";
+import { appSettings } from "@/store/1-ui-settings";
 import { islandButtonClasses } from "@/ui/local-ui/9-island";
 import { CommandMenuItem } from "./8-command-menu-item";
 
 /** Object commands that do not deserve a toolbar slot */
 export function MoreMenu() {
+    const { prefs } = useSnapshot(appSettings);
+
     return (
         <DropdownMenu modal={false}>
             <DropdownMenuTrigger className={islandButtonClasses} title="More actions">
@@ -13,7 +17,7 @@ export function MoreMenu() {
 
             <DropdownMenuContent className="min-w-56" align="end" sideOffset={8}>
                 <CommandMenuItem id="object.convertToPath" icon={<Spline className={ic} />} />
-                <CommandMenuItem id="viewbox.fitSelection" icon={<Frame className={ic} />} />
+                {prefs.showViewBox && <CommandMenuItem id="viewbox.fitSelection" icon={<Frame className={ic} />} />}
                 <DropdownMenuSeparator />
                 <CommandMenuItem id="object.group" icon={<Group className={ic} />} />
                 <CommandMenuItem id="object.ungroup" icon={<Ungroup className={ic} />} />
