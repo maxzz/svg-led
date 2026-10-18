@@ -23,8 +23,8 @@ export const activeToolDefAtom = atom(
     (get) => getTool(get(activeToolIdAtom))
 );
 
-/** Canvas pixels from the left edge that the floating popup covers: `left-3` (12px) + `w-56` (224px). Keep in sync with `PropertiesPopup`. */
-export const PROPERTIES_POPUP_RIGHT_EDGE_PX = 12 + 224;
+/** Canvas pixels from the left edge that the floating popup covers: `left-3` (12px) + `w-[200px]` (200px). Keep in sync with `PropertiesPopup`. (It should be 197 but I rounded it up to 200 to avoid floating pixels.) */
+export const PROPERTIES_POPUP_RIGHT_EDGE_PX = 12 + 200;
 
 export const isPropertiesCollapsedAtom = atom(false);
 

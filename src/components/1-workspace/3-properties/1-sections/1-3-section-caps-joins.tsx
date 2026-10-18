@@ -33,7 +33,7 @@ export function Section_CapsJoins({ mode, ids, nodes }: SectionProps) {
             open={propertySections.capsJoinsOpen}
             onOpenChange={(open) => { appSettings.propertySections.capsJoinsOpen = open; }}
         >
-            <div className="flex items-center">
+            <div className="flex flex-wrap items-center">
                 <RowPrefix>
                     Cap
                 </RowPrefix>
@@ -45,7 +45,7 @@ export function Section_CapsJoins({ mode, ids, nodes }: SectionProps) {
                 />
             </div>
 
-            <div className="flex items-center">
+            <div className="flex flex-wrap items-center">
                 <RowPrefix>
                     Corner
                 </RowPrefix>

@@ -19,7 +19,7 @@ export function PropertiesPopup() {
     }
 
     return (
-        <div className="w-56 max-h-[calc(100dvh-8rem)] text-xs text-foreground bg-background ring-1 ring-foreground/10 rounded-lg shadow-md overflow-hidden flex flex-col pointer-events-auto">
+        <div className="w-50 max-h-[calc(100dvh-8rem)] text-xs text-foreground bg-background ring-1 ring-foreground/10 rounded-lg shadow-md overflow-hidden flex flex-col pointer-events-auto">
             <button className="shrink-0 px-3 h-8 font-medium text-[11px] text-muted-foreground hover:text-foreground flex items-center justify-between" onClick={toggle} type="button">
                 {TITLES[mode]}
                 {collapsed ? <ChevronDown className="size-3.5" /> : <ChevronUp className="size-3.5" />}

@@ -50,7 +50,7 @@ export function Section_StrokeWidth({ mode, ids, nodes }: SectionProps) {
 
     return (
         <Section title="Stroke width">
-            <div className="flex items-center gap-1">
+            <div className="flex flex-wrap items-center gap-1">
                 <Segmented options={WIDTH_OPTIONS} value={value === MIXED ? undefined : value} onChange={set} />
                 <StrokeWidthField value={value} onChange={set} />
             </div>
