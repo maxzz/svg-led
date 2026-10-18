@@ -56,12 +56,13 @@ export function Section_CapsJoins({ mode, ids, nodes }: SectionProps) {
                     value={join === MIXED ? undefined : join}
                     onChange={(v) => { write.selection('stroke-linejoin', v === 'miter' ? undefined : v); write.defaults({ linejoin: v }); }}
                 />
-                <MiterLimitField
-                    visible={miterApplies}
-                    value={miterlimit}
-                    onChange={(v) => { write.selection('stroke-miterlimit', v === DEFAULT_MITER_LIMIT ? undefined : String(v)); write.defaults({ miterlimit: v }); }}
-                />
             </div>
+
+            <MiterLimitField
+                visible={miterApplies}
+                value={miterlimit}
+                onChange={(v) => { write.selection('stroke-miterlimit', v === DEFAULT_MITER_LIMIT ? undefined : String(v)); write.defaults({ miterlimit: v }); }}
+            />
         </CollapsibleSection>
     );
 }
@@ -86,24 +87,28 @@ function MiterLimitField({ visible, value, onChange }: { visible: boolean; value
         <AnimatePresence initial={false}>
             {visible && (
                 <motion.div
-                    className="ml-auto -my-0.5 p-0.5 overflow-hidden"
-                    initial={{ width: 0, opacity: 0 }}
-                    animate={{ width: 'auto', opacity: 1 }}
-                    exit={{ width: 0, opacity: 0 }}
+                    className="overflow-hidden"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.2, ease: 'easeOut' }}
                 >
                     <Popover open={active && visible} onOpenChange={setActive}>
-                        <PopoverAnchor asChild>
-                            <div className="w-16" data-miter-field onFocus={() => setActive(true)}>
-                                <NumberField
-                                    label="Limit"
-                                    value={value}
-                                    min={1}
-                                    step={0.5}
-                                    onChange={onChange}
-                                />
-                            </div>
-                        </PopoverAnchor>
+                        <div className="flex items-center p-0.5">
+                            <RowPrefix>
+                                Limit
+                            </RowPrefix>
+                            <PopoverAnchor asChild>
+                                <div className="-ml-1 w-16" data-miter-field onFocus={() => setActive(true)}>
+                                    <NumberField
+                                        value={value}
+                                        min={1}
+                                        step={0.5}
+                                        onChange={onChange}
+                                    />
+                                </div>
+                            </PopoverAnchor>
+                        </div>
 
                         <PopoverContent
                             className="p-2 w-40 flex-row rounded items-center gap-1.5"
