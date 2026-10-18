@@ -4,7 +4,7 @@ import { useSnapshot } from "valtio";
 import { appSettings } from "@/store/1-ui-settings";
 import { docState, setRootAttr, useDocSnapshot } from "@/store/3-document";
 import { runCommandAtom } from "@/commands";
-import { NumberField } from "@/components/1-workspace/3-properties/2-controls/3-number-field";
+import { NumberField } from "@/components/1-workspace/2-props-panel/2-controls/3-number-field";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/ui/shadcn/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
 import { Button } from "@/ui/shadcn/button";

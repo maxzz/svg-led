@@ -10,7 +10,7 @@ import {
 } from "@/store/4-editor";
 import { type Point } from "@/svg-core";
 import { type ToolPointerEvent, getTool, resolveTarget, selectionUnitId } from "@/tools";
-import { PROPERTIES_POPUP_RIGHT_EDGE_PX } from "@/components/1-workspace/3-properties/9-atoms-properties-popup";
+import { PROPERTIES_POPUP_RIGHT_EDGE_PX } from "@/components/1-workspace/2-props-panel/9-atoms-properties-popup";
 
 type CanvasPointerEvent = ReactPointerEvent<SVGSVGElement>;
 

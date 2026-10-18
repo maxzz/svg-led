@@ -197,7 +197,7 @@ src/
     1-workspace/
       1-canvas/               canvas root, grid, doc layer, overlay (viewBox frame, selection, points, pen, marquee)
       2-toolbar/              toolbar, tool buttons, main menu, top-right controls
-      3-properties/           properties popup, section registry, controls
+      2-props-panel/          properties popup, section registry, controls
       4-code-panel/           slide-out panel, Monaco host, local Monaco worker setup
       5-corner-controls/      zoom, undo and redo, help button
     4-dialogs/                confirmation, options, fit viewBox, viewBox settings, shortcuts help,
@@ -404,7 +404,7 @@ type Command = {
 };
 ```
 
-Property sections in the popup come from a registry in [`src/components/1-workspace/3-properties/1-sections/0-registry.ts`](src/components/1-workspace/3-properties/1-sections/0-registry.ts). Each section has an `appliesTo(nodes)` predicate and a component.
+Property sections in the popup come from a registry in [`src/components/1-workspace/2-props-panel/1-sections/9-registry.ts`](src/components/1-workspace/2-props-panel/1-sections/9-registry.ts). Each section has an `appliesTo(nodes)` predicate and a component.
 
 ### History
 
