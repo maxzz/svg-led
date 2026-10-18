@@ -222,7 +222,7 @@ const HELP: Command[] = [
     { id: 'help.palette', label: 'Command palette', group: 'help', shortcut: 'Ctrl+/', run: ({ set }) => set(isOpenCommandPaletteAtom, true) },
     { id: 'help.find', label: 'Find on canvas', group: 'help', shortcut: 'Ctrl+F', run: ({ set }) => set(isOpenFindOnCanvasAtom, true) },
     { id: 'help.shortcuts', label: 'Help and keyboard shortcuts', group: 'help', shortcut: '?', run: ({ set }) => set(isOpenShortcutsHelpDialogAtom, true) },
-    { id: 'help.options', label: 'Options...', group: 'help', keywords: 'settings preferences welcome', run: ({ set }) => set(isOpenOptionsDialogAtom, true) },
+    { id: 'help.options', label: 'Options...', group: 'help', shortcut: 'Ctrl+,', keywords: 'settings preferences welcome', run: ({ set }) => set(isOpenOptionsDialogAtom, true) },
 ];
 
 const TOOL_COMMANDS: Command[] = TOOLS.map((tool) => (
