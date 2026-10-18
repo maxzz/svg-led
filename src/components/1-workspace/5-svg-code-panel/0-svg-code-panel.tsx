@@ -15,7 +15,7 @@ const MonacoHost = lazy(() => import("./1-monaco-host"));
 const SLIDE = { type: 'spring', stiffness: 420, damping: 40 } as const;
 
 /** SVG source of the document, slides out from the left edge */
-export function CodePanel() {
+export function SvgCodePanel() {
     const { codePanel } = useSnapshot(appSettings);
     const resizing = useAtomValue(isPanelResizingAtom);
 

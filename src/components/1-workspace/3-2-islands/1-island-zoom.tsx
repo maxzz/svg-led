@@ -1,6 +1,6 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
-import { CircleQuestionMark, Minus, Plus, Redo2, Undo2 } from "lucide-react";
+import { Minus, Plus, Redo2, Undo2 } from "lucide-react";
 import { historyState } from "@/store/3-document";
 import { runCommandAtom } from "@/commands";
 import { Island, islandButtonClasses } from "@/ui/local-ui/9-island";
@@ -37,17 +37,5 @@ export function ZoomUndoControls() {
                 </button>
             </Island>
         </div>
-    );
-}
-
-export function HelpButton() {
-    const run = useSetAtom(runCommandAtom);
-    
-    return (
-        <Island className="pointer-events-auto">
-            <button className={islandButtonClasses} title="Help — ?" onClick={() => run('help.shortcuts')} type="button">
-                <CircleQuestionMark className="size-4" />
-            </button>
-        </Island>
     );
 }

@@ -1,16 +1,17 @@
 import { CanvasRoot } from "../1-canvas/0-canvas-root";
-import { Toolbar } from "../3-toolbar/0-toolbar";
-import { MainMenu } from "../3-toolbar/3-main-menu";
-import { TopRightControls } from "../3-toolbar/4-top-right";
+import { Toolbar } from "../3-1-island-main-toolbar/0-toolbar";
+import { MainMenu } from "../3-1-island-main-toolbar/3-main-menu";
+import { TopRightControls } from "../3-1-island-main-toolbar/4-top-right";
 import { PropertiesPopup } from "../2-props-panel/0-properties-popup";
-import { CodePanel } from "../6-svg-code-panel/0-code-panel";
-import { HelpButton, ZoomUndoControls } from "../5-corner-controls";
+import { SvgCodePanel } from "../5-svg-code-panel/0-svg-code-panel";
+import { ZoomUndoControls } from "../3-2-islands/1-island-zoom";
+import { HelpButton } from "../3-2-islands/2-island-help";
 
 /** The whole editor: code panel on the left, then the canvas with floating UI on top of it */
 export function Workspace() {
     return (
         <div className="relative h-dvh text-xs text-foreground bg-background overflow-hidden flex">
-            <CodePanel />
+            <SvgCodePanel />
             
             <div className="relative grow min-w-0">
                 <CanvasRoot />
