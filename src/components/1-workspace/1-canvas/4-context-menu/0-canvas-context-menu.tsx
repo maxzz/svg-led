@@ -79,6 +79,7 @@ function CanvasEntries() {
 function ElementsEntries() {
     const selection = useAtomValue(selectionAtom);
     const copiedStyle = useAtomValue(copiedStyleAtom);
+    const { prefs } = useSnapshot(appSettings);
 
     const doc = snapshot(docState).doc as SvgDoc;
     const nodes = selection.flatMap((id): SvgNode[] => { const n = findNode(doc, id)?.node; return n ? [n] : []; });
@@ -117,7 +118,7 @@ function ElementsEntries() {
         <CommandItem id="object.flipV" icon={<FlipVertical className={ic} />} />,
         SEP,
 
-        <CommandItem id="viewbox.fitSelection" />,
+        prefs.showViewBox && <CommandItem id="viewbox.fitSelection" />,
         <CommandItem id="view.zoomSelection" />,
         SEP,
 

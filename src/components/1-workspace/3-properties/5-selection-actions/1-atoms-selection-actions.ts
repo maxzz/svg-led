@@ -5,13 +5,17 @@ import { type SvgDoc, type SvgNode, findNode } from "@/svg-core";
 import { displayShortcut, getCommand } from "@/commands";
 import { docState } from "@/store/3-document";
 import { selectionAtom } from "@/store/4-editor";
-import { SELECTION_ACTION_RULES } from "./0-selection-action-rules";
+import { appSettings } from "@/store/1-ui-settings";
+import { type SelectionActionContext, SELECTION_ACTION_RULES } from "./0-selection-action-rules";
 
 //---------------------------------------------------------------------------
 // Jotai state for the selection actions
 
 /** The Valtio document as a Jotai atom, so derived atoms update when the document changes */
 const docAtom = atomWithProxy(docState);
+
+/** The Valtio app settings as a Jotai atom, so the action list updates when a preference changes */
+const settingsAtom = atomWithProxy(appSettings);
 
 /** Selected nodes that exist in the document, in selection order */
 export const selectedNodesAtom = atom((get): SvgNode[] => {
@@ -41,10 +45,12 @@ export const selectionActionItemsAtom = atom((get): SelectionActionItem[] => {
         return [];
     }
 
+    const ctx: SelectionActionContext = { showViewBox: get(settingsAtom).prefs.showViewBox };
+
     const items: SelectionActionItem[] = [];
     for (const rule of SELECTION_ACTION_RULES) {
         const cmd = getCommand(rule.commandId);
-        if (!cmd || !rule.isVisible(nodes)) {
+        if (!cmd || !rule.isVisible(nodes, ctx)) {
             continue;
         }
         items.push({
