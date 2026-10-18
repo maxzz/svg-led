@@ -3,7 +3,7 @@ import { Toolbar } from "../3-toolbar/0-toolbar";
 import { MainMenu } from "../3-toolbar/3-main-menu";
 import { TopRightControls } from "../3-toolbar/4-top-right";
 import { PropertiesPopup } from "../3-properties/0-properties-popup";
-import { CodePanel } from "../4-code-panel/0-code-panel";
+import { CodePanel } from "../6-svg-code-panel/0-code-panel";
 import { HelpButton, ZoomUndoControls } from "../5-corner-controls";
 
 /** The whole editor: code panel on the left, then the canvas with floating UI on top of it */
