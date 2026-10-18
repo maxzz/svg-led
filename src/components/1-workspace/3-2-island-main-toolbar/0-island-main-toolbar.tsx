@@ -7,7 +7,7 @@ import { ToolButton } from "./1-tool-button";
 import { MoreMenu } from "./2-more-menu";
 import { toggleToolLockAtom, toolHintAtom } from "./9-atoms-toolbar";
 
-export function Toolbar() {
+export function Island_MainToolbar() {
     const hint = useAtomValue(toolHintAtom);
 
     return (

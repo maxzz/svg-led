@@ -9,7 +9,7 @@ import { isPropertiesCollapsedAtom, propertiesModeAtom, togglePropertiesCollapse
 const TITLES = { selection: 'Properties', tool: 'Tool style' } as const;
 
 /** Docked under the main menu; content depends on the selection and the active tool. Hidden when there is nothing to show. */
-export function PropertiesPopup() {
+export function Island_PropertiesPopup() {
     const mode = useAtomValue(propertiesModeAtom);
     const collapsed = useAtomValue(isPropertiesCollapsedAtom);
     const toggle = useSetAtom(togglePropertiesCollapsedAtom);

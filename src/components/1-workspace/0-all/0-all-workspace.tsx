@@ -1,7 +1,7 @@
 import { CanvasRoot } from "../1-canvas/0-canvas-root";
-import { Toolbar } from "../3-2-island-main-toolbar/0-toolbar";
-import { TopRightControls } from "../3-1-islands/1-2-island-top-right";
-import { PropertiesPopup } from "../2-props-panel/0-properties-popup";
+import { Island_MainToolbar } from "../3-2-island-main-toolbar/0-island-main-toolbar";
+import { Island_TopRight } from "../3-1-islands/1-2-island-top-right";
+import { Island_PropertiesPopup } from "../2-props-panel/0-island-properties-popup";
 import { SvgCodePanel } from "../5-svg-code-panel/0-svg-code-panel";
 
 import { Island_MainMenu } from "../3-1-islands/1-1-island-main-menu";
@@ -27,15 +27,15 @@ function FloatingUi() {
     return (<>
         <div className="absolute top-3 left-3 flex flex-col items-start gap-2 pointer-events-none">
             <Island_MainMenu />
-            <PropertiesPopup />
+            <Island_PropertiesPopup />
         </div>
 
         <div className="absolute top-3 inset-x-0 flex justify-center pointer-events-none">
-            <Toolbar />
+            <Island_MainToolbar />
         </div>
 
         <div className="absolute top-3 right-3 pointer-events-none">
-            <TopRightControls />
+            <Island_TopRight />
         </div>
 
         <div className="absolute bottom-3 left-3 pointer-events-none">

@@ -6,7 +6,7 @@ import { runCommandAtom } from "@/commands";
 import { Island, islandButtonClasses } from "@/ui/local-ui/9-island";
 import { ViewBoxSettingsPopover } from "@/components/4-dialogs/8-5-viewbox-settings/0-viewbox-settings-dialog";
 
-export function TopRightControls() {
+export function Island_TopRight() {
     const { codePanel } = useSnapshot(appSettings);
     const run = useSetAtom(runCommandAtom);
 
