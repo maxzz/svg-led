@@ -1,13 +1,13 @@
 import { CanvasRoot } from "../1-canvas/0-canvas-root";
-import { Toolbar } from "../3-1-island-main-toolbar/0-toolbar";
-import { TopRightControls } from "../3-2-islands/1-2-island-top-right";
+import { Toolbar } from "../3-2-island-main-toolbar/0-toolbar";
+import { TopRightControls } from "../3-1-islands/1-2-island-top-right";
 import { PropertiesPopup } from "../2-props-panel/0-properties-popup";
 import { SvgCodePanel } from "../5-svg-code-panel/0-svg-code-panel";
 
-import { Island_MainMenu } from "../3-2-islands/1-1-island-main-menu";
-import { Island_Zoom } from "../3-2-islands/2-1-island-zoom";
-import { Island_Undo } from "../3-2-islands/2-2-island-undo";
-import { Island_Help } from "../3-2-islands/2-3-island-help";
+import { Island_MainMenu } from "../3-1-islands/1-1-island-main-menu";
+import { Island_Zoom } from "../3-1-islands/2-1-island-zoom";
+import { Island_Undo } from "../3-1-islands/2-2-island-undo";
+import { Island_Help } from "../3-1-islands/2-3-island-help";
 
 /** The whole editor: code panel on the left, then the canvas with floating UI on top of it */
 export function Workspace() {
