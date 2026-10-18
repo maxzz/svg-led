@@ -9,7 +9,7 @@ import {
 } from "@/ui/shadcn/dropdown-menu";
 import { Island, islandButtonClasses } from "@/ui/local-ui/9-island";
 import { CommandMenuItem } from "../3-2-island-main-toolbar/8-command-menu-item";
-import { AppLogoImage } from "../../5-welcome/2-app-logo";
+import { IconAppLogo } from "@/ui/icons/normal/svg-led/app-logo";
 import { MainPage, navigateToPageAtom } from "../../5-welcome/a-ui-app-page";
 
 export function Island_MainMenu() {
@@ -25,13 +25,13 @@ export function Island_MainMenu() {
             </Island>
 
             <DropdownMenuContent className="w-64" align="start" sideOffset={8}>
-                <CommandMenuItem id="file.open" icon={<FolderOpen className={ic} />} />
-                <CommandMenuItem id="file.save" icon={<Save className={ic} />} />
-                <CommandMenuItem id="file.saveAs" icon={<Download className={ic} />} />
+                <CommandMenuItem id="file.open" icon={<FolderOpen className={icClasses} />} />
+                <CommandMenuItem id="file.save" icon={<Save className={icClasses} />} />
+                <CommandMenuItem id="file.saveAs" icon={<Download className={icClasses} />} />
 
                 <DropdownMenuSub>
                     <DropdownMenuSubTrigger>
-                        <ImageDown className={ic} />
+                        <ImageDown className={icClasses} />
                         Export image
                     </DropdownMenuSubTrigger>
                     <DropdownMenuSubContent>
@@ -47,30 +47,30 @@ export function Island_MainMenu() {
                 {/* <CommandMenuItem id="file.pasteSvg" icon={<ClipboardPaste className={ic} />} /> */}
 
                 <DropdownMenuSeparator />
-                <CommandMenuItem id="file.reset" icon={<Trash className={ic} />} />
+                <CommandMenuItem id="file.reset" icon={<Trash className={icClasses} />} />
 
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onSelect={() => showWelcome()}>
-                    <AppLogoImage className={ic} />
+                    <IconAppLogo className={icClasses} />
                     Welcome page
                 </DropdownMenuItem>
-                <CommandMenuItem id="help.shortcuts" icon={<CircleQuestionMark className={ic} />} label="Help" />
+                <CommandMenuItem id="help.shortcuts" icon={<CircleQuestionMark className={icClasses} />} label="Help" />
                 <DropdownMenuItem asChild>
                     <a href="https://github.com/maxzz/svg-led" target="_blank" rel="noreferrer">
-                        <GitFork className={ic} />
+                        <GitFork className={icClasses} />
                         GitHub
                     </a>
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator />
                 <PreferencesSub />
-                <CommandMenuItem id="help.options" icon={<Settings2 className={ic} />} label="More options..." />
+                <CommandMenuItem id="help.options" icon={<Settings2 className={icClasses} />} label="More options..." />
             </DropdownMenuContent>
         </DropdownMenu>
     );
 }
 
-const ic = "size-4 stroke-1";
+const icClasses = "size-4";
 
 function PreferencesSub() {
     const { prefs } = useSnapshot(appSettings);
@@ -80,7 +80,7 @@ function PreferencesSub() {
     return (
         <DropdownMenuSub>
             <DropdownMenuSubTrigger>
-                <SlidersHorizontal className={ic} />
+                <SlidersHorizontal className={icClasses} />
                 Preferences
             </DropdownMenuSubTrigger>
 
