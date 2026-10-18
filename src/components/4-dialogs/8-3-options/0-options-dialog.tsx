@@ -4,8 +4,8 @@ import { TabSelect } from "@/ui/local-ui/5-tab-select";
 import { TooltipProvider } from "@/ui/shadcn/tooltip";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/ui/shadcn/dialog";
 import { isOpenOptionsDialogAtom } from "./9-types-options";
-import { Tab_Monaco } from "./1-tab-monaco";
-import { Tab_General } from "./2-tab-general";
+import { Tab_Monaco } from "./1-7-tab-monaco";
+import { Tab_General } from "./1-1-tab-general";
 
 export function OptionsDialog() {
     const [isOpen, setIsOpen] = useAtom(isOpenOptionsDialogAtom);
@@ -50,6 +50,6 @@ export function OptionsDialog() {
 type OptionsTabId = 'monaco' | 'general';
 
 const optionsTabs: { id: OptionsTabId; label: string; Panel: ComponentType; }[] = [
-    { id: 'general', label: 'General',      /**/ Panel: Tab_General },
-    { id: 'monaco', label: 'Monaco editor', /**/ Panel: Tab_Monaco },
+    { id: 'general', label: 'General',        /**/ Panel: Tab_General },
+    { id: 'monaco', label: 'SVG code editor', /**/ Panel: Tab_Monaco },
 ];

@@ -1,4 +1,4 @@
-import { useId } from "react";
+import { useId, type ReactNode } from "react";
 import { useSnapshot } from "valtio";
 import { Monitor, Moon, RefreshCw, Sun } from "lucide-react";
 import { appSettings, WelcomeTransition } from "@/store/1-ui-settings";
@@ -7,29 +7,40 @@ import { cn } from "@/utils/classnames";
 import { Label } from "@/ui/shadcn/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
 import { Switch } from "@/ui/shadcn/switch";
-import { OptionLabel } from "./3-option-label";
+import { OptionLabel } from "./8-option-label";
 
 export function Tab_General() {
     return (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2">
+            <SubHeader>Theme</SubHeader>
             <ThemeRow />
             <BackgroundRow />
 
-            <div className="pt-2 text-muted-foreground">Welcome page</div>
+            <SubHeader>Welcome page</SubHeader>
             <ShowWelcomeSwitch />
             <WelcomeTransitionSelect />
 
-            <div className="pt-2 text-muted-foreground">Canvas</div>
+            <SubHeader>Canvas</SubHeader>
             <FitAvoidsPropertiesSwitch />
         </div>
     );
 }
 
+function SubHeader({ children }: { children: ReactNode; }) {
+    return (
+        <div className="pt-2 text-muted-foreground border-b">
+            {children}
+        </div>
+    );
+}
+
+//---------------------------------------------------------------------------
+
 function ThemeRow() {
     const { theme } = useSnapshot(appSettings);
     return (
         <div className="flex items-center justify-between gap-4">
-            <Label>Theme</Label>
+            <Label>Application theme</Label>
             <div className="p-0.5 bg-muted rounded-md flex gap-0.5">
                 {THEMES.map(
                     ([mode, Icon, title]) => (
@@ -55,6 +66,8 @@ const THEMES: readonly (readonly [ThemeMode, typeof Sun, string])[] = [
     ['system', Monitor, 'System'],
 ];
 
+//---------------------------------------------------------------------------
+
 function BackgroundRow() {
     const { canvasBackground } = useSnapshot(appSettings);
     return (
@@ -65,7 +78,7 @@ function BackgroundRow() {
                     <button
                         className={cn(
                             "size-6 ring-1 ring-foreground/15 rounded-md flex items-center justify-center",
-                            canvasBackground === color && "ring-2 ring-(--editor-accent)",
+                            canvasBackground === color && "ring-1 ring-offset-1 ring-(--editor-accent)",
                         )}
                         style={{ backgroundColor: color || undefined }}
                         title={color || 'Theme background'}
@@ -83,20 +96,7 @@ function BackgroundRow() {
 
 const BACKGROUNDS = ['', '#ffffff', '#f8f9fa', '#f5faff', '#fffce8', '#fdf8f6', '#1e1e1e', '#121212'];
 
-function ShowWelcomeSwitch() {
-    const { showWelcome } = useSnapshot(appSettings);
-    const id = useId();
-
-    return (
-        <div className="flex items-center justify-between gap-4">
-            <OptionLabel htmlFor={id}>
-                Show Welcome page at startup
-            </OptionLabel>
-
-            <Switch id={id} checked={showWelcome} onCheckedChange={(v) => { appSettings.showWelcome = v; }} />
-        </div>
-    );
-}
+//---------------------------------------------------------------------------
 
 function FitAvoidsPropertiesSwitch() {
     const { prefs } = useSnapshot(appSettings);
@@ -112,6 +112,23 @@ function FitAvoidsPropertiesSwitch() {
             </OptionLabel>
 
             <Switch id={id} checked={prefs.fitAvoidsProperties} onCheckedChange={(v) => { appSettings.prefs.fitAvoidsProperties = v; }} />
+        </div>
+    );
+}
+
+//---------------------------------------------------------------------------
+
+function ShowWelcomeSwitch() {
+    const { showWelcome } = useSnapshot(appSettings);
+    const id = useId();
+
+    return (
+        <div className="flex items-center justify-between gap-4">
+            <OptionLabel htmlFor={id}>
+                Show Welcome page at startup
+            </OptionLabel>
+
+            <Switch id={id} checked={showWelcome} onCheckedChange={(v) => { appSettings.showWelcome = v; }} />
         </div>
     );
 }
@@ -155,3 +172,5 @@ const TRANSITION_ITEMS: readonly (readonly [label: string, value: WelcomeTransit
     ["Split into quarters", WelcomeTransition.quadrants],
     ["Sliding doors", WelcomeTransition.doors],
 ];
+
+//---------------------------------------------------------------------------
