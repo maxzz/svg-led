@@ -19,9 +19,9 @@ export function Section_Opacity({ mode, ids, nodes }: SectionProps) {
 
     return (
         <Section title={`Opacity${raw === MIXED ? ' (mixed)' : ''}`}>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center">
                 <Slider className="grow" min={0} max={100} step={1} value={[percent]} onValueChange={(v) => set(v[0])} />
-                <span className="w-8 text-right tabular-nums">{percent}</span>
+                <span className="w-8 text-right tabular-nums font-condensed">{percent}</span>
             </div>
         </Section>
     );

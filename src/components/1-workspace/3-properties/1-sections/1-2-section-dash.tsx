@@ -56,10 +56,10 @@ export function Section_Dash({ mode, ids, nodes }: SectionProps) {
             <AnimatePresence initial={false}>
                 {showCustom && (
                     <motion.div
-                        className="overflow-hidden"
-                        initial={{ height: 0, opacity: 0, marginTop: -GAP_PX }}
-                        animate={{ height: 'auto', opacity: 1, marginTop: 0 }}
-                        exit={{ height: 0, opacity: 0, marginTop: -GAP_PX }}
+                        className="overflow-hidden px-0.5"
+                        initial={{ height: 0, opacity: 0, marginTop: -GAP_PX, paddingTop: 0, paddingBottom: 0 }}
+                        animate={{ height: 'auto', opacity: 1, marginTop: -RING_PX, paddingTop: RING_PX, paddingBottom: RING_PX }}
+                        exit={{ height: 0, opacity: 0, marginTop: -GAP_PX, paddingTop: 0, paddingBottom: 0 }}
                         transition={{ duration: 0.2, ease: 'easeOut' }}
                     >
                         <DashArrayField
@@ -77,6 +77,8 @@ export function Section_Dash({ mode, ids, nodes }: SectionProps) {
 
 /** Must match the `gap-1.5` between children in `Section` (0.375rem). */
 const GAP_PX = 6;
+/** Space around the custom field so its focus ring isn't clipped by `overflow-hidden`; the top margin is offset by it so the visual gap is unchanged. */
+const RING_PX = 2;
 
 /** Custom dash array text input. Commits on Enter or blur, Escape reverts. */
 function DashArrayField({ text, mixed, onPreview, onCommit }: { text: string; mixed: boolean; onPreview: (dash: string | undefined) => void; onCommit: (dash: string | undefined) => void; }) {
