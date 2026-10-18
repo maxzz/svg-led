@@ -1,6 +1,10 @@
 import { useId } from "react";
 import { useSnapshot } from "valtio";
+import { Monitor, Moon, RefreshCw, Sun } from "lucide-react";
 import { appSettings, WelcomeTransition } from "@/store/1-ui-settings";
+import { type ThemeMode } from "@/utils/theme-apply";
+import { cn } from "@/utils/classnames";
+import { Label } from "@/ui/shadcn/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
 import { Switch } from "@/ui/shadcn/switch";
 import { OptionLabel } from "./3-option-label";
@@ -8,7 +12,10 @@ import { OptionLabel } from "./3-option-label";
 export function Tab_General() {
     return (
         <div className="flex flex-col gap-4">
-            <div className="text-muted-foreground">Welcome page</div>
+            <ThemeRow />
+            <BackgroundRow />
+
+            <div className="pt-2 text-muted-foreground">Welcome page</div>
             <ShowWelcomeSwitch />
             <WelcomeTransitionSelect />
 
@@ -17,6 +24,64 @@ export function Tab_General() {
         </div>
     );
 }
+
+function ThemeRow() {
+    const { theme } = useSnapshot(appSettings);
+    return (
+        <div className="flex items-center justify-between gap-4">
+            <Label>Theme</Label>
+            <div className="p-0.5 bg-muted rounded-md flex gap-0.5">
+                {THEMES.map(
+                    ([mode, Icon, title]) => (
+                        <button
+                            className={cn("p-1 rounded", theme === mode ? "text-(--editor-accent) bg-background shadow-sm" : "text-muted-foreground hover:text-foreground")}
+                            title={title}
+                            onClick={() => { appSettings.theme = mode; }}
+                            type="button"
+                            key={mode}
+                        >
+                            <Icon className="size-3.5" />
+                        </button>
+                    )
+                )}
+            </div>
+        </div>
+    );
+}
+
+const THEMES: readonly (readonly [ThemeMode, typeof Sun, string])[] = [
+    ['light', Sun, 'Light'],
+    ['dark', Moon, 'Dark'],
+    ['system', Monitor, 'System'],
+];
+
+function BackgroundRow() {
+    const { canvasBackground } = useSnapshot(appSettings);
+    return (
+        <div className="flex items-center justify-between gap-4">
+            <Label>Canvas background</Label>
+            <div className="flex items-center gap-1.5">
+                {BACKGROUNDS.map((color) => (
+                    <button
+                        className={cn(
+                            "size-6 ring-1 ring-foreground/15 rounded-md flex items-center justify-center",
+                            canvasBackground === color && "ring-2 ring-(--editor-accent)",
+                        )}
+                        style={{ backgroundColor: color || undefined }}
+                        title={color || 'Theme background'}
+                        onClick={() => { appSettings.canvasBackground = color; }}
+                        type="button"
+                        key={color || 'theme'}
+                    >
+                        {!color && <RefreshCw className="size-3 text-muted-foreground" />}
+                    </button>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+const BACKGROUNDS = ['', '#ffffff', '#f8f9fa', '#f5faff', '#fffce8', '#fdf8f6', '#1e1e1e', '#121212'];
 
 function ShowWelcomeSwitch() {
     const { showWelcome } = useSnapshot(appSettings);

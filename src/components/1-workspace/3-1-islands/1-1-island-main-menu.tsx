@@ -1,10 +1,8 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
-import { Download, SlidersHorizontal, FolderOpen, GitFork, CircleQuestionMark, ImageDown, Menu, Monitor, Moon, RefreshCw, Save, Settings2, Sun, ClipboardPaste, Trash } from "lucide-react";
+import { Download, SlidersHorizontal, FolderOpen, GitFork, CircleQuestionMark, ImageDown, Menu, Save, Settings2, ClipboardPaste, Trash } from "lucide-react";
 import { appSettings } from "@/store/1-ui-settings";
-import { type ThemeMode } from "@/utils/theme-apply";
 import { pointsOptionsAtom } from "@/tools/points/options";
-import { cn } from "@/utils/classnames";
 import {
     DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem,
     DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger,
@@ -44,10 +42,10 @@ export function Island_MainMenu() {
                 <CommandMenuItem id="file.pasteSvg" icon={<ClipboardPaste className={ic} />} />
 
                 <DropdownMenuSeparator />
+                <CommandMenuItem id="help.shortcuts" icon={<CircleQuestionMark className={ic} />} label="Help" />
                 <CommandMenuItem id="file.reset" icon={<Trash className={ic} />} />
 
                 <DropdownMenuSeparator />
-                <CommandMenuItem id="help.shortcuts" icon={<CircleQuestionMark className={ic} />} label="Help" />
                 <DropdownMenuItem asChild>
                     <a href="https://github.com/maxzz/svg-led" target="_blank" rel="noreferrer">
                         <GitFork className={ic} />
@@ -58,10 +56,6 @@ export function Island_MainMenu() {
                 <DropdownMenuSeparator />
                 <PreferencesSub />
                 <CommandMenuItem id="help.options" icon={<Settings2 className={ic} />} label="More options..." />
-
-                <DropdownMenuSeparator />
-                <ThemeRow />
-                <BackgroundRow />
             </DropdownMenuContent>
         </DropdownMenu>
     );
@@ -118,61 +112,3 @@ const GRID_SIZES = [1, 5, 8, 10, 16, 20, 32];
 const PRECISIONS = [0, 1, 2, 3, 4];
 
 const keepOpen = (e: Event) => e.preventDefault();
-
-function ThemeRow() {
-    const { theme } = useSnapshot(appSettings);
-    return (
-        <div className="px-2 py-1.5 text-sm flex items-center justify-between">
-            Theme
-            <div className="p-0.5 bg-muted rounded-md flex gap-0.5">
-                {THEMES.map(
-                    ([mode, Icon, title]) => (
-                        <button
-                            className={cn("p-1 rounded", theme === mode ? "text-(--editor-accent) bg-background shadow-sm" : "text-muted-foreground hover:text-foreground")}
-                            title={title}
-                            onClick={() => { appSettings.theme = mode; }}
-                            type="button"
-                            key={mode}
-                        >
-                            <Icon className="size-3.5" />
-                        </button>
-                    )
-                )}
-            </div>
-        </div>
-    );
-}
-
-const THEMES: readonly (readonly [ThemeMode, typeof Sun, string])[] = [
-    ['light', Sun, 'Light'],
-    ['dark', Moon, 'Dark'],
-    ['system', Monitor, 'System'],
-];
-
-function BackgroundRow() {
-    const { canvasBackground } = useSnapshot(appSettings);
-    return (
-        <div className="px-2 py-1.5 text-sm flex flex-col gap-1.5">
-            Canvas background
-            <div className="flex items-center gap-1.5">
-                {BACKGROUNDS.map((color) => (
-                    <button
-                        className={cn(
-                            "size-6 ring-1 ring-foreground/15 rounded-md flex items-center justify-center",
-                            canvasBackground === color && "ring-2 ring-(--editor-accent)",
-                        )}
-                        style={{ backgroundColor: color || undefined }}
-                        title={color || 'Theme background'}
-                        onClick={() => { appSettings.canvasBackground = color; }}
-                        type="button"
-                        key={color || 'theme'}
-                    >
-                        {!color && <RefreshCw className="size-3 text-muted-foreground" />}
-                    </button>
-                ))}
-            </div>
-        </div>
-    );
-}
-
-const BACKGROUNDS = ['', '#ffffff', '#f8f9fa', '#f5faff', '#fffce8', '#fdf8f6', '#1e1e1e', '#121212'];
