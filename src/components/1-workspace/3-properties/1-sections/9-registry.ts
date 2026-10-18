@@ -41,6 +41,9 @@ function someKind(...kinds: SvgNode['kind'][]) {
 function someNotKind(...kinds: SvgNode['kind'][]) {
     return (nodes: readonly SvgNode[]) => nodes.some((n) => !kinds.includes(n.kind));
 }
+function multiple(nodes: readonly SvgNode[]) {
+    return nodes.length > 1;
+}
 
 //---------------------------------------------------------------------------
 // Property sections
@@ -54,7 +57,7 @@ export const PROPERTY_SECTIONS: readonly PropertySection[] = [
     { id: 'cap-join',     /**/ appliesTo: someKind('path', 'line', 'polyline', 'polygon', 'rect', 'g'), /**/ Component: Section_CapsJoins },
     { id: 'rect-corners', /**/ appliesTo: someKind('rect'),                                             /**/ Component: Section_RectCorners },
     { id: 'opacity',      /**/ appliesTo: always,                                                       /**/ Component: Section_Opacity },
-    { id: 'align',        /**/ appliesTo: always,                                                       /**/ Component: Section_Align, selectionOnly: true },
+    { id: 'align',        /**/ appliesTo: multiple,                                                     /**/ Component: Section_Align, selectionOnly: true },
     { id: 'bbox',         /**/ appliesTo: always,                                                       /**/ Component: Section_BBox, selectionOnly: true },
     { id: 'actions',      /**/ appliesTo: always,                                                       /**/ Component: Section_Actions, selectionOnly: true },
 ];
