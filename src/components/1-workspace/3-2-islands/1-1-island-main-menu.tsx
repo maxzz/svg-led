@@ -10,9 +10,9 @@ import {
     DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger,
 } from "@/ui/shadcn/dropdown-menu";
 import { Island, islandButtonClasses } from "@/ui/local-ui/9-island";
-import { CommandMenuItem } from "./8-command-menu-item";
+import { CommandMenuItem } from "../3-1-island-main-toolbar/8-command-menu-item";
 
-export function MainMenu() {
+export function Island_MainMenu() {
     return (
         <DropdownMenu modal={false}>
             <Island className="pointer-events-auto">

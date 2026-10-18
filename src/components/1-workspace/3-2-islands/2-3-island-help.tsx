@@ -3,7 +3,7 @@ import { CircleQuestionMark } from "lucide-react";
 import { runCommandAtom } from "@/commands";
 import { Island, islandButtonClasses } from "@/ui/local-ui/9-island";
 
-export function HelpButton() {
+export function Island_Help() {
     const run = useSetAtom(runCommandAtom);
     
     return (
