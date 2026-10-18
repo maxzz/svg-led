@@ -9,8 +9,13 @@ import {
 } from "@/ui/shadcn/dropdown-menu";
 import { Island, islandButtonClasses } from "@/ui/local-ui/9-island";
 import { CommandMenuItem } from "../3-2-island-main-toolbar/8-command-menu-item";
+import { AppLogoImage } from "../../5-welcome/2-app-logo";
+import { MainPage, navigateToPageAtom } from "../../5-welcome/a-ui-app-page";
 
 export function Island_MainMenu() {
+    const navigate = useSetAtom(navigateToPageAtom);
+    const showWelcome = () => navigate(MainPage.welcome);
+
     return (
         <DropdownMenu modal={false}>
             <Island className="pointer-events-auto">
@@ -39,13 +44,17 @@ export function Island_MainMenu() {
                     </DropdownMenuSubContent>
                 </DropdownMenuSub>
 
-                <CommandMenuItem id="file.pasteSvg" icon={<ClipboardPaste className={ic} />} />
+                {/* <CommandMenuItem id="file.pasteSvg" icon={<ClipboardPaste className={ic} />} /> */}
 
                 <DropdownMenuSeparator />
-                <CommandMenuItem id="help.shortcuts" icon={<CircleQuestionMark className={ic} />} label="Help" />
                 <CommandMenuItem id="file.reset" icon={<Trash className={ic} />} />
 
                 <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={() => showWelcome()}>
+                    <AppLogoImage className={ic} />
+                    Welcome page
+                </DropdownMenuItem>
+                <CommandMenuItem id="help.shortcuts" icon={<CircleQuestionMark className={ic} />} label="Help" />
                 <DropdownMenuItem asChild>
                     <a href="https://github.com/maxzz/svg-led" target="_blank" rel="noreferrer">
                         <GitFork className={ic} />
@@ -61,7 +70,7 @@ export function Island_MainMenu() {
     );
 }
 
-const ic = "size-4";
+const ic = "size-4 stroke-1";
 
 function PreferencesSub() {
     const { prefs } = useSnapshot(appSettings);

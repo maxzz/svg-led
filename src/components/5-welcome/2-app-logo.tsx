@@ -1,7 +1,7 @@
 import { type ImgHTMLAttributes, ViewTransition } from "react";
 import { classNames } from "@/utils";
-import appLogoUrl from "@/assets/app-logo.svg";
 import { APP_NAME } from "./a-ui-app-page";
+import appLogoUrl from "@/assets/app-logo.svg";
 
 /**
  * Temporary app logo. The same component is rendered on the Welcome page (large)
