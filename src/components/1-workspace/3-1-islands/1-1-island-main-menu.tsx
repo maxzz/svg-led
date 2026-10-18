@@ -1,6 +1,6 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
-import { Command, Download, SlidersHorizontal, FolderOpen, GitFork, CircleQuestionMark, ImageDown, Menu, Monitor, Moon, RefreshCw, Save, Search, Settings2, Sun, ClipboardPaste, Trash } from "lucide-react";
+import { Download, SlidersHorizontal, FolderOpen, GitFork, CircleQuestionMark, ImageDown, Menu, Monitor, Moon, RefreshCw, Save, Settings2, Sun, ClipboardPaste, Trash } from "lucide-react";
 import { appSettings } from "@/store/1-ui-settings";
 import { type ThemeMode } from "@/utils/theme-apply";
 import { pointsOptionsAtom } from "@/tools/points/options";
@@ -44,8 +44,6 @@ export function Island_MainMenu() {
                 <CommandMenuItem id="file.pasteSvg" icon={<ClipboardPaste className={ic} />} />
 
                 <DropdownMenuSeparator />
-                <CommandMenuItem id="help.palette" icon={<Command className={ic} />} />
-                <CommandMenuItem id="help.find" icon={<Search className={ic} />} />
                 <CommandMenuItem id="help.shortcuts" icon={<CircleQuestionMark className={ic} />} label="Help" />
                 <CommandMenuItem id="file.reset" icon={<Trash className={ic} />} />
 
