@@ -2,6 +2,7 @@ import { type DragEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { type Getter, atom } from "jotai";
 import { toast } from "sonner";
 import { appStore } from "@/store/0-app-store";
+import { appSettings } from "@/store/1-ui-settings";
 import { docState, insertSvgMarkup, loadSvgFile } from "@/store/3-document";
 import {
     ToolId, activeToolIdAtom, canvasSizeAtom, editingGroupIdAtom, hoverNodeIdAtom, isPanningAtom, panByAtom, pointerDocAtom, pruneSelectionAtom,
@@ -9,6 +10,7 @@ import {
 } from "@/store/4-editor";
 import { type Point } from "@/svg-core";
 import { type ToolPointerEvent, getTool, resolveTarget, selectionUnitId } from "@/tools";
+import { PROPERTIES_POPUP_RIGHT_EDGE_PX } from "@/components/1-workspace/3-properties/9-atoms-properties-popup";
 
 type CanvasPointerEvent = ReactPointerEvent<SVGSVGElement>;
 
@@ -194,7 +196,7 @@ export function canvasRef(el: SVGSVGElement | null) {
             appStore.set(canvasSizeAtom, { width, height });
             if (!fitted && width > 0 && height > 0) {
                 fitted = true;
-                appStore.set(zoomToFitAtom);
+                appStore.set(zoomToFitAtom, { leftInset: appSettings.prefs.fitAvoidsProperties ? PROPERTIES_POPUP_RIGHT_EDGE_PX : 0 });
                 appStore.set(canvasReadyAtom, true);
             }
         }
