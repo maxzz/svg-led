@@ -44,10 +44,10 @@ export function Island_MainMenu() {
                 <CommandMenuItem id="file.pasteSvg" icon={<ClipboardPaste className={ic} />} />
 
                 <DropdownMenuSeparator />
-                <CommandMenuItem id="help.shortcuts" icon={<CircleQuestionMark className={ic} />} label="Help" />
                 <CommandMenuItem id="file.reset" icon={<Trash className={ic} />} />
 
                 <DropdownMenuSeparator />
+                <CommandMenuItem id="help.shortcuts" icon={<CircleQuestionMark className={ic} />} label="Help" />
                 <DropdownMenuItem asChild>
                     <a href="https://github.com/maxzz/svg-led" target="_blank" rel="noreferrer">
                         <GitFork className={ic} />

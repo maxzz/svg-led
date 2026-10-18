@@ -50,6 +50,6 @@ export function OptionsDialog() {
 type OptionsTabId = 'monaco' | 'general';
 
 const optionsTabs: { id: OptionsTabId; label: string; Panel: ComponentType; }[] = [
-    { id: 'monaco', label: 'Monaco editor', /**/ Panel: Tab_Monaco },
     { id: 'general', label: 'General',      /**/ Panel: Tab_General },
+    { id: 'monaco', label: 'Monaco editor', /**/ Panel: Tab_Monaco },
 ];
