@@ -37,14 +37,17 @@ export function ViewBoxSettingsDialog() {
 /** Same settings as the dialog, shown as a popover anchored to its child (e.g. a toolbar button) */
 export function ViewBoxSettingsPopover({ children }: { children: ReactNode; }) {
     const [isOpen, setIsOpen] = useAtom(isOpenViewBoxSettingsPopoverAtom);
-
     return (
         <Popover open={isOpen} onOpenChange={setIsOpen}>
             <PopoverTrigger asChild>
                 {children}
             </PopoverTrigger>
 
-            <PopoverContent className="p-0 w-100 gap-0" align="end" side="bottom" sideOffset={6}>
+            <PopoverContent
+                className="p-0 w-100 gap-0" align="end" side="bottom" sideOffset={6}
+                onOpenAutoFocus={(e) => e.preventDefault()}
+                onFocusOutside={(e) => e.preventDefault()}
+            >
                 <div className="px-4 py-3 border-b text-sm font-medium">
                     ViewBox
                 </div>
