@@ -64,7 +64,21 @@ function print_IconsLocation(allIcons: AllIcons) {
     // * or we can use plugin at build time to access file location, but that will be too much for this task
 
     const msg = 'Each icon has [[FunctionLocation]] property, but it is accessible from trace only (i.e. devtools-protocol), not from code.';
-    const entries = Object.entries(allIcons);
+    const entries = Object.entries(allIcons).filter((entry): entry is [string, IconComponent] => isIconComponent(entry[1]));
+
+    console.groupCollapsed(`%c${msg}`, 'font-size: 0.55rem');
+    //console.log(entries);
+
+    // entries.forEach(([name, value]) => {
+    //     console.log(`%c${name}`, 'font-size: 0.55rem', value.name);
+    //     console.dir(value);
+    // });
+
+    entries.forEach(([name, value]) => {
+        console.log(`%c${name}%O`, 'font-size: 0.55rem', value);
+    });
+
+    console.groupEnd();
 
     console.log(`%c${msg}`, 'font-size: 0.55rem', { entries });
 }
