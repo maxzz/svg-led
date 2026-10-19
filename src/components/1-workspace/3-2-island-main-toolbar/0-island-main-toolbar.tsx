@@ -3,6 +3,7 @@ import { Lock, LockOpen } from "lucide-react";
 import { toolLockedAtom } from "@/store/4-editor";
 import { TOOLS } from "@/tools";
 import { Island, islandButtonClasses } from "@/ui/local-ui/9-island";
+import { Island_MainMenu } from "../3-1-islands/1-1-island-main-menu";
 import { ToolButton } from "./1-tool-button";
 import { MoreMenu } from "./2-more-menu";
 import { toggleToolLockAtom, toolHintAtom } from "./9-atoms-toolbar";
@@ -20,6 +21,7 @@ export function Island_MainToolbar() {
                 )}
                 <div className="mx-1 w-px h-6 bg-border" />
                 <MoreMenu />
+                <Island_MainMenu />
             </Island>
 
             <div className="select-none px-2 text-[11px] text-muted-foreground/80 text-center">
