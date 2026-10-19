@@ -43,11 +43,7 @@ export function ViewBoxSettingsPopover({ children }: { children: ReactNode; }) {
                 {children}
             </PopoverTrigger>
 
-            <PopoverContent
-                className="p-0 w-100 gap-0" align="end" side="bottom" sideOffset={6}
-                onOpenAutoFocus={(e) => e.preventDefault()}
-                onFocusOutside={(e) => e.preventDefault()}
-            >
+            <PopoverContent className="p-0 w-100 gap-0" align="end" side="bottom" sideOffset={6}>
                 <div className="px-4 py-3 border-b text-sm font-medium">
                     ViewBox
                 </div>
