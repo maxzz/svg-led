@@ -67,15 +67,10 @@ function print_IconsLocation(allIcons: AllIcons) {
     const entries = Object.entries(allIcons).filter((entry): entry is [string, IconComponent] => isIconComponent(entry[1]));
 
     console.groupCollapsed(`%c${msg}`, 'font-size: 0.55rem');
-    //console.log(entries);
 
-    // entries.forEach(([name, value]) => {
-    //     console.log(`%c${name}`, 'font-size: 0.55rem', value.name);
-    //     console.dir(value);
-    // });
-
+    const nameWidth = Math.max(0, ...entries.map(([name]) => name.length));
     entries.forEach(([name, value]) => {
-        console.log(`%c${name}%O`, 'font-size: 0.55rem', value);
+        console.log(`%c${name.padEnd(nameWidth)}  %O`, 'font-family: monospace; font-size: 10px; color: #004390; ', value);
     });
 
     console.groupEnd();
