@@ -15,7 +15,7 @@ export function Island_TopRight() {
         <Island className="pointer-events-auto">
             <ViewBoxSettingsPopover>
                 <button className={islandButtonClasses} title="ViewBox settings" type="button">
-                    <IconViewBoxSettings className="size-4 stroke-[0.5px]! stroke-foreground" />
+                    <IconViewBoxSettings className="size-4 stroke-[0.25px]! stroke-foreground" />
                 </button>
             </ViewBoxSettingsPopover>
             
