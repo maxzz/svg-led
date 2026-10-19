@@ -10,7 +10,6 @@ const HANDLE = 8;   // size of the corner and midpoint grips
 const EDGE = 6;     // width of the invisible strip along each edge, the part of an edge that takes the pointer
 
 const CORNERS: [ResizeHandle, number, number][] = [['nw', 0, 0], ['ne', 1, 0], ['se', 1, 1], ['sw', 0, 1]];
-const MIDPOINTS: [ResizeHandle, number, number][] = [['n', 0.5, 0], ['e', 1, 0.5], ['s', 0.5, 1], ['w', 0, 0.5]];
 const EDGES: ResizeHandle[] = ['n', 'e', 's', 'w'];
 
 const CURSOR: Record<ResizeHandle, string> = {
@@ -64,7 +63,7 @@ export function SelectionOverlay() {
                     fill="none" strokeWidth={1} strokeDasharray={dashed ? "4 3" : undefined}
                 />
 
-                {/* Edges: a thin invisible strip along each side, resizes only the axis perpendicular to it */}
+                {/* Edges: a thin invisible strip along each side (no visible grip), resizes only the axis perpendicular to it */}
                 {EDGES.map((handle) => (
                     <rect
                         key={handle}
@@ -75,9 +74,6 @@ export function SelectionOverlay() {
                         data-handle={handle}
                     />
                 ))}
-
-                {/* Edge midpoint grips */}
-                {MIDPOINTS.map(([handle, fx, fy]) => <Grip key={handle} handle={handle} box={box} fx={fx} fy={fy} />)}
 
                 {/* Corner grips: both axes */}
                 {CORNERS.map(([handle, fx, fy]) => <Grip key={handle} handle={handle} box={box} fx={fx} fy={fy} />)}
