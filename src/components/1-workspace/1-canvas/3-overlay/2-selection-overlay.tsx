@@ -25,9 +25,13 @@ export function SelectionOverlay() {
 
     return (
         <g>
-            {hover && !selection.includes(hover) && <Outline doc={doc} id={hover} className="stroke-(--editor-accent)/70" />}
+            {hover && !selection.includes(hover) && (
+                <Outline doc={doc} id={hover} className="stroke-(--editor-accent)/70" />
+            )}
 
-            {selection.map((id) => <Outline doc={doc} id={id} key={id} className="stroke-(--editor-accent)" />)}
+            {selection.map(
+                (id) => <Outline doc={doc} id={id} key={id} className="stroke-(--editor-accent)" />
+            )}
 
             {editingRect && (
                 <rect
@@ -38,25 +42,29 @@ export function SelectionOverlay() {
             )}
 
             {r && (<>
+                {/* Combined bbox dashed rectangle */}
                 <rect
                     className="stroke-(--editor-accent) pointer-events-none"
                     x={r.x - 4} y={r.y - 4} width={r.width + 8} height={r.height + 8}
                     fill="none" strokeWidth={1} strokeDasharray={dashed ? "4 3" : undefined}
                 />
+
+                {/* Resize handles */}
                 {CORNERS.map(
                     ([corner, fx, fy]) => (
                         <rect
-                            key={corner}
-                            data-hit="resize"
-                            data-corner={corner}
+                            className="fill-background stroke-(--editor-accent)"
+                            style={{ cursor: corner === 'nw' || corner === 'se' ? 'nwse-resize' : 'nesw-resize' }}
+                            rx={2}
+                            strokeWidth={1}
                             x={r.x - 4 + fx * (r.width + 8) - HANDLE / 2}
                             y={r.y - 4 + fy * (r.height + 8) - HANDLE / 2}
                             width={HANDLE}
                             height={HANDLE}
-                            rx={2}
-                            strokeWidth={1}
-                            className="fill-background stroke-(--editor-accent)"
-                            style={{ cursor: corner === 'nw' || corner === 'se' ? 'nwse-resize' : 'nesw-resize' }}
+                            
+                            data-hit="resize"
+                            data-corner={corner}
+                            key={corner}
                         />
                     )
                 )}
