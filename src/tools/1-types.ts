@@ -6,6 +6,9 @@ import { type ToolId } from "@/store/4-editor";
 /** Kinds of element a drawing tool creates. Its panel shows the new-shape properties that apply to the kind. */
 export type NewShapeKind = 'rect' | 'ellipse' | 'line' | 'path';
 
+/** Resize handles of the selection box: corners scale both axes, edge handles only the axis perpendicular to their edge */
+export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
+
 /** What is under the pointer, resolved from data-* attributes of canvas elements */
 export type CanvasTarget =
     | { type: 'none'; }
@@ -13,7 +16,7 @@ export type CanvasTarget =
     | { type: 'anchor'; nodeId: string; key: string; }                         // key "si:ai"
     | { type: 'handle'; nodeId: string; key: string; side: 'in' | 'out'; }
     | { type: 'shape-handle'; nodeId: string; key: string; }
-    | { type: 'resize'; corner: 'nw' | 'ne' | 'se' | 'sw'; };
+    | { type: 'resize'; handle: ResizeHandle; };
 
 export type ToolPointerEvent = {
     screen: Point;               // canvas pixels

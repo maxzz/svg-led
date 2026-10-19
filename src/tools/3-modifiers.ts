@@ -42,8 +42,8 @@ export const MODIFIER_DESCRIPTIONS: ModifierDescriptions = {
         duplicateDrag: 'drag to move a copy',
         deepSelect: 'click to select an element inside a group',
         snapToObjects: 'drag to snap to other elements (even when snapping is off in Preferences)',
-        resizeKeepAspect: 'resize keeping the aspect ratio',
-        resizeFromCenter: 'resize from the center',
+        resizeKeepAspect: 'resize a corner keeping the aspect ratio (edges change one side only)',
+        resizeFromCenter: 'resize from the center (edges stretch from the middle of the box)',
     },
     points: {
         toggleAnchor: 'click to add or remove an anchor from the selection',

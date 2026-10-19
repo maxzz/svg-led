@@ -3,7 +3,7 @@ import { snapshot } from "valtio";
 import { type Point, type Rect, type SvgDoc, groupPathIds, rectFromCorners, rectsIntersect, scaleAround } from "@/svg-core";
 import { type NodeOriginals, applyDocMatrix, captureOriginals, commitHistory, docState, duplicateNodes, nodeDocBBox, nodesDocBBox } from "@/store/3-document";
 import { ToolId, editingGroupIdAtom, marqueeAtom, screenToDoc, selectionAtom, setActiveToolAtom, setSelectionAtom, viewportAtom } from "@/store/4-editor";
-import { type ToolDef, type ToolPointerEvent } from "../1-types";
+import { type ResizeHandle, type ToolDef, type ToolPointerEvent } from "../1-types";
 import { MODIFIERS, isMod } from "../3-modifiers";
 import { type MoveGesture, beginMove, endMove, pastThreshold, updateMove } from "../0-shared/3-move-gesture";
 import { hitTestOutlines, docTolerance } from "../0-shared/2-tool-helpers";
@@ -15,7 +15,7 @@ const M = MODIFIERS.select;
 type Gesture =
     | { type: 'move'; move: MoveGesture; }
     | { type: 'marquee'; startScreen: Point; base: string[]; bboxes: Map<string, Rect>; }
-    | { type: 'resize'; originals: NodeOriginals; bbox: Rect; corner: 'nw' | 'ne' | 'se' | 'sw'; moved: boolean; startScreen: Point; snapTargets: Rect[]; };
+    | { type: 'resize'; originals: NodeOriginals; bbox: Rect; handle: ResizeHandle; moved: boolean; startScreen: Point; snapTargets: Rect[]; };
 
 let gesture: Gesture | null = null;
 
@@ -35,7 +35,7 @@ export const selectTool: ToolDef = {
             const bbox = nodesDocBBox(snapshot(docState).doc as SvgDoc, selection);
             if (bbox) {
                 gesture = {
-                    type: 'resize', originals: captureOriginals(selection), bbox, corner: target.corner, moved: false, startScreen: e.screen,
+                    type: 'resize', originals: captureOriginals(selection), bbox, handle: target.handle, moved: false, startScreen: e.screen,
                     snapTargets: collectSnapTargets(docState.doc as SvgDoc, selection),
                 };
             }
@@ -137,16 +137,18 @@ export const selectTool: ToolDef = {
                     return;
                 }
                 gesture.moved = true;
-                // the dragged corner snaps to edges and centers of other elements
-                let corner = e.doc;
+                // the dragged point snaps to edges and centers of other elements, only along the axes the handle moves
+                let point = e.doc;
                 if (snapActive(isMod(e, M.snapToObjects))) {
-                    const off = snapBox({ x: e.doc.x, y: e.doc.y, width: 0, height: 0 }, gesture.snapTargets, { threshold: snapThreshold(), spacing: false, axes: ['x', 'y'] });
-                    corner = { x: e.doc.x + off.dx, y: e.doc.y + off.dy };
+                    const { dirX, dirY } = handleDirs(gesture.handle);
+                    const axes: ('x' | 'y')[] = [...(dirX ? ['x' as const] : []), ...(dirY ? ['y' as const] : [])];
+                    const off = snapBox({ x: e.doc.x, y: e.doc.y, width: 0, height: 0 }, gesture.snapTargets, { threshold: snapThreshold(), spacing: false, axes });
+                    point = { x: e.doc.x + off.dx, y: e.doc.y + off.dy };
                     setSnapGuides(off.guides);
                 } else {
                     clearSnapGuides();
                 }
-                applyDocMatrix(gesture.originals, resizeMatrix(gesture.bbox, gesture.corner, { ...e, doc: corner }));
+                applyDocMatrix(gesture.originals, resizeMatrix(gesture.bbox, gesture.handle, { ...e, doc: point }));
                 break;
         }
     },
@@ -171,28 +173,47 @@ export const selectTool: ToolDef = {
     },
 };
 
-function resizeMatrix(bbox: Rect, corner: 'nw' | 'ne' | 'se' | 'sw', e: ToolPointerEvent) {
+/** Which axes a handle moves: -1 for its left/top side, 1 for its right/bottom side, 0 when the axis is not resized */
+function handleDirs(handle: ResizeHandle) {
+    return {
+        dirX: handle.includes('w') ? -1 : handle.includes('e') ? 1 : 0,
+        dirY: handle.includes('n') ? -1 : handle.includes('s') ? 1 : 0,
+    };
+}
+
+/**
+ * Scale of one axis. The dragged side follows the pointer; the opposite side stays fixed,
+ * or the center of the box is fixed when Alt is held. An axis that is not resized gets scale 1.
+ */
+function axisScale(pointer: number, start: number, size: number, dir: number, fromCenter: boolean) {
+    if (!dir) {
+        return { scale: 1, origin: start };
+    }
+    const side = dir < 0 ? start : start + size;
+    const origin = fromCenter ? start + size / 2 : dir < 0 ? start + size : start;
+    const span = side - origin;
+    return { scale: span ? (pointer - origin) / span : 1, origin };
+}
+
+/**
+ * Corners scale both axes (Shift keeps the aspect ratio); edge handles scale only the axis perpendicular to their edge,
+ * so Shift has no effect on them.
+ */
+function resizeMatrix(bbox: Rect, handle: ResizeHandle, e: ToolPointerEvent) {
     const fromCenter = isMod(e, M.resizeFromCenter);
     const keepAspect = isMod(e, M.resizeKeepAspect);
+    const { dirX, dirY } = handleDirs(handle);
 
-    const handle = {
-        x: corner.includes('w') ? bbox.x : bbox.x + bbox.width,
-        y: corner.includes('n') ? bbox.y : bbox.y + bbox.height,
-    };
-    const origin = fromCenter
-        ? { x: bbox.x + bbox.width / 2, y: bbox.y + bbox.height / 2 }
-        : { x: corner.includes('w') ? bbox.x + bbox.width : bbox.x, y: corner.includes('n') ? bbox.y + bbox.height : bbox.y };
-
-    const dx = handle.x - origin.x;
-    const dy = handle.y - origin.y;
-    let sx = dx ? (e.doc.x - origin.x) / dx : 1;
-    let sy = dy ? (e.doc.y - origin.y) / dy : 1;
-    if (keepAspect) {
+    const x = axisScale(e.doc.x, bbox.x, bbox.width, dirX, fromCenter);
+    const y = axisScale(e.doc.y, bbox.y, bbox.height, dirY, fromCenter);
+    let sx = x.scale;
+    let sy = y.scale;
+    if (keepAspect && dirX && dirY) {
         const s = Math.max(Math.abs(sx), Math.abs(sy));
         sx = Math.sign(sx || 1) * s;
         sy = Math.sign(sy || 1) * s;
     }
     if (Math.abs(sx) < 1e-6) sx = 1e-6;
     if (Math.abs(sy) < 1e-6) sy = 1e-6;
-    return scaleAround(sx, sy, origin);
+    return scaleAround(sx, sy, { x: x.origin, y: y.origin });
 }

@@ -1,8 +1,8 @@
-import { type CanvasTarget } from "../1-types";
+import { type CanvasTarget, type ResizeHandle } from "../1-types";
 
 /**
  * Finds what the pointer is over from data attributes:
- * overlay elements carry data-hit (+ data-nid, data-key, data-side, data-corner),
+ * overlay elements carry data-hit (+ data-nid, data-key, data-side, data-handle),
  * document elements carry data-nid on every rendered node.
  */
 export function resolveTarget(el: Element | null): CanvasTarget {
@@ -21,7 +21,7 @@ export function resolveTarget(el: Element | null): CanvasTarget {
             case 'shape-handle':
                 return { type: 'shape-handle', nodeId: d.nid!, key: d.key! };
             case 'resize':
-                return { type: 'resize', corner: d.corner as 'nw' | 'ne' | 'se' | 'sw' };
+                return { type: 'resize', handle: d.handle as ResizeHandle };
         }
     }
 
