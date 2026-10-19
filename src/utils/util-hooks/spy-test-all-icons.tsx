@@ -1,25 +1,31 @@
-import { type HTMLAttributes, useEffect, useState } from "react";
+import { type HTMLAttributes, useEffect, useState } from "react"; // 10.19.26
 import { classNames } from "@/utils";
+import * as allIcons from "@/ui/icons/normal";
 
-type AllIcons = Record<string, React.ComponentType<React.SVGProps<SVGSVGElement>>>;
+type AllIcons = Record<string, unknown>;
 
 export function SpyTestAllIcons({ allIcons, className, ...rest }: { allIcons: AllIcons; } & HTMLAttributes<HTMLDivElement>) {
-    const [printIcons, setPrintIcons] = useState(false);
+    const [printOnce, setPrintOnce] = useState(false);
+    
     useEffect(
         () => {
-            setPrintIcons((v) => {
-                if (!v) {
-                    print_IconsLocation(allIcons);
-                    return !v;
+            setPrintOnce(
+                (v) => {
+                    if (!v) {
+                        print_IconsLocation(allIcons);
+                        return !v;
+                    }
+                    return v;
                 }
-                return v;
-            });
-        }, [printIcons, allIcons]
-    );
+            );
+        },
+        [printOnce, allIcons]);
+
+    const icons = Object.entries(allIcons).filter((entry): entry is [string, IconComponent] => isIconComponent(entry[1]));
 
     return (
         <div className={classNames("flex flex-wrap gap-2", className)} {...rest}>
-            {Object.entries(allIcons).map(
+            {icons.map(
                 ([name, Icon]) => (
                     <div className="flex flex-col items-center" key={name}>
                         <div className="border-sky-500 border rounded" title={name}>
@@ -32,7 +38,19 @@ export function SpyTestAllIcons({ allIcons, className, ...rest }: { allIcons: Al
     );
 }
 
-//print_IconsLocation(allIcons);
+//---------------------------------------------------------------------------
+
+// Keep only exports that can be rendered as components (functions, or objects like forwardRef/memo).
+type IconComponent = React.ComponentType<React.SVGProps<SVGSVGElement>>;
+
+// Keep only exports that can be rendered as components (functions, or objects like forwardRef/memo).
+function isIconComponent(value: unknown): value is IconComponent {
+    return typeof value === "function" || (typeof value === "object" && value !== null);
+}
+
+//---------------------------------------------------------------------------
+
+print_IconsLocation(allIcons);
 
 function print_IconsLocation(allIcons: AllIcons) {
     // G: 'js get function location'
