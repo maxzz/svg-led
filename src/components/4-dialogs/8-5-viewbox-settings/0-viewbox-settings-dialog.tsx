@@ -37,7 +37,6 @@ export function ViewBoxSettingsDialog() {
 /** Same settings as the dialog, shown as a popover anchored to its child (e.g. a toolbar button) */
 export function ViewBoxSettingsPopover({ children }: { children: ReactNode; }) {
     const [isOpen, setIsOpen] = useAtom(isOpenViewBoxSettingsPopoverAtom);
-
     return (
         <Popover open={isOpen} onOpenChange={setIsOpen}>
             <PopoverTrigger asChild>
