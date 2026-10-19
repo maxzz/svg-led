@@ -1,6 +1,8 @@
 import { type HTMLAttributes, useEffect, useState } from "react"; // 10.19.26
 import { classNames } from "@/utils";
-import * as allIcons from "@/ui/icons/normal";
+
+// import * as allIcons from "@/ui/icons/normal";
+// print_IconsLocation(allIcons);
 
 type AllIcons = Record<string, unknown>;
 
@@ -50,30 +52,28 @@ function isIconComponent(value: unknown): value is IconComponent {
 
 //---------------------------------------------------------------------------
 
-print_IconsLocation(allIcons);
-
 function print_IconsLocation(allIcons: AllIcons) {
     // G: 'js get function location'
     // https://stackoverflow.com/questions/41146373/access-function-location-programmatically 'Access function location programmatically'
     // https://chromedevtools.github.io/devtools-protocol/tot/Runtime/#method-getProperties 'Runtime.getProperties'
     // console.log(Runtime.getProperties(allIcons).map(({ name }) => name));
+    // const msg = 'Each icon has [[FunctionLocation]] property, but it is accessible from trace only (i.e. devtools-protocol), not from code.';
 
     // * icons sorted in alphabetical order
     // * can we use import.meta.url from bundler? https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import.meta
     //   but it should be exposed from each file which is too much for this task
     // * or we can use plugin at build time to access file location, but that will be too much for this task
-
-    const msg = 'Each icon has [[FunctionLocation]] property, but it is accessible from trace only (i.e. devtools-protocol), not from code.';
+    
+    const msg = 'Icons';
     const entries = Object.entries(allIcons).filter((entry): entry is [string, IconComponent] => isIconComponent(entry[1]));
+    const nameWidth = Math.max(0, ...entries.map(([name]) => name.length));
 
     console.groupCollapsed(`%c${msg}`, 'font-size: 0.55rem');
 
-    const nameWidth = Math.max(0, ...entries.map(([name]) => name.length));
+    
     entries.forEach(([name, value]) => {
         console.log(`%c${name.padEnd(nameWidth)}  %O`, 'font-family: monospace; font-size: 10px; color: #004390; ', value);
     });
 
     console.groupEnd();
-
-    console.log(`%c${msg}`, 'font-size: 0.55rem', { entries });
 }
