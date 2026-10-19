@@ -4,18 +4,18 @@ import { Code } from "lucide-react";
 import { appSettings } from "@/store/1-ui-settings";
 import { runCommandAtom } from "@/commands";
 import { Island, islandButtonClasses } from "@/ui/local-ui/9-island";
-import { IconViewBoxSettings } from "@/ui/icons/normal/svg-led";
+import { IconViewBoxSettings, viewBoxActiveClasses } from "@/ui/icons/normal/svg-led";
 import { ViewBoxSettingsPopover } from "@/components/4-dialogs/8-5-viewbox-settings/0-viewbox-settings-dialog";
 
 export function Island_TopRight() {
-    const { codePanel } = useSnapshot(appSettings);
+    const { codePanel, prefs } = useSnapshot(appSettings);
     const run = useSetAtom(runCommandAtom);
 
     return (
         <Island className="pointer-events-auto">
             <ViewBoxSettingsPopover>
                 <button className={islandButtonClasses} title="ViewBox settings" type="button">
-                    <IconViewBoxSettings className="size-4 stroke-[0.25px]! stroke-foreground" />
+                    <IconViewBoxSettings className="size-4.5" activeClasses={prefs.showViewBox ? viewBoxActiveClasses : undefined} />
                 </button>
             </ViewBoxSettingsPopover>
             
