@@ -1,9 +1,10 @@
 import { useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
-import { Code, Frame } from "lucide-react";
+import { Code } from "lucide-react";
 import { appSettings } from "@/store/1-ui-settings";
 import { runCommandAtom } from "@/commands";
 import { Island, islandButtonClasses } from "@/ui/local-ui/9-island";
+import { IconViewBoxSettings } from "@/ui/icons/normal/svg-led";
 import { ViewBoxSettingsPopover } from "@/components/4-dialogs/8-5-viewbox-settings/0-viewbox-settings-dialog";
 
 export function Island_TopRight() {
@@ -14,7 +15,7 @@ export function Island_TopRight() {
         <Island className="pointer-events-auto">
             <ViewBoxSettingsPopover>
                 <button className={islandButtonClasses} title="ViewBox settings" type="button">
-                    <Frame className="size-4" />
+                    <IconViewBoxSettings className="size-4 stroke-[0.5px]! stroke-foreground" />
                 </button>
             </ViewBoxSettingsPopover>
             

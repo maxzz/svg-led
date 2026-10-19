@@ -22,3 +22,5 @@ export * from "./align-2-3-bottom";
 
 export * from "./align-3-1-distribute-horizontal";
 export * from "./align-3-2-distribute-vertical";
+
+export * from "./app-viewbox-settings";
