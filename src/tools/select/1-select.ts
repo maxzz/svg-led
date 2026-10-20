@@ -4,7 +4,7 @@ import { type Point, type Rect, type SvgDoc, groupPathIds, rectFromCorners, rect
 import { type NodeOriginals, applyDocMatrix, captureOriginals, commitHistory, docState, duplicateNodes, nodeDocBBox, nodesDocBBox } from "@/store/3-document";
 import { ToolId, editingGroupIdAtom, marqueeAtom, screenToDoc, selectionAtom, setActiveToolAtom, setSelectionAtom, viewportAtom } from "@/store/4-editor";
 import { type ResizeHandle, type ToolDef, type ToolPointerEvent } from "../1-types";
-import { MODIFIERS, isMod } from "../3-modifiers";
+import { MODIFIERS, isMod } from "./8-modifiers";
 import { type MoveGesture, beginMove, endMove, pastThreshold, updateMove } from "../0-shared/3-move-gesture";
 import { hitTestOutlines, docTolerance } from "../0-shared/2-tool-helpers";
 import { selectedGroupOnPath, selectionUnitId } from "../0-shared/4-group-units";

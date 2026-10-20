@@ -4,7 +4,7 @@ import { commitHistory, docState, getNodeProxy, replaceNode } from "@/store/3-do
 import { type ToolId, selectionAtom, setActiveToolAtom, setSelectionAtom, toolLockedAtom } from "@/store/4-editor";
 import { type CornerRadius, newShapeStyleAtom } from "@/store/2-persist";
 import { type NewShapeKind, type ToolDef } from "../1-types";
-import { MODIFIERS, isMod } from "../3-modifiers";
+import { MODIFIERS, isMod } from "../select/8-modifiers";
 import { docTolerance, snapDoc } from "../0-shared/2-tool-helpers";
 import { styleAttrs } from "../0-shared/4-style-attrs";
 

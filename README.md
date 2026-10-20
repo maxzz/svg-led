@@ -95,7 +95,7 @@ The mouse wheel zooms around the cursor; Shift+wheel pans horizontally; a trackp
 
 ### Modifier keys
 
-All modifier bindings are defined in one table, [`src/tools/3-modifiers.ts`](src/tools/3-modifiers.ts). The Help dialog is generated from it.
+All modifier bindings are defined in one table, [`src/tools/select/8-modifiers.tsx`](src/tools/select/8-modifiers.tsx). The Help dialog is generated from it.
 
 | Tool | Shift | Alt | Ctrl |
 | --- | --- | --- | --- |
@@ -189,7 +189,7 @@ src/
     0-shared/                 target resolution, move gesture, style helpers
     1-types.ts                ToolDef, ToolPointerEvent, CanvasTarget
     2-registry.ts             ordered tool list (drives toolbar, shortcuts and palette)
-    3-modifiers.ts            modifier key table
+    8-modifiers.tsx           modifier key table
     hand/ select/ points/ pen/ shapes/
   commands/                   Command type, shortcut matching, command list, command atoms
   components/
@@ -602,7 +602,7 @@ Stored options are merged over the defaults, and unknown or mistyped keys are dr
 
 The architecture is built so that new features are additions rather than edits:
 
-- **A new tool:** create `src/tools/<name>/index.ts` that exports a `ToolDef`, add its id to `ToolId` in `src/store/4-editor/1-tool-atoms.ts`, and add it to `TOOLS` in `src/tools/2-registry.ts`. The toolbar button, keyboard shortcut and palette entry are generated. Put its modifier bindings and descriptions in `src/tools/3-modifiers.ts`.
+- **A new tool:** create `src/tools/<name>/index.ts` that exports a `ToolDef`, add its id to `ToolId` in `src/store/4-editor/1-tool-atoms.ts`, and add it to `TOOLS` in `src/tools/2-registry.ts`. The toolbar button, keyboard shortcut and palette entry are generated. Put its modifier bindings and descriptions in `src/tools/select/8-modifiers.tsx`.
 - **A new command:** add a `Command` to the matching group in `src/commands/3-commands.ts`. It appears in the command palette, and its shortcut works immediately.
 - **A new property section:** add a component and an entry with an `appliesTo` predicate to `PROPERTY_SECTIONS`.
 - **A new app-wide integration:** write an `installX(store)` function in `src/store/5-controllers/` that returns a cleanup, and call it from `installControllers()`.

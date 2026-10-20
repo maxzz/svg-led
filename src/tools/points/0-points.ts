@@ -13,7 +13,7 @@ import {
     splitNodeAnchorKey, viewportAtom,
 } from "@/store/4-editor";
 import { type ToolDef, type ToolPointerEvent } from "../1-types";
-import { MODIFIERS, isMod } from "../3-modifiers";
+import { MODIFIERS, isMod } from "../select/8-modifiers";
 import { docTolerance, hitTestOutlines, nodeMatrices, snapValue } from "../0-shared/2-tool-helpers";
 import { type MoveGesture, beginMove, endMove, pastThreshold, updateMove } from "../0-shared/3-move-gesture";
 import { type SnapAxis, clearSnapGuides, collectSnapTargets, setSnapGuides, snapActive, snapBox, snapThreshold } from "@/tools/core-snapping";
