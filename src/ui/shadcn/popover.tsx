@@ -1,10 +1,20 @@
 "use client";
-import { type ComponentProps } from "react"; // 05.09.26
+import { type ComponentProps } from "react"; // 05.09.26; 10.19.26
 import { cn } from "@/utils/classnames";
 import { Popover as PopoverPrimitive } from "radix-ui";
 
 export function Popover({ ...rest }: ComponentProps<typeof PopoverPrimitive.Root>) {
     return <PopoverPrimitive.Root data-slot="popover" {...rest} />;
+}
+
+export function PopoverArrow({ className, ...rest }: ComponentProps<typeof PopoverPrimitive.Arrow>) {
+    return (
+        <PopoverPrimitive.Arrow asChild {...rest}>
+            <svg className={cn("fill-popover stroke-popover-foreground/15 stroke-[1.5px]", className)} data-slot="popover-arrow" viewBox="0 0 24 24">
+                <path d="M0 0 L12 8 L24 0" />
+            </svg>
+        </PopoverPrimitive.Arrow>
+    );
 }
 
 export function PopoverTrigger({ ...rest }: ComponentProps<typeof PopoverPrimitive.Trigger>) {
