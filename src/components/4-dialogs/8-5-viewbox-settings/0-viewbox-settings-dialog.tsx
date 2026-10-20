@@ -3,7 +3,6 @@ import { useAtom, useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
 import { appSettings } from "@/store/1-ui-settings";
 import { docState } from "@/store/3-document";
-import { runCommandAtom } from "@/commands";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/ui/shadcn/dialog";
 import { Popover, PopoverArrow, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
 import { Label } from "@/ui/shadcn/label";
@@ -27,7 +26,7 @@ export function ViewBoxSettingsDialog() {
                     </DialogDescription>
                 </DialogHeader>
 
-                {isOpen && <Body onDone={() => setIsOpen(false)} />}
+                {isOpen && <Body />}
             </DialogContent>
         </Dialog>
     );
@@ -48,24 +47,18 @@ export function ViewBoxSettingsPopover({ children }: { children: ReactNode; }) {
                     ViewBox
                 </div>
 
-                <Body onDone={() => setIsOpen(false)} />
+                <Body />
                 <PopoverArrow className="size-4" />
             </PopoverContent>
         </Popover>
     );
 }
 
-function Body({ onDone }: { onDone: () => void; }) {
+function Body() {
     const { fileName } = useSnapshot(docState);
     const { prefs } = useSnapshot(appSettings);
 
-    const run = useSetAtom(runCommandAtom);
     const showId = useId();
-
-    function fit(id: string) {
-        onDone();
-        run(id);
-    }
 
     return (
         <div className="px-4 py-4 text-xs flex flex-col gap-4">
@@ -76,7 +69,7 @@ function Body({ onDone }: { onDone: () => void; }) {
                 <Switch id={showId} checked={prefs.showViewBox} onCheckedChange={(v) => { appSettings.prefs.showViewBox = v; }} />
             </div>
 
-            <Controls_ViewBoxRect onFit={fit} />
+            <Controls_ViewBoxRect />
 
             <div className="flex flex-col gap-3 pt-3 border-t">
                 <span className="text-muted-foreground">

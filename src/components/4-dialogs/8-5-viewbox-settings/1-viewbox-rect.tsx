@@ -8,7 +8,7 @@ import { VIEWBOX_PRESETS, addViewBoxAtom, setViewBoxAndFitAtom } from "./9-types
 import { Buttons_ViewBoxFit } from "./2-viewbox-fit-buttons";
 
 /** X/Y/W/H fields (when a viewBox exists), fit buttons, and the square presets list with None/Custom */
-export function Controls_ViewBoxRect({ onFit }: { onFit: (id: string) => void; }) {
+export function Controls_ViewBoxRect() {
     const vb = useDocSnapshot().viewBox;
     const setVb = useSetAtom(setViewBoxAndFitAtom);
     const addVb = useSetAtom(addViewBoxAtom);
@@ -49,7 +49,7 @@ export function Controls_ViewBoxRect({ onFit }: { onFit: (id: string) => void; }
                 <NumberField className="max-w-16" label="X" value={vb.x} onInput={editDraft("x")} onChange={editDraft("x")} />
                 <NumberField className="max-w-16" label="Y" value={vb.y} onInput={editDraft("y")} onChange={editDraft("y")} />
                 <div className="justify-self-end">
-                    <Buttons_ViewBoxFit onFit={onFit} />
+                    <Buttons_ViewBoxFit />
                 </div>
                 <NumberField className="max-w-16" label="W" value={vb.width} min={0.01} onInput={editDraft("width")} onChange={editDraft("width")} />
                 <NumberField className="max-w-16" label="H" value={vb.height} min={0.01} onInput={editDraft("height")} onChange={editDraft("height")} />
