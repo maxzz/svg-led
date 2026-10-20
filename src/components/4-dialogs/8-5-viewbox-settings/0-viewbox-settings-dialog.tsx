@@ -42,7 +42,7 @@ export function ViewBoxSettingsPopover({ children }: { children: ReactNode; }) {
                 {children}
             </PopoverTrigger>
 
-            <PopoverContent className="p-0 w-100 gap-0" align="start" side="bottom" collisionPadding={{ right: 12 }} sideOffset={-2}>
+            <PopoverContent className="p-0 max-w-100 gap-0" align="start" side="bottom" collisionPadding={{ right: 12 }} sideOffset={-2}>
                 <div className="px-4 py-3 border-b text-sm font-medium">
                     ViewBox
                 </div>
@@ -64,7 +64,7 @@ function Body() {
         <div className="px-4 py-4 text-xs flex flex-col gap-4">
             <div className="flex items-center justify-between">
                 <Label className="text-xs" htmlFor={showId}>
-                    Show the viewBox frame on the canvas
+                    Use viewBox
                 </Label>
                 <Switch id={showId} checked={prefs.showViewBox} onCheckedChange={(v) => { appSettings.prefs.showViewBox = v; }} />
             </div>
