@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Popover, PopoverArrow, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
 import { Label } from "@/ui/shadcn/label";
 import { Switch } from "@/ui/shadcn/switch";
+import { CollapsibleSection } from "@/components/1-workspace/2-props-panel/2-controls/2-section";
 import { isOpenViewBoxSettingsDialogAtom, isOpenViewBoxSettingsPopoverAtom } from "./9-types-viewbox-settings";
 import { Controls_ViewBoxRect } from "./1-viewbox-rect";
 import { Controls_SvgSizeAttributes } from "./3-viewbox-size-attributes";
@@ -56,7 +57,7 @@ export function ViewBoxSettingsPopover({ children }: { children: ReactNode; }) {
 
 function Body() {
     const { fileName } = useSnapshot(docState);
-    const { prefs } = useSnapshot(appSettings);
+    const { prefs, propertySections } = useSnapshot(appSettings);
 
     const showId = useId();
 
@@ -71,16 +72,20 @@ function Body() {
 
             <Controls_ViewBoxRect />
 
-            <div className="flex flex-col gap-3 pt-3 border-t">
-                <span className="text-muted-foreground">
-                    File
-                </span>
+            <div className="pt-3 border-t">
+                <CollapsibleSection
+                    title="File"
+                    open={propertySections.viewBoxFileOpen}
+                    onOpenChange={(open) => { appSettings.propertySections.viewBoxFileOpen = open; }}
+                >
+                    <div className="flex flex-col gap-3">
+                        <div className="text-xs font-medium truncate" title={fileName}>
+                            {fileName}
+                        </div>
 
-                <div className="text-xs font-medium truncate" title={fileName}>
-                    {fileName}
-                </div>
-
-                <Controls_SvgSizeAttributes />
+                        <Controls_SvgSizeAttributes />
+                    </div>
+                </CollapsibleSection>
             </div>
         </div>
     );

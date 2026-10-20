@@ -6,7 +6,7 @@ import { Island_MainToolbar } from "../3-2-island-main-toolbar/0-island-main-too
 import { Island_Zoom } from "../3-1-islands/2-1-island-zoom";
 import { Island_Undo } from "../3-1-islands/2-2-island-undo";
 import { Island_Help } from "../3-1-islands/2-3-island-help";
-import { Island_Tool } from "../3-3-hint-panel/0-island-hint";
+import { Island_Hint } from "../3-3-hint-panel/0-island-hint";
 /** The whole editor: code panel on the left, then the canvas with floating UI on top of it */
 export function Workspace() {
     return (
@@ -26,7 +26,7 @@ function FloatingUi() {
         <div className="absolute top-3 inset-x-3 flex flex-col gap-2 pointer-events-none">
             <div className="flex flex-col items-center gap-2 pointer-events-none">
                 <Island_MainToolbar />
-                <Island_Tool />
+                <Island_Hint />
             </div>
 
             <Island_PropertiesPopup />

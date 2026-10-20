@@ -33,6 +33,7 @@ export interface EditorPreferences {
 export interface PropertySectionsSettings {
     bboxOpen: boolean;           // "Position and size" section is expanded
     capsJoinsOpen: boolean;      // "Line caps and joins" section is expanded
+    viewBoxFileOpen: boolean;    // "File" section in the ViewBox settings is expanded
 }
 
 export interface MonacoSettings {
@@ -69,6 +70,7 @@ const DEFAULT_SETTINGS: AppSettings = {
     propertySections: {
         bboxOpen: false,
         capsJoinsOpen: false,
+        viewBoxFileOpen: false,
     },
     prefs: {
         showViewBox: true,
