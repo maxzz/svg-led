@@ -5,7 +5,6 @@ import { historyState } from "@/store/3-document";
 import { runCommandAtom } from "@/commands";
 import { Island, islandButtonClasses } from "@/ui/local-ui/9-island";
 import { zoomPercentAtom } from "./9-atoms-corner-controls";
-
 export function Island_Zoom() {
     const run = useSetAtom(runCommandAtom);
     const zoom = useAtomValue(zoomPercentAtom);

@@ -7,7 +7,6 @@ import { Island_Zoom } from "../3-1-islands/2-1-island-zoom";
 import { Island_Undo } from "../3-1-islands/2-2-island-undo";
 import { Island_Help } from "../3-1-islands/2-3-island-help";
 import { Island_Tool } from "../3-3-hint-panel/0-island-hint";
-
 /** The whole editor: code panel on the left, then the canvas with floating UI on top of it */
 export function Workspace() {
     return (
