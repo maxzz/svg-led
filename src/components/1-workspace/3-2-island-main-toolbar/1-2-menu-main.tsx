@@ -8,7 +8,7 @@ import {
     DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger,
 } from "@/ui/shadcn/dropdown-menu";
 import { islandButtonClasses } from "@/ui/local-ui/9-island";
-import { CommandMenuItem } from "../3-2-island-main-toolbar/8-command-menu-item";
+import { CommandMenuItem } from "./1-8-menu-item-as-command";
 import { IconAppLogo } from "@/ui/icons/normal/svg-led/app-logo";
 import { MainPage, navigateToPageAtom } from "../../5-welcome/a-ui-app-page";
 

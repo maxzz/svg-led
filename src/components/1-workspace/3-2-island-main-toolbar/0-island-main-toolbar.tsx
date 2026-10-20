@@ -3,14 +3,13 @@ import { Lock, LockOpen } from "lucide-react";
 import { toolLockedAtom } from "@/store/4-editor";
 import { TOOLS } from "@/tools";
 import { Island, islandButtonClasses } from "@/ui/local-ui/9-island";
-import { Island_MainMenu } from "../3-1-islands/1-1-island-main-menu";
-import { ToolButton } from "./1-tool-button";
-import { MoreMenu } from "./2-more-menu";
-import { toggleToolLockAtom, toolHintAtom } from "./9-atoms-toolbar";
+import { Island_MainMenu } from "./1-2-menu-main";
+import { ToolButton } from "./8-tool-button";
+import { MoreMenu } from "./1-1-menu-more-tools";
+import { ToolHint } from "../3-3-hint-panel/0-hint-panel";
+import { toggleToolLockAtom } from "./9-atoms-toolbar";
 
 export function Island_MainToolbar() {
-    const hint = useAtomValue(toolHintAtom);
-
     return (
         <div className="flex flex-col items-center gap-2 pointer-events-none">
             <Island className="pointer-events-auto">
@@ -24,9 +23,7 @@ export function Island_MainToolbar() {
                 <Island_MainMenu />
             </Island>
 
-            <div className="select-none px-2 text-[11px] text-muted-foreground/80 text-center">
-                {hint}
-            </div>
+            <ToolHint />
         </div>
     );
 }
