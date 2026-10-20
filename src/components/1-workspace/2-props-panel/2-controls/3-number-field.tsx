@@ -61,17 +61,17 @@ export function NumberField({ label, value, onChange, onInput, min, step = 1, pr
     }
 
     return (
-        <label className={cn("px-1.5 h-7 min-w-0 text-xs bg-muted/60 focus-within:ring-1 focus-within:ring-(--editor-accent) rounded-md flex items-center gap-1", disabled && "opacity-40", className)}>
+        <label className={cn(fieldShellClasses, disabled && "opacity-40", className)}>
             {label && (
-                <span className="shrink-0 select-none text-[10px] text-muted-foreground">
+                <span className={fieldLabelClasses}>
                     {label}
                 </span>
             )}
             {/* Divider between label and input */}
-            {label && <span className="self-stretch shrink-0 w-px bg-border/75" aria-hidden />}
+            {label && <span className={fieldDividerClasses} aria-hidden />}
             
             <input
-                className="w-full min-w-0 tabular-nums bg-transparent outline-none"
+                className={fieldInputClasses}
                 defaultValue={text}
                 placeholder={value === MIXED ? 'Mixed' : ''}
                 inputMode="decimal"
@@ -84,3 +84,9 @@ export function NumberField({ label, value, onChange, onInput, min, step = 1, pr
         </label>
     );
 }
+
+/** Shared look of the labeled field: container, label, vertical divider, and input. Reuse these in other field-like controls. */
+export const fieldShellClasses = "px-1.5 h-7 min-w-0 text-xs bg-muted/60 focus-within:ring-1 focus-within:ring-(--editor-accent) rounded-md flex items-center gap-1";
+export const fieldLabelClasses = "shrink-0 select-none text-[10px] text-muted-foreground";
+export const fieldDividerClasses = "self-stretch shrink-0 w-px bg-border/75";
+export const fieldInputClasses = "w-full min-w-0 tabular-nums bg-transparent outline-none";
