@@ -7,7 +7,7 @@ import {
 import { type SectionProps } from "./9-registry";
 import { Section, optionButtonClasses } from "../2-controls/2-section";
 
-import { type AlignEdge, type DistributeAxis, alignNodes, distributeNodes } from "@/tools/align";
+import { type AlignEdge, type DistributeAxis, alignNodes, distributeNodes } from "@/tools/core-align";
 
 /** Align buttons need two elements; a distribute button appears only with more than two */
 export function Section_Align({ ids }: SectionProps) {

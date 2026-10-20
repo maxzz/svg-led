@@ -2,7 +2,7 @@ import { type Point, type Rect, type SvgDoc, translateMatrix } from "@/svg-core"
 import { type NodeOriginals, applyDocMatrix, captureOriginals, commitHistory, docState, nodesDocBBox } from "@/store/3-document";
 import { type ToolPointerEvent } from "../1-types";
 import { snapValue } from "./2-tool-helpers";
-import { type SnapAxis, clearSnapGuides, collectSnapTargets, setSnapGuides, snapActive, snapBox, snapThreshold } from "@/tools/snapping";
+import { type SnapAxis, clearSnapGuides, collectSnapTargets, setSnapGuides, snapActive, snapBox, snapThreshold } from "@/tools/core-snapping";
 
 /** Dragging whole elements; used by the select tool and by points mode when an element body is dragged */
 export type MoveGesture = {

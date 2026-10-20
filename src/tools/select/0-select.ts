@@ -8,7 +8,7 @@ import { MODIFIERS, isMod } from "../3-modifiers";
 import { type MoveGesture, beginMove, endMove, pastThreshold, updateMove } from "../0-shared/3-move-gesture";
 import { hitTestOutlines, docTolerance } from "../0-shared/2-tool-helpers";
 import { selectedGroupOnPath, selectionUnitId } from "../0-shared/4-group-units";
-import { clearSnapGuides, collectSnapTargets, setSnapGuides, snapActive, snapBox, snapThreshold } from "@/tools/snapping";
+import { clearSnapGuides, collectSnapTargets, setSnapGuides, snapActive, snapBox, snapThreshold } from "@/tools/core-snapping";
 
 const M = MODIFIERS.select;
 
