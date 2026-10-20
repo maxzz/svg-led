@@ -3,7 +3,6 @@ import { Island_MainToolbar } from "../3-2-island-main-toolbar/0-island-main-too
 import { Island_PropertiesPopup } from "../2-props-panel/0-island-properties-popup";
 import { SvgCodePanel } from "../5-svg-code-panel/0-svg-code-panel";
 
-import { Island_MainMenu } from "../3-1-islands/1-1-island-main-menu";
 import { Island_Zoom } from "../3-1-islands/2-1-island-zoom";
 import { Island_Undo } from "../3-1-islands/2-2-island-undo";
 import { Island_Help } from "../3-1-islands/2-3-island-help";
@@ -24,13 +23,14 @@ export function Workspace() {
 
 function FloatingUi() {
     return (<>
-        <div className="absolute top-3 left-3 flex flex-col items-start gap-2 pointer-events-none">
-            <Island_MainMenu />
-            <Island_PropertiesPopup />
-        </div>
+        <div className="absolute top-3 inset-x-3 flex flex-col gap-2 pointer-events-none">
+            <div className="flex justify-center">
+                <Island_MainToolbar />
+            </div>
 
-        <div className="absolute top-3 inset-x-0 flex justify-center pointer-events-none">
-            <Island_MainToolbar />
+            <div className="flex items-start">
+                <Island_PropertiesPopup />
+            </div>
         </div>
 
         <div className="absolute bottom-3 left-3 pointer-events-none">

@@ -7,8 +7,8 @@ import {
     DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem,
     DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger,
 } from "@/ui/shadcn/dropdown-menu";
-import { Island, islandButtonClasses } from "@/ui/local-ui/9-island";
-import { CommandMenuItem } from "../3-2-island-main-toolbar/8-command-menu-item";
+import { islandButtonClasses } from "@/ui/local-ui/9-island";
+import { CommandMenuItem } from "./1-8-menu-item-as-command";
 import { IconAppLogo } from "@/ui/icons/normal/svg-led/app-logo";
 import { MainPage, navigateToPageAtom } from "../../5-welcome/a-ui-app-page";
 
@@ -18,13 +18,11 @@ export function Island_MainMenu() {
 
     return (
         <DropdownMenu modal={false}>
-            <Island className="pointer-events-auto">
-                <DropdownMenuTrigger className={islandButtonClasses} title="Main menu">
-                    <Menu className="size-4" />
-                </DropdownMenuTrigger>
-            </Island>
+            <DropdownMenuTrigger className={islandButtonClasses} title="Main menu">
+                <Menu className="size-4" />
+            </DropdownMenuTrigger>
 
-            <DropdownMenuContent className="w-64" align="start" sideOffset={8}>
+            <DropdownMenuContent className="w-64" align="end" sideOffset={8}>
                 <CommandMenuItem id="file.open" icon={<FolderOpen className={icClasses} />} />
                 <CommandMenuItem id="file.save" icon={<Save className={icClasses} />} />
                 <CommandMenuItem id="file.saveAs" icon={<Download className={icClasses} />} />
