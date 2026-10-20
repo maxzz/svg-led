@@ -21,22 +21,26 @@ export function ViewBoxDimsLabel() {
             {isShown && vb && (
                 <motion.div
                     key="viewbox-dims"
-                    className="overflow-hidden flex items-center"
+                    className="self-stretch -my-1 overflow-hidden flex"
                     initial={{ width: 0 }}
                     animate={{ width: "auto" }}
                     exit={{ width: 0 }}
                     transition={{ duration: 0.2, ease: "easeOut" }}
                 >
-                    <motion.span
-                        className="select-none whitespace-nowrap pl-2 pr-1 text-[10px] font-code tabular-nums text-muted-foreground"
+                    <motion.div
+                        className="flex items-stretch pl-2"
                         initial={{ x: SLIDE_PX, opacity: 0 }}
                         animate={{ x: 0, opacity: 1 }}
                         exit={{ x: SLIDE_PX, opacity: 0 }}
                         transition={{ duration: 0.2, ease: "easeOut" }}
-                        title="ViewBox"
                     >
-                        viewBox {fmtNum(vb.x, 3)} {fmtNum(vb.y, 3)} {fmtNum(vb.width, 3)} {fmtNum(vb.height, 3)}
-                    </motion.span>
+                        <div className="flex flex-col justify-center pr-2 select-none whitespace-nowrap text-[10px] leading-3 font-code tabular-nums text-muted-foreground" title="ViewBox">
+                            <span>viewBox</span>
+                            <span>{fmtNum(vb.x, 3)} {fmtNum(vb.y, 3)} {fmtNum(vb.width, 3)} {fmtNum(vb.height, 3)}</span>
+                        </div>
+
+                        <div className="w-px self-stretch bg-foreground/15" />
+                    </motion.div>
                 </motion.div>
             )}
         </AnimatePresence>
