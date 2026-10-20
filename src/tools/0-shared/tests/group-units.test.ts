@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { type SvgDoc } from "@/svg-core";
-import { selectedGroupOnPath, selectionUnitId } from "../0-shared/4-group-units";
+import { selectedGroupOnPath, selectionUnitId } from "../4-group-units";
 
 // <g A> [ <rect a1/>, <g B> [ <rect b1/> ] ]  <rect c/>
 const doc = {
