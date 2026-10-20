@@ -1,5 +1,4 @@
 import { BoxSelect, Frame, Maximize } from "lucide-react";
-import { useDocSnapshot } from "@/store/3-document";
 import { Button } from "@/ui/shadcn/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
 
@@ -9,21 +8,11 @@ const FIT_ACTIONS = [
     // { id: 'viewbox.fitSelection', label: 'Fit selection into viewBox...', Icon: Frame }, // This is duplicate that available in the context menu
 ] as const;
 
-/** Icon buttons that run the viewBox fit commands; each shows its label as a tooltip */
+/** Icon buttons that run the viewBox fit commands; each shows its label as a tooltip. Rendered inside the viewBox grid. */
 export function Buttons_ViewBoxFit({ onFit }: { onFit: (id: string) => void; }) {
-    const { viewBox } = useDocSnapshot();
-
-    if (!viewBox) {
-        return (
-            <span className="text-muted-foreground">
-                The document has no viewBox.
-            </span>
-        );
-    }
-
     return (
         <TooltipProvider>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex gap-1">
                 {FIT_ACTIONS.map(({ id, label, Icon }) => (
                     <Tooltip key={id}>
                         <TooltipTrigger asChild>

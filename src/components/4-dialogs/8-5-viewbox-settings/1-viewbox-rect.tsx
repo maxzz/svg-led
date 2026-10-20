@@ -5,9 +5,10 @@ import { NumberField } from "@/components/1-workspace/2-props-panel/2-controls/3
 import { Button } from "@/ui/shadcn/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
 import { VIEWBOX_PRESETS, addViewBoxAtom, setViewBoxAndFitAtom } from "./9-types-viewbox-settings";
+import { Buttons_ViewBoxFit } from "./2-viewbox-fit-buttons";
 
-/** X/Y/W/H fields (when a viewBox exists) and the square presets list with None/Custom */
-export function Controls_ViewBoxRect() {
+/** X/Y/W/H fields (when a viewBox exists), fit buttons, and the square presets list with None/Custom */
+export function Controls_ViewBoxRect({ onFit }: { onFit: (id: string) => void; }) {
     const vb = useDocSnapshot().viewBox;
     const setVb = useSetAtom(setViewBoxAndFitAtom);
     const addVb = useSetAtom(addViewBoxAtom);
@@ -43,15 +44,20 @@ export function Controls_ViewBoxRect() {
     }
 
     return (
-        <div className="grid grid-cols-[repeat(4,max-content)_1fr] gap-1">
-            {vb && (<>
+        <div className="grid grid-cols-[repeat(2,max-content)_1fr] gap-1">
+            {vb ? (<>
                 <NumberField className="max-w-16" label="X" value={vb.x} onInput={editDraft("x")} onChange={editDraft("x")} />
                 <NumberField className="max-w-16" label="Y" value={vb.y} onInput={editDraft("y")} onChange={editDraft("y")} />
+                <div className="justify-self-end">
+                    <Buttons_ViewBoxFit onFit={onFit} />
+                </div>
                 <NumberField className="max-w-16" label="W" value={vb.width} min={0.01} onInput={editDraft("width")} onChange={editDraft("width")} />
                 <NumberField className="max-w-16" label="H" value={vb.height} min={0.01} onInput={editDraft("height")} onChange={editDraft("height")} />
-            </>)}
+            </>) : (
+                <span className="col-span-full text-muted-foreground">The document has no viewBox.</span>
+            )}
 
-            <div className={vb ? "relative min-w-0 justify-self-end" : "relative min-w-0 justify-self-end col-span-full"}>
+            <div className="relative min-w-0 justify-self-end">
                 <Select value={selectValue} onValueChange={onPick}>
                     <SelectTrigger className="min-w-0 tabular-nums" size="sm" aria-label="Square presets">
                         <SelectValue placeholder="Square" />

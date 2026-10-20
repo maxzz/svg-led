@@ -9,7 +9,6 @@ import { Popover, PopoverArrow, PopoverContent, PopoverTrigger } from "@/ui/shad
 import { Label } from "@/ui/shadcn/label";
 import { Switch } from "@/ui/shadcn/switch";
 import { isOpenViewBoxSettingsDialogAtom, isOpenViewBoxSettingsPopoverAtom } from "./9-types-viewbox-settings";
-import { Buttons_ViewBoxFit } from "./2-viewbox-fit-buttons";
 import { Controls_ViewBoxRect } from "./1-viewbox-rect";
 import { Controls_SvgSizeAttributes } from "./3-viewbox-size-attributes";
 
@@ -77,9 +76,7 @@ function Body({ onDone }: { onDone: () => void; }) {
                 <Switch id={showId} checked={prefs.showViewBox} onCheckedChange={(v) => { appSettings.prefs.showViewBox = v; }} />
             </div>
 
-            <Controls_ViewBoxRect />
-
-            <Buttons_ViewBoxFit onFit={fit} />
+            <Controls_ViewBoxRect onFit={fit} />
 
             <div className="flex flex-col gap-3 pt-3 border-t">
                 <span className="text-muted-foreground">
