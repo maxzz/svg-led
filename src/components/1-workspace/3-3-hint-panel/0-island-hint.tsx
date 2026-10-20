@@ -2,7 +2,7 @@
 import { toolHintAtom } from "../3-2-island-main-toolbar/9-atoms-toolbar";
 
 /** Hint line under the toolbar for the active tool */
-export function ToolHint() {
+export function Island_Tool() {
     const hint = useAtomValue(toolHintAtom);
 
     return (
