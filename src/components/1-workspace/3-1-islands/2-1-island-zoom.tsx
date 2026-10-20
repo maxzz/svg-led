@@ -5,8 +5,6 @@ import { historyState } from "@/store/3-document";
 import { runCommandAtom } from "@/commands";
 import { Island, islandButtonClasses } from "@/ui/local-ui/9-island";
 import { zoomPercentAtom } from "./9-atoms-corner-controls";
-import { ViewBoxDimsLabel } from "./2-4-viewbox-dims-label";
-
 export function Island_Zoom() {
     const run = useSetAtom(runCommandAtom);
     const zoom = useAtomValue(zoomPercentAtom);
@@ -25,8 +23,6 @@ export function Island_Zoom() {
             <button className={islandButtonClasses} title="Zoom in — Ctrl+=" onClick={() => run('view.zoomIn')} type="button">
                 <Plus className="size-4" />
             </button>
-
-            <ViewBoxDimsLabel />
         </Island>
     </>);
 }
