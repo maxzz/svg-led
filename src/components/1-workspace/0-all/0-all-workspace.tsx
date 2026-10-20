@@ -7,8 +7,6 @@ import { Island_Zoom } from "../3-1-islands/2-1-island-zoom";
 import { Island_Undo } from "../3-1-islands/2-2-island-undo";
 import { Island_Help } from "../3-1-islands/2-3-island-help";
 import { Island_Tool } from "../3-3-hint-panel/0-island-hint";
-import { Island_ViewBoxDims } from "../3-1-islands/2-4-island-viewbox-dims";
-
 /** The whole editor: code panel on the left, then the canvas with floating UI on top of it */
 export function Workspace() {
     return (
@@ -38,7 +36,6 @@ function FloatingUi() {
             <div className="flex items-center gap-2 pointer-events-auto">
                 <Island_Zoom />
                 <Island_Undo />
-                <Island_ViewBoxDims />
             </div>
         </div>
 
