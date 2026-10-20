@@ -23,13 +23,13 @@ export function Workspace() {
 
 function FloatingUi() {
     return (<>
-        <div className="absolute top-3 inset-x-3 flex items-start gap-2 pointer-events-none">
-            <div className="shrink-0 flex flex-col items-start gap-2">
-                <Island_PropertiesPopup />
+        <div className="absolute top-3 inset-x-3 flex flex-col gap-2 pointer-events-none">
+            <div className="flex justify-center">
+                <Island_MainToolbar />
             </div>
 
-            <div className="grow min-w-0 flex justify-center">
-                <Island_MainToolbar />
+            <div className="flex items-start">
+                <Island_PropertiesPopup />
             </div>
         </div>
 
