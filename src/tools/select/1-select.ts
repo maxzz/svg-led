@@ -27,7 +27,7 @@ export const selectTool: ToolDef = {
     altShortcut: '1',
     icon: MousePointer2,
     hint: ({ held, dragging }) => dragging
-        ? 'Release to finish'
+        ? '' //'Release to finish'
         : modifierHint(held, 'Click to select, drag to move · [Shift] add · [Alt] copy · [Ctrl] inside group', {
             shift: '[Shift] Click to add or remove · Drag along one axis',
             alt: '[Alt] Drag to copy',

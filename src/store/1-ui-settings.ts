@@ -28,6 +28,7 @@ export interface EditorPreferences {
     gridSize: number;            // Grid step in document units
     precision: number;           // Decimal digits written to the SVG source
     fitAvoidsProperties: boolean; // Zoom to fit centers content in the area left of the Properties panel
+    showHintIsland: boolean;     // Show the tool hint island under the main toolbar
 }
 
 export interface PropertySectionsSettings {
@@ -80,6 +81,7 @@ const DEFAULT_SETTINGS: AppSettings = {
         gridSize: 10,
         precision: 3,
         fitAvoidsProperties: false,
+        showHintIsland: true,
     },
     monaco: {
         fontFamily: MONACO_DEFAULT_FONT_FAMILY,

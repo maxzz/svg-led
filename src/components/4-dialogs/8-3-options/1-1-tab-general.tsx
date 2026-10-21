@@ -22,6 +22,7 @@ export function Tab_General() {
 
             <SubHeader>Canvas</SubHeader>
             <FitAvoidsPropertiesSwitch />
+            <HintIslandSwitch />
         </div>
     );
 }
@@ -112,6 +113,26 @@ function FitAvoidsPropertiesSwitch() {
             </OptionLabel>
 
             <Switch id={id} checked={prefs.fitAvoidsProperties} onCheckedChange={(v) => { appSettings.prefs.fitAvoidsProperties = v; }} />
+        </div>
+    );
+}
+
+//---------------------------------------------------------------------------
+
+function HintIslandSwitch() {
+    const { prefs } = useSnapshot(appSettings);
+    const id = useId();
+
+    return (
+        <div className="flex items-center justify-between gap-4">
+            <OptionLabel
+                htmlFor={id}
+                tip="Show the hint line under the toolbar that describes the active tool."
+            >
+                Show tool hint
+            </OptionLabel>
+
+            <Switch id={id} checked={prefs.showHintIsland} onCheckedChange={(v) => { appSettings.prefs.showHintIsland = v; }} />
         </div>
     );
 }
