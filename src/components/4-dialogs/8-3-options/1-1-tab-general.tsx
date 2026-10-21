@@ -1,7 +1,7 @@
 import { useId, type ReactNode } from "react";
 import { useSnapshot } from "valtio";
 import { Monitor, Moon, RefreshCw, Sun } from "lucide-react";
-import { appSettings, WelcomeTransition } from "@/store/1-ui-settings";
+import { appSettings, SelectionMode, WelcomeTransition } from "@/store/1-ui-settings";
 import { type ThemeMode } from "@/utils/theme-apply";
 import { cn } from "@/utils/classnames";
 import { Label } from "@/ui/shadcn/label";
@@ -23,6 +23,7 @@ export function Tab_General() {
             <SubHeader>Canvas</SubHeader>
             <FitAvoidsPropertiesSwitch />
             <HintIslandSwitch />
+            <SelectionModeSelect />
         </div>
     );
 }
@@ -136,6 +137,49 @@ function HintIslandSwitch() {
         </div>
     );
 }
+
+//---------------------------------------------------------------------------
+
+function SelectionModeSelect() {
+    const { prefs } = useSnapshot(appSettings);
+    const id = useId();
+
+    return (
+        <div className="flex items-center justify-between gap-4">
+            <OptionLabel
+                htmlFor={id}
+                tip={<>
+                    <div><b>Inclusive:</b> a marquee selects only the elements that lie entirely inside it.</div>
+                    <div><b>Exclusive:</b> a marquee selects every element it touches, even partly.</div>
+                    <div>Hold <b>Ctrl</b> while dragging a marquee to use the opposite mode.</div>
+                </>}
+            >
+                Marquee selection
+            </OptionLabel>
+
+            <Select value={prefs.selectionMode} onValueChange={(value) => { appSettings.prefs.selectionMode = value as SelectionMode; }}>
+                <SelectTrigger id={id} className="min-w-36" size="sm">
+                    <SelectValue />
+                </SelectTrigger>
+
+                <SelectContent position="popper" align="end">
+                    {SELECTION_MODE_ITEMS.map(
+                        ([label, value]) => (
+                            <SelectItem value={value} key={value}>
+                                {label}
+                            </SelectItem>
+                        )
+                    )}
+                </SelectContent>
+            </Select>
+        </div>
+    );
+}
+
+const SELECTION_MODE_ITEMS: readonly (readonly [label: string, value: SelectionMode])[] = [
+    ["Inclusive", SelectionMode.inclusive],
+    ["Exclusive", SelectionMode.exclusive],
+];
 
 //---------------------------------------------------------------------------
 

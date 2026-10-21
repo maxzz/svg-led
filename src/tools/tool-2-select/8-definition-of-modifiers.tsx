@@ -13,6 +13,7 @@ export const MODIFIERS = {
         snapToObjects: 'ctrl',           // Ctrl held while dragging snaps to other elements (also on in Preferences)
         resizeKeepAspect: 'shift',
         resizeFromCenter: 'alt',
+        invertSelectionMode: 'ctrl',     // Ctrl while dragging a marquee flips Inclusive/Exclusive
     },
     points: {
         toggleAnchor: 'shift',           // Shift+click adds or removes an anchor
@@ -44,6 +45,7 @@ export const MODIFIER_DESCRIPTIONS: ModifierDescriptions = {
         snapToObjects: 'drag to snap to other elements (even when snapping is off in Preferences)',
         resizeKeepAspect: 'resize a corner keeping the aspect ratio (edges change one side only)',
         resizeFromCenter: 'resize from the center (edges stretch from the middle of the box)',
+        invertSelectionMode: 'drag a selection marquee to use the opposite of the Inclusive/Exclusive option',
     },
     points: {
         toggleAnchor: 'click to add or remove an anchor from the selection',
