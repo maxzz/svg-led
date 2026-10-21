@@ -23,6 +23,7 @@ export const MODIFIERS = {
         breakHandle: 'alt',              // Alt+drag on a handle moves it alone (smooth -> cusp)
         convertAnchor: 'alt',            // Alt+click toggles corner/smooth, Alt+drag pulls out handles
         addDeletePoint: 'ctrl',          // Ctrl+click on a segment adds, on an anchor deletes
+        lassoSelect: 'alt',              // Alt on empty canvas drags a lasso; pressing or releasing Alt mid-drag switches
     },
     shapes: {
         constrain: 'shift',              // square, circle, 45 degree lines
@@ -56,6 +57,7 @@ export const MODIFIER_DESCRIPTIONS: ModifierDescriptions = {
         breakHandle: 'drag a handle to move it alone (smooth becomes cusp)',
         convertAnchor: 'click an anchor to toggle corner and smooth, drag to pull out handles',
         addDeletePoint: 'click a segment to add an anchor, click an anchor to delete it',
+        lassoSelect: 'drag on empty canvas to select points with a lasso; press or release mid-drag to switch to and from the rubber band',
     },
     shapes: {
         constrain: 'draw a square, a circle or a 45° line',

@@ -91,7 +91,11 @@ function touchesLasso(lasso: readonly Point[], lines: readonly Polyline[], inclu
     return inclusive ? inside === total : inside > 0;
 }
 
-function pointInPolygon(p: Point, poly: readonly Point[]): boolean {
+/** Pixels the pointer must move before the lasso takes another point */
+export const LASSO_STEP_PX = 2;
+
+/** Even-odd test: true when `p` is inside the closed polygon */
+export function pointInPolygon(p: Point, poly: readonly Point[]): boolean {
     let inside = false;
     for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
         const a = poly[i];

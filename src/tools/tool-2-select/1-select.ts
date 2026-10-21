@@ -14,7 +14,7 @@ import { type MoveGesture, beginMove, endMove, pastThreshold, updateMove } from 
 import { hitTestOutlines, docTolerance } from "../0-shared/2-tool-helpers";
 import { selectedGroupOnPath, selectionUnitId } from "../0-shared/4-group-units";
 import { clearSnapGuides, collectSnapTargets, setSnapGuides, snapActive, snapBox, snapThreshold } from "../core-snapping";
-import { type Polyline, lassoHits, simplifyLasso } from "./2-lasso";
+import { LASSO_STEP_PX, type Polyline, lassoHits, simplifyLasso } from "./2-lasso";
 
 export const selectTool: ToolDef = {
     id: ToolId.select,
@@ -205,9 +205,6 @@ type AreaGesture = {
 let gesture: Gesture | null = null;
 
 //---------------------------------------------------------------------------
-
-/** Pixels the pointer must move before the lasso takes another point */
-const LASSO_STEP_PX = 2;
 
 /**
  * Updates a rubber band or lasso drag. Holding Alt (or releasing it) switches between them for as long as the drag lasts,
