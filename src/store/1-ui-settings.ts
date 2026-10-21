@@ -14,6 +14,18 @@ function isWelcomeTransition(value: unknown): value is WelcomeTransition {
     return Object.values<unknown>(WelcomeTransition).includes(value);
 }
 
+/** Which elements a selection marquee picks */
+export const SelectionMode = {
+    inclusive: 'inclusive',      // Only elements lying entirely inside the marquee are selected
+    exclusive: 'exclusive',      // Any element the marquee touches is selected
+} as const;
+
+export type SelectionMode = typeof SelectionMode[keyof typeof SelectionMode];
+
+function isSelectionMode(value: unknown): value is SelectionMode {
+    return Object.values<unknown>(SelectionMode).includes(value);
+}
+
 export interface CodePanelSettings {
     open: boolean;               // Code panel is slid out
     width: number;               // Panel width in px
@@ -29,6 +41,7 @@ export interface EditorPreferences {
     precision: number;           // Decimal digits written to the SVG source
     fitAvoidsProperties: boolean; // Zoom to fit centers content in the area left of the Properties panel
     showHintIsland: boolean;     // Show the tool hint island under the main toolbar
+    selectionMode: SelectionMode; // Marquee selection: inclusive (fully enclosed) or exclusive (touched); Ctrl inverts it while dragging
 }
 
 export interface PropertySectionsSettings {
@@ -82,6 +95,7 @@ const DEFAULT_SETTINGS: AppSettings = {
         precision: 3,
         fitAvoidsProperties: false,
         showHintIsland: true,
+        selectionMode: SelectionMode.exclusive,
     },
     monaco: {
         fontFamily: MONACO_DEFAULT_FONT_FAMILY,
@@ -105,7 +119,11 @@ function loadSettings(): AppSettings {
                 welcomeTransition: isWelcomeTransition(parsed.welcomeTransition) ? parsed.welcomeTransition : DEFAULT_SETTINGS.welcomeTransition,
                 codePanel: { ...DEFAULT_SETTINGS.codePanel, ...parsed.codePanel },
                 propertySections: { ...DEFAULT_SETTINGS.propertySections, ...parsed.propertySections },
-                prefs: { ...DEFAULT_SETTINGS.prefs, ...parsed.prefs },
+                prefs: {
+                    ...DEFAULT_SETTINGS.prefs,
+                    ...parsed.prefs,
+                    selectionMode: isSelectionMode(parsed.prefs?.selectionMode) ? parsed.prefs.selectionMode : DEFAULT_SETTINGS.prefs.selectionMode,
+                },
                 monaco: { ...DEFAULT_SETTINGS.monaco, ...parsed.monaco },
             };
         }

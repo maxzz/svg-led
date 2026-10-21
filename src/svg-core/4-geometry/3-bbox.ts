@@ -54,6 +54,13 @@ export function rectContainsPoint(r: Rect, p: Point): boolean {
     return p.x >= r.x && p.x <= r.x + r.width && p.y >= r.y && p.y <= r.y + r.height;
 }
 
+/** True when `inner` lies entirely within `outer` (edges may touch) */
+export function rectContainsRect(outer: Rect, inner: Rect): boolean {
+    return inner.x >= outer.x && inner.y >= outer.y
+        && inner.x + inner.width <= outer.x + outer.width
+        && inner.y + inner.height <= outer.y + outer.height;
+}
+
 //---------------------------------------------------------------------------
 
 export function subpathsBBox(subpaths: readonly SubPath[]): Rect | null {

@@ -2,9 +2,10 @@ import { snapshot } from "valtio";
 import { MousePointer2 } from "lucide-react";
 
 import { type ResizeHandle, type ToolDef, type ToolPointerEvent } from "../9-types-tool-def";
-import { type Point, type Rect, type SvgDoc, groupPathIds, rectFromCorners, rectsIntersect, scaleAround } from "@/svg-core";
+import { type Point, type Rect, type SvgDoc, groupPathIds, rectContainsRect, rectFromCorners, rectsIntersect, scaleAround } from "@/svg-core";
 import { type NodeOriginals, applyDocMatrix, captureOriginals, commitHistory, docState, duplicateNodes, nodeDocBBox, nodesDocBBox } from "@/store/3-document";
 import { ToolId, editingGroupIdAtom, marqueeAtom, screenToDoc, selectionAtom, setActiveToolAtom, setSelectionAtom, viewportAtom } from "@/store/4-editor";
+import { appSettings, SelectionMode } from "@/store/1-ui-settings";
 
 import { MODIFIERS, isMod } from "./8-definition-of-modifiers";
 import { modifierHint } from "../0-shared/5-hint";
@@ -129,7 +130,14 @@ export const selectTool: ToolDef = {
                 const vp = get(viewportAtom);
                 const a = screenToDoc(vp, gesture.startScreen);
                 const docRect = rectFromCorners(a, e.doc);
-                const hits = [...gesture.bboxes].filter(([, b]) => rectsIntersect(b, docRect)).map(([id]) => id);
+                // Ctrl flips the configured mode for as long as it is held
+                const mode = isMod(e, M.invertSelectionMode)
+                    ? (appSettings.prefs.selectionMode === SelectionMode.inclusive ? SelectionMode.exclusive : SelectionMode.inclusive)
+                    : appSettings.prefs.selectionMode;
+                const inside = mode === SelectionMode.inclusive
+                    ? (b: Rect) => rectContainsRect(docRect, b)
+                    : (b: Rect) => rectsIntersect(b, docRect);
+                const hits = [...gesture.bboxes].filter(([, b]) => inside(b)).map(([id]) => id);
                 set(selectionAtom, [...new Set([...gesture.base, ...hits])]);
                 break;
             }
