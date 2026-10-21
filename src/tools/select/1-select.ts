@@ -5,6 +5,7 @@ import { type NodeOriginals, applyDocMatrix, captureOriginals, commitHistory, do
 import { ToolId, editingGroupIdAtom, marqueeAtom, screenToDoc, selectionAtom, setActiveToolAtom, setSelectionAtom, viewportAtom } from "@/store/4-editor";
 import { type ResizeHandle, type ToolDef, type ToolPointerEvent } from "../1-types";
 import { MODIFIERS, isMod } from "./8-modifiers";
+import { modifierHint } from "../0-shared/5-hint";
 import { type MoveGesture, beginMove, endMove, pastThreshold, updateMove } from "../0-shared/3-move-gesture";
 import { hitTestOutlines, docTolerance } from "../0-shared/2-tool-helpers";
 import { selectedGroupOnPath, selectionUnitId } from "../0-shared/4-group-units";
@@ -23,8 +24,15 @@ export const selectTool: ToolDef = {
     id: ToolId.select,
     label: 'Selection',
     shortcut: 'v',
+    altShortcut: '1',
     icon: MousePointer2,
-    hint: 'Click to select, Shift+click to add, drag to move (Alt+drag copies), double-click a group to enter it, Ctrl+click to select inside a group, double-click an element to edit points',
+    hint: ({ held, dragging }) => dragging
+        ? 'Release to finish'
+        : modifierHint(held, 'Click to select, drag to move · [Shift] add · [Alt] copy · [Ctrl] inside group', {
+            shift: '[Shift] Click to add or remove · Drag along one axis',
+            alt: '[Alt] Drag to copy',
+            ctrl: '[Ctrl] Click to select inside a group · Drag snaps to other elements',
+        }),
     cursor: 'default',
 
     onPointerDown({ get, set }, e) {

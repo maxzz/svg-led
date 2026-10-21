@@ -13,6 +13,32 @@ export const isPanningAtom = atom(false);
 /** Last pointer position over the canvas, in document coordinates */
 export const pointerDocAtom = atom<Point | null>(null);
 
+/** Modifier keys held over the editor; Ctrl also covers Cmd */
+export type HeldKeys = { shift: boolean; alt: boolean; ctrl: boolean; };
+
+export const NO_HELD_KEYS: HeldKeys = { shift: false, alt: false, ctrl: false };
+
+export function heldKeysOf(e: { shiftKey: boolean; altKey: boolean; ctrlKey: boolean; metaKey: boolean; }): HeldKeys {
+    return { shift: e.shiftKey, alt: e.altKey, ctrl: e.ctrlKey || e.metaKey };
+}
+
+/** Held modifier keys, so the hint line shows what they do before the next click */
+export const heldKeysAtom = atom<HeldKeys>(NO_HELD_KEYS);
+
+/** Stores the held keys; keeps the current object when nothing changed, so that pressing a key does not re-render the hint */
+export const setHeldKeysAtom = atom(
+    null,
+    (get, set, next: HeldKeys) => {
+        const cur = get(heldKeysAtom);
+        if (cur.shift !== next.shift || cur.alt !== next.alt || cur.ctrl !== next.ctrl) {
+            set(heldKeysAtom, next);
+        }
+    }
+);
+
+/** A pointer gesture of the active tool is in progress (button down on the canvas) */
+export const toolGestureActiveAtom = atom(false);
+
 //---------------------------------------------------------------------------
 
 /** Pen tool: the path being drawn */

@@ -8,6 +8,6 @@ export const handTool: ToolDef = {
     label: 'Hand',
     shortcut: 'h',
     icon: Hand,
-    hint: 'Drag to move the canvas. Wheel zooms, Space+drag pans with any tool',
+    hint: () => 'Drag to pan · Wheel to zoom',
     cursor: 'grab',
 };

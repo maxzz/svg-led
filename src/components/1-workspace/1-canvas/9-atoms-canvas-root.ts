@@ -6,7 +6,7 @@ import { appSettings } from "@/store/1-ui-settings";
 import { docState, insertSvgMarkup, loadSvgFile } from "@/store/3-document";
 import {
     ToolId, activeToolIdAtom, canvasSizeAtom, editingGroupIdAtom, hoverNodeIdAtom, isPanningAtom, panByAtom, pointerDocAtom, pruneSelectionAtom,
-    screenToDoc, setSelectionAtom, spaceHeldAtom, viewportAtom, zoomByAtom, zoomToFitAtom,
+    heldKeysOf, screenToDoc, setHeldKeysAtom, setSelectionAtom, spaceHeldAtom, toolGestureActiveAtom, viewportAtom, zoomByAtom, zoomToFitAtom,
 } from "@/store/4-editor";
 import { type Point } from "@/svg-core";
 import { type ToolPointerEvent, getTool, resolveTarget, selectionUnitId } from "@/tools";
@@ -54,6 +54,7 @@ function toToolEvent(get: Getter, e: CanvasPointerEvent): ToolPointerEvent {
 export const canvasPointerDownAtom = atom(
     null,
     (get, set, e: CanvasPointerEvent) => {
+        set(setHeldKeysAtom, heldKeysOf(e));
         if (e.button === 2) {
             return;
         }
@@ -72,6 +73,7 @@ export const canvasPointerDownAtom = atom(
         }
 
         toolGesture = true;
+        set(toolGestureActiveAtom, true);
         set(hoverNodeIdAtom, null);
         const ev = toToolEvent(get, e);
         ev.clickCount = nextClickCount(ev.screen);
@@ -82,6 +84,7 @@ export const canvasPointerDownAtom = atom(
 export const canvasPointerMoveAtom = atom(
     null,
     (get, set, e: CanvasPointerEvent) => {
+        set(setHeldKeysAtom, heldKeysOf(e));
         if (pan) {
             set(panByAtom, { dx: e.clientX - pan.x, dy: e.clientY - pan.y });
             pan = { x: e.clientX, y: e.clientY };
@@ -119,6 +122,7 @@ export const canvasPointerUpAtom = atom(
         }
         if (toolGesture) {
             toolGesture = false;
+            set(toolGestureActiveAtom, false);
             getTool(get(activeToolIdAtom)).onPointerUp?.({ get, set }, toToolEvent(get, e));
         }
     }

@@ -7,6 +7,7 @@ import { type NewShapeKind, type ToolDef } from "../1-types";
 import { MODIFIERS, isMod } from "../select/8-modifiers";
 import { docTolerance, snapDoc } from "../0-shared/2-tool-helpers";
 import { styleAttrs } from "../0-shared/4-style-attrs";
+import { modifierHint } from "../0-shared/5-hint";
 
 const M = MODIFIERS.shapes;
 
@@ -14,8 +15,12 @@ type ShapeToolConfig = {
     id: ToolId;
     label: string;
     shortcut: string;
+    altShortcut: string;
     icon: ComponentType<{ className?: string; }>;
-    hint: string;
+    /** What Shift does, as a short legend item, e.g. "square" */
+    shiftLabel: string;
+    /** What Shift does, as a sentence shown while Shift is held, e.g. "Drag to draw a square" */
+    shiftHint: string;
     /** Element kind created; the panel shows the new-shape properties that apply to it */
     kind: NewShapeKind;
     /** Geometry from the drag start and the current point (both already constrained/centered) */
@@ -32,8 +37,14 @@ export function createShapeTool(config: ShapeToolConfig): ToolDef {
         id: config.id,
         label: config.label,
         shortcut: config.shortcut,
+        altShortcut: config.altShortcut,
         icon: config.icon,
-        hint: config.hint,
+        hint: ({ held, dragging }) => dragging
+            ? `Release to finish · [Shift] ${config.shiftLabel} · [Alt] from center`
+            : modifierHint(held, `Drag to draw · [Shift] ${config.shiftLabel} · [Alt] from center`, {
+                shift: `[Shift] ${config.shiftHint}`,
+                alt: '[Alt] Drag to draw from center',
+            }),
         cursor: 'crosshair',
         newShapeKind: config.kind,
 

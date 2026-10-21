@@ -15,6 +15,7 @@ import {
 import { type ToolDef, type ToolPointerEvent } from "../1-types";
 import { MODIFIERS, isMod } from "../select/8-modifiers";
 import { docTolerance, hitTestOutlines, nodeMatrices, snapValue } from "../0-shared/2-tool-helpers";
+import { modifierHint } from "../0-shared/5-hint";
 import { type MoveGesture, beginMove, endMove, pastThreshold, updateMove } from "../0-shared/3-move-gesture";
 import { type SnapAxis, clearSnapGuides, collectSnapTargets, setSnapGuides, snapActive, snapBox, snapThreshold } from "@/tools/core-snapping";
 
@@ -36,8 +37,15 @@ export const pointsTool: ToolDef = {
     id: ToolId.points,
     label: 'Direct selection',
     shortcut: 'a',
+    altShortcut: '2',
     icon: MousePointer,
-    hint: 'Drag anchors and handles. Alt: break handle / convert anchor, Ctrl+click: add or delete point, Esc: back to selection',
+    hint: ({ held, dragging }) => dragging
+        ? 'Release to finish'
+        : modifierHint(held, 'Drag points and handles · [Shift] add · [Alt] break handle · [Ctrl] add/delete point', {
+            shift: '[Shift] Click to add or remove · Drag a handle to snap to 45°',
+            alt: '[Alt] Drag a handle to move it alone · Click a point to toggle corner or smooth',
+            ctrl: '[Ctrl] Click a segment to add a point · Click a point to delete it',
+        }),
     cursor: 'default',
 
     onPointerDown({ get, set }, e) {

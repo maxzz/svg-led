@@ -9,6 +9,7 @@ import { MODIFIERS, isMod } from "../select/8-modifiers";
 import { docTolerance, nodeMatrices, snapDoc } from "../0-shared/2-tool-helpers";
 import { pastThreshold } from "../0-shared/3-move-gesture";
 import { styleAttrs } from "../0-shared/4-style-attrs";
+import { modifierHint } from "../0-shared/5-hint";
 
 const M = MODIFIERS.pen;
 
@@ -19,8 +20,20 @@ export const penTool: ToolDef = {
     id: ToolId.pen,
     label: 'Pen',
     shortcut: 'p',
+    altShortcut: '6',
     icon: PenTool,
-    hint: 'Click for corner points, drag for smooth points (Alt breaks the handle). Click the first point to close, Enter or Esc to finish',
+    hint: ({ get, held, dragging }) => {
+        if (dragging) {
+            return 'Release to finish · [Shift] 45° · [Alt] break handle';
+        }
+        const legend = get(penDraftAtom)
+            ? 'Click to add points · Click the first point to close · [Enter] or [Esc] to finish'
+            : 'Click for corner points, drag for smooth · [Shift] 45° · [Alt] break handle';
+        return modifierHint(held, legend, {
+            shift: '[Shift] Drag a handle to snap to 45°',
+            alt: '[Alt] Drag to move only the outgoing handle',
+        });
+    },
     cursor: 'crosshair',
     newShapeKind: 'path',
 

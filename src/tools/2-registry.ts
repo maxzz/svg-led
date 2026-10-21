@@ -25,7 +25,12 @@ export function getTool(id: ToolId): ToolDef {
 
 export function toolByShortcut(key: string): ToolDef | undefined {
     const k = key.toLowerCase();
-    return TOOLS.find((t) => t.shortcut === k);
+    return TOOLS.find((t) => t.shortcut === k || t.altShortcut === k);
+}
+
+/** Keys that select a tool, as displayed: ["V", "1"] */
+export function toolShortcuts(tool: ToolDef): string[] {
+    return [tool.shortcut, tool.altShortcut].flatMap((k) => (k ? [k.toUpperCase()] : []));
 }
 
 for (const tool of TOOLS) {
