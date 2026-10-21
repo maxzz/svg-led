@@ -193,13 +193,17 @@ export const pointsTool: ToolDef = {
                 set(selectionAtom, []);
             }
         }
+        // Shift with shapes selected: the rubber band or lasso picks only the points of those shapes
+        const scope = additive && selection.length ? selection : null;
+        const candidates = collectAnchorCandidates().filter((c) => !scope || scope.includes(c.nodeId));
+
         gesture = {
             type: 'marquee',
             origin: e.screen,
             startScreen: e.screen,
             baseAnchors: additive ? selectedAnchors : [],
             baseNodes: additive || selectedAnchors.length ? selection : [],
-            candidates: collectAnchorCandidates(),
+            candidates,
             picks: [],
             trail: isMod(e, M.lassoSelect) ? [e.screen] : null,
         };
