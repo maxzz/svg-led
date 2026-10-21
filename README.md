@@ -84,18 +84,20 @@ Then open <http://localhost:3000>. On the first run the editor loads a sample dr
 | Tool | Key | What it does |
 | --- | --- | --- |
 | Hand | `H` | Pans the canvas. Space or the middle mouse button pans with any tool. |
-| Select | `V` | Selects, moves and resizes elements. Double-click enters points mode. |
-| Points | `A` | Edits anchors, handles and native shape handles (Illustrator's Direct Selection). |
-| Rectangle | `R` | Draws a `rect`. |
-| Ellipse | `O` | Draws an `ellipse`. |
-| Line | `L` | Draws a `line`. |
-| Pen | `P` | Click for corner anchors, click and drag for smooth anchors. Click the first anchor to close, Enter or Esc to finish, click an open endpoint to continue a path. |
+| Select | `V` or `1` | Selects, moves and resizes elements. Double-click enters points mode. |
+| Points | `A` or `2` | Edits anchors, handles and native shape handles (Illustrator's Direct Selection). |
+| Rectangle | `R` or `3` | Draws a `rect`. |
+| Ellipse | `O` or `4` | Draws an `ellipse`. |
+| Line | `L` or `5` | Draws a `line`. |
+| Pen | `P` or `6` | Click for corner anchors, click and drag for smooth anchors. Click the first anchor to close, Enter or Esc to finish, click an open endpoint to continue a path. |
 
 The mouse wheel zooms around the cursor; Shift+wheel pans horizontally; a trackpad pinch (Ctrl+wheel) zooms faster.
 
 ### Modifier keys
 
 All modifier bindings are defined in one table, [`src/tools/select/8-modifiers.tsx`](src/tools/select/8-modifiers.tsx). The Help dialog is generated from it.
+
+The hint line under the toolbar shows the combinations of the active tool in one short line, with keys drawn as keycaps. Holding Shift, Alt or Ctrl changes it at once to what that key does, before any click; during a drag it shows only the keys that still apply.
 
 | Tool | Shift | Alt | Ctrl |
 | --- | --- | --- | --- |
@@ -349,6 +351,8 @@ The main Jotai atoms in [`src/store/4-editor/`](src/store/4-editor):
 | `marqueeAtom` | `Rect \| null` | Rubber-band selection rectangle in screen coordinates |
 | `penDraftAtom` | `PenDraft \| null` | The path being drawn by the pen tool |
 | `spaceHeldAtom`, `isPanningAtom` | `boolean` | Temporary panning state |
+| `heldKeysAtom` | `{ shift, alt, ctrl }` | Modifier keys held now, read by the hint line; set by the keyboard controller and by canvas pointer events |
+| `toolGestureActiveAtom` | `boolean` | A pointer gesture of the active tool is in progress (button down on the canvas) |
 | `snapPointAtom` | `Point \| null` | Snap guide shown while dragging |
 | `sourceMapAtom`, `codeTextAtom`, `codeDirtyAtom`, `codeErrorAtom`, `monacoHandleAtom` | various | Code panel and synchronization state |
 
@@ -363,8 +367,9 @@ type ToolDef = {
     id: ToolId;
     label: string;
     shortcut: string;                  // single key
+    altShortcut?: string;              // second key, e.g. "1"
     icon: ComponentType<{ className?: string; }>;
-    hint: string;                      // shown under the toolbar while active
+    hint: (ctx: HintContext) => string; // one short line under the toolbar; [Key] is drawn as a keycap
     cursor: string;
     optionsAtom?: WritableAtom<ToolStyleOptions, [Partial<ToolStyleOptions>], void>;
     onPointerDown?: (ctx: ToolContext, e: ToolPointerEvent) => void;

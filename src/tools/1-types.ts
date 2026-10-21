@@ -1,7 +1,7 @@
 import { type ComponentType } from "react";
 import { type Getter, type Setter } from "jotai";
 import { type Point } from "@/svg-core";
-import { type ToolId } from "@/store/4-editor";
+import { type HeldKeys, type ToolId } from "@/store/4-editor";
 
 /** Kinds of element a drawing tool creates. Its panel shows the new-shape properties that apply to the kind. */
 export type NewShapeKind = 'rect' | 'ellipse' | 'line' | 'path';
@@ -34,12 +34,26 @@ export type ToolContext = {
     set: Setter;
 };
 
+/** What a hint can react to, read when the hint line renders */
+export type HintContext = {
+    get: Getter;
+    /** Modifier keys held now, so the hint shows what they do before a click */
+    held: HeldKeys;
+    /** A pointer gesture of the active tool is in progress */
+    dragging: boolean;
+};
+
 export type ToolDef = {
     id: ToolId;
     label: string;
     shortcut: string;            // single key, shown on the toolbar button
+    altShortcut?: string;        // second key that selects the tool, e.g. "1" (Excalidraw-style number keys)
     icon: ComponentType<{ className?: string; }>;
-    hint: string;                // shown under the toolbar while the tool is active
+    /**
+     * One short line under the toolbar while the tool is active. Keys are written in brackets, e.g. "[Shift] add",
+     * and drawn as keycaps. While a modifier is held, the line shows what that modifier does (see modifierHint).
+     */
+    hint: (ctx: HintContext) => string;
     cursor: string;
 
     /** Kind of element this tool creates; the properties panel then edits the new-shape style */

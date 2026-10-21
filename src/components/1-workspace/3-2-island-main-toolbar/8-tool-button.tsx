@@ -1,6 +1,6 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { activeToolIdAtom, setActiveToolAtom } from "@/store/4-editor";
-import { type ToolDef } from "@/tools";
+import { type ToolDef, toolShortcuts } from "@/tools";
 import { islandButtonClasses } from "@/ui/local-ui/9-island";
 
 export function ToolButton({ tool }: { tool: ToolDef; }) {
@@ -12,7 +12,7 @@ export function ToolButton({ tool }: { tool: ToolDef; }) {
         <button
             className={islandButtonClasses}
             data-active={active}
-            title={`${tool.label} — ${tool.shortcut.toUpperCase()}`}
+            title={`${tool.label} — ${toolShortcuts(tool).join(' or ')}`}
             aria-label={tool.label}
             onClick={() => setTool(tool.id)}
             type="button"

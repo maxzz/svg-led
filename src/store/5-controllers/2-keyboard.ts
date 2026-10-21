@@ -1,5 +1,5 @@
 import { type AppStore } from "../0-app-store";
-import { ToolId, activeToolIdAtom, editingGroupIdAtom, exitGroupEditingAtom, selectionAtom, setActiveToolAtom, setSelectionAtom, spaceHeldAtom } from "../4-editor";
+import { ToolId, activeToolIdAtom, editingGroupIdAtom, exitGroupEditingAtom, heldKeysOf, NO_HELD_KEYS, selectionAtom, setActiveToolAtom, setHeldKeysAtom, setSelectionAtom, spaceHeldAtom } from "../4-editor";
 import { getTool, toolByShortcut } from "@/tools";
 import { COMMANDS, isEditableTarget, matchShortcut, nudgeSelection } from "@/commands";
 
@@ -8,6 +8,9 @@ export function installKeyboard(store: AppStore): () => void {
     const ctx = { get: store.get, set: store.set };
 
     function onKeyDown(e: KeyboardEvent) {
+        // before the editable check, so that the hint shows Shift, Alt and Ctrl even while a field has focus
+        store.set(setHeldKeysAtom, heldKeysOf(e));
+
         if (isEditableTarget(e.target)) {
             return;
         }
@@ -63,12 +66,15 @@ export function installKeyboard(store: AppStore): () => void {
     }
 
     function onKeyUp(e: KeyboardEvent) {
+        store.set(setHeldKeysAtom, heldKeysOf(e));
         if (e.key === ' ') {
             store.set(spaceHeldAtom, false);
         }
     }
 
     function onBlur() {
+        // Alt+Tab and similar never deliver the keyup, so nothing stays held
+        store.set(setHeldKeysAtom, NO_HELD_KEYS);
         return store.set(spaceHeldAtom, false);
     }
 
@@ -76,7 +82,7 @@ export function installKeyboard(store: AppStore): () => void {
     window.addEventListener('keydown', onKeyDown, { signal: controller.signal });
     window.addEventListener('keyup', onKeyUp, { signal: controller.signal });
     window.addEventListener('blur', onBlur, { signal: controller.signal });
-    
+
     return () => {
         controller.abort();
     };
