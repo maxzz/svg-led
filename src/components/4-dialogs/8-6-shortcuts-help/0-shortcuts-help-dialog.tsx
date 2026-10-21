@@ -12,7 +12,7 @@ export function ShortcutsHelpDialog() {
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogContent className="p-0! max-w-3xl! gap-0!" withScroll>
+            <DialogContent className="p-0! w-[min(64rem,calc(100vw-2rem))]! max-w-5xl gap-0!" withScroll>
                 <DialogHeader className="px-4 py-3 text-left border-b gap-0">
                     <DialogTitle className="text-sm">
                         Help and keyboard shortcuts
@@ -22,8 +22,8 @@ export function ShortcutsHelpDialog() {
                     </DialogDescription>
                 </DialogHeader>
 
-                
-                <div className="px-4 py-4 max-h-[70vh] md:grid-cols-2 overflow-auto grid grid-cols-1 gap-x-8 gap-y-4 items-start">
+
+                <div className="px-4 py-4 max-h-[90vh] md:grid-cols-2 overflow-auto grid grid-cols-1 gap-x-6 gap-y-4 items-start">
                     <div className="flex flex-col gap-4">
                         <ShortcutIsland caption="Tools">
                             {TOOLS.map(
@@ -31,16 +31,17 @@ export function ShortcutsHelpDialog() {
                             )}
                         </ShortcutIsland>
 
-                        <ShortcutIsland caption="Editor">
-                            {EDITOR_GROUPS.map(
+                        <ShortcutIsland caption="View & help">
+                            {VIEW_GROUPS.map(
                                 (group) => <ShortcutGroup group={group} key={group} />
                             )}
                         </ShortcutIsland>
+
                     </div>
 
                     <div className="flex flex-col gap-4">
-                        <ShortcutIsland caption="View & help">
-                            {VIEW_GROUPS.map(
+                        <ShortcutIsland caption="Editor">
+                            {EDITOR_GROUPS.map(
                                 (group) => <ShortcutGroup group={group} key={group} />
                             )}
                         </ShortcutIsland>
@@ -111,27 +112,25 @@ function ShortcutRow({ label, shortcuts }: { label: string; shortcuts: string[];
 }
 
 function ModifierRows() {
-    return (
-        <>
-            {(Object.keys(MODIFIERS) as (keyof typeof MODIFIERS)[]).map(
-                (group) => (
-                    <div className="flex flex-col gap-1.5" key={group}>
-                        <h4 className="font-medium text-[11px]">
-                            {MODIFIER_GROUP_LABELS[group]}
-                        </h4>
-                        {Object.entries(MODIFIERS[group]).map(
-                            ([key, mod]) => (
-                                <div className="text-xs flex items-baseline gap-2" key={key}>
-                                    <KeyText>{displayShortcut(MODIFIER_LABELS[mod as Modifier])}</KeyText>
-                                    <span className="text-muted-foreground">{(MODIFIER_DESCRIPTIONS[group] as Record<string, string>)[key]}</span>
-                                </div>
-                            )
-                        )}
-                    </div>
-                )
-            )}
-        </>
-    );
+    return (<>
+        {(Object.keys(MODIFIERS) as (keyof typeof MODIFIERS)[]).map(
+            (group) => (
+                <div className="flex flex-col gap-1.5" key={group}>
+                    <h4 className="font-medium text-[11px]">
+                        {MODIFIER_GROUP_LABELS[group]}
+                    </h4>
+                    {Object.entries(MODIFIERS[group]).map(
+                        ([key, mod]) => (
+                            <div className="text-xs flex items-baseline gap-2" key={key}>
+                                <KeyText>{displayShortcut(MODIFIER_LABELS[mod as Modifier])}</KeyText>
+                                <span className="text-muted-foreground">{(MODIFIER_DESCRIPTIONS[group] as Record<string, string>)[key]}</span>
+                            </div>
+                        )
+                    )}
+                </div>
+            )
+        )}
+    </>);
 }
 
 const MODIFIER_GROUP_LABELS: Record<keyof typeof MODIFIERS, string> = {
