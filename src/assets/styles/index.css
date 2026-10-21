@@ -3,6 +3,7 @@
 @import "shadcn/tailwind.css";
 
 @import "./caps-joins-icons.css";
+@import "./lasso.css";
 
 @import "@fontsource-variable/geist";
 @import "@fontsource-variable/geist-mono"; /* https://fontsource.org/fonts/geist-mono/install */

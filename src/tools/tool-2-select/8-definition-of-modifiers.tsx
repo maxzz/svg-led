@@ -14,6 +14,7 @@ export const MODIFIERS = {
         resizeKeepAspect: 'shift',
         resizeFromCenter: 'alt',
         invertSelectionMode: 'ctrl',     // Ctrl while dragging a marquee flips Inclusive/Exclusive
+        lassoSelect: 'alt',              // Alt on empty canvas drags a lasso; pressing or releasing Alt mid-drag switches
     },
     points: {
         toggleAnchor: 'shift',           // Shift+click adds or removes an anchor
@@ -22,6 +23,7 @@ export const MODIFIERS = {
         breakHandle: 'alt',              // Alt+drag on a handle moves it alone (smooth -> cusp)
         convertAnchor: 'alt',            // Alt+click toggles corner/smooth, Alt+drag pulls out handles
         addDeletePoint: 'ctrl',          // Ctrl+click on a segment adds, on an anchor deletes
+        lassoSelect: 'alt',              // Alt on empty canvas drags a lasso; pressing or releasing Alt mid-drag switches
     },
     shapes: {
         constrain: 'shift',              // square, circle, 45 degree lines
@@ -46,6 +48,7 @@ export const MODIFIER_DESCRIPTIONS: ModifierDescriptions = {
         resizeKeepAspect: 'resize a corner keeping the aspect ratio (edges change one side only)',
         resizeFromCenter: 'resize from the center (edges stretch from the middle of the box)',
         invertSelectionMode: 'drag a selection marquee to use the opposite of the Inclusive/Exclusive option',
+        lassoSelect: 'drag on empty canvas to select with a lasso; press or release mid-drag to switch to and from the marquee',
     },
     points: {
         toggleAnchor: 'click to add or remove an anchor from the selection',
@@ -54,6 +57,7 @@ export const MODIFIER_DESCRIPTIONS: ModifierDescriptions = {
         breakHandle: 'drag a handle to move it alone (smooth becomes cusp)',
         convertAnchor: 'click an anchor to toggle corner and smooth, drag to pull out handles',
         addDeletePoint: 'click a segment to add an anchor, click an anchor to delete it',
+        lassoSelect: 'drag on empty canvas to select points with a lasso; press or release mid-drag to switch to and from the rubber band',
     },
     shapes: {
         constrain: 'draw a square, a circle or a 45° line',

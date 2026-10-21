@@ -1,5 +1,6 @@
 import { MousePointer } from "lucide-react";
 import { snapshot } from "valtio";
+import { type Getter, type Setter } from "jotai";
 import { toast } from "sonner";
 import {
     type Matrix, type Point, type Rect, type ShapeNode, type SubPath, type SvgDoc, type SvgNode, applyMatrix, applyShapeHandle, applyToVector,
@@ -9,11 +10,12 @@ import {
 } from "@/svg-core";
 import { commitHistory, docPrecision, docState, getNodeProxy, replaceNode } from "@/store/3-document";
 import {
-    ToolId, anchorsOfNode, marqueeAtom, nodeAnchorKey, screenToDoc, selectedAnchorsAtom, selectionAtom, setActiveToolAtom,
+    ToolId, anchorsOfNode, lassoAtom, marqueeAtom, nodeAnchorKey, screenToDoc, selectedAnchorsAtom, selectionAtom, setActiveToolAtom,
     splitNodeAnchorKey, viewportAtom,
 } from "@/store/4-editor";
 import { type ToolDef, type ToolPointerEvent } from "../9-types-tool-def";
 import { MODIFIERS, isMod } from "../tool-2-select/8-definition-of-modifiers";
+import { LASSO_STEP_PX, pointInPolygon, simplifyLasso } from "../tool-2-select/2-lasso";
 import { docTolerance, hitTestOutlines, nodeMatrices, snapValue } from "../0-shared/2-tool-helpers";
 import { modifierHint } from "../0-shared/5-hint";
 import { type MoveGesture, beginMove, endMove, pastThreshold, updateMove } from "../0-shared/3-move-gesture";
@@ -29,9 +31,56 @@ type Gesture =
     | { type: 'handle'; nodeId: string; key: string; side: 'in' | 'out'; subs: SubPath[]; inv: Matrix; moved: boolean; }
     | { type: 'alt-anchor'; nodeId: string; key: string; subs: SubPath[]; inv: Matrix; startScreen: Point; moved: boolean; }
     | { type: 'node-move'; move: MoveGesture; }
-    | { type: 'marquee'; startScreen: Point; baseAnchors: string[]; baseNodes: string[]; candidates: { full: string; nodeId: string; doc: Point; }[]; };
+    | { type: 'marquee'; origin: Point; startScreen: Point; baseAnchors: string[]; baseNodes: string[]; candidates: Candidate[]; picks: Candidate[]; trail: Point[] | null; };
+
+/** An anchor or handle that a rubber band or lasso can pick */
+type Candidate = { full: string; nodeId: string; doc: Point; };
 
 let gesture: Gesture | null = null;
+
+/**
+ * Updates an empty-canvas drag: a rubber band, or a lasso while Alt is held. Pressing or releasing Alt
+ * mid-drag switches between them, and the selection carries over (same rules as the Selection tool).
+ */
+function updateMarquee(get: Getter, set: Setter, g: Extract<Gesture, { type: 'marquee'; }>, e: ToolPointerEvent) {
+    const lasso = isMod(e, M.lassoSelect);
+    if (lasso !== (g.trail !== null)) {
+        if (g.trail) {
+            // leaving the lasso: its picks stay selected, and the rubber band starts from the pointer
+            g.baseAnchors = [...new Set([...g.baseAnchors, ...g.picks.map((c) => c.full)])];
+            g.baseNodes = [...new Set([...g.baseNodes, ...g.picks.map((c) => c.nodeId)])];
+            g.startScreen = e.screen;
+            g.trail = null;
+        } else {
+            // entering the lasso: it draws again from the drag origin
+            g.trail = [g.origin];
+        }
+        g.picks = [];
+    }
+
+    if (g.trail) {
+        const last = g.trail[g.trail.length - 1];
+        if (Math.hypot(e.screen.x - last.x, e.screen.y - last.y) >= LASSO_STEP_PX) {
+            g.trail.push(e.screen);
+        }
+
+        const vp = get(viewportAtom);
+        const polygon = simplifyLasso(g.trail.map((p) => screenToDoc(vp, p)), docTolerance(get, 1));
+        g.picks = g.candidates.filter((c) => pointInPolygon(c.doc, polygon));
+
+        set(lassoAtom, [...g.trail]);
+        set(marqueeAtom, null);
+    } else {
+        set(marqueeAtom, rectFromCorners(g.startScreen, e.screen));
+        set(lassoAtom, null);
+
+        const docRect = rectFromCorners(screenToDoc(get(viewportAtom), g.startScreen), e.doc);
+        g.picks = g.candidates.filter((c) => rectContainsPoint(docRect, c.doc));
+    }
+
+    set(selectedAnchorsAtom, [...new Set([...g.baseAnchors, ...g.picks.map((c) => c.full)])]);
+    set(selectionAtom, [...new Set([...g.baseNodes, ...g.picks.map((c) => c.nodeId)])]);
+}
 
 export const pointsTool: ToolDef = {
     id: ToolId.points,
@@ -41,9 +90,9 @@ export const pointsTool: ToolDef = {
     icon: MousePointer,
     hint: ({ held, dragging }) => dragging
         ? 'Release to finish'
-        : modifierHint(held, 'Drag points and handles · [Shift] add · [Alt] break handle · [Ctrl] add/delete point', {
+                : modifierHint(held, 'Drag points and handles · [Shift] add · [Alt] break handle · [Ctrl] add/delete point', {
             shift: '[Shift] Click to add or remove · Drag a handle to snap to 45°',
-            alt: '[Alt] Drag a handle to move it alone · Click a point to toggle corner or smooth',
+            alt: '[Alt] Drag a handle to move it alone · Click a point to toggle corner or smooth · on empty canvas, [Alt] drag to lasso',
             ctrl: '[Ctrl] Click a segment to add a point · Click a point to delete it',
         }),
     cursor: 'default',
@@ -146,10 +195,13 @@ export const pointsTool: ToolDef = {
         }
         gesture = {
             type: 'marquee',
+            origin: e.screen,
             startScreen: e.screen,
             baseAnchors: additive ? selectedAnchors : [],
             baseNodes: additive || selectedAnchors.length ? selection : [],
             candidates: collectAnchorCandidates(),
+            picks: [],
+            trail: isMod(e, M.lassoSelect) ? [e.screen] : null,
         };
     },
 
@@ -199,14 +251,9 @@ export const pointsTool: ToolDef = {
                 updateMove(gesture.move, e, e.shift, isMod(e, M.snapToObjects));
                 break;
 
-            case 'marquee': {
-                set(marqueeAtom, rectFromCorners(gesture.startScreen, e.screen));
-                const docRect = rectFromCorners(screenToDoc(get(viewportAtom), gesture.startScreen), e.doc);
-                const inside = gesture.candidates.filter((c) => rectContainsPoint(docRect, c.doc));
-                set(selectedAnchorsAtom, [...new Set([...gesture.baseAnchors, ...inside.map((c) => c.full)])]);
-                set(selectionAtom, [...new Set([...gesture.baseNodes, ...inside.map((c) => c.nodeId)])]);
+            case 'marquee':
+                updateMarquee(get, set, gesture, e);
                 break;
-            }
         }
     },
 
@@ -235,6 +282,7 @@ export const pointsTool: ToolDef = {
                 break;
             case 'marquee':
                 set(marqueeAtom, null);
+                set(lassoAtom, null);
                 break;
         }
         gesture = null;
