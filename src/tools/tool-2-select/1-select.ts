@@ -1,10 +1,11 @@
 import { snapshot } from "valtio";
+import { type Getter, type Setter } from "jotai";
 import { MousePointer2 } from "lucide-react";
 
 import { type ResizeHandle, type ToolDef, type ToolPointerEvent } from "../9-types-tool-def";
-import { type Point, type Rect, type SvgDoc, groupPathIds, rectContainsRect, rectFromCorners, rectsIntersect, scaleAround } from "@/svg-core";
+import { type Point, type Rect, type SvgDoc, applyMatrix, findNode, flattenSubpaths, groupPathIds, nodeCtm, nodeOutline, rectContainsRect, rectFromCorners, rectsIntersect, scaleAround, walkNodes } from "@/svg-core";
 import { type NodeOriginals, applyDocMatrix, captureOriginals, commitHistory, docState, duplicateNodes, nodeDocBBox, nodesDocBBox } from "@/store/3-document";
-import { ToolId, editingGroupIdAtom, marqueeAtom, screenToDoc, selectionAtom, setActiveToolAtom, setSelectionAtom, viewportAtom } from "@/store/4-editor";
+import { ToolId, editingGroupIdAtom, lassoAtom, marqueeAtom, screenToDoc, selectionAtom, setActiveToolAtom, setSelectionAtom, viewportAtom } from "@/store/4-editor";
 import { appSettings, SelectionMode } from "@/store/1-ui-settings";
 
 import { MODIFIERS, isMod } from "./8-definition-of-modifiers";
@@ -13,6 +14,7 @@ import { type MoveGesture, beginMove, endMove, pastThreshold, updateMove } from 
 import { hitTestOutlines, docTolerance } from "../0-shared/2-tool-helpers";
 import { selectedGroupOnPath, selectionUnitId } from "../0-shared/4-group-units";
 import { clearSnapGuides, collectSnapTargets, setSnapGuides, snapActive, snapBox, snapThreshold } from "../core-snapping";
+import { type Polyline, lassoHits, simplifyLasso } from "./2-lasso";
 
 export const selectTool: ToolDef = {
     id: ToolId.select,
@@ -22,9 +24,9 @@ export const selectTool: ToolDef = {
     icon: MousePointer2,
     hint: ({ held, dragging }) => dragging
         ? '' //'Release to finish'
-        : modifierHint(held, 'Click to select, drag to move · [Shift] add · [Alt] copy · [Ctrl] inside group', {
+        : modifierHint(held, 'Click to select, drag to move · [Shift] add · [Alt] copy or lasso · [Ctrl] inside group', {
             shift: '[Shift] Click to add or remove · Drag along one axis',
-            alt: '[Alt] Drag to copy',
+            alt: '[Alt] Drag an element to copy · on empty canvas, [Alt] drag to lasso',
             ctrl: '[Ctrl] Click to select inside a group · Drag snaps to other elements',
         }),
     cursor: 'default',
@@ -101,7 +103,7 @@ export const selectTool: ToolDef = {
             return;
         }
 
-        // empty canvas: rubber band
+        // empty canvas: rubber band, or a lasso while Alt is held
         const additive = isMod(e, M.toggleSelection);
         if (!additive) {
             set(editingGroupIdAtom, null);
@@ -113,7 +115,12 @@ export const selectTool: ToolDef = {
             const b = nodeDocBBox(doc, node.id);
             b && bboxes.set(node.id, b);
         }
-        gesture = { type: 'marquee', startScreen: e.screen, base: additive ? selection : [], bboxes };
+        const origin = e.screen;
+        gesture = {
+            type: 'marquee', origin, startScreen: origin, base: additive ? selection : [], bboxes, doc,
+            trail: isMod(e, M.lassoSelect) ? [origin] : null,
+            picks: [], outlines: new Map(),
+        };
     },
 
     onPointerMove({ get, set }, e) {
@@ -124,23 +131,9 @@ export const selectTool: ToolDef = {
             case 'move':
                 updateMove(gesture.move, e, isMod(e, M.constrainAxis), isMod(e, M.snapToObjects));
                 break;
-            case 'marquee': {
-                const screenRect = rectFromCorners(gesture.startScreen, e.screen);
-                set(marqueeAtom, screenRect);
-                const vp = get(viewportAtom);
-                const a = screenToDoc(vp, gesture.startScreen);
-                const docRect = rectFromCorners(a, e.doc);
-                // Ctrl flips the configured mode for as long as it is held
-                const mode = isMod(e, M.invertSelectionMode)
-                    ? (appSettings.prefs.selectionMode === SelectionMode.inclusive ? SelectionMode.exclusive : SelectionMode.inclusive)
-                    : appSettings.prefs.selectionMode;
-                const inside = mode === SelectionMode.inclusive
-                    ? (b: Rect) => rectContainsRect(docRect, b)
-                    : (b: Rect) => rectsIntersect(b, docRect);
-                const hits = [...gesture.bboxes].filter(([, b]) => inside(b)).map(([id]) => id);
-                set(selectionAtom, [...new Set([...gesture.base, ...hits])]);
+            case 'marquee':
+                updateArea(get, set, gesture, e);
                 break;
-            }
             case 'resize':
                 if (!gesture.moved && !pastThreshold(gesture.startScreen, e.screen)) {
                     return;
@@ -173,6 +166,7 @@ export const selectTool: ToolDef = {
                 break;
             case 'marquee':
                 set(marqueeAtom, null);
+                set(lassoAtom, null);
                 break;
             case 'resize':
                 gesture.moved && commitHistory();
@@ -188,10 +182,129 @@ const M = MODIFIERS.select;
 
 type Gesture =
     | { type: 'move'; move: MoveGesture; }
-    | { type: 'marquee'; startScreen: Point; base: string[]; bboxes: Map<string, Rect>; }
+    | AreaGesture
     | { type: 'resize'; originals: NodeOriginals; bbox: Rect; handle: ResizeHandle; moved: boolean; startScreen: Point; snapTargets: Rect[]; };
 
+/**
+ * Drag on empty canvas: a rubber band, or a lasso while `trail` is set. Both start from `origin`.
+ * `startScreen` is the rubber band corner, which moves when the drag leaves the lasso. `base` is the selection
+ * kept from before the drag (and from the lasso picks when the drag leaves it); `picks` is what the current shape selects.
+ */
+type AreaGesture = {
+    type: 'marquee';
+    origin: Point;
+    startScreen: Point;
+    base: string[];
+    bboxes: Map<string, Rect>;
+    doc: SvgDoc;
+    trail: Point[] | null;              // lasso points in screen coordinates; null while the rubber band is active
+    picks: string[];
+    outlines: Map<string, Polyline[]>;  // document-space outlines, computed when the lasso first reaches an element
+};
+
 let gesture: Gesture | null = null;
+
+//---------------------------------------------------------------------------
+
+/** Pixels the pointer must move before the lasso takes another point */
+const LASSO_STEP_PX = 2;
+
+/**
+ * Updates a rubber band or lasso drag. Holding Alt (or releasing it) switches between them for as long as the drag lasts,
+ * and the selection carries over, as in Excalidraw.
+ */
+function updateArea(get: Getter, set: Setter, g: AreaGesture, e: ToolPointerEvent) {
+    const lasso = isMod(e, M.lassoSelect);
+    if (lasso !== (g.trail !== null)) {
+        if (g.trail) {
+            // leaving the lasso: what it selected stays selected, and the rubber band starts from the pointer
+            g.base = [...new Set([...g.base, ...g.picks])];
+            g.startScreen = e.screen;
+            g.trail = null;
+        } else {
+            // entering the lasso: it draws again from the drag origin, so the rubber band's picks are dropped
+            g.trail = [g.origin];
+        }
+        g.picks = [];
+    }
+
+    // Ctrl flips the configured mode for as long as it is held
+    const mode = isMod(e, M.invertSelectionMode)
+        ? (appSettings.prefs.selectionMode === SelectionMode.inclusive ? SelectionMode.exclusive : SelectionMode.inclusive)
+        : appSettings.prefs.selectionMode;
+    const inclusive = mode === SelectionMode.inclusive;
+
+    if (g.trail) {
+        const last = g.trail[g.trail.length - 1];
+        if (Math.hypot(e.screen.x - last.x, e.screen.y - last.y) >= LASSO_STEP_PX) {
+            g.trail.push(e.screen);
+        }
+
+        const vp = get(viewportAtom);
+        const docPath = g.trail.map((p) => screenToDoc(vp, p));
+        const polygon = simplifyLasso(docPath, docTolerance(get, 1));
+        g.picks = lassoHits(polygon, g.bboxes, (id) => {
+            let lines = g.outlines.get(id);
+            if (!lines) {
+                lines = elementPolylines(g.doc, id);
+                g.outlines.set(id, lines);
+            }
+            return lines;
+        }, inclusive);
+
+        set(lassoAtom, [...g.trail]);
+        set(marqueeAtom, null);
+    } else {
+        set(marqueeAtom, rectFromCorners(g.startScreen, e.screen));
+        set(lassoAtom, null);
+
+        const vp = get(viewportAtom);
+        const docRect = rectFromCorners(screenToDoc(vp, g.startScreen), e.doc);
+        const inside = inclusive
+            ? (b: Rect) => rectContainsRect(docRect, b)
+            : (b: Rect) => rectsIntersect(b, docRect);
+        g.picks = [...g.bboxes].filter(([, b]) => inside(b)).map(([id]) => id);
+    }
+
+    set(selectionAtom, [...new Set([...g.base, ...g.picks])]);
+}
+
+/**
+ * Document-space polylines of one top-level element. Paths and shapes contribute their flattened outline;
+ * elements without outline geometry (text, images, ...) contribute the outline of their bounding box.
+ * Groups have no geometry of their own, so their members are walked instead.
+ */
+function elementPolylines(doc: SvgDoc, topId: string): Polyline[] {
+    const top = doc.children.find((node) => node.id === topId);
+    if (!top) {
+        return [];
+    }
+
+    const lines: Polyline[] = [];
+    walkNodes([top], (node) => {
+        if (node.kind === 'g') {
+            return;
+        }
+
+        const loc = findNode(doc, node.id);
+        const outline = nodeOutline(node);
+        const polys = loc && outline ? flattenSubpaths(outline) : [];
+        if (loc && polys.length) {
+            const ctm = nodeCtm(loc);
+            for (const poly of polys) {
+                lines.push(poly.map((p) => applyMatrix(ctm, p)));
+            }
+            return;
+        }
+
+        const box = nodeDocBBox(doc, node.id);
+        if (box) {
+            const { x, y, width, height } = box;
+            lines.push([{ x, y }, { x: x + width, y }, { x: x + width, y: y + height }, { x, y: y + height }, { x, y }]);
+        }
+    });
+    return lines;
+}
 
 //---------------------------------------------------------------------------
 

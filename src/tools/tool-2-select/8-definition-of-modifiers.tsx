@@ -14,6 +14,7 @@ export const MODIFIERS = {
         resizeKeepAspect: 'shift',
         resizeFromCenter: 'alt',
         invertSelectionMode: 'ctrl',     // Ctrl while dragging a marquee flips Inclusive/Exclusive
+        lassoSelect: 'alt',              // Alt on empty canvas drags a lasso; pressing or releasing Alt mid-drag switches
     },
     points: {
         toggleAnchor: 'shift',           // Shift+click adds or removes an anchor
@@ -46,6 +47,7 @@ export const MODIFIER_DESCRIPTIONS: ModifierDescriptions = {
         resizeKeepAspect: 'resize a corner keeping the aspect ratio (edges change one side only)',
         resizeFromCenter: 'resize from the center (edges stretch from the middle of the box)',
         invertSelectionMode: 'drag a selection marquee to use the opposite of the Inclusive/Exclusive option',
+        lassoSelect: 'drag on empty canvas to select with a lasso; press or release mid-drag to switch to and from the marquee',
     },
     points: {
         toggleAnchor: 'click to add or remove an anchor from the selection',

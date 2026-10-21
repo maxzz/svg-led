@@ -4,6 +4,9 @@ import { type Point, type Rect, type SubPath } from "@/svg-core";
 /** Rubber-band selection in screen coordinates while dragging on empty canvas */
 export const marqueeAtom = atom<Rect | null>(null);
 
+/** Lasso selection in screen coordinates while dragging on empty canvas with Alt held */
+export const lassoAtom = atom<Point[] | null>(null);
+
 /** Space is held: dragging pans the canvas whatever the tool */
 export const spaceHeldAtom = atom(false);
 
