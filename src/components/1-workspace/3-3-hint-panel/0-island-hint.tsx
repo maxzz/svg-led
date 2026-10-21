@@ -7,7 +7,7 @@ export function Island_Hint() {
     const hint = useAtomValue(toolHintAtom);
 
     return (
-        <div className="select-none px-2 text-[11px] text-muted-foreground/80 text-center">
+        <div className="select-none px-2 text-[11px] text-muted-foreground/60 text-center">
             <HintText text={hint} />
         </div>
     );

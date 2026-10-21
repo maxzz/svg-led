@@ -3,7 +3,7 @@ import { useAtom } from "jotai";
 import { COMMANDS, COMMAND_GROUP_LABELS, type CommandGroup, displayShortcut } from "@/commands";
 import { MODIFIERS, MODIFIER_DESCRIPTIONS, MODIFIER_LABELS, type Modifier, TOOLS, toolShortcuts } from "@/tools";
 import { HintText } from "@/components/1-workspace/3-3-hint-panel/1-hint-text";
-import { Kbd } from "@/ui/local-ui/9-kbd";
+import { KeyText } from "@/ui/local-ui/9-key-text";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/ui/shadcn/dialog";
 import { isOpenShortcutsHelpDialogAtom } from "./9-types-shortcuts-help";
 
@@ -17,11 +17,12 @@ export function ShortcutsHelpDialog() {
                     <DialogTitle className="text-sm">
                         Help and keyboard shortcuts
                     </DialogTitle>
-                    <DialogDescription className="text-xs">
+                    <DialogDescription className="text-xs sr-only">
                         <HintText text="[Space]+drag or the middle mouse button pans · Wheel zooms · [Shift]+wheel scrolls sideways · Double-click a group to enter it, or an element to edit its points" />
                     </DialogDescription>
                 </DialogHeader>
 
+                
                 <div className="px-4 py-4 max-h-[70vh] md:grid-cols-2 overflow-auto grid grid-cols-1 gap-x-8 gap-y-4 items-start">
                     <div className="flex flex-col gap-4">
                         <ShortcutIsland caption="Tools">
@@ -99,7 +100,7 @@ function ShortcutRow({ label, shortcuts }: { label: string; shortcuts: string[];
                         <Fragment key={shortcut}>
                             {i > 0 && <span className="text-[10px] text-muted-foreground">or</span>}
                             {shortcut.split('+').map(
-                                (key, j) => <Kbd key={j}>{displayShortcut(key)}</Kbd>
+                                (key, j) => <KeyText key={j}>{displayShortcut(key)}</KeyText>
                             )}
                         </Fragment>
                     )
@@ -121,7 +122,7 @@ function ModifierRows() {
                         {Object.entries(MODIFIERS[group]).map(
                             ([key, mod]) => (
                                 <div className="text-xs flex items-baseline gap-2" key={key}>
-                                    <Kbd>{displayShortcut(MODIFIER_LABELS[mod as Modifier])}</Kbd>
+                                    <KeyText>{displayShortcut(MODIFIER_LABELS[mod as Modifier])}</KeyText>
                                     <span className="text-muted-foreground">{(MODIFIER_DESCRIPTIONS[group] as Record<string, string>)[key]}</span>
                                 </div>
                             )
