@@ -3,6 +3,7 @@
 @import "shadcn/tailwind.css";
 
 @import "./caps-joins-icons.css";
+@import "./lasso.css";
 
 @import "@fontsource-variable/geist";
 @import "@fontsource-variable/geist-mono"; /* https://fontsource.org/fonts/geist-mono/install */
@@ -181,22 +182,4 @@
     margin-left: 3px;
     width: 3px !important;
     background-color: var(--editor-accent);
-}
-
-/* Lasso border: dashes that crawl along the outline ("marching ants"); the dash period is 8px */
-.svgled-lasso-ants {
-    stroke-dasharray: 4 4;
-    animation: svgled-marching-ants 0.5s linear infinite;
-}
-
-@keyframes svgled-marching-ants {
-    to {
-        stroke-dashoffset: -8;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .svgled-lasso-ants {
-        animation: none;
-    }
 }
