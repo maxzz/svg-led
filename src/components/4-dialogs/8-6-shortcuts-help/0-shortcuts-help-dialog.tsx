@@ -26,9 +26,11 @@ export function ShortcutsHelpDialog() {
                 <div className="px-4 py-4 max-h-[90vh] md:grid-cols-2 overflow-auto grid grid-cols-1 gap-x-6 gap-y-4 items-start">
                     <div className="flex flex-col gap-4">
                         <ShortcutIsland caption="Tools">
-                            {TOOLS.map(
-                                (tool) => <ShortcutRow label={tool.label} shortcuts={toolShortcuts(tool)} key={tool.id} />
-                            )}
+                            <ShortcutList>
+                                {TOOLS.map(
+                                    (tool) => <ShortcutRow label={tool.label} shortcuts={toolShortcuts(tool)} key={tool.id} />
+                                )}
+                            </ShortcutList>
                         </ShortcutIsland>
 
                         <ShortcutIsland caption="View & help">
@@ -74,6 +76,22 @@ function ShortcutIsland({ caption, children }: { caption: string; children: Reac
     );
 }
 
+/** A bordered list whose items are separated by horizontal lines */
+function ShortcutList({ children }: { children: ReactNode; }) {
+    return (
+        <div className="flex flex-col divide-y rounded-md border">
+            {children}
+        </div>
+    );
+}
+
+/** A section heading placed above its list of items */
+function ShortcutSectionHeading({ children }: { children: ReactNode; }) {
+    return (
+        <h4 className="font-semibold text-xs">{children}</h4>
+    );
+}
+
 function ShortcutGroup({ group }: { group: CommandGroup; }) {
     const items = COMMANDS.filter((c) => c.group === group && c.shortcut);
     if (!items.length) {
@@ -82,10 +100,12 @@ function ShortcutGroup({ group }: { group: CommandGroup; }) {
 
     return (
         <div className="flex flex-col gap-1.5">
-            <h4 className="font-medium text-[11px]">{COMMAND_GROUP_LABELS[group]}</h4>
-            {items.map(
-                (c) => <ShortcutRow label={c.label} shortcuts={[c.shortcut!, ...(c.alsoKeys ?? [])]} key={c.id} />
-            )}
+            <ShortcutSectionHeading>{COMMAND_GROUP_LABELS[group]}</ShortcutSectionHeading>
+            <ShortcutList>
+                {items.map(
+                    (c) => <ShortcutRow label={c.label} shortcuts={[c.shortcut!, ...(c.alsoKeys ?? [])]} key={c.id} />
+                )}
+            </ShortcutList>
         </div>
     );
 }
@@ -93,7 +113,7 @@ function ShortcutGroup({ group }: { group: CommandGroup; }) {
 /** One action, then each way to trigger it: "Redo  Ctrl Shift Z  or  Ctrl Y" */
 function ShortcutRow({ label, shortcuts }: { label: string; shortcuts: string[]; }) {
     return (
-        <div className="text-xs flex items-center justify-between gap-4">
+        <div className="px-2.5 py-1.5 text-xs flex items-center justify-between gap-4">
             <span className="text-muted-foreground">{label}</span>
             <div className="shrink-0 flex items-center gap-1">
                 {shortcuts.map(
@@ -116,17 +136,19 @@ function ModifierRows() {
         {(Object.keys(MODIFIERS) as (keyof typeof MODIFIERS)[]).map(
             (group) => (
                 <div className="flex flex-col gap-1.5" key={group}>
-                    <h4 className="font-medium text-[11px]">
+                    <ShortcutSectionHeading>
                         {MODIFIER_GROUP_LABELS[group]}
-                    </h4>
-                    {Object.entries(MODIFIERS[group]).map(
-                        ([key, mod]) => (
-                            <div className="text-xs flex items-baseline gap-2" key={key}>
-                                <KeyText>{displayShortcut(MODIFIER_LABELS[mod as Modifier])}</KeyText>
-                                <span className="text-muted-foreground">{(MODIFIER_DESCRIPTIONS[group] as Record<string, string>)[key]}</span>
-                            </div>
-                        )
-                    )}
+                    </ShortcutSectionHeading>
+                    <ShortcutList>
+                        {Object.entries(MODIFIERS[group]).map(
+                            ([key, mod]) => (
+                                <div className="px-2.5 py-1.5 text-xs flex items-baseline gap-2" key={key}>
+                                    <KeyText>{displayShortcut(MODIFIER_LABELS[mod as Modifier])}</KeyText>
+                                    <span className="text-muted-foreground">{(MODIFIER_DESCRIPTIONS[group] as Record<string, string>)[key]}</span>
+                                </div>
+                            )
+                        )}
+                    </ShortcutList>
                 </div>
             )
         )}
