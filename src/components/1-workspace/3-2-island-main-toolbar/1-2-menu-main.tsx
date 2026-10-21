@@ -2,7 +2,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
 import { Download, SlidersHorizontal, FolderOpen, GitFork, CircleQuestionMark, ImageDown, Menu, Save, Settings2, ClipboardPaste, Trash } from "lucide-react";
 import { appSettings } from "@/store/1-ui-settings";
-import { pointsOptionsAtom } from "@/tools/points/options";
+import { pointsOptionsAtom } from "@/tools/tool-3-points/options";
 import {
     DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem,
     DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger,

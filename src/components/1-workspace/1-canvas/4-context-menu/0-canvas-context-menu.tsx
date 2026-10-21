@@ -9,7 +9,7 @@ import { appSettings } from "@/store/1-ui-settings";
 import { type SvgDoc, type SvgNode, findNode, isShapeNode } from "@/svg-core";
 import { docState, isPointEditable } from "@/store/3-document";
 import { ToolId, copiedStyleAtom, selectedAnchorsAtom, selectionAtom, setActiveToolAtom } from "@/store/4-editor";
-import { deleteSelectedAnchors, toggleSelectedAnchors } from "@/tools/points";
+import { deleteSelectedAnchors, toggleSelectedAnchors } from "@/tools/tool-3-points";
 import { ContextMenu, ContextMenuContent, ContextMenuTrigger } from "@/ui/shadcn/context-menu";
 import { canvasMenuKindAtom } from "./9-atoms-context-menu";
 import { ActionItem, CommandCheckItem, CommandItem, SEP, SubMenu, renderEntries } from "./1-context-menu-items";

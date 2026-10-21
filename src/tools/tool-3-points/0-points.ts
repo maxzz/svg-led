@@ -12,8 +12,8 @@ import {
     ToolId, anchorsOfNode, marqueeAtom, nodeAnchorKey, screenToDoc, selectedAnchorsAtom, selectionAtom, setActiveToolAtom,
     splitNodeAnchorKey, viewportAtom,
 } from "@/store/4-editor";
-import { type ToolDef, type ToolPointerEvent } from "../1-types";
-import { MODIFIERS, isMod } from "../select/8-modifiers";
+import { type ToolDef, type ToolPointerEvent } from "../9-types-tool-def";
+import { MODIFIERS, isMod } from "../tool-2-select/8-modifiers";
 import { docTolerance, hitTestOutlines, nodeMatrices, snapValue } from "../0-shared/2-tool-helpers";
 import { modifierHint } from "../0-shared/5-hint";
 import { type MoveGesture, beginMove, endMove, pastThreshold, updateMove } from "../0-shared/3-move-gesture";

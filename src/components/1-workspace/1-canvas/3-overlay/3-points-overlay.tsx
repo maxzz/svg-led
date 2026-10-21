@@ -2,7 +2,7 @@ import { useAtomValue } from "jotai";
 import { type Anchor, type Matrix, type SubPath, type SvgDoc, applyMatrix, findNode, getShapeHandles, isShapeNode, pathDataToSubpaths } from "@/svg-core";
 import { useDocSnapshot } from "@/store/3-document";
 import { anchorsOfNode, hoverNodeIdAtom, selectedAnchorsAtom, selectionAtom, viewportAtom } from "@/store/4-editor";
-import { pointsOptionsAtom } from "@/tools/points/options";
+import { pointsOptionsAtom } from "@/tools/tool-3-points/options";
 import { nodeScreenMatrix, outlineScreenD, screenSubpaths } from "./0-overlay-geometry";
 
 const ANCHOR = 7;

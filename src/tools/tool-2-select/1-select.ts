@@ -3,7 +3,7 @@ import { snapshot } from "valtio";
 import { type Point, type Rect, type SvgDoc, groupPathIds, rectFromCorners, rectsIntersect, scaleAround } from "@/svg-core";
 import { type NodeOriginals, applyDocMatrix, captureOriginals, commitHistory, docState, duplicateNodes, nodeDocBBox, nodesDocBBox } from "@/store/3-document";
 import { ToolId, editingGroupIdAtom, marqueeAtom, screenToDoc, selectionAtom, setActiveToolAtom, setSelectionAtom, viewportAtom } from "@/store/4-editor";
-import { type ResizeHandle, type ToolDef, type ToolPointerEvent } from "../1-types";
+import { type ResizeHandle, type ToolDef, type ToolPointerEvent } from "../9-types-tool-def";
 import { MODIFIERS, isMod } from "./8-modifiers";
 import { modifierHint } from "../0-shared/5-hint";
 import { type MoveGesture, beginMove, endMove, pastThreshold, updateMove } from "../0-shared/3-move-gesture";

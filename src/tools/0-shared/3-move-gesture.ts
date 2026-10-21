@@ -1,6 +1,6 @@
 import { type Point, type Rect, type SvgDoc, translateMatrix } from "@/svg-core";
 import { type NodeOriginals, applyDocMatrix, captureOriginals, commitHistory, docState, nodesDocBBox } from "@/store/3-document";
-import { type ToolPointerEvent } from "../1-types";
+import { type ToolPointerEvent } from "../9-types-tool-def";
 import { snapValue } from "./2-tool-helpers";
 import { type SnapAxis, clearSnapGuides, collectSnapTargets, setSnapGuides, snapActive, snapBox, snapThreshold } from "@/tools/core-snapping";
 

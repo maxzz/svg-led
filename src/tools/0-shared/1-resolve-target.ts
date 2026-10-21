@@ -1,4 +1,4 @@
-import { type CanvasTarget, type ResizeHandle } from "../1-types";
+import { type CanvasTarget, type ResizeHandle } from "../9-types-tool-def";
 
 /**
  * Finds what the pointer is over from data attributes:

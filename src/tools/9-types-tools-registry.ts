@@ -1,23 +1,11 @@
+import { type ToolDef } from "./9-types-tool-def";
 import { type ToolId, registerToolDeactivate } from "@/store/4-editor";
-import { type ToolDef } from "./1-types";
-import { handTool } from "./hand";
-import { selectTool } from "./select";
-import { pointsTool } from "./points";
-import { ellipseTool, lineTool, rectangleTool } from "./shapes/2-shape-tools";
-import { penTool } from "./pen";
 
-/** Toolbar order; shortcuts and the command palette are generated from this list */
-export const TOOLS: readonly ToolDef[] = [
-    handTool,
-    selectTool,
-    pointsTool,
-    rectangleTool,
-    ellipseTool,
-    lineTool,
-    penTool,
-];
-
-const byId = new Map<ToolId, ToolDef>(TOOLS.map((t) => [t.id, t]));
+import { handTool } from "./tool-1-hand";
+import { selectTool } from "./tool-2-select";
+import { pointsTool } from "./tool-3-points";
+import { ellipseTool, lineTool, rectangleTool } from "./tool-4-shapes/2-shape-tools";
+import { penTool } from "./tool-5-pen";
 
 export function getTool(id: ToolId): ToolDef {
     return byId.get(id) ?? selectTool;
@@ -32,6 +20,21 @@ export function toolByShortcut(key: string): ToolDef | undefined {
 export function toolShortcuts(tool: ToolDef): string[] {
     return [tool.shortcut, tool.altShortcut].flatMap((k) => (k ? [k.toUpperCase()] : []));
 }
+
+//---------------------------------------------------------------------------
+
+/** Toolbar order; shortcuts and the command palette are generated from this list */
+export const TOOLS: readonly ToolDef[] = [
+    handTool,
+    selectTool,
+    pointsTool,
+    rectangleTool,
+    ellipseTool,
+    lineTool,
+    penTool,
+];
+
+const byId = new Map<ToolId, ToolDef>(TOOLS.map((t) => [t.id, t]));
 
 for (const tool of TOOLS) {
     const hook = tool.onDeactivate;

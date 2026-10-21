@@ -2,7 +2,7 @@ import { useAtomValue } from "jotai";
 import { type SvgDoc, type Rect, findNode } from "@/svg-core";
 import { nodesDocBBox, useDocSnapshot } from "@/store/3-document";
 import { editingGroupIdAtom, hoverNodeIdAtom, rectToScreen, selectionAtom, viewportAtom } from "@/store/4-editor";
-import { type ResizeHandle } from "@/tools/1-types";
+import { type ResizeHandle } from "@/tools/9-types-tool-def";
 import { nodeScreenMatrix, outlineScreenD } from "./0-overlay-geometry";
 
 const PAD = 4;      // gap between the selection and its bounding box
