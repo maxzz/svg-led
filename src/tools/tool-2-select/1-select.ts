@@ -1,24 +1,17 @@
-import { MousePointer2 } from "lucide-react";
 import { snapshot } from "valtio";
+import { MousePointer2 } from "lucide-react";
+
+import { type ResizeHandle, type ToolDef, type ToolPointerEvent } from "../9-types-tool-def";
 import { type Point, type Rect, type SvgDoc, groupPathIds, rectFromCorners, rectsIntersect, scaleAround } from "@/svg-core";
 import { type NodeOriginals, applyDocMatrix, captureOriginals, commitHistory, docState, duplicateNodes, nodeDocBBox, nodesDocBBox } from "@/store/3-document";
 import { ToolId, editingGroupIdAtom, marqueeAtom, screenToDoc, selectionAtom, setActiveToolAtom, setSelectionAtom, viewportAtom } from "@/store/4-editor";
-import { type ResizeHandle, type ToolDef, type ToolPointerEvent } from "../9-types-tool-def";
-import { MODIFIERS, isMod } from "./8-modifiers";
+
+import { MODIFIERS, isMod } from "./8-definition-of-modifiers";
 import { modifierHint } from "../0-shared/5-hint";
 import { type MoveGesture, beginMove, endMove, pastThreshold, updateMove } from "../0-shared/3-move-gesture";
 import { hitTestOutlines, docTolerance } from "../0-shared/2-tool-helpers";
 import { selectedGroupOnPath, selectionUnitId } from "../0-shared/4-group-units";
-import { clearSnapGuides, collectSnapTargets, setSnapGuides, snapActive, snapBox, snapThreshold } from "@/tools/core-snapping";
-
-const M = MODIFIERS.select;
-
-type Gesture =
-    | { type: 'move'; move: MoveGesture; }
-    | { type: 'marquee'; startScreen: Point; base: string[]; bboxes: Map<string, Rect>; }
-    | { type: 'resize'; originals: NodeOriginals; bbox: Rect; handle: ResizeHandle; moved: boolean; startScreen: Point; snapTargets: Rect[]; };
-
-let gesture: Gesture | null = null;
+import { clearSnapGuides, collectSnapTargets, setSnapGuides, snapActive, snapBox, snapThreshold } from "../core-snapping";
 
 export const selectTool: ToolDef = {
     id: ToolId.select,
@@ -181,6 +174,19 @@ export const selectTool: ToolDef = {
     },
 };
 
+//---------------------------------------------------------------------------
+
+const M = MODIFIERS.select;
+
+type Gesture =
+    | { type: 'move'; move: MoveGesture; }
+    | { type: 'marquee'; startScreen: Point; base: string[]; bboxes: Map<string, Rect>; }
+    | { type: 'resize'; originals: NodeOriginals; bbox: Rect; handle: ResizeHandle; moved: boolean; startScreen: Point; snapTargets: Rect[]; };
+
+let gesture: Gesture | null = null;
+
+//---------------------------------------------------------------------------
+
 /** Which axes a handle moves: -1 for its left/top side, 1 for its right/bottom side, 0 when the axis is not resized */
 function handleDirs(handle: ResizeHandle) {
     return {
@@ -225,3 +231,5 @@ function resizeMatrix(bbox: Rect, handle: ResizeHandle, e: ToolPointerEvent) {
     if (Math.abs(sy) < 1e-6) sy = 1e-6;
     return scaleAround(sx, sy, { x: x.origin, y: y.origin });
 }
+
+//---------------------------------------------------------------------------

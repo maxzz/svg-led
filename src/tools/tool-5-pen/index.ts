@@ -5,7 +5,7 @@ import { commitHistory, docPrecision, docState, getNodeProxy } from "@/store/3-d
 import { type PenDraft, ToolId, penDraftAtom, selectionAtom, setSelectionAtom } from "@/store/4-editor";
 import { newShapeStyleAtom } from "@/store/2-persist";
 import { type ToolDef } from "../9-types-tool-def";
-import { MODIFIERS, isMod } from "../tool-2-select/8-modifiers";
+import { MODIFIERS, isMod } from "../tool-2-select/8-definition-of-modifiers";
 import { docTolerance, nodeMatrices, snapDoc } from "../0-shared/2-tool-helpers";
 import { pastThreshold } from "../0-shared/3-move-gesture";
 import { styleAttrs } from "../0-shared/4-style-attrs";

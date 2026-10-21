@@ -13,7 +13,7 @@ import {
     splitNodeAnchorKey, viewportAtom,
 } from "@/store/4-editor";
 import { type ToolDef, type ToolPointerEvent } from "../9-types-tool-def";
-import { MODIFIERS, isMod } from "../tool-2-select/8-modifiers";
+import { MODIFIERS, isMod } from "../tool-2-select/8-definition-of-modifiers";
 import { docTolerance, hitTestOutlines, nodeMatrices, snapValue } from "../0-shared/2-tool-helpers";
 import { modifierHint } from "../0-shared/5-hint";
 import { type MoveGesture, beginMove, endMove, pastThreshold, updateMove } from "../0-shared/3-move-gesture";
