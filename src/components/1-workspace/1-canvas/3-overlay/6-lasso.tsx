@@ -12,7 +12,7 @@ export function Lasso() {
         <polygon
             points={points.map((p) => `${p.x},${p.y}`).join(' ')}
             strokeWidth={1}
-            className="fill-(--editor-accent)/10 stroke-(--editor-accent) pointer-events-none"
+            className="svgled-lasso-ants fill-(--editor-accent)/10 stroke-(--editor-accent) pointer-events-none"
         />
     );
 }
