@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { isOpenOptionsDialogAtom } from "./9-types-options";
 import { Tab_Monaco } from "./1-7-tab-monaco";
 import { Tab_General } from "./1-1-tab-general";
+import { Tab_Export } from "./1-4-tab-export";
 
 export function OptionsDialog() {
     const [isOpen, setIsOpen] = useAtom(isOpenOptionsDialogAtom);
@@ -47,9 +48,10 @@ export function OptionsDialog() {
     );
 }
 
-type OptionsTabId = 'monaco' | 'general';
+type OptionsTabId = 'monaco' | 'general' | 'export';
 
 const optionsTabs: { id: OptionsTabId; label: string; Panel: ComponentType; }[] = [
     { id: 'general', label: 'General',        /**/ Panel: Tab_General },
+    { id: 'export',  label: 'Export',         /**/ Panel: Tab_Export },
     { id: 'monaco', label: 'SVG code editor', /**/ Panel: Tab_Monaco },
 ];

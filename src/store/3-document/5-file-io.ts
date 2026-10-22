@@ -1,7 +1,8 @@
 import { snapshot } from "valtio";
 import { type SvgDoc, findNode, serializeSvg, topmostIds } from "@/svg-core";
+import { appSettings } from "../1-ui-settings";
 import { docPrecision, docState } from "./1-doc-store";
-import { docToText, loadSvgText } from "./4-doc-actions";
+import { exportDocText, loadSvgText } from "./4-doc-actions";
 import { nodesDocBBox } from "./3-doc-geometry";
 
 type FilePickerWindow = Window & {
@@ -45,7 +46,7 @@ export async function loadSvgFile(file: File): Promise<FileResult> {
 //---------------------------------------------------------------------------
 
 export async function saveSvgFile(): Promise<FileResult> {
-    const text = docToText();
+    const text = exportDocText();
     const w = window as FilePickerWindow;
     try {
         if (w.showSaveFilePicker) {
@@ -72,7 +73,7 @@ export function saveSvgFileAs(): Promise<FileResult> {
 //---------------------------------------------------------------------------
 
 export function exportSvgDownload(): void {
-    downloadBlob(new Blob([docToText()], { type: 'image/svg+xml' }), docState.fileName);
+    downloadBlob(new Blob([exportDocText()], { type: 'image/svg+xml' }), docState.fileName);
 }
 
 /** Rasterizes the document at its viewBox size (or content bbox) times `scale` */
@@ -131,7 +132,7 @@ async function rasterizeDocument(doc: SvgDoc, scale: number, background?: string
             viewBox: box,
             rootAttrs: { ...doc.rootAttrs, width: String(width), height: String(height) },
         },
-        { precision: docPrecision() }
+        { precision: docPrecision(), includeNoneValues: appSettings.exportSvg.includeNoneValues }
     );
 
     const url = URL.createObjectURL(new Blob([text], { type: 'image/svg+xml' }));

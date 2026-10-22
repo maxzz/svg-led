@@ -142,9 +142,14 @@ describe("serialize and source map", () => {
     };
 
     it("pretty-prints one element per line", () => {
-        const text = serializeSvg(doc, { precision: 3 });
+        const text = serializeSvg(doc, { precision: 3, includeNoneValues: false });
         expect(text.split('\n')[1]).toBe('    <path d="M0 0 L10 10"/>');
         expect(text).toContain('<circle cx="5" cy="5" r="2.5"/>');
+    });
+
+    it("keeps none values by default and drops them when asked", () => {
+        expect(serializeSvg(doc, { precision: 3 }).split('\n')[1]).toBe('    <path fill="none" d="M0 0 L10 10"/>');
+        expect(serializeSvg(doc, { precision: 3, includeNoneValues: false }).split('\n')[1]).toBe('    <path d="M0 0 L10 10"/>');
     });
 
     it("maps nodes to lines, skipping passthrough descendants", () => {
