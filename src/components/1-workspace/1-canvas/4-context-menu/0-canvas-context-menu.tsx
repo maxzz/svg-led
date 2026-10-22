@@ -2,11 +2,11 @@ import { type ReactNode } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { snapshot, useSnapshot } from "valtio";
 import {
-    ArrowDown, ArrowDownToLine, ArrowUp, ArrowUpToLine, ClipboardPaste, Copy, CopyPlus, FlipHorizontal, FlipVertical, Group, ImageDown,
-    Layers, Moon, MousePointer2, PaintBucket, Pipette, Scissors, Spline, SquareDashedMousePointer, Trash, Ungroup, Waypoints,
+    ArrowDown, ArrowDownToLine, ArrowUp, ArrowUpToLine, ClipboardPaste, Combine, Copy, CopyPlus, FlipHorizontal, FlipVertical, Group, ImageDown,
+    Layers, Moon, MousePointer2, PaintBucket, Pipette, Scissors, Spline, SquareDashedMousePointer, Split, Trash, Ungroup, Waypoints,
 } from "lucide-react";
 import { appSettings } from "@/store/1-ui-settings";
-import { type SvgDoc, type SvgNode, findNode, isShapeNode } from "@/svg-core";
+import { type SvgDoc, type SvgNode, findNode, isCompoundPath, isShapeNode } from "@/svg-core";
 import { docState, isPointEditable } from "@/store/3-document";
 import { ToolId, copiedStyleAtom, selectedAnchorsAtom, selectionAtom, setActiveToolAtom } from "@/store/4-editor";
 import { deleteSelectedAnchors, toggleSelectedAnchors } from "@/tools/tool-3-points";
@@ -85,6 +85,7 @@ function ElementsEntries() {
     const nodes = selection.flatMap((id): SvgNode[] => { const n = findNode(doc, id)?.node; return n ? [n] : []; });
     const hasGroup = nodes.some((n) => n.kind === 'g');
     const hasShape = nodes.some((n) => isShapeNode(n));
+    const hasCompound = nodes.some((n) => isCompoundPath(n));
     const canEditPoints = selection.length === 1 && isPointEditable(selection[0]);
 
     return renderEntries([
@@ -100,6 +101,8 @@ function ElementsEntries() {
 
         selection.length > 1 && <CommandItem id="object.group" icon={<Group className={ic} />} />,
         hasGroup && <CommandItem id="object.ungroup" icon={<Ungroup className={ic} />} />,
+        selection.length > 1 && <CommandItem id="object.makeCompound" icon={<Combine className={ic} />} />,
+        hasCompound && <CommandItem id="object.releaseCompound" icon={<Split className={ic} />} />,
         hasShape && <CommandItem id="object.convertToPath" icon={<Spline className={ic} />} />,
         canEditPoints && <CommandItem id="object.editPoints" icon={<Waypoints className={ic} />} />,
         SEP,

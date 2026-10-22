@@ -5,6 +5,7 @@ import {
     type FileResult, commitHistory, convertToPath, copyPngToClipboard, createEmptyDoc, deleteNodes, docState, exportDocText, duplicateNodes,
     exportPng, exportSvgDownload, flipNodes, getNodeProxy, groupNodes, historyState, insertSvgMarkup, isPointEditable, moveNodes,
     nodesToText, openSvgFile, readNodeStyle, reorderNodes, saveSvgFile, saveSvgFileAs, topLevelIds, ungroupNodes, writeNodesStyle,
+    canMakeCompoundPath, makeCompoundPath, canReleaseCompoundPath, releaseCompoundPaths,
 } from "@/store/3-document";
 import {
     ToolId, activeToolIdAtom, copiedStyleAtom, redoAtom, selectionAtom, setActiveToolAtom, setSelectionAtom, undoAtom, zoomByAtom,
@@ -174,6 +175,22 @@ const OBJECT: Command[] = [
     {
         id: 'object.ungroup', label: 'Ungroup', group: 'object', shortcut: 'Ctrl+Shift+G', enabled: hasSelection,
         run: ({ get, set }) => set(setSelectionAtom, ungroupNodes(get(selectionAtom))),
+    },
+    {
+        id: 'object.makeCompound', label: 'Make compound path', group: 'object', keywords: 'combine join holes',
+        enabled: (get) => canMakeCompoundPath(get(selectionAtom)),
+        run: ({ get, set }) => {
+            const id = makeCompoundPath(get(selectionAtom));
+            id && set(setSelectionAtom, [id]);
+        },
+    },
+    {
+        id: 'object.releaseCompound', label: 'Release compound path', group: 'object', keywords: 'split separate subpaths',
+        enabled: (get) => canReleaseCompoundPath(get(selectionAtom)),
+        run: ({ get, set }) => {
+            const ids = releaseCompoundPaths(get(selectionAtom));
+            ids.length && set(setSelectionAtom, ids);
+        },
     },
     {
         id: 'object.convertToPath', label: 'Convert to path', group: 'object', shortcut: 'Ctrl+Shift+P', keywords: 'outline',

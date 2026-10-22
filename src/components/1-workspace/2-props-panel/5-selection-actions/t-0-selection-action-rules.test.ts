@@ -30,6 +30,18 @@ describe("selection action rules", () => {
         expect(visibleIds([rect, path])).not.toContain('object.ungroup');
     });
 
+    it("shows make compound path for two or more selected nodes", () => {
+        expect(visibleIds([rect, path])).toContain('object.makeCompound');
+        expect(visibleIds([rect])).not.toContain('object.makeCompound');
+    });
+
+    it("shows release compound path only when a compound path is selected", () => {
+        const compound = { kind: 'path', id: 'c', attrs: {}, d: 'M0 0 L1 0 M5 5 L6 5' } as unknown as SvgNode;
+        expect(visibleIds([compound])).toContain('object.releaseCompound');
+        expect(visibleIds([path])).not.toContain('object.releaseCompound');
+        expect(visibleIds([rect, path])).not.toContain('object.releaseCompound');
+    });
+
     it("hides convert to path when no shape is selected", () => {
         expect(visibleIds([group])).not.toContain('object.convertToPath');
         expect(visibleIds([path])).not.toContain('object.convertToPath');
