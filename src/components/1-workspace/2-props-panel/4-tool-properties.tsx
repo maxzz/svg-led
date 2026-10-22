@@ -19,7 +19,7 @@ function NewShapeProperties({ kind, label }: { kind: NewShapeKind; label: string
     const nodes = [newShapeNode(kind, style)];
 
     return (<>
-        <div className="select-none text-xs font-medium">
+        <div className="select-none pl-4 text-xs font-medium">
             New {label.toLowerCase()} style
         </div>
 

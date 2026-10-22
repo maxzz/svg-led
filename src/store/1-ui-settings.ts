@@ -56,10 +56,6 @@ export interface MonacoSettings {
     minimap: boolean;            // Show the minimap in the code panel
 }
 
-export interface ExportSvgSettings {
-    includeNoneValues: boolean;  // Keep fill="none" / stroke="none" in exported SVG, and write them from the Properties panel
-}
-
 export interface AppSettings {
     theme: ThemeMode;            // Theme mode
     showWelcome: boolean;        // Show the Welcome page at startup
@@ -69,7 +65,6 @@ export interface AppSettings {
     propertySections: PropertySectionsSettings; // Expanded state of collapsible property sections
     prefs: EditorPreferences;
     monaco: MonacoSettings;      // Monaco code editor options
-    exportSvg: ExportSvgSettings; // SVG export options
 }
 
 //---------------------------------------------------------------------------
@@ -107,9 +102,6 @@ const DEFAULT_SETTINGS: AppSettings = {
         fontSize: 10,
         minimap: false,
     },
-    exportSvg: {
-        includeNoneValues: false,
-    },
 };
 
 //---------------------------------------------------------------------------
@@ -133,7 +125,6 @@ function loadSettings(): AppSettings {
                     selectionMode: isSelectionMode(parsed.prefs?.selectionMode) ? parsed.prefs.selectionMode : DEFAULT_SETTINGS.prefs.selectionMode,
                 },
                 monaco: { ...DEFAULT_SETTINGS.monaco, ...parsed.monaco },
-                exportSvg: { ...DEFAULT_SETTINGS.exportSvg, ...parsed.exportSvg },
             };
         }
     } catch (e) {

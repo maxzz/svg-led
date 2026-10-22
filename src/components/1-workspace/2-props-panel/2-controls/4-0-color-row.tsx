@@ -25,7 +25,7 @@ export function ColorRow({ value, swatches, defaultShade = 4, onChange }: ColorR
 
     return (
         <div className="flex flex-col gap-1.5">
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5">
                 {swatches.map(
                     (color) => <Swatch color={color} active={sameColor(color, current)} onClick={() => onChange(color)} key={color} />
                 )}

@@ -26,7 +26,7 @@ export function Island_PropertiesPopup() {
             </button>
 
             <ScrollArea fixedWidth viewportClassName="max-h-[calc(100dvh-10rem)]" className={cn(collapsed && "hidden")}>
-                <div className="px-3 pt-1 pb-3 flex flex-col gap-3">
+                <div className="pl-2 pr-2 pt-1 pb-3 flex flex-col gap-3">
                     {mode === 'selection' && <SelectionProperties />}
                     {mode === 'tool' && <ToolProperties />}
                 </div>

@@ -4,7 +4,6 @@ import { escapeAttr, makeFmt } from "./1-format";
 export type SerializeOptions = {
     precision: number;
     indent?: string;
-    includeNoneValues?: boolean; // Keep fill="none" / stroke="none" attributes; default true
 };
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -13,7 +12,6 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 export function serializeSvg(doc: SvgDoc, options: SerializeOptions): string {
     const f = makeFmt(options.precision);
     const indent = options.indent ?? '    ';
-    const includeNone = options.includeNoneValues ?? true;
 
     const rootAttrs: [string, string][] = [];
     rootAttrs.push(['xmlns', doc.rootAttrs.xmlns ?? SVG_NS]);
@@ -22,7 +20,7 @@ export function serializeSvg(doc: SvgDoc, options: SerializeOptions): string {
         rootAttrs.push(['viewBox', `${f(v.x)} ${f(v.y)} ${f(v.width)} ${f(v.height)}`]);
     }
     for (const [k, v] of Object.entries(doc.rootAttrs)) {
-        if (k !== 'xmlns' && (includeNone || !isNoneAttr(k, v))) {
+        if (k !== 'xmlns') {
             rootAttrs.push([k, v]);
         }
     }
@@ -33,7 +31,7 @@ export function serializeSvg(doc: SvgDoc, options: SerializeOptions): string {
     } else {
         lines.push(`<svg${attrsText(rootAttrs)}>`);
         for (const node of doc.children) {
-            writeNode(node, 1, lines, f, indent, includeNone);
+            writeNode(node, 1, lines, f, indent);
         }
         lines.push('</svg>');
     }
@@ -44,28 +42,27 @@ export function serializeSvg(doc: SvgDoc, options: SerializeOptions): string {
 export function serializeNodes(nodes: readonly SvgNode[], options: SerializeOptions): string {
     const f = makeFmt(options.precision);
     const lines: string[] = [];
-    const includeNone = options.includeNoneValues ?? true;
 
     for (const node of nodes) {
-        writeNode(node, 0, lines, f, options.indent ?? '    ', includeNone);
+        writeNode(node, 0, lines, f, options.indent ?? '    ');
     }
     return lines.join('\n');
 }
 
-function writeNode(node: SvgNode, depth: number, lines: string[], f: (n: number) => string, indent: string, includeNone: boolean): void {
+function writeNode(node: SvgNode, depth: number, lines: string[], f: (n: number) => string, indent: string): void {
     const pad = indent.repeat(depth);
     const tag = node.kind === 'passthrough' ? node.tag : node.kind;
-    const attrs = attrsText(nodeAttrs(node, f, includeNone));
+    const attrs = attrsText(nodeAttrs(node, f));
 
     if (node.kind === 'g') {
         if (!node.children.length) {
             lines.push(`${pad}<g${attrs}/>`);
             return;
         }
-
+        
         lines.push(`${pad}<g${attrs}>`);
         for (const child of node.children) {
-            writeNode(child, depth + 1, lines, f, indent, includeNone);
+            writeNode(child, depth + 1, lines, f, indent);
         }
         lines.push(`${pad}</g>`);
         return;
@@ -79,11 +76,8 @@ function writeNode(node: SvgNode, depth: number, lines: string[], f: (n: number)
     lines.push(`${pad}<${tag}${attrs}/>`);
 }
 
-/**
- * User id attribute first, then geometry, then the remaining attributes in source order. Path `d` is always last.
- * `includeNone` false leaves out `fill="none"` and `stroke="none"`.
- */
-export function nodeAttrs(node: SvgNode, f: (n: number) => string, includeNone = true): [string, string][] {
+/** User id attribute first, then geometry, then the remaining attributes in source order. Path `d` is always last. */
+export function nodeAttrs(node: SvgNode, f: (n: number) => string): [string, string][] {
     const rv: [string, string][] = [];
     if (node.attrs.id !== undefined) {
         rv.push(['id', node.attrs.id]);
@@ -118,7 +112,7 @@ export function nodeAttrs(node: SvgNode, f: (n: number) => string, includeNone =
     }
 
     for (const [k, v] of Object.entries(node.attrs)) {
-        if (k !== 'id' && (includeNone || !isNoneAttr(k, v))) {
+        if (k !== 'id') {
             rv.push([k, v]);
         }
     }
@@ -126,11 +120,6 @@ export function nodeAttrs(node: SvgNode, f: (n: number) => string, includeNone =
         rv.push(['d', node.d]);
     }
     return rv;
-}
-
-/** `fill="none"` and `stroke="none"`: the attributes that the "include none values" export option controls */
-export function isNoneAttr(name: string, value: string): boolean {
-    return (name === 'fill' || name === 'stroke') && value.trim() === 'none';
 }
 
 function attrsText(attrs: [string, string][] | Attrs): string {
