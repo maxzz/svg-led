@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { type SectionProps } from "./9-registry";
 import { Section, Segmented, type SegmentOption } from "../2-controls/2-section";
 import { useStyleWriter } from "./8-style-writer";
+import { PropsCheck } from "./8-props-check";
 
 import { getPresentation } from "@/svg-core";
 import { type DashStyle, presetDashArray } from "@/store/2-persist";
@@ -36,7 +37,8 @@ export function Section_Dash({ mode, ids, nodes }: SectionProps) {
             return;
         }
         setCustomOpen(false);
-        write.selection('stroke-dasharray', presetDashArray(style, w));
+        // Solid is written as `none`, so the checkbox shows that the dash array is set
+        write.selection('stroke-dasharray', presetDashArray(style, w) ?? 'none');
         write.defaults({ dashStyle: style });
     }
 
@@ -46,12 +48,12 @@ export function Section_Dash({ mode, ids, nodes }: SectionProps) {
     }
 
     function commitCustom(dash: string | undefined) {
-        write.selection('stroke-dasharray', dash);
+        write.selection('stroke-dasharray', dash ?? 'none');
         previewCustom(dash);
     }
 
     return (
-        <Section title="Stroke style">
+        <Section title="Stroke style" check={<PropsCheck mode={mode} ids={ids} nodes={nodes} props={['stroke-dasharray']} label="Stroke style" />}>
             <Segmented options={DASH_OPTIONS} value={showCustom ? 'custom' : value === MIXED ? undefined : value} onChange={set} />
             <AnimatePresence initial={false}>
                 {showCustom && (

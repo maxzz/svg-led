@@ -3,10 +3,9 @@ import {
     type GroupNode, type Matrix, type Padding, type FitOptions, type SvgDoc, type SvgNode, type ViewBox, type PathNode, type NodeLocation,
     docToParentMatrix, findNode, fitRectMatrix, isShapeNode, newNodeId, nodeOwnMatrix, parentsMatrix, parseSvg,
     parseSvgFragment, serializeNodes, serializeSvg, setPresentation, shapeToPath, topmostIds, transformNode, translateMatrix,
-    viewBoxAround, walkNodes, makeFmt, isIdentity, multiply, scaleMatrix, reuseNodeIds, type Rect, scaleAround, getPresentation, isNoneAttr,
+    viewBoxAround, walkNodes, makeFmt, isIdentity, multiply, scaleMatrix, reuseNodeIds, type Rect, scaleAround, getPresentation,
     combinePaths, isCompoundPath, releaseCompoundPath,
 } from "@/svg-core";
-import { appSettings } from "../1-ui-settings";
 import { docPrecision, docState } from "./1-doc-store";
 import { type ChangeOrigin, commitHistory, resetHistory } from "./2-doc-history";
 import { nodesDocBBox } from "./3-doc-geometry";
@@ -42,11 +41,6 @@ export function loadSvgText(text: string, options: LoadOptions = {}): { ok: true
 
 export function docToText(doc: SvgDoc = snapshot(docState).doc as SvgDoc): string {
     return serializeSvg(doc, { precision: docPrecision() });
-}
-
-/** Whole document as exported (file save, download, Copy SVG source); the Options > Export settings apply here only */
-export function exportDocText(): string {
-    return serializeSvg(snapshot(docState).doc as SvgDoc, { precision: docPrecision(), includeNoneValues: appSettings.exportSvg.includeNoneValues });
 }
 
 export function nodesToText(ids: readonly string[]): string {
@@ -356,13 +350,32 @@ export function convertToPath(ids: readonly string[]): void {
 // Presentation attributes
 
 export function setNodesPresentation(ids: readonly string[], prop: string, value: string | undefined, mergeKey?: string): void {
-    // With "include none values" off, a `none` paint is not written; the attribute is removed instead
-    const write = value !== undefined && !appSettings.exportSvg.includeNoneValues && isNoneAttr(prop, value) ? undefined : value;
     for (const id of ids) {
         const node = getNodeProxy(id);
-        node && setPresentation(node.attrs, prop, write);
+        node && setPresentation(node.attrs, prop, value);
     }
     commitHistory({ mergeKey: mergeKey ?? `style:${prop}` });
+}
+
+/**
+ * Presence checkboxes. `on` adds each property to the nodes that lack it, with the given value; nodes that already have it keep their value.
+ * `off` removes the properties from all nodes.
+ */
+export function setNodesPresence(ids: readonly string[], props: readonly { prop: string; value: string; }[], on: boolean): void {
+    for (const id of ids) {
+        const node = getNodeProxy(id);
+        if (!node) {
+            continue;
+        }
+        for (const { prop, value } of props) {
+            if (!on) {
+                setPresentation(node.attrs, prop, undefined);
+            } else if (getPresentation(node.attrs, prop) === undefined) {
+                setPresentation(node.attrs, prop, value);
+            }
+        }
+    }
+    commitHistory({ mergeKey: `presence:${props.map((p) => p.prop).join(',')}` });
 }
 
 /** Presentation attributes that Copy style and Paste style carry over */

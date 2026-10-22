@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { useSnapshot } from "valtio";
 import { AnimatePresence, motion } from "motion/react";
 import { appSettings } from "@/store/1-ui-settings";
 import { type SectionProps } from "./9-registry";
 import { type SegmentOption, CollapsibleSection, Segmented, segmentButtonClasses, segmentGroupClasses } from "../2-controls/2-section";
 import { NumberField } from "../2-controls/3-number-field";
+import { PresenceRow } from "../2-controls/5-presence-controls";
 import { useStyleWriter } from "./8-style-writer";
+import { PropsCheck } from "./8-props-check";
 import { Popover, PopoverAnchor, PopoverContent } from "@/ui/shadcn/popover";
 import { Slider } from "@/ui/shadcn/slider";
 
@@ -18,6 +20,9 @@ import { classNames } from "@/utils";
 //---------------------------------------------------------------------------
 // Line caps and joins
 
+const CAP_JOIN_PROPS = ['stroke-linecap', 'stroke-linejoin'];
+const MITER_PROPS = ['stroke-miterlimit'];
+
 export function Section_CapsJoins({ mode, ids, nodes }: SectionProps) {
     const write = useStyleWriter(mode, ids);
     const { propertySections } = useSnapshot(appSettings);
@@ -27,48 +32,59 @@ export function Section_CapsJoins({ mode, ids, nodes }: SectionProps) {
 
     const miterApplies = join === MIXED || join === 'miter'; // The miter limit only affects miter joins, so its field is hidden for round and bevel
 
+    /** Checkbox of one of the properties in this group, in its row */
+    const check = (props: string[], label: string) => <PropsCheck mode={mode} ids={ids} nodes={nodes} props={props} label={label} />;
+
     return (
         <CollapsibleSection
             title="Line caps and joins"
+            gutter
+            /* The group only counts the rows that are shown: the miter limit row is hidden for round and bevel joins */
+            check={check(miterApplies ? [...CAP_JOIN_PROPS, ...MITER_PROPS] : CAP_JOIN_PROPS, 'Line caps and joins')}
             open={propertySections.capsJoinsOpen}
             onOpenChange={(open) => { appSettings.propertySections.capsJoinsOpen = open; }}
         >
-            <div className="flex flex-wrap items-center">
-                <RowPrefix>
-                    Cap
-                </RowPrefix>
-                <Segmented
-                    className={segmentGroupClasses}
-                    buttonClassName={classNames(segmentButtonClasses, "h-6.5 px-0.75")}
-                    options={CAP_OPTIONS} value={cap === MIXED ? undefined : cap}
-                    onChange={(v) => { write.selection('stroke-linecap', v === 'butt' ? undefined : v); write.defaults({ linecap: v }); }}
-                />
-            </div>
+            <PresenceRow check={check(['stroke-linecap'], 'Line cap')}>
+                <div className="flex flex-wrap items-center">
+                    <RowPrefix>
+                        Cap
+                    </RowPrefix>
+                    <Segmented
+                        className={segmentGroupClasses}
+                        buttonClassName={classNames(segmentButtonClasses, "h-6.5 px-0.75")}
+                        options={CAP_OPTIONS} value={cap === MIXED ? undefined : cap}
+                        onChange={(v) => { write.selection('stroke-linecap', v); write.defaults({ linecap: v }); }}
+                    />
+                </div>
+            </PresenceRow>
 
-            <div className="flex flex-wrap items-center">
-                <RowPrefix>
-                    Corner
-                </RowPrefix>
-                <Segmented
-                    className={segmentGroupClasses}
-                    buttonClassName={classNames(segmentButtonClasses, "h-6.5 px-0.75")}
-                    options={JOIN_OPTIONS}
-                    value={join === MIXED ? undefined : join}
-                    onChange={(v) => { write.selection('stroke-linejoin', v === 'miter' ? undefined : v); write.defaults({ linejoin: v }); }}
-                />
-            </div>
+            <PresenceRow check={check(['stroke-linejoin'], 'Line join')}>
+                <div className="flex flex-wrap items-center">
+                    <RowPrefix>
+                        Corner
+                    </RowPrefix>
+                    <Segmented
+                        className={segmentGroupClasses}
+                        buttonClassName={classNames(segmentButtonClasses, "h-6.5 px-0.75")}
+                        options={JOIN_OPTIONS}
+                        value={join === MIXED ? undefined : join}
+                        onChange={(v) => { write.selection('stroke-linejoin', v); write.defaults({ linejoin: v }); }}
+                    />
+                </div>
+            </PresenceRow>
 
             <MiterLimitField
                 visible={miterApplies}
+                check={check(['stroke-miterlimit'], 'Miter limit')}
                 value={miterlimit}
-                onChange={(v) => { write.selection('stroke-miterlimit', v === DEFAULT_MITER_LIMIT ? undefined : String(v)); write.defaults({ miterlimit: v }); }}
+                onChange={(v) => { write.selection('stroke-miterlimit', String(v)); write.defaults({ miterlimit: v }); }}
             />
         </CollapsibleSection>
     );
 }
 
 /** Miter limit field. Shown only for miter joins and animated in and out; its popup slider opens while the field is focused. */
-function MiterLimitField({ visible, value, onChange }: { visible: boolean; value: MaybeMixed<number> | undefined; onChange: (value: number) => void; }) {
+function MiterLimitField({ visible, check, value, onChange }: { visible: boolean; check: ReactNode; value: MaybeMixed<number> | undefined; onChange: (value: number) => void; }) {
     /** Popup is open while the field is focused */
     const [active, setActive] = useState(false);
 
@@ -94,21 +110,23 @@ function MiterLimitField({ visible, value, onChange }: { visible: boolean; value
                     transition={{ duration: 0.2, ease: 'easeOut' }}
                 >
                     <Popover open={active && visible} onOpenChange={setActive}>
-                        <div className="flex items-center p-0.5">
-                            <RowPrefix>
-                                Limit
-                            </RowPrefix>
-                            <PopoverAnchor asChild>
-                                <div className="-ml-1 w-16" data-miter-field onFocus={() => setActive(true)}>
-                                    <NumberField
-                                        value={value}
-                                        min={1}
-                                        step={0.5}
-                                        onChange={onChange}
-                                    />
-                                </div>
-                            </PopoverAnchor>
-                        </div>
+                        <PresenceRow check={check} className="p-0.5">
+                            <div className="flex items-center">
+                                <RowPrefix>
+                                    Limit
+                                </RowPrefix>
+                                <PopoverAnchor asChild>
+                                    <div className="-ml-1 w-16" data-miter-field onFocus={() => setActive(true)}>
+                                        <NumberField
+                                            value={value}
+                                            min={1}
+                                            step={0.5}
+                                            onChange={onChange}
+                                        />
+                                    </div>
+                                </PopoverAnchor>
+                            </div>
+                        </PresenceRow>
 
                         <PopoverContent
                             className="p-2 w-40 flex-row rounded items-center gap-1.5"

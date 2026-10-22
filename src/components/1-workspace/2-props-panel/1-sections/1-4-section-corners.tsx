@@ -8,6 +8,8 @@ import { type SectionProps } from "./9-registry";
 import { Section } from "../2-controls/2-section";
 import { useStyleWriter } from "./8-style-writer";
 
+import { PresenceCheckbox } from "../2-controls/5-presence-controls";
+import { combinePresence } from "../2-controls/5-presence-state";
 import { commitHistory, getNodeProxy } from "@/store/3-document";
 import { NumberField } from "../2-controls/3-number-field";
 import { commonValue } from "../2-controls/1-mixed";
@@ -17,11 +19,40 @@ import { type RectNode } from "@/svg-core";
 //---------------------------------------------------------------------------
 // Rect corners
 
+/** Radius that turning the corner radius on gives a rectangle that has none */
+const DEFAULT_CORNER_RADIUS = 1;
+
 export function Section_RectCorners({ mode, ids, nodes }: SectionProps) {
     const rects = nodes.filter((n): n is RectNode => n.kind === 'rect');
     const rx = commonValue(rects, (r) => r.rx);
     const ry = commonValue(rects, (r) => r.ry);
     const write = useStyleWriter(mode, ids);
+
+    /** Turns the radius on (both radii to the default, where a rectangle has none) or off (both to 0, so neither is written) */
+    function setRoundedCorners(on: boolean) {
+        for (const r of rects) {
+            const node = getNodeProxy(r.id) as RectNode | undefined;
+            if (!node) {
+                continue;
+            }
+            if (!on) {
+                node.rx = 0;
+                node.ry = 0;
+            } else if (node.rx === 0 && node.ry === 0) {
+                node.rx = Math.min(DEFAULT_CORNER_RADIUS, node.width / 2);
+                node.ry = Math.min(DEFAULT_CORNER_RADIUS, node.height / 2);
+            }
+        }
+        commitHistory({ mergeKey: `corners-presence:${ids.join(',')}` });
+    }
+
+    /**
+     * One checkbox for both radii: SVG takes an absent rx from ry, so rx and ry cannot be left out separately.
+     * Checked when a rectangle has a radius.
+     */
+    const check = mode === 'selection'
+        ? <PresenceCheckbox state={combinePresence(rects.map((r) => r.rx !== 0 || r.ry !== 0))} label="Corner radius" onChange={setRoundedCorners} />
+        : undefined;
 
     /** Field whose popup is open (focused); null when closed */
     const [active, setActive] = useState<CornerKey | null>(null);
@@ -97,7 +128,7 @@ export function Section_RectCorners({ mode, ids, nodes }: SectionProps) {
     }
 
     return (
-        <Section title="Corner radius">
+        <Section title="Corner radius" check={check}>
             <Popover open={active !== null} onOpenChange={(open) => !open && setActive(null)}>
                 <PopoverAnchor asChild>
                     <div className="grid grid-cols-2 gap-1">

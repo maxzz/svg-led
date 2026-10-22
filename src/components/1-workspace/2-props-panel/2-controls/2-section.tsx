@@ -2,29 +2,44 @@ import { type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/utils/classnames";
+import { PresenceRow } from "./5-presence-controls";
 
-export function Section({ title, children, className }: { title: string; children: ReactNode; className?: string; }) {
+/** Section of the Properties popup. `check` goes in its left column, beside the title; the body is indented past that column. */
+export function Section({ title, check, children, className }: { title: string; check?: ReactNode; children: ReactNode; className?: string; }) {
     return (
         <section className={cn("flex flex-col gap-1.5", className)}>
-            <h3 className="select-none text-[11px] text-muted-foreground">
-                {title}
-            </h3>
+            <PresenceRow check={check}>
+                <h3 className="select-none text-[11px] text-muted-foreground">
+                    {title}
+                </h3>
+            </PresenceRow>
 
-            {children}
+            <div className="pl-4 flex flex-col gap-1.5">
+                {children}
+            </div>
         </section>
     );
 }
 
-/** Section whose body slides open and closed like an accordion item; the caller owns the open state */
-export function CollapsibleSection({ title, open, onOpenChange, children }: { title: string; open: boolean; onOpenChange: (open: boolean) => void; children: ReactNode; }) {
+/**
+ * Section whose body slides open and closed like an accordion item; the caller owns the open state.
+ * With `gutter`, the title sits after the left column that holds `check`, and the body is laid out by the caller.
+ */
+export function CollapsibleSection({ title, open, onOpenChange, check, gutter = false, children }: {
+    title: string; open: boolean; onOpenChange: (open: boolean) => void; check?: ReactNode; gutter?: boolean; children: ReactNode;
+}) {
+    const heading = (
+        <h3 className="text-[11px]">
+            <button className="select-none w-full text-left text-muted-foreground hover:text-foreground flex items-center gap-1 cursor-pointer" type="button" aria-expanded={open} onClick={() => onOpenChange(!open)}>
+                <ChevronRight className={cn("shrink-0 size-3 transition-transform duration-200", open && "rotate-90")} />
+                {title}
+            </button>
+        </h3>
+    );
+
     return (
         <section className="flex flex-col gap-1.5">
-            <h3 className="text-[11px]">
-                <button className="select-none w-full text-left text-muted-foreground hover:text-foreground flex items-center gap-1 cursor-pointer" type="button" aria-expanded={open} onClick={() => onOpenChange(!open)}>
-                    <ChevronRight className={cn("shrink-0 size-3 transition-transform duration-200", open && "rotate-90")} />
-                    {title}
-                </button>
-            </h3>
+            {gutter ? <PresenceRow check={check}>{heading}</PresenceRow> : heading}
 
             <AnimatePresence initial={false}>
                 {open && (

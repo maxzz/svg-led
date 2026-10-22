@@ -24,7 +24,7 @@ export function SelectionProperties() {
     }
 
     return (<>
-        <div className="select-none text-xs font-medium">
+        <div className="select-none pl-4 text-xs font-medium">
             {nodes.length === 1 ? nodeTitle(nodes[0]) : `${nodes.length} elements`}
         </div>
 

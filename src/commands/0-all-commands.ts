@@ -2,7 +2,7 @@ import { toast } from "sonner";
 import { isShapeNode } from "@/svg-core";
 import { appSettings } from "@/store/1-ui-settings";
 import {
-    type FileResult, commitHistory, convertToPath, copyPngToClipboard, createEmptyDoc, deleteNodes, docState, exportDocText, duplicateNodes,
+    type FileResult, commitHistory, convertToPath, copyPngToClipboard, createEmptyDoc, deleteNodes, docState, docToText, duplicateNodes,
     exportPng, exportSvgDownload, flipNodes, getNodeProxy, groupNodes, historyState, insertSvgMarkup, isPointEditable, moveNodes,
     nodesToText, openSvgFile, readNodeStyle, reorderNodes, saveSvgFile, saveSvgFileAs, topLevelIds, ungroupNodes, writeNodesStyle,
     canMakeCompoundPath, makeCompoundPath, canReleaseCompoundPath, releaseCompoundPaths,
@@ -53,7 +53,7 @@ const FILE: Command[] = [
     {
         id: 'file.copySource', label: 'Copy SVG source', group: 'file',
         run: async () => {
-            await navigator.clipboard.writeText(exportDocText());
+            await navigator.clipboard.writeText(docToText());
             toast.success('SVG source copied');
         },
     },
