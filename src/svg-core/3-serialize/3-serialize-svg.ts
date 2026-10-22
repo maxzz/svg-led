@@ -20,7 +20,7 @@ export function serializeSvg(doc: SvgDoc, options: SerializeOptions): string {
         rootAttrs.push(['viewBox', `${f(v.x)} ${f(v.y)} ${f(v.width)} ${f(v.height)}`]);
     }
     for (const [k, v] of Object.entries(doc.rootAttrs)) {
-        if (k !== 'xmlns') {
+        if (k !== 'xmlns' && !isNoneAttr(k, v)) {
             rootAttrs.push([k, v]);
         }
     }
@@ -112,7 +112,7 @@ export function nodeAttrs(node: SvgNode, f: (n: number) => string): [string, str
     }
 
     for (const [k, v] of Object.entries(node.attrs)) {
-        if (k !== 'id') {
+        if (k !== 'id' && !isNoneAttr(k, v)) {
             rv.push([k, v]);
         }
     }
@@ -120,6 +120,11 @@ export function nodeAttrs(node: SvgNode, f: (n: number) => string): [string, str
         rv.push(['d', node.d]);
     }
     return rv;
+}
+
+/** `fill="none"` and `stroke="none"` are left out of the SVG text */
+function isNoneAttr(name: string, value: string): boolean {
+    return (name === 'fill' || name === 'stroke') && value.trim() === 'none';
 }
 
 function attrsText(attrs: [string, string][] | Attrs): string {
