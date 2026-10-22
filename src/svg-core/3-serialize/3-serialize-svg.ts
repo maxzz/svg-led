@@ -76,7 +76,7 @@ function writeNode(node: SvgNode, depth: number, lines: string[], f: (n: number)
     lines.push(`${pad}<${tag}${attrs}/>`);
 }
 
-/** User id attribute first, then geometry, then the remaining attributes in source order */
+/** User id attribute first, then geometry, then the remaining attributes in source order. Path `d` is always last. */
 export function nodeAttrs(node: SvgNode, f: (n: number) => string): [string, string][] {
     const rv: [string, string][] = [];
     if (node.attrs.id !== undefined) {
@@ -85,7 +85,7 @@ export function nodeAttrs(node: SvgNode, f: (n: number) => string): [string, str
 
     switch (node.kind) {
         case 'path':
-            rv.push(['d', node.d]);
+            // `d` is pushed after the other attributes below
             break;
         case 'rect':
             rv.push(['x', f(node.x)], ['y', f(node.y)], ['width', f(node.width)], ['height', f(node.height)]);
@@ -115,6 +115,9 @@ export function nodeAttrs(node: SvgNode, f: (n: number) => string): [string, str
         if (k !== 'id') {
             rv.push([k, v]);
         }
+    }
+    if (node.kind === 'path') {
+        rv.push(['d', node.d]);
     }
     return rv;
 }
