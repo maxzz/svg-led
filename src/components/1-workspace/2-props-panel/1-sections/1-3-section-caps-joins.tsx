@@ -20,7 +20,8 @@ import { classNames } from "@/utils";
 //---------------------------------------------------------------------------
 // Line caps and joins
 
-const CAPS_JOINS_PROPS = ['stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit'];
+const CAP_JOIN_PROPS = ['stroke-linecap', 'stroke-linejoin'];
+const MITER_PROPS = ['stroke-miterlimit'];
 
 export function Section_CapsJoins({ mode, ids, nodes }: SectionProps) {
     const write = useStyleWriter(mode, ids);
@@ -38,7 +39,8 @@ export function Section_CapsJoins({ mode, ids, nodes }: SectionProps) {
         <CollapsibleSection
             title="Line caps and joins"
             gutter
-            check={check(CAPS_JOINS_PROPS, 'Line caps and joins')}
+            /* The group only counts the rows that are shown: the miter limit row is hidden for round and bevel joins */
+            check={check(miterApplies ? [...CAP_JOIN_PROPS, ...MITER_PROPS] : CAP_JOIN_PROPS, 'Line caps and joins')}
             open={propertySections.capsJoinsOpen}
             onOpenChange={(open) => { appSettings.propertySections.capsJoinsOpen = open; }}
         >
