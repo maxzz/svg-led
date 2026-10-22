@@ -1,5 +1,5 @@
-import { type LucideIcon, Copy, Frame, Group, Spline, Trash, Ungroup } from "lucide-react";
-import { type SvgNode, isShapeNode } from "@/svg-core";
+import { type LucideIcon, Combine, Copy, Frame, Group, Spline, Split, Trash, Ungroup } from "lucide-react";
+import { type SvgNode, isCompoundPath, isShapeNode } from "@/svg-core";
 
 //---------------------------------------------------------------------------
 // Rules for the "Actions" buttons of the selection properties.
@@ -27,6 +27,8 @@ export const SELECTION_ACTION_RULES: readonly SelectionActionRule[] = [
     { commandId: 'edit.delete',          Icon: Trash,   isVisible: always },
     { commandId: 'object.group',         Icon: Group,   isVisible: (nodes) => nodes.length >= 2 },
     { commandId: 'object.ungroup',       Icon: Ungroup, isVisible: (nodes) => nodes.some((n) => n.kind === 'g') },
+    { commandId: 'object.makeCompound',   Icon: Combine, isVisible: (nodes) => nodes.length >= 2 },
+    { commandId: 'object.releaseCompound', Icon: Split,  isVisible: (nodes) => nodes.some((n) => isCompoundPath(n)) },
     { commandId: 'object.convertToPath', Icon: Spline,  isVisible: (nodes) => nodes.some((n) => isShapeNode(n)) },
     { commandId: 'viewbox.fitSelection', Icon: Frame,   isVisible: (_nodes, ctx) => ctx.showViewBox },
 ];

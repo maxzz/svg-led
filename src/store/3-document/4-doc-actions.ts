@@ -1,9 +1,10 @@
 import { snapshot } from "valtio";
 import {
-    type GroupNode, type Matrix, type Padding, type FitOptions, type SvgDoc, type SvgNode, type ViewBox,
+    type GroupNode, type Matrix, type Padding, type FitOptions, type SvgDoc, type SvgNode, type ViewBox, type PathNode, type NodeLocation,
     docToParentMatrix, findNode, fitRectMatrix, isShapeNode, newNodeId, nodeOwnMatrix, parentsMatrix, parseSvg,
     parseSvgFragment, serializeNodes, serializeSvg, setPresentation, shapeToPath, topmostIds, transformNode, translateMatrix,
     viewBoxAround, walkNodes, makeFmt, isIdentity, multiply, scaleMatrix, reuseNodeIds, type Rect, scaleAround, getPresentation, isNoneAttr,
+    combinePaths, isCompoundPath, releaseCompoundPath,
 } from "@/svg-core";
 import { appSettings } from "../1-ui-settings";
 import { docPrecision, docState } from "./1-doc-store";
@@ -270,6 +271,70 @@ export function ungroupNodes(ids: readonly string[]): string[] {
         rv.push(...children.map((c) => c.id));
     }
     commitHistory();
+    return rv;
+}
+
+//---------------------------------------------------------------------------
+// Compound paths
+
+/** Nodes for Make compound path in stacking order (bottom first), or undefined when the ids cannot be joined */
+function compoundJoinCandidates(doc: SvgDoc, ids: readonly string[]): NodeLocation[] | undefined {
+    const locs = topmostIds(doc, ids).map((id) => findNode(doc, id)).filter((l): l is NodeLocation => !!l);
+    if (locs.length < 2 || locs.some((l) => l.siblings !== locs[0].siblings)) {
+        return;
+    }
+    if (locs.some((l) => l.node.kind !== 'path' && !isShapeNode(l.node))) {
+        return;
+    }
+    return locs.sort((a, b) => a.index - b.index);
+}
+
+export function canMakeCompoundPath(ids: readonly string[]): boolean {
+    return !!compoundJoinCandidates(docState.doc, ids);
+}
+
+/** Joins the selected paths and shapes (same parent) into one compound path; returns its id */
+export function makeCompoundPath(ids: readonly string[]): string | undefined {
+    const doc = docState.doc;
+    const locs = compoundJoinCandidates(doc, ids);
+    if (!locs) {
+        return;
+    }
+    const precision = docPrecision();
+    const paths = locs.map((l) => {
+        const node = structuredClone(snapshot(l.node) as SvgNode);
+        return isShapeNode(node) ? shapeToPath(node, precision) : node as PathNode;
+    });
+    const combined = combinePaths(paths, precision);
+
+    const siblings = locs[0].siblings;
+    const topIndex = locs[locs.length - 1].index;
+    for (let k = locs.length - 1; k >= 0; k--) {
+        siblings.splice(locs[k].index, 1);
+    }
+    siblings.splice(topIndex - (locs.length - 1), 0, combined);
+    commitHistory();
+    return combined.id;
+}
+
+export function canReleaseCompoundPath(ids: readonly string[]): boolean {
+    return ids.some((id) => { const n = getNodeProxy(id); return !!n && isCompoundPath(n); });
+}
+
+/** Splits every selected compound path into its subpaths, in place; returns the ids of the new paths */
+export function releaseCompoundPaths(ids: readonly string[]): string[] {
+    const doc = docState.doc;
+    const rv: string[] = [];
+    for (const id of topmostIds(doc, ids)) {
+        const loc = findNode(doc, id);
+        if (!loc || !isCompoundPath(loc.node)) {
+            continue;
+        }
+        const pieces = releaseCompoundPath(structuredClone(snapshot(loc.node) as PathNode), docPrecision());
+        loc.siblings.splice(loc.index, 1, ...pieces);
+        rv.push(...pieces.map((p) => p.id));
+    }
+    rv.length && commitHistory();
     return rv;
 }
 
