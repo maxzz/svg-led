@@ -45,6 +45,11 @@ export interface EditorPreferences {
 }
 
 export interface PropertySectionsSettings {
+    strokeOpen: boolean;         // "Stroke" section is expanded
+    fillOpen: boolean;           // "Fill" section is expanded
+    strokeWidthOpen: boolean;    // "Stroke width" section is expanded
+    strokeStyleOpen: boolean;    // "Stroke style" section is expanded
+    opacityOpen: boolean;        // "Opacity" section is expanded
     bboxOpen: boolean;           // "Position and size" section is expanded
     capsJoinsOpen: boolean;      // "Line caps and joins" section is expanded
     viewBoxFileOpen: boolean;    // "File" section in the ViewBox settings is expanded
@@ -82,6 +87,11 @@ const DEFAULT_SETTINGS: AppSettings = {
         sync: true,
     },
     propertySections: {
+        strokeOpen: true,
+        fillOpen: true,
+        strokeWidthOpen: true,
+        strokeStyleOpen: true,
+        opacityOpen: true,
         bboxOpen: false,
         capsJoinsOpen: false,
         viewBoxFileOpen: false,

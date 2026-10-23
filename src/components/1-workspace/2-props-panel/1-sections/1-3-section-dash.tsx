@@ -2,7 +2,10 @@ import { useState, type KeyboardEvent } from "react";
 import { AnimatePresence, motion } from "motion/react";
 
 import { type SectionProps } from "./9-registry";
-import { Section, Segmented, type SegmentOption } from "../2-controls/2-section";
+import { useSnapshot } from "valtio";
+import { CollapsibleSection, Segmented, type SegmentOption } from "../2-controls/2-section";
+import { PresenceRow } from "../2-controls/5-presence-controls";
+import { appSettings } from "@/store/1-ui-settings";
 import { useStyleWriter } from "./8-style-writer";
 import { PropsCheck } from "./8-props-check";
 
@@ -20,6 +23,7 @@ export function Section_Dash({ mode, ids, nodes }: SectionProps) {
     const dashText = rawDash === MIXED ? '' : normalizeDashArray(rawDash);
     const [customOpen, setCustomOpen] = useState(false);
     const write = useStyleWriter(mode, ids);
+    const { propertySections } = useSnapshot(appSettings);
 
     const widths = nodes.map(
         (n) => Number.parseFloat(getPresentation(n.attrs, 'stroke-width') ?? String(DEFAULT_STROKE_WIDTH)) || DEFAULT_STROKE_WIDTH
@@ -53,27 +57,37 @@ export function Section_Dash({ mode, ids, nodes }: SectionProps) {
     }
 
     return (
-        <Section title="Stroke style" check={<PropsCheck mode={mode} ids={ids} nodes={nodes} props={['stroke-dasharray']} label="Stroke style" />}>
-            <Segmented options={DASH_OPTIONS} value={showCustom ? 'custom' : value === MIXED ? undefined : value} onChange={set} />
-            <AnimatePresence initial={false}>
-                {showCustom && (
-                    <motion.div
-                        className="overflow-hidden px-0.5"
-                        initial={{ height: 0, opacity: 0, marginTop: -GAP_PX, paddingTop: 0, paddingBottom: 0 }}
-                        animate={{ height: 'auto', opacity: 1, marginTop: -RING_PX, paddingTop: RING_PX, paddingBottom: RING_PX }}
-                        exit={{ height: 0, opacity: 0, marginTop: -GAP_PX, paddingTop: 0, paddingBottom: 0 }}
-                        transition={{ duration: 0.2, ease: 'easeOut' }}
-                    >
-                        <DashArrayField
-                            text={dashText}
-                            mixed={rawDash === MIXED}
-                            onPreview={previewCustom}
-                            onCommit={commitCustom}
-                        />
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </Section>
+        <CollapsibleSection
+            title="Stroke style"
+            gutter
+            check={<PropsCheck mode={mode} ids={ids} nodes={nodes} props={['stroke-dasharray']} label="Stroke style" />}
+            open={propertySections.strokeStyleOpen}
+            onOpenChange={(open) => { appSettings.propertySections.strokeStyleOpen = open; }}
+        >
+            <PresenceRow>
+                <div className="flex flex-col gap-1.5">
+                    <Segmented options={DASH_OPTIONS} value={showCustom ? 'custom' : value === MIXED ? undefined : value} onChange={set} />
+                    <AnimatePresence initial={false}>
+                        {showCustom && (
+                            <motion.div
+                                className="overflow-hidden px-0.5"
+                                initial={{ height: 0, opacity: 0, marginTop: -GAP_PX, paddingTop: 0, paddingBottom: 0 }}
+                                animate={{ height: 'auto', opacity: 1, marginTop: -RING_PX, paddingTop: RING_PX, paddingBottom: RING_PX }}
+                                exit={{ height: 0, opacity: 0, marginTop: -GAP_PX, paddingTop: 0, paddingBottom: 0 }}
+                                transition={{ duration: 0.2, ease: 'easeOut' }}
+                            >
+                                <DashArrayField
+                                    text={dashText}
+                                    mixed={rawDash === MIXED}
+                                    onPreview={previewCustom}
+                                    onCommit={commitCustom}
+                                />
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+            </PresenceRow>
+        </CollapsibleSection>
     );
 }
 

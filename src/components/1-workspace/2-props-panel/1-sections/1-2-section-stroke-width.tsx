@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { type SectionProps } from "./9-registry";
-import { Section, Segmented, type SegmentOption } from "../2-controls/2-section";
+import { useSnapshot } from "valtio";
+import { CollapsibleSection, Segmented, type SegmentOption } from "../2-controls/2-section";
 import { NumberField } from "../2-controls/3-number-field";
+import { PresenceRow } from "../2-controls/5-presence-controls";
+import { appSettings } from "@/store/1-ui-settings";
 import { useStyleWriter } from "./8-style-writer";
 import { PropsCheck } from "./8-props-check";
 import { Popover, PopoverAnchor, PopoverContent } from "@/ui/shadcn/popover";
@@ -17,18 +20,27 @@ export function Section_StrokeWidth({ mode, ids, nodes }: SectionProps) {
     const raw = commonValue(nodes, prop('stroke-width'));
     const value = raw === MIXED ? MIXED : raw === undefined ? DEFAULT_STROKE_WIDTH : Number.parseFloat(raw);
     const write = useStyleWriter(mode, ids);
+    const { propertySections } = useSnapshot(appSettings);
     const set = (v: number) => {
         write.selection('stroke-width', String(v));
         write.defaults({ strokeWidth: v });
     };
 
     return (
-        <Section title="Stroke width" check={<PropsCheck mode={mode} ids={ids} nodes={nodes} props={['stroke-width']} label="Stroke width" />}>
-            <div className="flex flex-wrap items-center gap-1">
-                <Segmented options={WIDTH_OPTIONS} value={value === MIXED ? undefined : value} onChange={set} />
-                <StrokeWidthField value={value} onChange={set} />
-            </div>
-        </Section>
+        <CollapsibleSection
+            title="Stroke width"
+            gutter
+            check={<PropsCheck mode={mode} ids={ids} nodes={nodes} props={['stroke-width']} label="Stroke width" />}
+            open={propertySections.strokeWidthOpen}
+            onOpenChange={(open) => { appSettings.propertySections.strokeWidthOpen = open; }}
+        >
+            <PresenceRow>
+                <div className="flex flex-wrap items-center gap-1">
+                    <Segmented options={WIDTH_OPTIONS} value={value === MIXED ? undefined : value} onChange={set} />
+                    <StrokeWidthField value={value} onChange={set} />
+                </div>
+            </PresenceRow>
+        </CollapsibleSection>
     );
 }
 
