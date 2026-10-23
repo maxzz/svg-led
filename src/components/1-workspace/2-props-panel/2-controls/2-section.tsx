@@ -24,10 +24,10 @@ export function Section({ title, check, children, className }: { title: string; 
 /**
  * Section whose body slides open and closed like an accordion item; the caller owns the open state.
  * With `gutter`, the title sits after the left column that holds `check`, and the body is laid out by the caller.
- * `chevron` sets which side of the title the chevron sits on; it defaults to `'after'`.
+ * `chevronBefore` puts the chevron before the title; by default it sits after the title.
  */
-export function CollapsibleSection({ title, open, onOpenChange, check, gutter = false, chevron = 'after', children }: {
-    title: string; open: boolean; onOpenChange: (open: boolean) => void; check?: ReactNode; gutter?: boolean; chevron?: 'before' | 'after'; children: ReactNode;
+export function CollapsibleSection({ title, open, onOpenChange, check, gutter = false, chevronBefore, children }: {
+    title: string; open: boolean; onOpenChange: (open: boolean) => void; check?: ReactNode; gutter?: boolean; chevronBefore?: boolean; children: ReactNode;
 }) {
     const chevronIcon = (
         <ChevronRight className={cn("shrink-0 size-3 transition-transform duration-200", open && "rotate-90")} />
@@ -36,9 +36,9 @@ export function CollapsibleSection({ title, open, onOpenChange, check, gutter = 
     const heading = (
         <h3 className="text-[11px]">
             <button className="select-none w-full text-left text-muted-foreground hover:text-foreground flex items-center gap-1 cursor-pointer" type="button" aria-expanded={open} onClick={() => onOpenChange(!open)}>
-                {chevron === 'before' && chevronIcon}
+                {chevronBefore && chevronIcon}
                 {title}
-                {chevron === 'after' && chevronIcon}
+                {!chevronBefore && chevronIcon}
             </button>
         </h3>
     );
