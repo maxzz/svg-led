@@ -4,6 +4,7 @@ import { cn } from "@/utils/classnames";
 import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
 import { IconRadix_ChevronDown } from "@/ui/icons/normal/radix-icons/07-chevron-down";
 import { IconRadix_Cross1 } from "@/ui/icons/normal/radix-icons/11-cross-1";
+
 export type ComboFieldProps = {
     label?: string;
     /** Committed text. The draft follows it whenever it changes from outside (undo, canvas selection, a valid commit). */
@@ -25,6 +26,7 @@ export type ComboFieldProps = {
 /**
  * Text input with a history drop-down on the right (MRU list).
  * Each history row shows an X on hover that removes that entry.
+ * When the history is empty the drop-down shows a single "empty" row that just closes it.
  * Stateless about the list itself: the owner supplies `items` and handles `onCommit` / `onRemoveItem`.
  */
 export function ComboField({ label, value, placeholder, items, onChange, onCommit, onRemoveItem, onEscape, className }: ComboFieldProps) {
@@ -81,50 +83,48 @@ export function ComboField({ label, value, placeholder, items, onChange, onCommi
     }
 
     return (
-        <Popover open={menuOpen && items.length > 0} onOpenChange={setMenuOpen}>
+        <Popover open={menuOpen} onOpenChange={setMenuOpen}>
             <PopoverAnchor asChild>
                 <div
                     className={cn(
-                        "flex items-center gap-1 pl-1.5 h-5.5 min-w-0 text-xs bg-muted/60 rounded overflow-hidden",
+                        "flex items-stretch h-5.5 min-w-0 text-xs bg-muted/60 rounded overflow-hidden",
                         invalid ? "ring-1 ring-red-500" : "focus-within:ring-1 focus-within:ring-(--editor-accent)",
                         className,
                     )}
                 >
-                    {label && (
-                        <span className="shrink-0 select-none text-[10px] text-muted-foreground">
-                            {label}
-                        </span>
-                    )}
+                    <div className="flex flex-1 items-center gap-1 pl-1.5 min-w-0">
+                        {label && (
+                            <span className="shrink-0 select-none text-[10px] text-muted-foreground">
+                                {label}
+                            </span>
+                        )}
 
-                    <input
-                        className={cn("w-full min-w-0 tabular-nums bg-transparent outline-none font-condensed", invalid && "text-red-500")}
-                        value={draft}
-                        placeholder={placeholder}
-                        aria-invalid={invalid}
-                        onChange={(e) => {
-                            setDraft(e.currentTarget.value);
-                            onChange?.(e.currentTarget.value);
-                        }}
-                        onBlur={onBlur}
-                        onKeyDown={onKeyDown}
-                    />
-
-                    {/* Divider + history button: flush to the right edge and the full height of the field */}
-                    <div className="flex self-stretch shrink-0 -mr-1.5">
-                        <span className="self-stretch w-px bg-border" aria-hidden />
-
-                        <PopoverTrigger asChild>
-                            <button
-                                ref={buttonRef}
-                                type="button"
-                                aria-label="Show history"
-                                disabled={items.length === 0}
-                                className="self-stretch w-6 grid place-items-center text-foreground hover:bg-foreground/10 disabled:opacity-40 disabled:pointer-events-none"
-                            >
-                                <IconRadix_ChevronDown className="size-3" />
-                            </button>
-                        </PopoverTrigger>
+                        <input
+                            className={cn("w-full min-w-0 tabular-nums bg-transparent outline-none font-condensed", invalid && "text-red-500")}
+                            value={draft}
+                            placeholder={placeholder}
+                            aria-invalid={invalid}
+                            onChange={(e) => {
+                                setDraft(e.currentTarget.value);
+                                onChange?.(e.currentTarget.value);
+                            }}
+                            onBlur={onBlur}
+                            onKeyDown={onKeyDown}
+                        />
                     </div>
+
+                    <span className="w-px shrink-0 bg-border" aria-hidden />
+
+                    <PopoverTrigger asChild>
+                        <button
+                            ref={buttonRef}
+                            type="button"
+                            aria-label="Show history"
+                            className="w-6 shrink-0 grid place-items-center text-foreground hover:bg-foreground/10"
+                        >
+                            <IconRadix_ChevronDown className="size-3" />
+                        </button>
+                    </PopoverTrigger>
                 </div>
             </PopoverAnchor>
 
@@ -150,6 +150,18 @@ export function ComboField({ label, value, placeholder, items, onChange, onCommi
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.12, ease: 'easeOut' }}
                 >
+                    {items.length === 0 && (
+                        <li>
+                            <button
+                                type="button"
+                                className="w-full px-1.5 py-1 text-left text-muted-foreground"
+                                onClick={() => setMenuOpen(false)}
+                            >
+                                History is empty
+                            </button>
+                        </li>
+                    )}
+
                     {items.map((item) => (
                         <li key={item} className="group flex items-center gap-1 rounded hover:bg-muted">
                             <button
