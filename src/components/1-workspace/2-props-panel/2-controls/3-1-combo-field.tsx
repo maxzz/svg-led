@@ -83,22 +83,22 @@ export function ComboField({ label, value, placeholder, items, onChange, onCommi
     }
 
     return (
+        <div className={cn("flex items-center gap-1.5 min-w-0 text-xs", className)}>
+            {label && (
+                <span className="shrink-0 select-none text-[10px] text-muted-foreground">
+                    {label}
+                </span>
+            )}
+
         <Popover open={menuOpen} onOpenChange={setMenuOpen}>
             <PopoverAnchor asChild>
                 <div
                     className={cn(
-                        "flex items-stretch h-5.5 min-w-0 text-xs bg-muted/60 rounded overflow-hidden",
+                        "flex flex-1 items-stretch h-5.5 min-w-0 text-xs bg-muted/60 rounded overflow-hidden",
                         invalid ? "ring-1 ring-red-500" : "focus-within:ring-1 focus-within:ring-(--editor-accent)",
-                        className,
                     )}
                 >
-                    <div className="flex flex-1 items-center gap-1 pl-1.5 min-w-0">
-                        {label && (
-                            <span className="shrink-0 select-none text-[10px] text-muted-foreground">
-                                {label}
-                            </span>
-                        )}
-
+                    <div className="flex flex-1 items-center pl-1.5 min-w-0">
                         <input
                             className={cn("w-full min-w-0 tabular-nums bg-transparent outline-none font-condensed", invalid && "text-red-500")}
                             value={draft}
@@ -188,5 +188,6 @@ export function ComboField({ label, value, placeholder, items, onChange, onCommi
                 </motion.ul>
             </PopoverContent>
         </Popover>
+        </div>
     );
 }

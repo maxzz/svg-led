@@ -148,7 +148,6 @@ function DashArrayField({ text, mixed, history, onPreview, onCommit, onEscape }:
         <ComboField
             label="Dash"
             value={text}
-            placeholder={mixed ? 'Mixed' : 'e.g. 6 2 1 2'}
             items={history}
             onChange={(raw) => {
                 const parsed = parseDashArray(raw);
