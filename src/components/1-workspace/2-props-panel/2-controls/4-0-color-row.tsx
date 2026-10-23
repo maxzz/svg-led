@@ -2,6 +2,7 @@ import { useState, type KeyboardEvent } from "react";
 import { cn } from "@/utils/classnames";
 import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
 
+import { activeButtonClasses } from "./2-section";
 import { MIXED, type MaybeMixed } from "./1-mixed";
 import { EyeDropperButton, hasEyeDropper } from "./4-2-eyedropper-button";
 
@@ -34,7 +35,7 @@ export function ColorRow({ value, swatches, defaultShade = 4, onChange }: ColorR
 
                 <Popover open={open} onOpenChange={setOpen}>
                     <PopoverTrigger asChild>
-                        <button className="relative size-5 ring-1 ring-foreground/15 rounded-md overflow-hidden cursor-pointer" style={{ background: CHECKERS }} title="Pick a color" type="button">
+                        <button className="relative size-5 ring-1 ring-foreground/15 rounded overflow-hidden cursor-pointer" style={{ background: CHECKERS }} title="Pick a color" type="button">
                             {isPaint(current) && <span className="absolute inset-0" style={{ background: current }} />}
                         </button>
                     </PopoverTrigger>
@@ -296,7 +297,7 @@ function PickerButton({ current }: { current: string; }) {
 function PaletteCellButton({ color, label, title, active, onClick }: { color: string; label: string; title: string; active: boolean; onClick: () => void; }) {
     return (
         <button
-            className={cn("relative size-8 ring-1 ring-foreground/15 rounded-md cursor-pointer", active && "ring-2 ring-(--editor-accent) ring-offset-1 ring-offset-background")}
+            className={cn("relative size-8 ring-1 ring-foreground/15 rounded-md cursor-pointer", active && activeButtonClasses)}
             style={{ background: color === 'none' ? CHECKERS : color }}
             onClick={onClick}
             title={title}
@@ -345,7 +346,7 @@ function isDarkHex(color: string): boolean {
 function Swatch({ color, active, onClick }: { color: string; active: boolean; onClick: () => void; }) {
     return (
         <button
-            className={cn("size-5 ring-1 ring-foreground/15 rounded-md cursor-pointer", active && "ring-2 ring-(--editor-accent) ring-offset-1 ring-offset-background")}
+            className={cn("size-5 ring-1 ring-foreground/15 rounded cursor-pointer", active && activeButtonClasses)}
             style={{ background: color === 'none' ? CHECKERS : color }}
             onClick={onClick}
             title={color}

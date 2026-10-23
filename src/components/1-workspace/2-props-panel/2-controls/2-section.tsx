@@ -85,7 +85,7 @@ export function Segmented<T extends string | number>({ options, value, onChange,
         <div className={cn("flex flex-wrap items-center gap-1", className)}>
             {options.map(
                 (o) => (
-                    <button className={cn(optionButtonClasses, buttonClassName)} data-active={o.value === value} title={o.title} onClick={() => onChange(o.value)} type="button" key={String(o.value)}>
+                    <button className={cn(optionButtonClasses, buttonClassName, o.value === value && activeButtonClasses)} data-active={o.value === value} title={o.title} onClick={() => onChange(o.value)} type="button" key={String(o.value)}>
                         {o.label}
                     </button>
                 )
@@ -102,25 +102,23 @@ text-foreground/80 \
 bg-muted/60 \
 hover:bg-muted \
 \
-data-[active=true]:ring-1 \
 data-[active=true]:text-(--editor-accent) \
 data-[active=true]:bg-(--editor-accent)/12 \
-data-[active=true]:ring-(--editor-accent)/40 \
 \
 disabled:opacity-40 \
-rounded-md \
+rounded \
 flex items-center justify-center \
 cursor-pointer";
 
 /** Container for a Segmented row that reads as one control: a single outlined box with dividers between the options */
-export const segmentGroupClasses = "gap-0 rounded-md border border-foreground/15";
+export const segmentGroupClasses = "gap-0 rounded border border-foreground/15";
 
 /** Button classes for a Segmented row shown as one control: square corners, divider on the right of each option */
 export const segmentButtonClasses = "\
 px-1 \
 rounded-none \
-first:rounded-l-[7px] \
-last:rounded-r-[7px] \
+first:rounded-l-[3px] \
+last:rounded-r-[3px] \
 border-r \
 border-foreground/15 \
 last:border-r-0 \
@@ -134,3 +132,5 @@ focus-visible:z-10 \
 focus-visible:outline-none \
 focus-visible:ring-1 \
 focus-visible:ring-(--editor-accent)";
+
+export const activeButtonClasses = "ring-1 ring-(--editor-accent) ring-offset-1 ring-offset-background";
