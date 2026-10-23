@@ -1,7 +1,7 @@
 import { useId, type ReactNode } from "react";
 import { useSnapshot } from "valtio";
 import { Monitor, Moon, RefreshCw, Sun } from "lucide-react";
-import { appSettings, SelectionMode, WelcomeTransition } from "@/store/1-ui-settings";
+import { appSettings, HintPlacement, SelectionMode, WelcomeTransition } from "@/store/1-ui-settings";
 import { type ThemeMode } from "@/utils/theme-apply";
 import { cn } from "@/utils/classnames";
 import { Label } from "@/ui/shadcn/label";
@@ -23,6 +23,7 @@ export function Tab_General() {
             <SubHeader>Canvas</SubHeader>
             <FitAvoidsPropertiesSwitch />
             <HintIslandSwitch />
+            <HintPlacementSelect />
             <SelectionModeSelect />
         </div>
     );
@@ -137,6 +138,45 @@ function HintIslandSwitch() {
         </div>
     );
 }
+
+//---------------------------------------------------------------------------
+
+function HintPlacementSelect() {
+    const { prefs } = useSnapshot(appSettings);
+    const id = useId();
+
+    return (
+        <div className="flex items-center justify-between gap-4">
+            <OptionLabel
+                htmlFor={id}
+                tip="Where the tool hint line is shown: under the main toolbar, or in the bottom row between the Zoom/Undo and Help islands."
+            >
+                Hint position
+            </OptionLabel>
+
+            <Select value={prefs.hintPlacement} onValueChange={(value) => { appSettings.prefs.hintPlacement = value as HintPlacement; }}>
+                <SelectTrigger id={id} className="min-w-36" size="sm">
+                    <SelectValue />
+                </SelectTrigger>
+
+                <SelectContent position="popper" align="end">
+                    {HINT_PLACEMENT_ITEMS.map(
+                        ([label, value]) => (
+                            <SelectItem value={value} key={value}>
+                                {label}
+                            </SelectItem>
+                        )
+                    )}
+                </SelectContent>
+            </Select>
+        </div>
+    );
+}
+
+const HINT_PLACEMENT_ITEMS: readonly (readonly [label: string, value: HintPlacement])[] = [
+    ["Top", HintPlacement.top],
+    ["Bottom", HintPlacement.bottom],
+];
 
 //---------------------------------------------------------------------------
 

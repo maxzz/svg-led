@@ -1,19 +1,31 @@
 ﻿import { useAtomValue } from "jotai";
 import { useSnapshot } from "valtio";
-import { appSettings } from "@/store/1-ui-settings";
+import { appSettings, HintPlacement } from "@/store/1-ui-settings";
+import { cn } from "@/utils/classnames";
 import { toolHintAtom } from "../3-2-island-main-toolbar/9-atoms-toolbar";
 import { HintText } from "./1-hint-text";
 
-/** Hint line under the toolbar for the active tool; hidden when the option is off */
-export function Island_Hint() {
+/**
+ * Hint line for the active tool. Renders only in its own placement slot.
+ * The slot has a fixed height and keeps its place even when the hint is off,
+ * so neighbouring islands never shift and the text never wraps or grows.
+ */
+export function Island_Hint({ placement }: { placement: HintPlacement; }) {
     const hint = useAtomValue(toolHintAtom);
     const { prefs } = useSnapshot(appSettings);
 
-    if (!prefs.showHintIsland) return null;
+    if (prefs.hintPlacement !== placement) return null;
 
     return (
-        <div className="select-none px-2 text-[11px] text-muted-foreground/60 text-center">
-            <HintText text={hint} />
+        <div className={cn(
+            "select-none min-w-0 px-2 text-[11px] text-muted-foreground/60 flex items-center",
+            placement === HintPlacement.top ? "h-6 w-full" : "h-9 flex-1",
+        )}>
+            {prefs.showHintIsland && (
+                <div className="w-full truncate text-center">
+                    <HintText text={hint} />
+                </div>
+            )}
         </div>
     );
 }
