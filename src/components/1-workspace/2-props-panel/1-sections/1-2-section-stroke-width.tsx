@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { type SectionProps } from "./9-registry";
 import { useSnapshot } from "valtio";
-import { CollapsibleSection, Segmented, type SegmentOption } from "../2-controls/2-section";
+import { CollapsibleSection, Segmented, segmentSizeClasses, type SegmentOption } from "../2-controls/2-section";
 import { NumberField } from "../2-controls/3-number-field";
 import { PresenceRow } from "../2-controls/5-presence-controls";
 import { appSettings } from "@/store/1-ui-settings";
@@ -36,7 +36,7 @@ export function Section_StrokeWidth({ mode, ids, nodes }: SectionProps) {
         >
             <PresenceRow>
                 <div className="flex flex-wrap items-center gap-1">
-                    <Segmented options={WIDTH_OPTIONS} value={value === MIXED ? undefined : value} onChange={set} />
+                    <Segmented options={WIDTH_OPTIONS} value={value === MIXED ? undefined : value} onChange={set} buttonClassName={segmentSizeClasses} />
                     <StrokeWidthField value={value} onChange={set} />
                 </div>
             </PresenceRow>

@@ -25,16 +25,16 @@ export function ColorRow({ value, swatches, defaultShade = 4, onChange }: ColorR
 
     return (
         <div className="flex flex-col gap-1.5">
-            <div className="flex items-center gap-0.5">
+            <div className="flex items-center gap-1.5">
                 {swatches.map(
                     (color) => <Swatch color={color} active={sameColor(color, current)} onClick={() => onChange(color)} key={color} />
                 )}
 
-                <div className="mx-0.5 w-px h-5 bg-border" />
+                <div className="mx-0.5 w-px h-4 bg-border" />
 
                 <Popover open={open} onOpenChange={setOpen}>
                     <PopoverTrigger asChild>
-                        <button className="relative size-6 ring-1 ring-foreground/15 rounded-md overflow-hidden cursor-pointer" style={{ background: CHECKERS }} title="Pick a color" type="button">
+                        <button className="relative size-5 ring-1 ring-foreground/15 rounded-md overflow-hidden cursor-pointer" style={{ background: CHECKERS }} title="Pick a color" type="button">
                             {isPaint(current) && <span className="absolute inset-0" style={{ background: current }} />}
                         </button>
                     </PopoverTrigger>
@@ -345,7 +345,7 @@ function isDarkHex(color: string): boolean {
 function Swatch({ color, active, onClick }: { color: string; active: boolean; onClick: () => void; }) {
     return (
         <button
-            className={cn("size-6 ring-1 ring-foreground/15 rounded-md cursor-pointer", active && "ring-2 ring-(--editor-accent) ring-offset-1 ring-offset-background")}
+            className={cn("size-5 ring-1 ring-foreground/15 rounded-md cursor-pointer", active && "ring-2 ring-(--editor-accent) ring-offset-1 ring-offset-background")}
             style={{ background: color === 'none' ? CHECKERS : color }}
             onClick={onClick}
             title={color}

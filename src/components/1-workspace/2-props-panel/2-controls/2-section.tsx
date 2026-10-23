@@ -50,10 +50,10 @@ export function CollapsibleSection({ title, open, onOpenChange, check, gutter = 
             <AnimatePresence initial={false}>
                 {open && (
                     <motion.div
-                        className="overflow-hidden flex flex-col gap-1.5"
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden flex flex-col gap-1.5 -mx-1 px-1"
+                        initial={{ height: 0, opacity: 0, marginTop: -BODY_GAP_PX, paddingTop: 0, paddingBottom: 0 }}
+                        animate={{ height: 'auto', opacity: 1, marginTop: -BODY_RING_PX, paddingTop: BODY_RING_PX, paddingBottom: BODY_RING_PX }}
+                        exit={{ height: 0, opacity: 0, marginTop: -BODY_GAP_PX, paddingTop: 0, paddingBottom: 0 }}
                         transition={{ duration: 0.2, ease: 'easeOut' }}
                     >
                         {children}
@@ -63,6 +63,14 @@ export function CollapsibleSection({ title, open, onOpenChange, check, gutter = 
         </section>
     );
 }
+
+/** Room inside a collapsible body for selection rings, which its overflow-hidden would otherwise clip. Offset by a negative margin, so the layout does not change. */
+const BODY_RING_PX = 4;
+/** Must match the `gap-1.5` between a collapsible body and its heading (0.375rem) */
+const BODY_GAP_PX = 6;
+
+/** Size of the square-ish option buttons (22px), shared by the stroke width, stroke style, caps and corner rows */
+export const segmentSizeClasses = "h-5.5 min-w-5.5";
 
 export type SegmentOption<T extends string | number> = { value: T; label: ReactNode; title?: string; };
 

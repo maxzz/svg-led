@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "motion/react";
 
 import { type SectionProps } from "./9-registry";
 import { useSnapshot } from "valtio";
-import { CollapsibleSection, Segmented, type SegmentOption } from "../2-controls/2-section";
+import { CollapsibleSection, Segmented, segmentSizeClasses, type SegmentOption } from "../2-controls/2-section";
 import { PresenceRow } from "../2-controls/5-presence-controls";
 import { appSettings } from "@/store/1-ui-settings";
 import { useStyleWriter } from "./8-style-writer";
@@ -66,7 +66,7 @@ export function Section_Dash({ mode, ids, nodes }: SectionProps) {
         >
             <PresenceRow>
                 <div className="flex flex-col gap-1.5">
-                    <Segmented options={DASH_OPTIONS} value={showCustom ? 'custom' : value === MIXED ? undefined : value} onChange={set} />
+                    <Segmented options={DASH_OPTIONS} value={showCustom ? 'custom' : value === MIXED ? undefined : value} onChange={set} buttonClassName={segmentSizeClasses} />
                     <AnimatePresence initial={false}>
                         {showCustom && (
                             <motion.div
