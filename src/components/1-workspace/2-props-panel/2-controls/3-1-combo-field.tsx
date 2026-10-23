@@ -85,7 +85,7 @@ export function ComboField({ label, value, placeholder, items, onChange, onCommi
             <PopoverAnchor asChild>
                 <div
                     className={cn(
-                        "flex items-center gap-1 px-1.5 h-5.5 min-w-0 text-xs bg-muted/60 rounded",
+                        "flex items-center gap-1 pl-1.5 h-5.5 min-w-0 text-xs bg-muted/60 rounded overflow-hidden",
                         invalid ? "ring-1 ring-red-500" : "focus-within:ring-1 focus-within:ring-(--editor-accent)",
                         className,
                     )}
@@ -109,19 +109,22 @@ export function ComboField({ label, value, placeholder, items, onChange, onCommi
                         onKeyDown={onKeyDown}
                     />
 
-                    <span className="self-stretch shrink-0 w-px bg-border" aria-hidden />
+                    {/* Divider + history button: flush to the right edge and the full height of the field */}
+                    <div className="flex self-stretch shrink-0 -mr-1.5">
+                        <span className="self-stretch w-px bg-border" aria-hidden />
 
-                    <PopoverTrigger asChild>
-                        <button
-                            ref={buttonRef}
-                            type="button"
-                            aria-label="Show history"
-                            disabled={items.length === 0}
-                            className="shrink-0 grid place-items-center size-4 rounded text-foreground hover:bg-foreground/10 disabled:opacity-40 disabled:pointer-events-none"
-                        >
-                            <IconRadix_ChevronDown className="size-3" />
-                        </button>
-                    </PopoverTrigger>
+                        <PopoverTrigger asChild>
+                            <button
+                                ref={buttonRef}
+                                type="button"
+                                aria-label="Show history"
+                                disabled={items.length === 0}
+                                className="self-stretch w-6 grid place-items-center text-foreground hover:bg-foreground/10 disabled:opacity-40 disabled:pointer-events-none"
+                            >
+                                <IconRadix_ChevronDown className="size-3" />
+                            </button>
+                        </PopoverTrigger>
+                    </div>
                 </div>
             </PopoverAnchor>
 
