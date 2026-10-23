@@ -2,24 +2,8 @@ import { useRef, useState, type FocusEvent, type KeyboardEvent } from "react";
 import { motion } from "motion/react";
 import { cn } from "@/utils/classnames";
 import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
-
-// Inline SVGs so the icons don't depend on the global symbol sprite being mounted; they draw in `currentColor`.
-function ChevronDownIcon({ className }: { className?: string; }) {
-    return (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
-            <path d="M6 9l6 6 6-6" />
-        </svg>
-    );
-}
-
-function CrossIcon({ className }: { className?: string; }) {
-    return (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
-            <path d="M6 6l12 12M18 6L6 18" />
-        </svg>
-    );
-}
-
+import { IconRadix_ChevronDown } from "@/ui/icons/normal/radix-icons/07-chevron-down";
+import { IconRadix_Cross1 } from "@/ui/icons/normal/radix-icons/11-cross-1";
 export type ComboFieldProps = {
     label?: string;
     /** Committed text. The draft follows it whenever it changes from outside (undo, canvas selection, a valid commit). */
@@ -135,7 +119,7 @@ export function ComboField({ label, value, placeholder, items, onChange, onCommi
                             disabled={items.length === 0}
                             className="shrink-0 grid place-items-center size-4 rounded text-foreground hover:bg-foreground/10 disabled:opacity-40 disabled:pointer-events-none"
                         >
-                            <ChevronDownIcon className="size-2.5" />
+                            <IconRadix_ChevronDown className="size-3" />
                         </button>
                     </PopoverTrigger>
                 </div>
@@ -182,7 +166,7 @@ export function ComboField({ label, value, placeholder, items, onChange, onCommi
                                     onRemoveItem(item);
                                 }}
                             >
-                                <CrossIcon className="size-2.5" />
+                                <IconRadix_Cross1 className="size-2.5" />
                             </button>
                         </li>
                     ))}
