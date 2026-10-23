@@ -121,12 +121,12 @@ function DashArrayField({ text, mixed, onPreview, onCommit }: { text: string; mi
     }
 
     return (
-        <label className="px-1.5 h-5.5 min-w-0 text-xs bg-muted/60 focus-within:ring-1 focus-within:ring-(--editor-accent) rounded-md flex items-center gap-1">
+        <label className="px-1.5 h-5.5 min-w-0 text-xs bg-muted/60 focus-within:ring-1 focus-within:ring-(--editor-accent) rounded flex items-center gap-1">
             <span className="shrink-0 select-none text-[10px] text-muted-foreground">
                 Dash
             </span>
             <input
-                className="w-full min-w-0 tabular-nums bg-transparent outline-none"
+                className="w-full min-w-0 tabular-nums bg-transparent outline-none font-condensed"
                 defaultValue={text}
                 placeholder={mixed ? 'Mixed' : 'e.g. 6 2 1 2'}
                 onChange={(e) => {

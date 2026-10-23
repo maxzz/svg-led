@@ -47,7 +47,7 @@ export function ColorRow({ value, swatches, defaultShade = 4, onChange }: ColorR
             </div>
 
             <input
-                className="px-1.5 h-7 font-mono text-[11px] bg-muted/60 focus:ring-1 focus:ring-(--editor-accent) outline-none rounded-md"
+                className="px-1.5 h-5.5 font-condensed tracking-wider text-[11px] bg-muted/60 focus:ring-1 focus:ring-(--editor-accent) outline-none rounded"
                 defaultValue={current}
                 placeholder={value === MIXED ? 'Mixed' : 'none'}
                 spellCheck={false}
