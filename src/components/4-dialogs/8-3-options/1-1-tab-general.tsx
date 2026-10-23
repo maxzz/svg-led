@@ -129,7 +129,7 @@ function PinPropertiesSwitch() {
         <div className="flex items-center justify-between gap-4">
             <OptionLabel
                 htmlFor={id}
-                tip="Keep the Properties panel on screen when the selection changes or is cleared. It shows \"Nothing selected\" when there is nothing to edit. The same setting is the pin button in the panel header."
+                tip="Keep the Properties panel on screen when the selection changes or is cleared. It shows Nothing selected when there is nothing to edit. The same setting is the pin button in the panel header."
             >
                 Pin Properties panel
             </OptionLabel>
