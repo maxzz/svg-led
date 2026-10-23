@@ -172,7 +172,7 @@ const DASH_OPTIONS: SegmentOption<DashStyle>[] = [
     { value: 'solid', label: <DashIcon dash="" />, title: 'Solid' },
     { value: 'dashed', label: <DashIcon dash="4 2" />, title: 'Dashed' },
     { value: 'dotted', label: <DashIcon dash="1 2" />, title: 'Dotted' },
-    { value: 'custom', label: 'Custom', title: 'Custom dash array' },
+    { value: 'custom', label: <span className="px-1.5">Custom</span>, title: 'Custom dash array' },
 ];
 
 function DashIcon({ dash }: { dash: string; }) {

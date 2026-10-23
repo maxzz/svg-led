@@ -69,8 +69,8 @@ const BODY_RING_PX = 4;
 /** Must match the `gap-1.5` between a collapsible body and its heading (0.375rem) */
 const BODY_GAP_PX = 6;
 
-/** Size of the square-ish option buttons (22px), shared by the stroke width, stroke style, caps and corner rows */
-export const segmentSizeClasses = "h-5.5 min-w-5.5";
+/** Size of the option buttons (22px), shared by the stroke width and stroke style rows. No horizontal padding, so icon buttons are square; text labels add their own padding. */
+export const segmentSizeClasses = "h-5.5 min-w-5.5 px-0";
 
 export type SegmentOption<T extends string | number> = { value: T; label: ReactNode; title?: string; };
 
