@@ -2,8 +2,23 @@ import { useRef, useState, type FocusEvent, type KeyboardEvent } from "react";
 import { motion } from "motion/react";
 import { cn } from "@/utils/classnames";
 import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
-import { SymbolChevronDown } from "@/ui/icons/symbols/all-other/20-chevron-down";
-import { SymbolCross } from "@/ui/icons/symbols/all-other/13-cross";
+
+// Inline SVGs so the icons don't depend on the global symbol sprite being mounted; they draw in `currentColor`.
+function ChevronDownIcon({ className }: { className?: string; }) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
+            <path d="M6 9l6 6 6-6" />
+        </svg>
+    );
+}
+
+function CrossIcon({ className }: { className?: string; }) {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
+            <path d="M6 6l12 12M18 6L6 18" />
+        </svg>
+    );
+}
 
 export type ComboFieldProps = {
     label?: string;
@@ -110,15 +125,17 @@ export function ComboField({ label, value, placeholder, items, onChange, onCommi
                         onKeyDown={onKeyDown}
                     />
 
+                    <span className="self-stretch shrink-0 w-px bg-border" aria-hidden />
+
                     <PopoverTrigger asChild>
                         <button
                             ref={buttonRef}
                             type="button"
                             aria-label="Show history"
                             disabled={items.length === 0}
-                            className="shrink-0 grid place-items-center size-4 rounded text-muted-foreground hover:text-foreground hover:bg-foreground/10 disabled:opacity-40 disabled:pointer-events-none"
+                            className="shrink-0 grid place-items-center size-4 rounded text-foreground hover:bg-foreground/10 disabled:opacity-40 disabled:pointer-events-none"
                         >
-                            <SymbolChevronDown className="size-2.5" />
+                            <ChevronDownIcon className="size-2.5" />
                         </button>
                     </PopoverTrigger>
                 </div>
@@ -159,13 +176,13 @@ export function ComboField({ label, value, placeholder, items, onChange, onCommi
                             <button
                                 type="button"
                                 aria-label={`Remove ${item}`}
-                                className="shrink-0 mr-1 grid place-items-center size-4 rounded text-muted-foreground opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:text-foreground hover:bg-foreground/10"
+                                className="shrink-0 mr-1 grid place-items-center size-4 rounded text-foreground opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:bg-foreground/10"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     onRemoveItem(item);
                                 }}
                             >
-                                <SymbolCross className="size-2.5" />
+                                <CrossIcon className="size-2.5" />
                             </button>
                         </li>
                     ))}
