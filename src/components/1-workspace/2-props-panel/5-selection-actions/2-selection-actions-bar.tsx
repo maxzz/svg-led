@@ -1,6 +1,6 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { runCommandAtom } from "@/commands";
-import { optionButtonClasses } from "../2-controls/2-section";
+import { optionButtonClasses } from "../2-props-panel-controls/2-section";
 import { type SelectionActionItem, selectionActionItemsAtom } from "./1-atoms-selection-actions";
 
 /** Buttons for the selected elements; only the actions that apply to the current selection are rendered */

@@ -1,15 +1,15 @@
 import { useState } from "react";
 import { type SectionProps } from "./9-registry";
 import { useSnapshot } from "valtio";
-import { CollapsibleSection, Segmented, segmentSizeClasses, type SegmentOption } from "../2-controls/2-section";
-import { NumberField } from "../2-controls/3-0-number-field";
-import { PresenceRow } from "../2-controls/5-presence-controls";
+import { CollapsibleSection, Segmented, segmentSizeClasses, type SegmentOption } from "../2-props-panel-controls/2-section";
+import { NumberField } from "../2-props-panel-controls/3-0-number-field";
+import { PresenceRow } from "../2-props-panel-controls/5-presence-controls";
 import { appSettings } from "@/store/1-ui-settings";
 import { useStyleWriter } from "./8-style-writer";
 import { PropsCheck } from "./8-props-check";
 import { Popover, PopoverAnchor, PopoverContent } from "@/ui/shadcn/popover";
 import { Slider } from "@/ui/shadcn/slider";
-import { MIXED, commonValue, type MaybeMixed } from "../2-controls/1-mixed";
+import { MIXED, commonValue, type MaybeMixed } from "../2-props-panel-controls/1-mixed";
 import { DEFAULT_STROKE_WIDTH, MAX_STROKE_WIDTH } from "@/store/2-persist/1-new-shape-style-atoms";
 import { prop } from "./1-1-section-colors";
 

@@ -2,7 +2,7 @@ import { type ReactNode } from "react";
 import { useSetAtom, useStore } from "jotai";
 import { ArrowDown, ArrowDownToLine, ArrowUp, ArrowUpToLine } from "lucide-react";
 import { type SectionProps } from "./9-registry";
-import { Section, optionButtonClasses } from "../2-controls/2-section";
+import { Section, optionButtonClasses } from "../2-props-panel-controls/2-section";
 import { SelectionActionsBar } from "../5-selection-actions/2-selection-actions-bar";
 
 import { displayShortcut, getCommand, runCommandAtom } from "@/commands";

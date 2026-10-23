@@ -10,7 +10,7 @@ import { Section_BBox } from "./2-1-section-geometry";
 import { Section_Actions } from "./2-3-section-actions";
 import { Section_Opacity } from "./1-6-section-opacity";
 import { Section_Align } from "./2-2-section-align";
-import { PropertiesSeparator } from "../2-controls/6-separator";
+import { PropertiesSeparator } from "../2-props-panel-controls/6-separator";
 
 //---------------------------------------------------------------------------
 // Types

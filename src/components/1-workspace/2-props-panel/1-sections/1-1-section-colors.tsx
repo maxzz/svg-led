@@ -1,13 +1,13 @@
 import { useSnapshot } from "valtio";
 import { type SectionProps } from "./9-registry";
-import { CollapsibleSection } from "../2-controls/2-section";
-import { PresenceRow } from "../2-controls/5-presence-controls";
+import { CollapsibleSection } from "../2-props-panel-controls/2-section";
+import { PresenceRow } from "../2-props-panel-controls/5-presence-controls";
 import { appSettings } from "@/store/1-ui-settings";
 import { useStyleWriter } from "./8-style-writer";
 import { PropsCheck } from "./8-props-check";
 import { presentationValue } from "./8-presence";
-import { commonValue } from "../2-controls/1-mixed";
-import { ColorRow, FILL_SWATCHES, STROKE_SWATCHES } from "../2-controls/4-0-color-row";
+import { commonValue } from "../2-props-panel-controls/1-mixed";
+import { ColorRow, FILL_SWATCHES, STROKE_SWATCHES } from "../2-props-panel-controls/4-0-color-row";
 
 //---------------------------------------------------------------------------
 // Stroke and fill colors

@@ -3,9 +3,9 @@ import { AnimatePresence, motion } from "motion/react";
 
 import { type SectionProps } from "./9-registry";
 import { useSnapshot } from "valtio";
-import { CollapsibleSection, Segmented, segmentSizeClasses, type SegmentOption } from "../2-controls/2-section";
-import { PresenceRow } from "../2-controls/5-presence-controls";
-import { ComboField } from "../2-controls/3-1-combo-field";
+import { CollapsibleSection, Segmented, segmentSizeClasses, type SegmentOption } from "../2-props-panel-controls/2-section";
+import { PresenceRow } from "../2-props-panel-controls/5-presence-controls";
+import { ComboField } from "../2-props-panel-controls/3-1-combo-field";
 import { notice } from "@/ui/local-ui/7-toaster";
 import { appSettings, forgetDashArray, rememberDashArray } from "@/store/1-ui-settings";
 import { useStyleWriter } from "./8-style-writer";
@@ -13,7 +13,7 @@ import { PropsCheck } from "./8-props-check";
 
 import { getPresentation } from "@/svg-core";
 import { type DashStyle, presetDashArray } from "@/store/2-persist";
-import { MIXED, commonValue } from "../2-controls/1-mixed";
+import { MIXED, commonValue } from "../2-props-panel-controls/1-mixed";
 import { DEFAULT_STROKE_WIDTH } from "@/store/2-persist/1-new-shape-style-atoms";
 
 //---------------------------------------------------------------------------

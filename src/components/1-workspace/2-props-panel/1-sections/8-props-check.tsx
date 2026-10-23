@@ -1,5 +1,5 @@
 import { type SvgNode } from "@/svg-core";
-import { PresenceCheckbox } from "../2-controls/5-presence-controls";
+import { PresenceCheckbox } from "../2-props-panel-controls/5-presence-controls";
 import { type SectionMode } from "./9-registry";
 import { useStyleWriter } from "./8-style-writer";
 import { presenceOf } from "./8-presence";

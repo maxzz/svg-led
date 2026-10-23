@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Popover, PopoverArrow, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
 import { Label } from "@/ui/shadcn/label";
 import { Switch } from "@/ui/shadcn/switch";
-import { CollapsibleSection } from "@/components/1-workspace/2-props-panel/2-controls/2-section";
+import { CollapsibleSection } from "@/components/1-workspace/2-props-panel/2-props-panel-controls/2-section";
 import { isOpenViewBoxSettingsDialogAtom, isOpenViewBoxSettingsPopoverAtom } from "./9-types-viewbox-settings";
 import { Controls_ViewBoxRect } from "./1-viewbox-rect";
 import { Controls_SvgSizeAttributes } from "./3-viewbox-size-attributes";

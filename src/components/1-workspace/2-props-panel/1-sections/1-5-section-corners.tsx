@@ -6,16 +6,16 @@ import { Link, Unlink } from "lucide-react";
 
 import { useSnapshot } from "valtio";
 import { type SectionProps } from "./9-registry";
-import { CollapsibleSection } from "../2-controls/2-section";
-import { PresenceRow } from "../2-controls/5-presence-controls";
+import { CollapsibleSection } from "../2-props-panel-controls/2-section";
+import { PresenceRow } from "../2-props-panel-controls/5-presence-controls";
 import { appSettings } from "@/store/1-ui-settings";
 import { useStyleWriter } from "./8-style-writer";
 
-import { PresenceCheckbox } from "../2-controls/5-presence-controls";
-import { combinePresence } from "../2-controls/5-presence-state";
+import { PresenceCheckbox } from "../2-props-panel-controls/5-presence-controls";
+import { combinePresence } from "../2-props-panel-controls/5-presence-state";
 import { commitHistory, getNodeProxy } from "@/store/3-document";
-import { NumberField } from "../2-controls/3-0-number-field";
-import { commonValue } from "../2-controls/1-mixed";
+import { NumberField } from "../2-props-panel-controls/3-0-number-field";
+import { commonValue } from "../2-props-panel-controls/1-mixed";
 
 import { type RectNode } from "@/svg-core";
 

@@ -1,10 +1,10 @@
 import { useSnapshot } from "valtio";
 import { appSettings } from "@/store/1-ui-settings";
 import { type SectionProps } from "./9-registry";
-import { NumberField } from "../2-controls/3-0-number-field";
+import { NumberField } from "../2-props-panel-controls/3-0-number-field";
 
 import { nodesDocBBox, setNodesBBox, useDocSnapshot } from "@/store/3-document";
-import { CollapsibleSection } from "../2-controls/2-section";
+import { CollapsibleSection } from "../2-props-panel-controls/2-section";
 
 //---------------------------------------------------------------------------
 // Bounding box

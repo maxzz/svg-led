@@ -3,9 +3,9 @@ import { useSnapshot } from "valtio";
 import { AnimatePresence, motion } from "motion/react";
 import { appSettings } from "@/store/1-ui-settings";
 import { type SectionProps } from "./9-registry";
-import { type SegmentOption, CollapsibleSection, Segmented, segmentButtonClasses, segmentGroupClasses } from "../2-controls/2-section";
-import { NumberField } from "../2-controls/3-0-number-field";
-import { PresenceRow } from "../2-controls/5-presence-controls";
+import { type SegmentOption, CollapsibleSection, Segmented, segmentButtonClasses, segmentGroupClasses } from "../2-props-panel-controls/2-section";
+import { NumberField } from "../2-props-panel-controls/3-0-number-field";
+import { PresenceRow } from "../2-props-panel-controls/5-presence-controls";
 import { useStyleWriter } from "./8-style-writer";
 import { PropsCheck } from "./8-props-check";
 import { Popover, PopoverAnchor, PopoverContent } from "@/ui/shadcn/popover";
@@ -13,7 +13,7 @@ import { Slider } from "@/ui/shadcn/slider";
 
 import { getPresentation } from "@/svg-core";
 import { DEFAULT_MITER_LIMIT, MAX_MITER_LIMIT } from "@/store/2-persist";
-import { type MaybeMixed, MIXED, commonValue } from "../2-controls/1-mixed";
+import { type MaybeMixed, MIXED, commonValue } from "../2-props-panel-controls/1-mixed";
 import { IconCap_1_Butt, IconCap_2_Round, IconCap_3_Square, IconCorner_3_Bevel, IconCorner_1_Miter, IconCorner_2_Round } from "@/ui/icons/normal/svg-led";
 import { classNames } from "@/utils";
 

@@ -5,7 +5,7 @@ import {
     IconAlign_3_1_DistributeH, IconAlign_3_2_DistributeV,
 } from "@/ui/icons/normal/svg-led";
 import { type SectionProps } from "./9-registry";
-import { Section, optionButtonClasses } from "../2-controls/2-section";
+import { Section, optionButtonClasses } from "../2-props-panel-controls/2-section";
 
 import { type AlignEdge, type DistributeAxis, alignNodes, distributeNodes } from "@/tools/core-align";
 

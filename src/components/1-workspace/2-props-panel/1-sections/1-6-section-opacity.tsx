@@ -1,14 +1,14 @@
 import { useSnapshot } from "valtio";
 import { Slider } from "@/ui/shadcn/slider";
 import { type SectionProps } from "./9-registry";
-import { CollapsibleSection } from "../2-controls/2-section";
-import { PresenceRow } from "../2-controls/5-presence-controls";
+import { CollapsibleSection } from "../2-props-panel-controls/2-section";
+import { PresenceRow } from "../2-props-panel-controls/5-presence-controls";
 import { appSettings } from "@/store/1-ui-settings";
 import { useStyleWriter } from "./8-style-writer";
 import { PropsCheck } from "./8-props-check";
 
 import { getPresentation } from "@/svg-core";
-import { MIXED, commonValue } from "../2-controls/1-mixed";
+import { MIXED, commonValue } from "../2-props-panel-controls/1-mixed";
 
 //---------------------------------------------------------------------------
 

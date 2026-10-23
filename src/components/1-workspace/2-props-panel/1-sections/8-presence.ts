@@ -1,6 +1,6 @@
 import { type Attrs, type SvgNode, getPresentation } from "@/svg-core";
 import { DEFAULT_MITER_LIMIT, DEFAULT_STROKE_WIDTH } from "@/store/2-persist";
-import { type PresenceState, combinePresence } from "../2-controls/5-presence-state";
+import { type PresenceState, combinePresence } from "../2-props-panel-controls/5-presence-state";
 
 //---------------------------------------------------------------------------
 // Presence checkboxes: a property is checked when its attribute is written to the file
