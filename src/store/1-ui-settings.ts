@@ -26,6 +26,19 @@ function isSelectionMode(value: unknown): value is SelectionMode {
     return Object.values<unknown>(SelectionMode).includes(value);
 }
 
+/** Where the tool hint line is shown */
+export const HintPlacement = {
+    none: 'none',                // Hidden
+    top: 'top',                  // Under the main toolbar
+    bottom: 'bottom',            // Bottom row, between the Zoom/Undo and Help islands
+} as const;
+
+export type HintPlacement = typeof HintPlacement[keyof typeof HintPlacement];
+
+function isHintPlacement(value: unknown): value is HintPlacement {
+    return Object.values<unknown>(HintPlacement).includes(value);
+}
+
 export interface CodePanelSettings {
     open: boolean;               // Code panel is slid out
     width: number;               // Panel width in px
@@ -40,7 +53,7 @@ export interface EditorPreferences {
     gridSize: number;            // Grid step in document units
     precision: number;           // Decimal digits written to the SVG source
     fitAvoidsProperties: boolean; // Zoom to fit centers content in the area left of the Properties panel
-    showHintIsland: boolean;     // Show the tool hint island under the main toolbar
+    hintPlacement: HintPlacement; // Tool hint line: hidden (none), under the main toolbar (top), or in the bottom row (bottom)
     selectionMode: SelectionMode; // Marquee selection: inclusive (fully enclosed) or exclusive (touched); Ctrl inverts it while dragging
 }
 
@@ -104,7 +117,7 @@ const DEFAULT_SETTINGS: AppSettings = {
         gridSize: 10,
         precision: 3,
         fitAvoidsProperties: false,
-        showHintIsland: true,
+        hintPlacement: HintPlacement.top,
         selectionMode: SelectionMode.exclusive,
     },
     monaco: {
@@ -133,6 +146,7 @@ function loadSettings(): AppSettings {
                     ...DEFAULT_SETTINGS.prefs,
                     ...parsed.prefs,
                     selectionMode: isSelectionMode(parsed.prefs?.selectionMode) ? parsed.prefs.selectionMode : DEFAULT_SETTINGS.prefs.selectionMode,
+                    hintPlacement: isHintPlacement(parsed.prefs?.hintPlacement) ? parsed.prefs.hintPlacement : DEFAULT_SETTINGS.prefs.hintPlacement,
                 },
                 monaco: { ...DEFAULT_SETTINGS.monaco, ...parsed.monaco },
             };
