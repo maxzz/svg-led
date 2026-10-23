@@ -56,7 +56,7 @@ export function Section_CapsJoins({ mode, ids, nodes }: SectionProps) {
                     </RowPrefix>
                     <Segmented
                         className={segmentGroupClasses}
-                        buttonClassName={classNames(segmentButtonClasses, "h-5.5 min-w-5.5 px-0.75")}
+                        buttonClassName={classNames(segmentButtonClasses, "h-5 min-w-5 px-0.75 ring-offset-0!")}
                         options={CAP_OPTIONS} value={cap === MIXED ? undefined : cap}
                         onChange={(v) => { write.selection('stroke-linecap', v); write.defaults({ linecap: v }); }}
                     />
@@ -70,7 +70,7 @@ export function Section_CapsJoins({ mode, ids, nodes }: SectionProps) {
                     </RowPrefix>
                     <Segmented
                         className={segmentGroupClasses}
-                        buttonClassName={classNames(segmentButtonClasses, "h-5.5 min-w-5.5 px-0.75")}
+                        buttonClassName={classNames(segmentButtonClasses, "h-5 min-w-5 px-0.75 ring-offset-0!")}
                         options={JOIN_OPTIONS}
                         value={join === MIXED ? undefined : join}
                         onChange={(v) => { write.selection('stroke-linejoin', v); write.defaults({ linejoin: v }); }}

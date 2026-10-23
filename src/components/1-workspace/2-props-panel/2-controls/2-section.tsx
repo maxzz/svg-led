@@ -23,10 +23,10 @@ export function Section({ title, check, children, className }: { title: string; 
 
 /**
  * Section whose body slides open and closed like an accordion item; the caller owns the open state.
- * With `gutter`, the title sits after the left column that holds `check`, and the body is laid out by the caller.
+ * By default the title sits after the left column that holds `check`, and the body is laid out by the caller (wrap rows in `PresenceRow`). Pass `gutter={false}` for no left column.
  * `chevronBefore` puts the chevron before the title; by default it sits after the title.
  */
-export function CollapsibleSection({ title, open, onOpenChange, check, gutter = false, chevronBefore, children }: {
+export function CollapsibleSection({ title, open, onOpenChange, check, gutter = true, chevronBefore, children }: {
     title: string; open: boolean; onOpenChange: (open: boolean) => void; check?: ReactNode; gutter?: boolean; chevronBefore?: boolean; children: ReactNode;
 }) {
     const chevronIcon = (
@@ -85,7 +85,14 @@ export function Segmented<T extends string | number>({ options, value, onChange,
         <div className={cn("flex flex-wrap items-center gap-1", className)}>
             {options.map(
                 (o) => (
-                    <button className={cn(optionButtonClasses, buttonClassName, o.value === value && activeButtonClasses)} data-active={o.value === value} title={o.title} onClick={() => onChange(o.value)} type="button" key={String(o.value)}>
+                    <button
+                        className={cn(optionButtonClasses, buttonClassName, o.value === value && activeButtonClasses)}
+                        data-active={o.value === value}
+                        title={o.title}
+                        onClick={() => onChange(o.value)}
+                        type="button"
+                        key={String(o.value)}
+                    >
                         {o.label}
                     </button>
                 )
@@ -108,6 +115,7 @@ data-[active=true]:bg-(--editor-accent)/12 \
 disabled:opacity-40 \
 rounded \
 flex items-center justify-center \
+select-none \
 cursor-pointer";
 
 /** Container for a Segmented row that reads as one control: a single outlined box with dividers between the options */
@@ -117,6 +125,8 @@ export const segmentGroupClasses = "gap-0 rounded border border-foreground/15";
 export const segmentButtonClasses = "\
 px-1 \
 rounded-none \
+select-none \
+\
 first:rounded-l-[3px] \
 last:rounded-r-[3px] \
 border-r \

@@ -66,7 +66,13 @@ export function Section_Dash({ mode, ids, nodes }: SectionProps) {
         >
             <PresenceRow>
                 <div className="flex flex-col gap-1.5">
-                    <Segmented options={DASH_OPTIONS} value={showCustom ? 'custom' : value === MIXED ? undefined : value} onChange={set} buttonClassName={segmentSizeClasses} />
+                    <Segmented
+                        options={DASH_OPTIONS}
+                        value={showCustom ? 'custom' : value === MIXED ? undefined : value}
+                        onChange={set}
+                        buttonClassName={segmentSizeClasses}
+                    />
+
                     <AnimatePresence initial={false}>
                         {showCustom && (
                             <motion.div
@@ -91,13 +97,13 @@ export function Section_Dash({ mode, ids, nodes }: SectionProps) {
     );
 }
 
-/** Must match the `gap-1.5` between children in `Section` (0.375rem). */
-const GAP_PX = 6;
-/** Space around the custom field so its focus ring isn't clipped by `overflow-hidden`; the top margin is offset by it so the visual gap is unchanged. */
-const RING_PX = 2;
+
+const GAP_PX = 6; // Must match the `gap-1.5` between children in `Section` (0.375rem).
+const RING_PX = 2; // Space around the custom field so its focus ring isn't clipped by `overflow-hidden`; the top margin is offset by it so the visual gap is unchanged.
 
 /** Custom dash array text input. Commits on Enter or blur, Escape reverts. */
 function DashArrayField({ text, mixed, onPreview, onCommit }: { text: string; mixed: boolean; onPreview: (dash: string | undefined) => void; onCommit: (dash: string | undefined) => void; }) {
+
     function commit(input: HTMLInputElement) {
         if (input.value.trim() === text) {
             return;
@@ -125,6 +131,7 @@ function DashArrayField({ text, mixed, onPreview, onCommit }: { text: string; mi
             <span className="shrink-0 select-none text-[10px] text-muted-foreground">
                 Dash
             </span>
+            
             <input
                 className="w-full min-w-0 tabular-nums bg-transparent outline-none font-condensed"
                 defaultValue={text}

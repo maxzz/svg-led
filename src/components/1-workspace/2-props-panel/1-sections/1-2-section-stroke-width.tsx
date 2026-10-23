@@ -36,7 +36,12 @@ export function Section_StrokeWidth({ mode, ids, nodes }: SectionProps) {
         >
             <PresenceRow>
                 <div className="flex flex-wrap items-center gap-1">
-                    <Segmented options={WIDTH_OPTIONS} value={value === MIXED ? undefined : value} onChange={set} buttonClassName={segmentSizeClasses} />
+                    <Segmented
+                        options={WIDTH_OPTIONS}
+                        value={value === MIXED ? undefined : value}
+                        onChange={set}
+                        buttonClassName={segmentSizeClasses}
+                    />
                     <StrokeWidthField value={value} onChange={set} />
                 </div>
             </PresenceRow>
@@ -75,7 +80,7 @@ function StrokeWidthField({ value, onChange }: { value: MaybeMixed<number> | und
         <Popover open={active} onOpenChange={setActive}>
             <PopoverAnchor asChild>
                 <div className="w-12 font-condensed" data-stroke-width-field onFocus={() => setActive(true)}>
-                    <NumberField className="h-5.5" value={value} min={0} step={0.5} onChange={onChange} />
+                    <NumberField className="h-5.5 rounded" value={value} min={0} step={0.5} onChange={onChange} />
                 </div>
             </PopoverAnchor>
 

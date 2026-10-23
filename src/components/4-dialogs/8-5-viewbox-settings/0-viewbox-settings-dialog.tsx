@@ -75,6 +75,7 @@ function Body() {
             <div className="pt-3 border-t">
                 <CollapsibleSection
                     title="File"
+                    gutter={false}
                     open={propertySections.viewBoxFileOpen}
                     onOpenChange={(open) => { appSettings.propertySections.viewBoxFileOpen = open; }}
                 >

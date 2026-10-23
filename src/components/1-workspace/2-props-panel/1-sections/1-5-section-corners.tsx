@@ -4,8 +4,11 @@ import { Popover, PopoverAnchor, PopoverContent } from "@/ui/shadcn/popover";
 import { Slider } from "@/ui/shadcn/slider";
 import { Link, Unlink } from "lucide-react";
 
+import { useSnapshot } from "valtio";
 import { type SectionProps } from "./9-registry";
-import { Section } from "../2-controls/2-section";
+import { CollapsibleSection } from "../2-controls/2-section";
+import { PresenceRow } from "../2-controls/5-presence-controls";
+import { appSettings } from "@/store/1-ui-settings";
 import { useStyleWriter } from "./8-style-writer";
 
 import { PresenceCheckbox } from "../2-controls/5-presence-controls";
@@ -27,6 +30,7 @@ export function Section_RectCorners({ mode, ids, nodes }: SectionProps) {
     const rx = commonValue(rects, (r) => r.rx);
     const ry = commonValue(rects, (r) => r.ry);
     const write = useStyleWriter(mode, ids);
+    const { propertySections } = useSnapshot(appSettings);
 
     /** Turns the radius on (both radii to the default, where a rectangle has none) or off (both to 0, so neither is written) */
     function setRoundedCorners(on: boolean) {
@@ -128,15 +132,21 @@ export function Section_RectCorners({ mode, ids, nodes }: SectionProps) {
     }
 
     return (
-        <Section title="Corner radius" check={check}>
+        <CollapsibleSection
+            title="Corner radius"
+            check={check}
+            open={propertySections.cornersOpen}
+            onOpenChange={(open) => { appSettings.propertySections.cornersOpen = open; }}
+        >
+            <PresenceRow>
             <Popover open={active !== null} onOpenChange={(open) => !open && setActive(null)}>
                 <PopoverAnchor asChild>
                     <div className="grid grid-cols-2 gap-1">
                         <div className="contents" data-corner-field onFocus={() => openOn('rx')}>
-                            <NumberField label="rx" value={rx} min={0} onChange={(v) => set('rx', v, linked)} />
+                            <NumberField className="h-5.5 rounded" label="rx" value={rx} min={0} onChange={(v) => set('rx', v, linked)} />
                         </div>
                         <div className="contents" data-corner-field onFocus={() => openOn('ry')}>
-                            <NumberField label="ry" value={ry} min={0} onChange={(v) => set('ry', v, linked)} />
+                            <NumberField className="h-5.5 rounded" label="ry" value={ry} min={0} onChange={(v) => set('ry', v, linked)} />
                         </div>
                     </div>
                 </PopoverAnchor>
@@ -169,7 +179,8 @@ export function Section_RectCorners({ mode, ids, nodes }: SectionProps) {
                     </Button>
                 </PopoverContent>
             </Popover>
-        </Section>
+            </PresenceRow>
+        </CollapsibleSection>
     );
 }
 

@@ -62,13 +62,18 @@ export default function ColorPickerPanel({ value, onChange }: ColorPickerPanelPr
 
             <Bar label="Alpha" t={hsv.a} background={`linear-gradient(to right, transparent, ${formatHsv({ ...hsv, a: 1 }, 'hex')})`} checkered onChange={(a) => setHsv({ ...hsv, a })} />
 
-            <Segmented options={MODEL_OPTIONS} value={model} onChange={setModel} />
+            <Segmented
+                options={MODEL_OPTIONS}
+                value={model}
+                onChange={setModel}
+            />
 
             <div className="grid grid-cols-4 gap-1" key={model}>
                 {fields.map(
                     (f, i) => <NumberField key={i} label={f.label} value={values[i]} precision={f.precision} min={f.min} onChange={(n) => setField(i, n)} />
 
                 )}
+                
                 <NumberField label="A" value={hsv.a * 100} precision={0} min={0} onChange={(n) => setHsv({ ...hsv, a: clamp01(n / 100) })} />
             </div>
         </div>
