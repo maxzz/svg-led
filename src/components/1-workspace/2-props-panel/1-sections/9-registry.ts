@@ -10,6 +10,7 @@ import { Section_BBox } from "./2-1-section-geometry";
 import { Section_Actions } from "./2-3-section-actions";
 import { Section_Opacity } from "./1-6-section-opacity";
 import { Section_Align } from "./2-2-section-align";
+import { PropertiesSeparator } from "../2-controls/6-separator";
 
 //---------------------------------------------------------------------------
 // Types
@@ -60,5 +61,6 @@ export const PROPERTY_SECTIONS: readonly PropertySection[] = [
     { id: 'opacity',      /**/ appliesTo: always,                                                       /**/ Component: Section_Opacity },
     { id: 'align',        /**/ appliesTo: multiple,                                                     /**/ Component: Section_Align, selectionOnly: true },
     { id: 'bbox',         /**/ appliesTo: always,                                                       /**/ Component: Section_BBox, selectionOnly: true },
+    { id: 'separator',    /**/ appliesTo: always,                                                       /**/ Component: PropertiesSeparator, selectionOnly: true },
     { id: 'actions',      /**/ appliesTo: always,                                                       /**/ Component: Section_Actions, selectionOnly: true },
 ];
