@@ -22,7 +22,6 @@ export function Tab_General() {
 
             <SubHeader>Canvas</SubHeader>
             <FitAvoidsPropertiesSwitch />
-            <HintIslandSwitch />
             <HintPlacementSelect />
             <SelectionModeSelect />
         </div>
@@ -121,26 +120,6 @@ function FitAvoidsPropertiesSwitch() {
 
 //---------------------------------------------------------------------------
 
-function HintIslandSwitch() {
-    const { prefs } = useSnapshot(appSettings);
-    const id = useId();
-
-    return (
-        <div className="flex items-center justify-between gap-4">
-            <OptionLabel
-                htmlFor={id}
-                tip="Show the hint line under the toolbar that describes the active tool."
-            >
-                Show tool hint
-            </OptionLabel>
-
-            <Switch id={id} checked={prefs.showHintIsland} onCheckedChange={(v) => { appSettings.prefs.showHintIsland = v; }} />
-        </div>
-    );
-}
-
-//---------------------------------------------------------------------------
-
 function HintPlacementSelect() {
     const { prefs } = useSnapshot(appSettings);
     const id = useId();
@@ -149,9 +128,9 @@ function HintPlacementSelect() {
         <div className="flex items-center justify-between gap-4">
             <OptionLabel
                 htmlFor={id}
-                tip="Where the tool hint line is shown: under the main toolbar, or in the bottom row between the Zoom/Undo and Help islands."
+                tip="Hint line that describes the active tool. Show it under the main toolbar, in the bottom row between the Zoom/Undo and Help islands, or hide it."
             >
-                Hint position
+                Tool hint
             </OptionLabel>
 
             <Select value={prefs.hintPlacement} onValueChange={(value) => { appSettings.prefs.hintPlacement = value as HintPlacement; }}>
@@ -174,6 +153,7 @@ function HintPlacementSelect() {
 }
 
 const HINT_PLACEMENT_ITEMS: readonly (readonly [label: string, value: HintPlacement])[] = [
+    ["None", HintPlacement.none],
     ["Top", HintPlacement.top],
     ["Bottom", HintPlacement.bottom],
 ];

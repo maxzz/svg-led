@@ -21,11 +21,9 @@ export function Island_Hint({ placement }: { placement: HintPlacement; }) {
             "select-none min-w-0 px-2 text-[11px] text-muted-foreground/60 flex items-center",
             placement === HintPlacement.top ? "h-6 w-full" : "h-9 flex-1",
         )}>
-            {prefs.showHintIsland && (
-                <div className="w-full truncate text-center">
-                    <HintText text={hint} />
-                </div>
-            )}
+            <div className="w-full truncate text-center">
+                <HintText text={hint} />
+            </div>
         </div>
     );
 }
