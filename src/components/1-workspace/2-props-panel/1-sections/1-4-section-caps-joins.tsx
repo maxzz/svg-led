@@ -110,7 +110,7 @@ function MiterLimitField({ visible, check, value, onChange }: { visible: boolean
                     transition={{ duration: 0.2, ease: 'easeOut' }}
                 >
                     <Popover open={active && visible} onOpenChange={setActive}>
-                        <PresenceRow check={check} className="p-0.5">
+                        <PresenceRow check={check} className="p-0.5 -ml-0.5">
                             <div className="flex items-center">
                                 <RowPrefix>
                                     Limit
