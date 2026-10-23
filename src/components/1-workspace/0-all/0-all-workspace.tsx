@@ -40,7 +40,10 @@ function FloatingUi() {
                 <Island_Undo />
             </div>
 
-            <Island_Hint placement={HintPlacement.bottom} />
+            {/* Always present, so Help stays in the bottom-right corner whatever the hint placement */}
+            <div className="flex-1 min-w-0">
+                <Island_Hint placement={HintPlacement.bottom} />
+            </div>
 
             <div className="shrink-0">
                 <Island_Help />
