@@ -22,6 +22,7 @@ export function Tab_General() {
 
             <SubHeader>Canvas</SubHeader>
             <FitAvoidsPropertiesSwitch />
+            <PinPropertiesSwitch />
             <HintPlacementSelect />
             <SelectionModeSelect />
         </div>
@@ -114,6 +115,26 @@ function FitAvoidsPropertiesSwitch() {
             </OptionLabel>
 
             <Switch id={id} checked={prefs.fitAvoidsProperties} onCheckedChange={(v) => { appSettings.prefs.fitAvoidsProperties = v; }} />
+        </div>
+    );
+}
+
+//---------------------------------------------------------------------------
+
+function PinPropertiesSwitch() {
+    const { prefs } = useSnapshot(appSettings);
+    const id = useId();
+
+    return (
+        <div className="flex items-center justify-between gap-4">
+            <OptionLabel
+                htmlFor={id}
+                tip="Keep the Properties panel on screen when the selection changes or is cleared. It shows \"Nothing selected\" when there is nothing to edit. The same setting is the pin button in the panel header."
+            >
+                Pin Properties panel
+            </OptionLabel>
+
+            <Switch id={id} checked={prefs.pinProperties} onCheckedChange={(v) => { appSettings.prefs.pinProperties = v; }} />
         </div>
     );
 }

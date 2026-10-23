@@ -53,6 +53,7 @@ export interface EditorPreferences {
     gridSize: number;            // Grid step in document units
     precision: number;           // Decimal digits written to the SVG source
     fitAvoidsProperties: boolean; // Zoom to fit centers content in the area left of the Properties panel
+    pinProperties: boolean;      // Properties panel stays on screen even when nothing is selected
     hintPlacement: HintPlacement; // Tool hint line: hidden (none), under the main toolbar (top), or in the bottom row (bottom)
     selectionMode: SelectionMode; // Marquee selection: inclusive (fully enclosed) or exclusive (touched); Ctrl inverts it while dragging
 }
@@ -123,6 +124,7 @@ const DEFAULT_SETTINGS: AppSettings = {
         gridSize: 10,
         precision: 3,
         fitAvoidsProperties: false,
+        pinProperties: false,
         hintPlacement: HintPlacement.top,
         selectionMode: SelectionMode.exclusive,
     },
