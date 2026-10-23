@@ -20,6 +20,11 @@ import { classNames } from "@/utils";
 //---------------------------------------------------------------------------
 // Line caps and joins
 
+/** Gap between the caps/corner rows and the limit row (gap-1.5) */
+const ROW_GAP_PX = 6;
+/** Room for the focus ring of the limit field inside its overflow-hidden wrapper; offset by a negative margin */
+const FOCUS_RING_PX = 2;
+
 const CAP_JOIN_PROPS = ['stroke-linecap', 'stroke-linejoin'];
 const MITER_PROPS = ['stroke-miterlimit'];
 
@@ -51,7 +56,7 @@ export function Section_CapsJoins({ mode, ids, nodes }: SectionProps) {
                     </RowPrefix>
                     <Segmented
                         className={segmentGroupClasses}
-                        buttonClassName={classNames(segmentButtonClasses, "h-5 min-w-5.5 px-0.75")}
+                        buttonClassName={classNames(segmentButtonClasses, "h-5.5 min-w-5.5 px-0.75")}
                         options={CAP_OPTIONS} value={cap === MIXED ? undefined : cap}
                         onChange={(v) => { write.selection('stroke-linecap', v); write.defaults({ linecap: v }); }}
                     />
@@ -65,7 +70,7 @@ export function Section_CapsJoins({ mode, ids, nodes }: SectionProps) {
                     </RowPrefix>
                     <Segmented
                         className={segmentGroupClasses}
-                        buttonClassName={classNames(segmentButtonClasses, "h-5 min-w-5.5 px-0.75")}
+                        buttonClassName={classNames(segmentButtonClasses, "h-5.5 min-w-5.5 px-0.75")}
                         options={JOIN_OPTIONS}
                         value={join === MIXED ? undefined : join}
                         onChange={(v) => { write.selection('stroke-linejoin', v); write.defaults({ linejoin: v }); }}
@@ -103,14 +108,14 @@ function MiterLimitField({ visible, check, value, onChange }: { visible: boolean
         <AnimatePresence initial={false}>
             {visible && (
                 <motion.div
-                    className="overflow-hidden"
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
+                    className="overflow-hidden -mx-0.5 px-0.5"
+                    initial={{ height: 0, opacity: 0, marginTop: -ROW_GAP_PX, paddingTop: 0, paddingBottom: 0 }}
+                    animate={{ height: 'auto', opacity: 1, marginTop: -FOCUS_RING_PX, paddingTop: FOCUS_RING_PX, paddingBottom: FOCUS_RING_PX }}
+                    exit={{ height: 0, opacity: 0, marginTop: -ROW_GAP_PX, paddingTop: 0, paddingBottom: 0 }}
                     transition={{ duration: 0.2, ease: 'easeOut' }}
                 >
                     <Popover open={active && visible} onOpenChange={setActive}>
-                        <PresenceRow check={check} className="p-0.5 -ml-0.5">
+                        <PresenceRow check={check}>
                             <div className="flex items-center">
                                 <RowPrefix>
                                     Limit
@@ -118,6 +123,7 @@ function MiterLimitField({ visible, check, value, onChange }: { visible: boolean
                                 <PopoverAnchor asChild>
                                     <div className="-ml-1 w-16" data-miter-field onFocus={() => setActive(true)}>
                                         <NumberField
+                                            className="h-5.5"
                                             value={value}
                                             min={1}
                                             step={0.5}

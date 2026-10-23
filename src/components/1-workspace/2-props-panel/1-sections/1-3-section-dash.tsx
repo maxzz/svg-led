@@ -121,7 +121,7 @@ function DashArrayField({ text, mixed, onPreview, onCommit }: { text: string; mi
     }
 
     return (
-        <label className="px-1.5 h-7 min-w-0 text-xs bg-muted/60 focus-within:ring-1 focus-within:ring-(--editor-accent) rounded-md flex items-center gap-1">
+        <label className="px-1.5 h-5.5 min-w-0 text-xs bg-muted/60 focus-within:ring-1 focus-within:ring-(--editor-accent) rounded-md flex items-center gap-1">
             <span className="shrink-0 select-none text-[10px] text-muted-foreground">
                 Dash
             </span>
