@@ -14,7 +14,7 @@ import { useStyleWriter } from "./8-style-writer";
 import { PresenceCheckbox } from "../2-controls/5-presence-controls";
 import { combinePresence } from "../2-controls/5-presence-state";
 import { commitHistory, getNodeProxy } from "@/store/3-document";
-import { NumberField } from "../2-controls/3-number-field";
+import { NumberField } from "../2-controls/3-0-number-field";
 import { commonValue } from "../2-controls/1-mixed";
 
 import { type RectNode } from "@/svg-core";

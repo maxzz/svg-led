@@ -1,11 +1,13 @@
-import { useState, type KeyboardEvent } from "react";
+import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 
 import { type SectionProps } from "./9-registry";
 import { useSnapshot } from "valtio";
 import { CollapsibleSection, Segmented, segmentSizeClasses, type SegmentOption } from "../2-controls/2-section";
 import { PresenceRow } from "../2-controls/5-presence-controls";
-import { appSettings } from "@/store/1-ui-settings";
+import { ComboField } from "../2-controls/3-1-combo-field";
+import { notice } from "@/ui/local-ui/7-toaster";
+import { appSettings, forgetDashArray, rememberDashArray } from "@/store/1-ui-settings";
 import { useStyleWriter } from "./8-style-writer";
 import { PropsCheck } from "./8-props-check";
 
@@ -22,8 +24,9 @@ export function Section_Dash({ mode, ids, nodes }: SectionProps) {
     const rawDash = commonValue(nodes, (n) => getPresentation(n.attrs, 'stroke-dasharray'));
     const dashText = rawDash === MIXED ? '' : normalizeDashArray(rawDash);
     const [customOpen, setCustomOpen] = useState(false);
+    const [preCustomDash, setPreCustomDash] = useState(''); // Dash array that was in place when Custom was chosen
     const write = useStyleWriter(mode, ids);
-    const { propertySections } = useSnapshot(appSettings);
+    const { propertySections, dashHistory } = useSnapshot(appSettings);
 
     const widths = nodes.map(
         (n) => Number.parseFloat(getPresentation(n.attrs, 'stroke-width') ?? String(DEFAULT_STROKE_WIDTH)) || DEFAULT_STROKE_WIDTH
@@ -36,6 +39,9 @@ export function Section_Dash({ mode, ids, nodes }: SectionProps) {
 
     function set(style: DashStyle) {
         if (style === 'custom') {
+            if (!showCustom) {
+                setPreCustomDash(dashText);
+            }
             setCustomOpen(true);
             write.defaults({ dashStyle: 'custom' });
             return;
@@ -54,6 +60,29 @@ export function Section_Dash({ mode, ids, nodes }: SectionProps) {
     function commitCustom(dash: string | undefined) {
         write.selection('stroke-dasharray', dash ?? 'none');
         previewCustom(dash);
+    }
+
+    /** A dash array the user typed or picked from history: applies it and remembers it */
+    function commitTyped(dash: string | undefined) {
+        commitCustom(dash);
+        if (dash) {
+            rememberDashArray(dash);
+        }
+    }
+
+    /** Escape from an invalid entry: restores the value from before Custom was chosen (Solid if there was none) */
+    function restorePreCustom() {
+        const dash = preCustomDash;
+        if (!dash) {
+            set('solid');
+            return;
+        }
+        const preset = (['dashed', 'dotted'] as const).find((s) => normalizeDashArray(presetDashArray(s, w)) === dash);
+        if (preset) {
+            set(preset);
+            return;
+        }
+        commitCustom(dash);
     }
 
     return (
@@ -85,8 +114,10 @@ export function Section_Dash({ mode, ids, nodes }: SectionProps) {
                                 <DashArrayField
                                     text={dashText}
                                     mixed={rawDash === MIXED}
+                                    history={dashHistory}
                                     onPreview={previewCustom}
-                                    onCommit={commitCustom}
+                                    onCommit={commitTyped}
+                                    onEscape={restorePreCustom}
                                 />
                             </motion.div>
                         )}
@@ -101,50 +132,54 @@ export function Section_Dash({ mode, ids, nodes }: SectionProps) {
 const GAP_PX = 6; // Must match the `gap-1.5` between children in `Section` (0.375rem).
 const RING_PX = 2; // Space around the custom field so its focus ring isn't clipped by `overflow-hidden`; the top margin is offset by it so the visual gap is unchanged.
 
-/** Custom dash array text input. Commits on Enter or blur, Escape reverts. */
-function DashArrayField({ text, mixed, onPreview, onCommit }: { text: string; mixed: boolean; onPreview: (dash: string | undefined) => void; onCommit: (dash: string | undefined) => void; }) {
-
-    function commit(input: HTMLInputElement) {
-        if (input.value.trim() === text) {
-            return;
-        }
-        const parsed = parseDashArray(input.value);
-        if (parsed === null) {
-            input.value = text; // invalid input: revert
-            return;
-        }
-        onCommit(parsed);
-    }
-
-    function onKeyDown(e: KeyboardEvent<HTMLInputElement>) {
-        if (e.key === 'Enter') {
-            e.currentTarget.blur();
-        }
-        else if (e.key === 'Escape') {
-            e.currentTarget.value = text;
-            e.currentTarget.blur();
-        }
-    }
-
+/**
+ * Custom dash array input with a history of recently used values.
+ * Invalid input stays in the field with a toast; Escape restores the pre-Custom value (see `onEscape`).
+ */
+function DashArrayField({ text, mixed, history, onPreview, onCommit, onEscape }: {
+    text: string;
+    mixed: boolean;
+    history: readonly string[];
+    onPreview: (dash: string | undefined) => void;
+    onCommit: (dash: string | undefined) => void;
+    onEscape: () => void;
+}) {
     return (
-        <label className="px-1.5 h-5.5 min-w-0 text-xs bg-muted/60 focus-within:ring-1 focus-within:ring-(--editor-accent) rounded flex items-center gap-1">
-            <span className="shrink-0 select-none text-[10px] text-muted-foreground">
-                Dash
-            </span>
-            
-            <input
-                className="w-full min-w-0 tabular-nums bg-transparent outline-none font-condensed"
-                defaultValue={text}
-                placeholder={mixed ? 'Mixed' : 'e.g. 6 2 1 2'}
-                onChange={(e) => {
-                    const parsed = parseDashArray(e.currentTarget.value);
-                    parsed !== null && onPreview(parsed);
-                }}
-                onBlur={(e) => commit(e.currentTarget)}
-                onKeyDown={onKeyDown}
-                key={`${text}|${mixed}`}
-            />
-        </label>
+        <ComboField
+            label="Dash"
+            value={text}
+            items={history}
+            onChange={(raw) => {
+                const parsed = parseDashArray(raw);
+                parsed !== null && onPreview(parsed);
+            }}
+            onCommit={(raw) => {
+                const parsed = parseDashArray(raw);
+                if (parsed === null) {
+                    warnInvalidDash(raw);
+                    return false;
+                }
+                if (normalizeDashArray(parsed) !== text) {
+                    onCommit(parsed);
+                }
+                return true;
+            }}
+            onRemoveItem={forgetDashArray}
+            onEscape={onEscape}
+        />
+    );
+}
+
+function warnInvalidDash(raw: string) {
+    notice.warning(
+        <div className="flex flex-col gap-1">
+            <div>
+                <span className="font-medium">“{raw.trim()}”</span> is not a valid dash array.
+            </div>
+            <div className="opacity-80">
+                Use non-negative numbers separated by spaces or commas, e.g. <span className="font-condensed">6 2</span>, <span className="font-condensed">4 2 1 2</span> or <span className="font-condensed">5, 3</span>.
+            </div>
+        </div>
     );
 }
 

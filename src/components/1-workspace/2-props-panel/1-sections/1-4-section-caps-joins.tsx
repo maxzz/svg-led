@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { appSettings } from "@/store/1-ui-settings";
 import { type SectionProps } from "./9-registry";
 import { type SegmentOption, CollapsibleSection, Segmented, segmentButtonClasses, segmentGroupClasses } from "../2-controls/2-section";
-import { NumberField } from "../2-controls/3-number-field";
+import { NumberField } from "../2-controls/3-0-number-field";
 import { PresenceRow } from "../2-controls/5-presence-controls";
 import { useStyleWriter } from "./8-style-writer";
 import { PropsCheck } from "./8-props-check";

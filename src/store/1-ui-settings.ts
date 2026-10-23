@@ -84,7 +84,11 @@ export interface AppSettings {
     propertySections: PropertySectionsSettings; // Expanded state of collapsible property sections
     prefs: EditorPreferences;
     monaco: MonacoSettings;      // Monaco code editor options
+    dashHistory: string[];       // Recently used custom dash arrays, newest first (shared by all dash inputs)
 }
+
+/** How many custom dash arrays the history keeps */
+export const DASH_HISTORY_LIMIT = 5;
 
 //---------------------------------------------------------------------------
 
@@ -127,6 +131,7 @@ const DEFAULT_SETTINGS: AppSettings = {
         fontSize: 10,
         minimap: false,
     },
+    dashHistory: [],
 };
 
 //---------------------------------------------------------------------------
@@ -151,6 +156,9 @@ function loadSettings(): AppSettings {
                     hintPlacement: isHintPlacement(parsed.prefs?.hintPlacement) ? parsed.prefs.hintPlacement : DEFAULT_SETTINGS.prefs.hintPlacement,
                 },
                 monaco: { ...DEFAULT_SETTINGS.monaco, ...parsed.monaco },
+                dashHistory: Array.isArray(parsed.dashHistory)
+                    ? parsed.dashHistory.filter((d): d is string => typeof d === 'string' && d !== '').slice(0, DASH_HISTORY_LIMIT)
+                    : [],
             };
         }
     } catch (e) {
@@ -160,6 +168,15 @@ function loadSettings(): AppSettings {
 }
 
 export const appSettings = proxy<AppSettings>(loadSettings());
+
+/** Moves `dash` to the front of the dash history, dropping duplicates and anything past the limit */
+export function rememberDashArray(dash: string) {
+    appSettings.dashHistory = [dash, ...appSettings.dashHistory.filter((d) => d !== dash)].slice(0, DASH_HISTORY_LIMIT);
+}
+
+export function forgetDashArray(dash: string) {
+    appSettings.dashHistory = appSettings.dashHistory.filter((d) => d !== dash);
+}
 
 //---------------------------------------------------------------------------
 
