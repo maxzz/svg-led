@@ -36,6 +36,8 @@ export function ComboField({ label, value, placeholder, items, onChange, onCommi
     const [menuOpen, setMenuOpen] = useState(false);
 
     const buttonRef = useRef<HTMLButtonElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
+    const focusInputOnClose = useRef(false); // Set when Escape closes the menu: focus goes back to the input, not the button
     const skipCommit = useRef(false);    // Set while Escape blurs the input, so the blur doesn't commit the discarded draft
 
     // While the history menu is open, Escape only closes it. The listener runs in the capture phase on window,
@@ -50,6 +52,7 @@ export function ComboField({ label, value, placeholder, items, onChange, onCommi
                 if (e.key === 'Escape') {
                     e.preventDefault();
                     e.stopPropagation();
+                    focusInputOnClose.current = true;
                     setMenuOpen(false);
                 }
             }
@@ -117,6 +120,7 @@ export function ComboField({ label, value, placeholder, items, onChange, onCommi
                     >
                         <div className="flex flex-1 items-center pl-1.5 min-w-0">
                             <input
+                                ref={inputRef}
                                 className={cn("w-full min-w-0 tabular-nums bg-transparent outline-none font-condensed", invalid && "text-red-500")}
                                 value={draft}
                                 onChange={(e) => {
@@ -150,6 +154,14 @@ export function ComboField({ label, value, placeholder, items, onChange, onCommi
                     sideOffset={4}
                     className="p-1 gap-0 w-(--radix-popper-anchor-width) max-h-60 overflow-auto"
                     onOpenAutoFocus={(e) => e.preventDefault()} // Keep focus in the input
+                    onCloseAutoFocus={(e) => {
+                        // Radix would send focus back to the trigger button; only Escape moves it to the input instead
+                        e.preventDefault();
+                        if (focusInputOnClose.current) {
+                            focusInputOnClose.current = false;
+                            inputRef.current?.focus();
+                        }
+                    }}
                     onPointerDownOutside={(e) => {
                         // The trigger toggles the menu itself; don't let the outside click close it first and then reopen it
                         if (buttonRef.current?.contains(e.target as Node)) {
