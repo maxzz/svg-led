@@ -1,14 +1,15 @@
 import { type ComponentType } from "react";
 import { type SvgNode } from "@/svg-core";
 
-import { Section_Fill, Section_Stroke, Section_StrokeWidth } from "./1-1-section-colors-width";
-import { Section_Dash } from "./1-2-section-dash";
-import { Section_CapsJoins } from "./1-3-section-caps-joins";
-import { Section_RectCorners } from "./1-4-section-corners";
-import { Section_BBox } from "./1-6-section-geometry";
-import { Section_Actions } from "./1-7-section-actions";
-import { Section_Opacity } from "./1-5-section-opacity";
-import { Section_Align } from "./1-8-section-align";
+import { Section_Fill, Section_Stroke } from "./1-1-section-colors";
+import { Section_StrokeWidth } from "./1-2-section-stroke-width";
+import { Section_Dash } from "./1-3-section-dash";
+import { Section_CapsJoins } from "./1-4-section-caps-joins";
+import { Section_RectCorners } from "./1-5-section-corners";
+import { Section_BBox } from "./2-1-section-geometry";
+import { Section_Actions } from "./2-3-section-actions";
+import { Section_Opacity } from "./1-6-section-opacity";
+import { Section_Align } from "./2-2-section-align";
 
 //---------------------------------------------------------------------------
 // Types
