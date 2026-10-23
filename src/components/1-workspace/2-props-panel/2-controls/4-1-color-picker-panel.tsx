@@ -1,6 +1,6 @@
 import { useState, type KeyboardEvent, type PointerEvent } from "react";
 import { Segmented, type SegmentOption } from "./2-section";
-import { NumberField } from "./3-number-field";
+import { NumberField } from "./3-0-number-field";
 import { CHECKERS } from "./4-0-color-row";
 import { COLOR_MODELS, type ColorModelId, type Hsv, type Triple, formatColor, formatHsv, hsvOf, modelOf, modelValues, valuesOf } from "./4-9-color-model";
 import { EyeDropperButton, hasEyeDropper } from "./4-2-eyedropper-button";

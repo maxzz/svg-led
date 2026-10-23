@@ -2,7 +2,7 @@ import { useState } from "react";
 import { type SectionProps } from "./9-registry";
 import { useSnapshot } from "valtio";
 import { CollapsibleSection, Segmented, segmentSizeClasses, type SegmentOption } from "../2-controls/2-section";
-import { NumberField } from "../2-controls/3-number-field";
+import { NumberField } from "../2-controls/3-0-number-field";
 import { PresenceRow } from "../2-controls/5-presence-controls";
 import { appSettings } from "@/store/1-ui-settings";
 import { useStyleWriter } from "./8-style-writer";
