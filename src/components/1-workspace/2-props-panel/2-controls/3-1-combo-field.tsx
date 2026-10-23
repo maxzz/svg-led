@@ -1,6 +1,6 @@
-import { useRef, useState, type FocusEvent, type KeyboardEvent } from "react";
-import { motion } from "motion/react";
+import { type FocusEvent, type KeyboardEvent, useEffect, useRef, useState } from "react";
 import { cn } from "@/utils/classnames";
+import { motion } from "motion/react";
 import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
 import { IconRadix_ChevronDown } from "@/ui/icons/normal/radix-icons/07-chevron-down";
 import { IconRadix_Cross1 } from "@/ui/icons/normal/radix-icons/11-cross-1";
@@ -37,7 +37,27 @@ export function ComboField({ label, value, placeholder, items, onChange, onCommi
 
     const buttonRef = useRef<HTMLButtonElement>(null);
     const skipCommit = useRef(false);    // Set while Escape blurs the input, so the blur doesn't commit the discarded draft
-    const escapeByMenu = useRef(false);  // Set when Escape closed the history menu, so the input doesn't also handle it
+
+    // While the history menu is open, Escape only closes it. The listener runs in the capture phase on window,
+    // so the event stops there and never reaches the input, the global shortcuts (which would clear the selection
+    // and hide the Properties popup), or other handlers.
+    useEffect(
+        () => {
+            if (!menuOpen) {
+                return;
+            }
+            function onEscapeCapture(e: globalThis.KeyboardEvent) {
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setMenuOpen(false);
+                }
+            }
+            const abortController = new AbortController();
+            window.addEventListener('keydown', onEscapeCapture, { capture: true, signal: abortController.signal });
+            return () => abortController.abort();
+        },
+        [menuOpen]);
 
     // Adjust state during render when `value` changes from outside (React's recommended pattern, no effect needed)
     if (value !== prevValue) {
@@ -67,9 +87,6 @@ export function ComboField({ label, value, placeholder, items, onChange, onCommi
             e.currentTarget.blur(); // Commits in onBlur
         }
         else if (e.key === 'Escape') {
-            if (escapeByMenu.current) {
-                return;
-            }
             const wasInvalid = invalid;
             setDraft(value);
             setInvalid(false);
@@ -90,104 +107,89 @@ export function ComboField({ label, value, placeholder, items, onChange, onCommi
                 </span>
             )}
 
-        <Popover open={menuOpen} onOpenChange={setMenuOpen}>
-            <PopoverAnchor asChild>
-                <div
-                    className={cn(
-                        "flex flex-1 items-stretch h-5.5 min-w-0 text-xs bg-muted/60 rounded overflow-hidden",
-                        invalid ? "ring-1 ring-red-500" : "focus-within:ring-1 focus-within:ring-(--editor-accent)",
-                    )}
-                >
-                    <div className="flex flex-1 items-center pl-1.5 min-w-0">
-                        <input
-                            className={cn("w-full min-w-0 tabular-nums bg-transparent outline-none font-condensed", invalid && "text-red-500")}
-                            value={draft}
-                            placeholder={placeholder}
-                            aria-invalid={invalid}
-                            onChange={(e) => {
-                                setDraft(e.currentTarget.value);
-                                onChange?.(e.currentTarget.value);
-                            }}
-                            onBlur={onBlur}
-                            onKeyDown={onKeyDown}
-                        />
-                    </div>
-
-                    <span className="w-px shrink-0 bg-border" aria-hidden />
-
-                    <PopoverTrigger asChild>
-                        <button
-                            ref={buttonRef}
-                            type="button"
-                            aria-label="Show history"
-                            className="w-6 shrink-0 grid place-items-center text-foreground hover:bg-foreground/10"
-                        >
-                            <IconRadix_ChevronDown className="size-3" />
-                        </button>
-                    </PopoverTrigger>
-                </div>
-            </PopoverAnchor>
-
-            <PopoverContent
-                align="start"
-                sideOffset={4}
-                className="p-1 gap-0 w-(--radix-popper-anchor-width) max-h-60 overflow-auto"
-                onOpenAutoFocus={(e) => e.preventDefault()} // Keep focus in the input
-                onEscapeKeyDown={() => {
-                    escapeByMenu.current = true;
-                    setTimeout(() => { escapeByMenu.current = false; }, 0);
-                }}
-                onPointerDownOutside={(e) => {
-                    // The trigger toggles the menu itself; don't let the outside click close it first and then reopen it
-                    if (buttonRef.current?.contains(e.target as Node)) {
-                        e.preventDefault();
-                    }
-                }}
-            >
-                <motion.ul
-                    className="flex flex-col"
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.12, ease: 'easeOut' }}
-                >
-                    {items.length === 0 && (
-                        <li>
-                            <button
-                                type="button"
-                                className="w-full px-1.5 py-1 text-left text-muted-foreground"
-                                onClick={() => setMenuOpen(false)}
-                            >
-                                History is empty
-                            </button>
-                        </li>
-                    )}
-
-                    {items.map((item) => (
-                        <li key={item} className="group flex items-center gap-1 rounded hover:bg-muted">
-                            <button
-                                type="button"
-                                className="flex-1 min-w-0 px-1.5 py-1 text-left font-condensed tabular-nums truncate"
-                                onClick={() => pick(item)}
-                            >
-                                {item}
-                            </button>
-
-                            <button
-                                type="button"
-                                aria-label={`Remove ${item}`}
-                                className="shrink-0 mr-1 grid place-items-center size-4 rounded text-foreground opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:bg-foreground/10"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onRemoveItem(item);
+            <Popover open={menuOpen} onOpenChange={setMenuOpen}>
+                <PopoverAnchor asChild>
+                    <div
+                        className={cn(
+                            "flex flex-1 items-stretch h-5.5 min-w-0 text-xs bg-muted/60 rounded overflow-hidden",
+                            invalid ? "ring-1 ring-red-500" : "focus-within:ring-1 focus-within:ring-(--editor-accent)",
+                        )}
+                    >
+                        <div className="flex flex-1 items-center pl-1.5 min-w-0">
+                            <input
+                                className={cn("w-full min-w-0 tabular-nums bg-transparent outline-none font-condensed", invalid && "text-red-500")}
+                                value={draft}
+                                onChange={(e) => {
+                                    setDraft(e.currentTarget.value);
+                                    onChange?.(e.currentTarget.value);
                                 }}
+                                onBlur={onBlur}
+                                onKeyDown={onKeyDown}
+                                placeholder={placeholder}
+                                aria-invalid={invalid}
+                            />
+                        </div>
+
+                        <span className="w-px shrink-0 bg-border" aria-hidden />
+
+                        <PopoverTrigger asChild>
+                            <button
+                                ref={buttonRef}
+                                type="button"
+                                aria-label="Show history"
+                                className="w-6 shrink-0 grid place-items-center text-foreground hover:bg-foreground/10"
                             >
-                                <IconRadix_Cross1 className="size-2.5" />
+                                <IconRadix_ChevronDown className="size-3" />
                             </button>
-                        </li>
-                    ))}
-                </motion.ul>
-            </PopoverContent>
-        </Popover>
+                        </PopoverTrigger>
+                    </div>
+                </PopoverAnchor>
+
+                <PopoverContent
+                    align="start"
+                    sideOffset={4}
+                    className="p-1 gap-0 w-(--radix-popper-anchor-width) max-h-60 overflow-auto"
+                    onOpenAutoFocus={(e) => e.preventDefault()} // Keep focus in the input
+                    onPointerDownOutside={(e) => {
+                        // The trigger toggles the menu itself; don't let the outside click close it first and then reopen it
+                        if (buttonRef.current?.contains(e.target as Node)) {
+                            e.preventDefault();
+                        }
+                    }}
+                >
+                    <motion.ul
+                        className="flex flex-col"
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.12, ease: 'easeOut' }}
+                    >
+                        {items.length === 0 && (
+                            <li>
+                                <button className="w-full px-1.5 py-1 text-left text-muted-foreground" onClick={() => setMenuOpen(false)} type="button">
+                                    History is empty
+                                </button>
+                            </li>
+                        )}
+
+                        {items.map((item) => (
+                            <li key={item} className="group flex items-center gap-1 rounded hover:bg-muted">
+                                <button className="flex-1 min-w-0 px-1.5 py-1 text-left font-condensed tabular-nums truncate" onClick={() => pick(item)} type="button">
+                                    {item}
+                                </button>
+
+                                <button
+                                    className="shrink-0 mr-1 grid place-items-center size-4 rounded text-foreground opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:bg-foreground/10"
+                                    onClick={(e) => { e.stopPropagation(); onRemoveItem(item); }}
+                                    aria-label={`Remove ${item}`}
+                                    type="button"
+                                >
+                                    <IconRadix_Cross1 className="size-2.5" />
+                                </button>
+                            </li>
+                        ))}
+                    </motion.ul>
+                </PopoverContent>
+            </Popover>
         </div>
     );
 }
