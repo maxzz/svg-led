@@ -213,7 +213,7 @@ export function MenubarSeparator({ className, ...rest }: ComponentProps<typeof M
 }
 
 export function MenubarShortcut({ className, ...rest }: ComponentProps<"span">) {
-    return <span data-slot="menubar-shortcut" className={cn("ml-auto text-xs tracking-widest text-muted-foreground group-focus/menubar-item:text-accent-foreground", className)} {...rest} />;
+    return <span data-slot="menubar-shortcut" className={cn("ml-auto text-xs text-muted-foreground group-focus/menubar-item:text-accent-foreground", className)} {...rest} />;
 }
 
 export function MenubarSub({ ...rest }: ComponentProps<typeof MenubarPrimitive.Sub>) {

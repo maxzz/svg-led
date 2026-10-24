@@ -125,7 +125,7 @@ export function CommandShortcut({ className, ...rest }: ComponentProps<"span">) 
     return (
         <span
             data-slot="command-shortcut"
-            className={cn("ml-auto text-xs tracking-widest text-muted-foreground group-data-selected/command-item:text-foreground", className)}
+            className={cn("ml-auto text-xs text-muted-foreground group-data-selected/command-item:text-foreground", className)}
             {...rest}
         />
     );
