@@ -2,7 +2,7 @@ import { type ReactNode } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { snapshot, useSnapshot } from "valtio";
 import {
-    ArrowDown, ArrowDownToLine, ArrowUp, ArrowUpToLine, ClipboardPaste, Combine, Copy, CopyPlus, FlipHorizontal, FlipVertical, Group, ImageDown,
+    ArrowDown, ArrowDownToLine, ArrowUp, ArrowUpToLine, ClipboardPaste, Combine, Copy, CopyPlus, FileCode, FlipHorizontal, FlipVertical, Group, ImageDown,
     Layers, Moon, MousePointer2, PaintBucket, Pipette, Scissors, Spline, SquareDashedMousePointer, Split, Trash, Ungroup, Waypoints,
 } from "lucide-react";
 import { appSettings } from "@/store/1-ui-settings";
@@ -55,6 +55,7 @@ function CanvasEntries() {
 
         <CommandItem id="file.pasteSvg" label="Paste" icon={<ClipboardPaste className={ic} />} />,
         <CommandItem id="edit.copyDrawingPng" icon={<ImageDown className={ic} />} />,
+        <CommandItem id="edit.copySvg" icon={<FileCode className={ic} />} />,
         <CommandItem id="file.copySource" label="Copy SVG source" icon={<Copy className={ic} />} />,
         SEP,
 
@@ -93,6 +94,7 @@ function ElementsEntries() {
         <CommandItem id="edit.copy" icon={<Copy className={ic} />} />,
         <CommandItem id="file.pasteSvg" label="Paste" icon={<ClipboardPaste className={ic} />} />,
         <CommandItem id="edit.copyPng" icon={<ImageDown className={ic} />} />,
+        <CommandItem id="edit.copySvg" icon={<FileCode className={ic} />} />,
         SEP,
 
         <CommandItem id="edit.copyStyle" icon={<Pipette className={ic} />} />,

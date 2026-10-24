@@ -88,22 +88,12 @@ export async function exportPng(scale: number, background?: string): Promise<Fil
 
 /** Puts a PNG on the clipboard: the nodes `ids`, or the whole drawing when `ids` is empty */
 export async function copyPngToClipboard(ids: readonly string[] = []): Promise<FileResult> {
-    const doc = snapshot(docState).doc as SvgDoc;
-    let target = doc;
-    if (ids.length) {
-        const bbox = nodesDocBBox(doc, ids);
-        if (!bbox) {
-            return { ok: false, error: 'Nothing to copy' };
-        }
-        const pad = 4;
-        target = {
-            ...doc,
-            viewBox: { x: bbox.x - pad, y: bbox.y - pad, width: bbox.width + 2 * pad, height: bbox.height + 2 * pad },
-            children: topmostIds(doc, ids).map((id) => findNode(doc, id)!.node),
-        };
+    const target = documentToCopy(ids);
+    if (!target.ok) {
+        return target;
     }
 
-    const rv = await rasterizeDocument(target, 2);
+    const rv = await rasterizeDocument(target.doc, 2);
     if (!rv.ok) {
         return rv;
     }
@@ -113,6 +103,49 @@ export async function copyPngToClipboard(ids: readonly string[] = []): Promise<F
     } catch (e) {
         return { ok: false, error: String(e) };
     }
+}
+
+/** Puts SVG markup on the clipboard: the nodes `ids`, or the whole drawing when `ids` is empty */
+export async function copySvgToClipboard(ids: readonly string[] = []): Promise<FileResult> {
+    const target = documentToCopy(ids);
+    if (!target.ok) {
+        return target;
+    }
+
+    try {
+        await navigator.clipboard.writeText(serializeSvg(target.doc, { precision: docPrecision() }));
+        return { ok: true };
+    } catch (e) {
+        return { ok: false, error: String(e) };
+    }
+}
+
+/**
+ * The document to copy: the whole drawing when `ids` is empty, otherwise a document holding the top-most nodes of `ids`
+ * with a padded viewBox (and matching size) around them
+ */
+function documentToCopy(ids: readonly string[]): { ok: true; doc: SvgDoc; } | { ok: false; error: string; } {
+    const doc = snapshot(docState).doc as SvgDoc;
+    if (!ids.length) {
+        return { ok: true, doc };
+    }
+
+    const bbox = nodesDocBBox(doc, ids);
+    if (!bbox) {
+        return { ok: false, error: 'Nothing to copy' };
+    }
+
+    const pad = 4;
+    const box = { x: bbox.x - pad, y: bbox.y - pad, width: bbox.width + 2 * pad, height: bbox.height + 2 * pad };
+    return {
+        ok: true,
+        doc: {
+            ...doc,
+            viewBox: box,
+            rootAttrs: { ...doc.rootAttrs, width: String(box.width), height: String(box.height) },
+            children: topmostIds(doc, ids).map((id) => findNode(doc, id)!.node),
+        },
+    };
 }
 
 type RasterResult = { ok: true; blob: Blob; } | { ok: false; error: string; };
