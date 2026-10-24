@@ -105,15 +105,51 @@ export async function copyPngToClipboard(ids: readonly string[] = []): Promise<F
     }
 }
 
+export type SvgExportOptions = {
+    /** Use the document's viewBox as the coordinate system ("Use viewBox" mode); otherwise fit the viewBox to the nodes */
+    useViewBox: boolean;
+    /** Margin around the nodes when the viewBox is fitted to them (not used in viewBox mode) */
+    padding?: number;
+};
+
+/**
+ * SVG markup for the nodes `ids` (or all top-level nodes when `ids` is empty).
+ * - viewBox mode: the document's viewBox (or the content bbox when there is none) is kept, so coordinates match it.
+ * - otherwise: the viewBox is fitted to the bbox of the nodes, plus `padding`.
+ */
+export function buildSvgExportText(ids: readonly string[], options: SvgExportOptions): { ok: true; text: string; } | { ok: false; error: string; } {
+    const doc = snapshot(docState).doc as SvgDoc;
+    const picked = ids.length ? ids : doc.children.map((n) => n.id);
+    const children = topmostIds(doc, picked).map((id) => findNode(doc, id)!.node);
+    if (!children.length) {
+        return { ok: false, error: 'Nothing to copy' };
+    }
+
+    const viewBox = options.useViewBox
+        ? doc.viewBox ?? nodesDocBBox(doc, doc.children.map((n) => n.id))
+        : fitBox(nodesDocBBox(doc, picked), options.padding ?? 4);
+    if (!viewBox) {
+        return { ok: false, error: 'Nothing to copy' };
+    }
+
+    const rootAttrs = options.useViewBox ? doc.rootAttrs : { ...doc.rootAttrs, width: String(viewBox.width), height: String(viewBox.height) };
+    const text = serializeSvg({ ...doc, viewBox, rootAttrs, children }, { precision: docPrecision() });
+    return { ok: true, text };
+}
+
+function fitBox<T extends { x: number; y: number; width: number; height: number; }>(bbox: T | null, pad: number) {
+    return bbox && { x: bbox.x - pad, y: bbox.y - pad, width: bbox.width + 2 * pad, height: bbox.height + 2 * pad };
+}
+
 /** Puts SVG markup on the clipboard: the nodes `ids`, or the whole drawing when `ids` is empty */
-export async function copySvgToClipboard(ids: readonly string[] = []): Promise<FileResult> {
-    const target = documentToCopy(ids);
-    if (!target.ok) {
-        return target;
+export async function copySvgToClipboard(ids: readonly string[], options: SvgExportOptions): Promise<FileResult> {
+    const rv = buildSvgExportText(ids, options);
+    if (!rv.ok) {
+        return rv;
     }
 
     try {
-        await navigator.clipboard.writeText(serializeSvg(target.doc, { precision: docPrecision() }));
+        await navigator.clipboard.writeText(rv.text);
         return { ok: true };
     } catch (e) {
         return { ok: false, error: String(e) };
@@ -121,7 +157,7 @@ export async function copySvgToClipboard(ids: readonly string[] = []): Promise<F
 }
 
 /**
- * The document to copy: the whole drawing when `ids` is empty, otherwise a document holding the top-most nodes of `ids`
+ * The document to copy as PNG: the whole drawing when `ids` is empty, otherwise a document holding the top-most nodes of `ids`
  * with a padded viewBox (and matching size) around them
  */
 function documentToCopy(ids: readonly string[]): { ok: true; doc: SvgDoc; } | { ok: false; error: string; } {

@@ -141,7 +141,10 @@ const EDIT: Command[] = [
     },
     {
         id: 'edit.copySvg', label: 'Copy to clipboard as SVG', group: 'edit', keywords: 'vector markup source all',
-        run: async ({ get }) => reportFile(await copySvgToClipboard(get(selectionAtom)), 'SVG copied'),
+        run: async ({ get }) => reportFile(
+            await copySvgToClipboard(get(selectionAtom), { useViewBox: appSettings.prefs.showViewBox }),
+            'SVG copied',
+        ),
     },
     {
         id: 'edit.copyStyle', label: 'Copy style', group: 'edit', enabled: hasSelection, keywords: 'fill stroke attributes',
