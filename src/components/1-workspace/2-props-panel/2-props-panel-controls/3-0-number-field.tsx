@@ -13,13 +13,14 @@ type NumberFieldProps = {
     precision?: number;
     disabled?: boolean;
     className?: string;
+    labelClassName?: string;
 };
 
 /**
  * Uncontrolled input re-keyed by the value, so outside changes (undo, dragging on the canvas)
  * replace the text. Commits on Enter or blur; ArrowUp/ArrowDown step the text (Shift x10).
  */
-export function NumberField({ label, value, onChange, onInput, min, step = 1, precision = 2, disabled, className }: NumberFieldProps) {
+export function NumberField({ label, value, onChange, onInput, min, step = 1, precision = 2, disabled, className, labelClassName }: NumberFieldProps) {
     const text = value === MIXED || value === undefined ? '' : String(+value.toFixed(precision));
 
     function clamp(n: number) {
@@ -63,7 +64,7 @@ export function NumberField({ label, value, onChange, onInput, min, step = 1, pr
     return (
         <label className={cn(fieldShellClasses, disabled && "opacity-40", className)}>
             {label && (
-                <span className={fieldLabelClasses}>
+                <span className={cn(fieldLabelClasses, labelClassName)}>
                     {label}
                 </span>
             )}
