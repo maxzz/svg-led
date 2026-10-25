@@ -37,4 +37,4 @@ export function Section_BBox({ ids }: SectionProps) {
 }
 
 const fieldLabelClasses = "w-2";
-const fieldClasses = "h-5.5 rounded font-condensed";
+const fieldClasses = "h-5.5 rounded";

@@ -121,7 +121,7 @@ export function ComboField({ label, value, placeholder, items, onChange, onCommi
                         <div className="flex flex-1 items-center pl-1.5 min-w-0">
                             <input
                                 ref={inputRef}
-                                className={cn("w-full min-w-0 tabular-nums bg-transparent outline-none font-condensed", invalid && "text-red-500")}
+                                className={cn("w-full min-w-0 tabular-nums bg-transparent outline-none", invalid && "text-red-500")}
                                 value={draft}
                                 onChange={(e) => {
                                     setDraft(e.currentTarget.value);
@@ -185,7 +185,7 @@ export function ComboField({ label, value, placeholder, items, onChange, onCommi
 
                         {items.map((item) => (
                             <li key={item} className="group flex items-center gap-1 rounded hover:bg-muted">
-                                <button className="flex-1 min-w-0 px-1.5 py-1 text-left font-condensed tabular-nums truncate" onClick={() => pick(item)} type="button">
+                                <button className="flex-1 min-w-0 px-1.5 py-1 text-left tabular-nums truncate" onClick={() => pick(item)} type="button">
                                     {item}
                                 </button>
 

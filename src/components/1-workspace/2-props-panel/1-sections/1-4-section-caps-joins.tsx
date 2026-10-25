@@ -123,7 +123,7 @@ function MiterLimitField({ visible, check, value, onChange }: { visible: boolean
                                 <PopoverAnchor asChild>
                                     <div className="-ml-1 w-16" data-miter-field onFocus={() => setActive(true)}>
                                         <NumberField
-                                            className="h-5.5 font-condensed rounded"
+                                            className="h-5.5 rounded"
                                             value={value}
                                             min={1}
                                             step={0.5}

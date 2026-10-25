@@ -174,14 +174,16 @@ function warnInvalidDash(raw: string) {
     notice.warning(
         <div className="flex flex-col gap-1">
             <div>
-                <span className="font-medium">“{raw.trim()}”</span> is not a valid dash array.
+                <span className={warningSpanClasses}>{raw.trim()}</span> is not a valid dash array.
             </div>
-            <div className="opacity-80">
-                Use non-negative numbers separated by spaces or commas, e.g. <span className="font-condensed">6 2</span>, <span className="font-condensed">4 2 1 2</span> or <span className="font-condensed">5, 3</span>.
+            <div className="opacity-80 text-pretty leading-5">
+                Use non-negative numbers separated by spaces or commas, e.g. <span className={warningSpanClasses}>6 2</span>, <span className={warningSpanClasses}>4 2 1 2</span> or <span className={warningSpanClasses}>5, 3</span>.
             </div>
         </div>
     );
 }
+
+const warningSpanClasses = "px-1 bg-background/20 border border-background/40 rounded";
 
 /** Canonical display form: numbers separated by single spaces ('' for solid). */
 function normalizeDashArray(dash: string | undefined): string {

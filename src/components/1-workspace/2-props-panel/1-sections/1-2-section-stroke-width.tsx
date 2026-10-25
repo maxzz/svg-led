@@ -79,7 +79,7 @@ function StrokeWidthField({ value, onChange }: { value: MaybeMixed<number> | und
     return (
         <Popover open={active} onOpenChange={setActive}>
             <PopoverAnchor asChild>
-                <div className="w-12 font-condensed" data-stroke-width-field onFocus={() => setActive(true)}>
+                <div className="w-12" data-stroke-width-field onFocus={() => setActive(true)}>
                     <NumberField className="h-5.5 rounded" value={value} min={0} step={0.5} onChange={onChange} />
                 </div>
             </PopoverAnchor>

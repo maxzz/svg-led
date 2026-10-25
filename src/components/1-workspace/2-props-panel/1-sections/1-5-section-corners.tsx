@@ -144,10 +144,10 @@ export function Section_RectCorners({ mode, ids, nodes }: SectionProps) {
                 <PopoverAnchor asChild>
                     <div className="grid grid-cols-2 gap-1">
                         <div className="contents" data-corner-field onFocus={() => openOn('rx')}>
-                            <NumberField className="h-5.5 rounded font-condensed" label="rx" value={rx} min={0} onChange={(v) => set('rx', v, linked)} />
+                            <NumberField className="h-5.5 rounded" label="rx" value={rx} min={0} onChange={(v) => set('rx', v, linked)} />
                         </div>
                         <div className="contents" data-corner-field onFocus={() => openOn('ry')}>
-                            <NumberField className="h-5.5 rounded font-condensed" label="ry" value={ry} min={0} onChange={(v) => set('ry', v, linked)} />
+                            <NumberField className="h-5.5 rounded" label="ry" value={ry} min={0} onChange={(v) => set('ry', v, linked)} />
                         </div>
                     </div>
                 </PopoverAnchor>
