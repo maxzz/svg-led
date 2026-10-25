@@ -51,21 +51,21 @@ function PanelHeader() {
 
     return (
         <div className="shrink-0 px-3 h-11 border-b flex items-center gap-2">
-            <span className="text-xs font-medium">SVG source</span>
+            <span className="text-xs 1font-medium tracking-tighter">SVG source</span>
+
+            {!codePanel.sync && (<>
+                <Button variant="outline" size="xs" disabled={!dirty} onClick={() => applyCodeToCanvas()} title="Parse the code and replace the canvas" className="ml-auto">
+                    Apply
+                </Button>
+                <Button variant="outline" size="xs" disabled={!dirty} onClick={() => reloadCodeFromCanvas()} title="Replace the code with the canvas">
+                    Reload
+                </Button>
+            </>)}
 
             <label className="select-none ml-auto text-xs text-muted-foreground flex items-center gap-1.5 cursor-pointer" title="Two-way sync between the code and the canvas">
                 <Checkbox checked={codePanel.sync} onCheckedChange={(v) => setCodeSync(v === true)} />
                 Sync
             </label>
-
-            {!codePanel.sync && (<>
-                <Button variant="outline" size="xs" disabled={!dirty} onClick={() => applyCodeToCanvas()} title="Parse the code and replace the canvas">
-                    Apply
-                </Button>
-                <Button variant="ghost" size="xs" disabled={!dirty} onClick={() => reloadCodeFromCanvas()} title="Replace the code with the canvas">
-                    Reload
-                </Button>
-            </>)}
 
             <Button variant="ghost" size="icon-xs" onClick={() => { appSettings.codePanel.open = false; }} title="Close — Ctrl+B">
                 <X />
