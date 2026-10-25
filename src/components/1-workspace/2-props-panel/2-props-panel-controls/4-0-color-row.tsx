@@ -231,7 +231,7 @@ const PALETTE_CELLS: readonly PaletteCell[] = [
     { key: 'q', id: 'transparent',  /**/fixed: 'none' },
     { key: 'w', id: 'white',      /**/fixed: '#ffffff' },
     { key: 'e', id: 'gray',       /**/shades: FAMILIES.gray },
-    { key: 'r', id: 'black',      /**/fixed: '#1e1e1e' },
+    { key: 'r', id: 'black',      /**/fixed: '#000000' },
     { key: 't', id: 'bronze',       /**/shades: FAMILIES.bronze },
     { key: 'a', id: 'cyan',       /**/shades: FAMILIES.cyan },
     { key: 's', id: 'blue',       /**/shades: FAMILIES.blue },
@@ -298,7 +298,7 @@ function PickerButton({ current }: { current: string; }) {
 function PaletteCellButton({ color, label, title, active, onClick }: { color: string; label: string; title: string; active: boolean; onClick: () => void; }) {
     return (
         <button
-            className={cn("relative size-8 ring-1 ring-foreground/15 rounded-md cursor-pointer", active && activeButtonClasses)}
+            className={cn("relative size-8 ring-1 ring-foreground/15 rounded-md cursor-pointer", active && activeButtonClasses, active && "ring-2")}
             style={{ background: color === 'none' ? CHECKERS : color }}
             onClick={onClick}
             title={title}
