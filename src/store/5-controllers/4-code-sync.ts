@@ -42,10 +42,14 @@ function attach(store: AppStore, { editor, monaco }: MonacoHandle): () => void {
             return;
         }
         const text = docToText();
-        if (m.getValue() !== text) {
+        const old = m.getValue();
+        if (old !== text) {
+            // Replace only the changed span: a whole-model replace drops Monaco's tokens, which flashes the highlighting
+            const { start, oldEnd, newText } = changedSpan(old, text);
+            const range = monaco.Range.fromPositions(m.getPositionAt(start), m.getPositionAt(oldEnd));
             writing = true;
             editor.pushUndoStop();
-            editor.executeEdits(MARKER_OWNER, [{ range: m.getFullModelRange(), text }]);
+            editor.executeEdits(MARKER_OWNER, [{ range, text: newText }]);
             editor.pushUndoStop();
             writing = false;
         }
@@ -161,6 +165,24 @@ function attach(store: AppStore, { editor, monaco }: MonacoHandle): () => void {
 
 const PARSE_DELAY_MS = 400;
 const MARKER_OWNER = 'svg-led';
+
+/** The smallest span of `oldText` that must be replaced by `newText` to turn one into the other (offsets into `oldText`) */
+function changedSpan(oldText: string, newText: string): { start: number; oldEnd: number; newText: string; } {
+    const max = Math.min(oldText.length, newText.length);
+    let prefix = 0;
+    while (prefix < max && oldText[prefix] === newText[prefix]) {
+        prefix++;
+    }
+    let suffix = 0;
+    while (suffix < max - prefix && oldText[oldText.length - 1 - suffix] === newText[newText.length - 1 - suffix]) {
+        suffix++;
+    }
+    return {
+        start: prefix,
+        oldEnd: oldText.length - suffix,
+        newText: newText.slice(prefix, newText.length - suffix),
+    };
+}
 
 function errorMarker(monaco: typeof Monaco, m: Monaco.editor.ITextModel, error: string): Monaco.editor.IMarkerData {
     // DOMParser errors usually contain "line N" and "column M"
