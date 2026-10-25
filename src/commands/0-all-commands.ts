@@ -2,7 +2,7 @@ import { toast } from "sonner";
 import { isShapeNode } from "@/svg-core";
 import { appSettings } from "@/store/1-ui-settings";
 import {
-    type FileResult, commitHistory, convertToPath, copyPngToClipboard, createEmptyDoc, deleteNodes, docState, docToText, duplicateNodes,
+    type FileResult, commitHistory, convertToPath, copyPngToClipboard, copySvgToClipboard, createEmptyDoc, deleteNodes, docState, docToText, duplicateNodes,
     exportPng, exportSvgDownload, flipNodes, getNodeProxy, groupNodes, historyState, insertSvgMarkup, isPointEditable, moveNodes,
     nodesToText, openSvgFile, readNodeStyle, reorderNodes, saveSvgFile, saveSvgFileAs, topLevelIds, ungroupNodes, writeNodesStyle,
     canMakeCompoundPath, makeCompoundPath, canReleaseCompoundPath, releaseCompoundPaths,
@@ -132,12 +132,19 @@ const EDIT: Command[] = [
         },
     },
     {
-        id: 'edit.copyPng', label: 'Copy as PNG', group: 'edit', enabled: hasSelection, keywords: 'image bitmap',
+        id: 'edit.copyPng', label: 'Copy to clipboard as PNG', group: 'edit', enabled: hasSelection, keywords: 'image bitmap',
         run: async ({ get }) => reportFile(await copyPngToClipboard(get(selectionAtom)), 'PNG copied'),
     },
     {
         id: 'edit.copyDrawingPng', label: 'Copy drawing as PNG', group: 'edit', keywords: 'image bitmap all',
         run: async () => reportFile(await copyPngToClipboard(), 'PNG copied'),
+    },
+    {
+        id: 'edit.copySvg', label: 'Copy to clipboard as SVG', group: 'edit', keywords: 'vector markup source all',
+        run: async ({ get }) => reportFile(
+            await copySvgToClipboard(get(selectionAtom), { useViewBox: appSettings.prefs.showViewBox }),
+            'SVG copied',
+        ),
     },
     {
         id: 'edit.copyStyle', label: 'Copy style', group: 'edit', enabled: hasSelection, keywords: 'fill stroke attributes',
