@@ -20,6 +20,9 @@ importers:
       '@fontsource-variable/yanone-kaffeesatz':
         specifier: ^5.3.0
         version: 5.3.0
+      '@fontsource/assistant':
+        specifier: 5.3.0
+        version: 5.3.0
       '@monaco-editor/react':
         specifier: ^4.7.0
         version: 4.7.0(monaco-editor@0.57.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -463,6 +466,9 @@ packages:
 
   '@fontsource-variable/yanone-kaffeesatz@5.3.0':
     resolution: {integrity: sha512-G9b+BdwnXRF9GXmMIv/0flUTse2Ftd6N82AbQAZ74oCGEUCsrVsmEEnCq9nXuQFkeQMCma2yod13yvA4v4IHEQ==}
+
+  '@fontsource/assistant@5.3.0':
+    resolution: {integrity: sha512-FJ0gSxkCdNeZgd2yIGmIkjU5SZOpDYs0j5IEWMQPBT5bRuvDqLA4T03KwmvMgWvov966coRVp0dcdd+oAo/MrA==}
 
   '@hono/node-server@2.1.4':
     resolution: {integrity: sha512-2g1qeHl4BduwDn6L8nkAvDrPUWPMlkQ//a5NhP/zIyaXKMjZNRV+cG9Csu+BiJFf6+68pqzjf4Hi5sJGKHuS1g==}
@@ -4021,6 +4027,8 @@ snapshots:
   '@fontsource-variable/roboto-condensed@5.3.0': {}
 
   '@fontsource-variable/yanone-kaffeesatz@5.3.0': {}
+
+  '@fontsource/assistant@5.3.0': {}
 
   '@hono/node-server@2.1.4(hono@4.13.13)':
     dependencies:
