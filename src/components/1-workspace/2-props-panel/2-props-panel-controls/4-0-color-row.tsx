@@ -71,12 +71,19 @@ function ColorPalette({ current, onChange, defaultShade }: { current: string; on
 
     // Which cell the current value belongs to. Its shade (if any) drives the grid and shade row.
     const matched = matchCell(current);
-    const shade = matched?.shade ?? activeShade;
-    const family = matched && matched.shade !== null ? matched.cell : null;
+    const shade = (matched?.cell.shades ? matched.shade : null) ?? activeShade;
+    // The cell whose shade row is shown: a palette family, or white/black with their gray ramps.
+    const rampCell = matched && rampOf(matched.cell) ? matched.cell : null;
+    const rampActive = matched?.shade ?? -1;
 
     function pick(cell: PaletteCell, index: number) {
         setActiveShade(index);
         onChange(cellColor(cell, index));
+    }
+
+    function pickShade(cell: PaletteCell, index: number) {
+        setActiveShade(index);
+        onChange(rampOf(cell)?.[index] ?? cellColor(cell, index));
     }
 
     /** Opens the full picker. The popover only opens once its module is loaded, so nothing flashes. */
@@ -105,9 +112,9 @@ function ColorPalette({ current, onChange, defaultShade }: { current: string; on
         }
         const digit = /^Digit([1-5])$/.exec(e.code)?.[1];
         if (e.shiftKey) {
-            if (digit && family) {
+            if (digit && rampCell) {
                 e.preventDefault();
-                pick(family, Number(digit) - 1);
+                pickShade(rampCell, Number(digit) - 1);
             }
             return;
         }
@@ -145,16 +152,16 @@ function ColorPalette({ current, onChange, defaultShade }: { current: string; on
                             Shades
                         </div>
                         <div className="grid grid-cols-5 gap-y-1.5">
-                            {family?.shades
-                                ? family.shades.map(
+                            {rampCell && rampOf(rampCell)
+                                ? rampOf(rampCell)!.map(
                                     (color, i) => (
                                         <PaletteCellButton
                                             key={i}
                                             color={color}
                                             label={`⇧${i + 1}`}
-                                            title={`${family.id} ${i + 1}`}
-                                            active={i === shade}
-                                            onClick={() => pick(family, i)}
+                                            title={`${rampCell.id} ${i + 1}`}
+                                            active={i === rampActive}
+                                            onClick={() => pickShade(rampCell, i)}
                                         />
                                     )
                                 )
@@ -185,27 +192,6 @@ function ColorPalette({ current, onChange, defaultShade }: { current: string; on
 }
 
 //---------------------------------------------------------------------------
-// Full picker (Color.js + picker UI), loaded on demand.
-// Hovering the selector button starts the load; clicking it opens the picker once the module is ready.
-// The picker never mounts with a placeholder, so the palette stays put while it loads.
-
-type PickerModule = typeof import("./4-1-color-picker-panel");
-
-let pickerModule: PickerModule | null = null;
-let pickerLoad: Promise<PickerModule> | null = null;
-
-function loadColorPicker(): Promise<PickerModule> {
-    pickerLoad ??= import("./4-1-color-picker-panel").then(
-        (m) => (pickerModule = m),
-        (err) => {
-            pickerLoad = null;
-            throw err;
-        },
-    );
-    return pickerLoad;
-}
-
-//---------------------------------------------------------------------------
 // Palette
 
 // Excalidraw's palette (packages/common/src/colors.ts). Each family has five shades, lightest first.
@@ -224,14 +210,19 @@ const FAMILIES = {
     red:    /**/["#fff5f5", "#ffc9c9", "#ff8787", "#fa5252", "#e03131"],
 } as const;
 
-type PaletteCell = { key: string; id: string; fixed?: string; shades?: readonly string[]; };
+/** `fixed` cells have one color; `ramp` gives them a shade row (lightest first, starting with `fixed`). */
+type PaletteCell = { key: string; id: string; fixed?: string; shades?: readonly string[]; ramp?: readonly string[]; };
+
+// Shade rows for white and black: small, even steps of gray, so the row is never empty.
+const WHITE_RAMP = ["#ffffff", "#e6e6e6", "#cccccc", "#b3b3b3", "#999999"];
+const BLACK_RAMP = ["#000000", "#1a1a1a", "#333333", "#4d4d4d", "#656565"];
 
 /** Grid order and hotkeys follow Excalidraw. `transparent` is stored as `none` for SVG. */
 const PALETTE_CELLS: readonly PaletteCell[] = [
     { key: 'q', id: 'transparent',  /**/fixed: 'none' },
-    { key: 'w', id: 'white',      /**/fixed: '#ffffff' },
+    { key: 'w', id: 'white',      /**/fixed: '#ffffff', ramp: WHITE_RAMP },
     { key: 'e', id: 'gray',       /**/shades: FAMILIES.gray },
-    { key: 'r', id: 'black',      /**/fixed: '#000000' },
+    { key: 'r', id: 'black',      /**/fixed: '#000000', ramp: BLACK_RAMP },
     { key: 't', id: 'bronze',       /**/shades: FAMILIES.bronze },
     { key: 'a', id: 'cyan',       /**/shades: FAMILIES.cyan },
     { key: 's', id: 'blue',       /**/shades: FAMILIES.blue },
@@ -244,6 +235,11 @@ const PALETTE_CELLS: readonly PaletteCell[] = [
     { key: 'v', id: 'orange',     /**/shades: FAMILIES.orange },
     { key: 'b', id: 'red',        /**/shades: FAMILIES.red },
 ];
+
+export const STROKE_SWATCHES = /**/['#1e1e1e', '#e03131', '#2f9e44', '#1971c2', '#f08c00'];
+export const FILL_SWATCHES =   /**/[/**/ 'none', '#ffc9c9', '#b2f2bb', '#a5d8ff', '#ffec99'];
+
+//---------------------------------------------------------------------------
 
 /** Hex text field. Shows the hex digits (with `#`) for hex colors, otherwise the raw CSS text. */
 function HexField({ value, onChange }: { value: string; onChange: (css: string) => void; }) {
@@ -276,6 +272,8 @@ function HexField({ value, onChange }: { value: string; onChange: (css: string) 
     );
 }
 
+//---------------------------------------------------------------------------
+
 /** Square showing the current color. Toggles the full picker popover. Hovering it starts loading the picker. */
 function PickerButton({ current }: { current: string; }) {
     return (
@@ -295,6 +293,28 @@ function PickerButton({ current }: { current: string; }) {
     );
 }
 
+// Full picker (Color.js + picker UI), loaded on demand.
+// Hovering the selector button starts the load; clicking it opens the picker once the module is ready.
+// The picker never mounts with a placeholder, so the palette stays put while it loads.
+
+type PickerModule = typeof import("./4-1-color-picker-panel");
+
+let pickerModule: PickerModule | null = null;
+let pickerLoad: Promise<PickerModule> | null = null;
+
+function loadColorPicker(): Promise<PickerModule> {
+    pickerLoad ??= import("./4-1-color-picker-panel").then(
+        (m) => (pickerModule = m),
+        (err) => {
+            pickerLoad = null;
+            throw err;
+        },
+    );
+    return pickerLoad;
+}
+
+//---------------------------------------------------------------------------
+
 function PaletteCellButton({ color, label, title, active, onClick }: { color: string; label: string; title: string; active: boolean; onClick: () => void; }) {
     return (
         <button
@@ -311,20 +331,28 @@ function PaletteCellButton({ color, label, title, active, onClick }: { color: st
     );
 }
 
-/** Finds the palette cell that holds `value`, and the shade index if it's a family color. */
+/** The colors of a cell's shade row, if it has one. */
+function rampOf(cell: PaletteCell): readonly string[] | undefined {
+    return cell.shades ?? cell.ramp;
+}
+
+/**
+ * Finds the palette cell that holds `value`, and its shade index if it has one.
+ * Exact fixed colors are checked first, so black (#000000) is not mistaken for a ramp step.
+ */
 function matchCell(value: string): { cell: PaletteCell; shade: number | null; } | null {
     const v = value.toLowerCase() === 'transparent' ? 'none' : value.toLowerCase();
 
     for (const cell of PALETTE_CELLS) {
-        if (cell.fixed !== undefined) {
-            if (cell.fixed.toLowerCase() === v) {
-                return { cell, shade: null };
-            }
-        } else {
-            const i = cell.shades?.indexOf(v) ?? -1;
-            if (i >= 0) {
-                return { cell, shade: i };
-            }
+        if (cell.fixed !== undefined && cell.fixed.toLowerCase() === v) {
+            return { cell, shade: cell.ramp ? 0 : null };
+        }
+    }
+
+    for (const cell of PALETTE_CELLS) {
+        const i = rampOf(cell)?.map((c) => c.toLowerCase()).indexOf(v) ?? -1;
+        if (i >= 0) {
+            return { cell, shade: i };
         }
     }
 
@@ -365,8 +393,3 @@ function isPaint(value: string): boolean {
 function sameColor(a: string, b: string): boolean {
     return a.toLowerCase() === b.toLowerCase();
 }
-
-//---------------------------------------------------------------------------
-
-export const STROKE_SWATCHES = /**/['#1e1e1e', '#e03131', '#2f9e44', '#1971c2', '#f08c00'];
-export const FILL_SWATCHES =   /**/[/**/ 'none', '#ffc9c9', '#b2f2bb', '#a5d8ff', '#ffec99'];
