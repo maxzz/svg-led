@@ -27,7 +27,7 @@ export function Island_PropertiesPopup() {
     return (
         <div className="w-50 max-h-[calc(100dvh-8rem)] text-xs text-foreground bg-background ring-1 ring-foreground/10 rounded-lg shadow-md overflow-hidden flex flex-col pointer-events-auto">
             <div className="shrink-0 h-8 flex items-center">
-                <button className="grow min-w-0 px-3 h-8 font-medium text-[11px] text-muted-foreground hover:text-foreground flex items-center justify-between" onClick={toggle} type="button">
+                <button className="grow min-w-0 px-3 h-8 font-medium text-ui text-muted-foreground hover:text-foreground flex items-center justify-between" onClick={toggle} type="button">
                     {title}
                     {collapsed ? <ChevronDown className="size-3.5" /> : <ChevronUp className="size-3.5" />}
                 </button>

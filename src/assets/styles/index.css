@@ -24,6 +24,11 @@
     --font-assistant: "Assistant", sans-serif;
 }
 
+/* Custom font sizes: use as text-ui, etc. */
+@theme {
+    --text-ui: 11px;
+}
+
 /* Standard shadcn https://zippystarter.com/tools/shadcn-ui-theme-generator */
 
 @custom-variant dark (&:is(.dark *));

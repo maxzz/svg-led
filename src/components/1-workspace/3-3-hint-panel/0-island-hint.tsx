@@ -1,4 +1,4 @@
-﻿import { useAtomValue } from "jotai";
+import { useAtomValue } from "jotai";
 import { useSnapshot } from "valtio";
 import { appSettings, HintPlacement } from "@/store/1-ui-settings";
 import { cn } from "@/utils/classnames";
@@ -18,7 +18,7 @@ export function Island_Hint({ placement }: { placement: HintPlacement; }) {
 
     return (
         <div className={cn(
-            "select-none min-w-0 px-2 text-[11px] text-muted-foreground/60 flex items-center",
+            "select-none min-w-0 px-2 text-ui text-muted-foreground/60 flex items-center",
             placement === HintPlacement.top ? "h-6 w-full" : "h-9 w-full",
         )}>
             <div className="w-full truncate text-center">

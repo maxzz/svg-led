@@ -9,7 +9,7 @@ export function Section({ title, check, children, className }: { title: string; 
     return (
         <section className={cn("flex flex-col gap-1.5", className)}>
             <PresenceRow check={check}>
-                <h3 className="select-none text-[11px] text-muted-foreground">
+                <h3 className="select-none text-ui text-muted-foreground">
                     {title}
                 </h3>
             </PresenceRow>
@@ -34,7 +34,7 @@ export function CollapsibleSection({ title, open, onOpenChange, check, gutter = 
     );
 
     const heading = (
-        <h3 className="text-[11px]">
+        <h3 className="text-ui">
             <button className="select-none w-full text-left text-muted-foreground hover:text-foreground flex items-center gap-1 cursor-pointer" type="button" aria-expanded={open} onClick={() => onOpenChange(!open)}>
                 {chevronBefore && chevronIcon}
                 {title}

@@ -82,7 +82,7 @@ export function ContextMenuItem({ className, inset, variant = "default", ...rest
 }
 
 const itemClasses = "\
-group/context-menu-item relative px-4 py-1 text-[11px] \
+group/context-menu-item relative px-4 py-1 text-ui \
 \
 focus:text-accent-foreground \
 focus:bg-accent \
@@ -124,7 +124,7 @@ export function ContextMenuSubTrigger({ className, inset, children, ...rest }: C
 }
 
 const subTriggerClasses = "\
-px-4 py-1 text-[11px] \
+px-4 py-1 text-ui \
 \
 focus:text-accent-foreground \
 focus:bg-accent \
@@ -199,7 +199,7 @@ export function ContextMenuCheckboxItem({ className, children, checked, inset, .
 }
 
 const checkboxItemClasses = "\
-relative pr-8 pl-4 py-1 text-[11px] \
+relative pr-8 pl-4 py-1 text-ui \
 \
 focus:bg-accent \
 focus:text-accent-foreground \
@@ -237,7 +237,7 @@ export function ContextMenuRadioItem({ className, children, inset, ...rest }: Co
 }
 
 const radioItemClasses = "\
-relative pr-8 pl-4 py-1 text-[11px] \
+relative pr-8 pl-4 py-1 text-ui \
 \
 focus:bg-accent \
 focus:text-accent-foreground \
@@ -261,7 +261,7 @@ export function ContextMenuLabel({ className, inset, ...rest }: ComponentProps<t
         <ContextMenuPrimitive.Label
             data-slot="context-menu-label"
             data-inset={inset}
-            className={cn("px-4 py-1 text-[11px] font-medium text-muted-foreground data-inset:pl-7", className)}
+            className={cn("px-4 py-1 text-ui font-medium text-muted-foreground data-inset:pl-7", className)}
             {...rest}
         />
     );
@@ -281,7 +281,7 @@ export function ContextMenuShortcut({ className, ...rest }: ComponentProps<"span
     return (
         <span
             data-slot="context-menu-shortcut"
-            className={cn("ml-auto text-[11px] text-muted-foreground group-focus/context-menu-item:text-accent-foreground", className)}
+            className={cn("ml-auto text-ui text-muted-foreground group-focus/context-menu-item:text-accent-foreground", className)}
             {...rest}
         />
     );
