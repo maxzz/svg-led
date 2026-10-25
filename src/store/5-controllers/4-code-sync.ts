@@ -42,10 +42,12 @@ function attach(store: AppStore, { editor, monaco }: MonacoHandle): () => void {
             return;
         }
         const text = docToText();
-        if (m.getValue() !== text) {
+        const old = m.getValue();
+        if (old !== text) {
+            const edits = changedEdits(monaco, m, old, text);
             writing = true;
             editor.pushUndoStop();
-            editor.executeEdits(MARKER_OWNER, [{ range: m.getFullModelRange(), text }]);
+            editor.executeEdits(MARKER_OWNER, edits);
             editor.pushUndoStop();
             writing = false;
         }
@@ -161,6 +163,50 @@ function attach(store: AppStore, { editor, monaco }: MonacoHandle): () => void {
 
 const PARSE_DELAY_MS = 400;
 const MARKER_OWNER = 'svg-led';
+
+/**
+ * Edits that turn the model text `oldText` into `newText` without replacing unchanged text:
+ * Monaco drops the tokens of replaced text until it re-tokenizes, which flashes the highlighting.
+ * Same line count (property changes, also for many selected objects): one edit per changed line, covering only its changed characters.
+ * Different line count: one edit for the smallest changed character span.
+ */
+function changedEdits(monaco: typeof Monaco, m: Monaco.editor.ITextModel, oldText: string, newText: string): Monaco.editor.IIdentifiedSingleEditOperation[] {
+    const a = oldText.split('\n');
+    const b = newText.split('\n');
+
+    if (a.length !== b.length) {
+        const [prefix, suffix] = commonEnds(oldText, newText);
+        const range = monaco.Range.fromPositions(m.getPositionAt(prefix), m.getPositionAt(oldText.length - suffix));
+        return [{ range, text: newText.slice(prefix, newText.length - suffix) }];
+    }
+
+    const edits: Monaco.editor.IIdentifiedSingleEditOperation[] = [];
+    for (let i = 0; i < a.length; i++) {
+        if (a[i] !== b[i]) {
+            const [prefix, suffix] = commonEnds(a[i], b[i]);
+            const line = i + 1;
+            edits.push({
+                range: new monaco.Range(line, prefix + 1, line, a[i].length - suffix + 1),
+                text: b[i].slice(prefix, b[i].length - suffix),
+            });
+        }
+    }
+    return edits;
+}
+
+/** Lengths of the common prefix and the common suffix of two strings (not overlapping) */
+function commonEnds(a: string, b: string): [prefix: number, suffix: number] {
+    const max = Math.min(a.length, b.length);
+    let prefix = 0;
+    while (prefix < max && a[prefix] === b[prefix]) {
+        prefix++;
+    }
+    let suffix = 0;
+    while (suffix < max - prefix && a[a.length - 1 - suffix] === b[b.length - 1 - suffix]) {
+        suffix++;
+    }
+    return [prefix, suffix];
+}
 
 function errorMarker(monaco: typeof Monaco, m: Monaco.editor.ITextModel, error: string): Monaco.editor.IMarkerData {
     // DOMParser errors usually contain "line N" and "column M"
