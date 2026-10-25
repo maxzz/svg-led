@@ -26,7 +26,7 @@
 
 /* Custom font sizes: use as text-ui, etc. */
 @theme {
-    --text-ui: 11px;
+    --text-ui: 12px;
 }
 
 /* Standard shadcn https://zippystarter.com/tools/shadcn-ui-theme-generator */
