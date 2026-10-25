@@ -9,7 +9,11 @@
 @import "@fontsource-variable/geist-mono"; /* https://fontsource.org/fonts/geist-mono/install */
 @import "@fontsource-variable/yanone-kaffeesatz"; /* https://fontsource.org/fonts/yanone-kaffeesatz/install */
 @import "@fontsource-variable/roboto-condensed"; /* https://fontsource.org/fonts/roboto-condensed/install */
-@import "@fontsource/assistant/400.css"; /* https://fontsource.org/fonts/assistant/install */
+
+@import "@fontsource/assistant/400.css";  /* Regular */ /* https://fontsource.org/fonts/assistant/install */
+@import "@fontsource/assistant/500.css";  /* Medium */
+@import "@fontsource/assistant/600.css";  /* Semi-Bold */
+@import "@fontsource/assistant/700.css";  /* Bold */
 
 /* Custom fonts */
 
