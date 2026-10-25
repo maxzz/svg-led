@@ -44,11 +44,12 @@ function attach(store: AppStore, { editor, monaco }: MonacoHandle): () => void {
         const text = docToText();
         const old = m.getValue();
         if (old !== text) {
-            // Replace only what changed: a whole-model replace drops Monaco's tokens, which flashes the highlighting
-            const edits = changedEdits(monaco, m, old, text);
+            // Replace only the changed span: a whole-model replace drops Monaco's tokens, which flashes the highlighting
+            const { start, oldEnd, newText } = changedSpan(old, text);
+            const range = monaco.Range.fromPositions(m.getPositionAt(start), m.getPositionAt(oldEnd));
             writing = true;
             editor.pushUndoStop();
-            editor.executeEdits(MARKER_OWNER, edits);
+            editor.executeEdits(MARKER_OWNER, [{ range, text: newText }]);
             editor.pushUndoStop();
             writing = false;
         }
@@ -165,26 +166,8 @@ function attach(store: AppStore, { editor, monaco }: MonacoHandle): () => void {
 const PARSE_DELAY_MS = 400;
 const MARKER_OWNER = 'svg-led';
 
-/**
- * Edits that turn the model text `oldText` into `newText`, touching only the changed lines.
- * Same line count (property changes, including several selected objects): one edit per changed line,
- * so unchanged lines keep their tokens. Otherwise: one edit for the smallest changed character span.
- */
-function changedEdits(monaco: typeof Monaco, m: Monaco.editor.ITextModel, oldText: string, newText: string): Monaco.editor.IIdentifiedSingleEditOperation[] {
-    const a = oldText.split('\n');
-    const b = newText.split('\n');
-
-    if (a.length === b.length) {
-        const edits: Monaco.editor.IIdentifiedSingleEditOperation[] = [];
-        for (let i = 0; i < a.length; i++) {
-            if (a[i] !== b[i]) {
-                const line = i + 1;
-                edits.push({ range: new monaco.Range(line, 1, line, m.getLineMaxColumn(line)), text: b[i] });
-            }
-        }
-        return edits;
-    }
-
+/** The smallest span of `oldText` that must be replaced by `newText` to turn one into the other (offsets into `oldText`) */
+function changedSpan(oldText: string, newText: string): { start: number; oldEnd: number; newText: string; } {
     const max = Math.min(oldText.length, newText.length);
     let prefix = 0;
     while (prefix < max && oldText[prefix] === newText[prefix]) {
@@ -194,8 +177,11 @@ function changedEdits(monaco: typeof Monaco, m: Monaco.editor.ITextModel, oldTex
     while (suffix < max - prefix && oldText[oldText.length - 1 - suffix] === newText[newText.length - 1 - suffix]) {
         suffix++;
     }
-    const range = monaco.Range.fromPositions(m.getPositionAt(prefix), m.getPositionAt(oldText.length - suffix));
-    return [{ range, text: newText.slice(prefix, newText.length - suffix) }];
+    return {
+        start: prefix,
+        oldEnd: oldText.length - suffix,
+        newText: newText.slice(prefix, newText.length - suffix),
+    };
 }
 
 function errorMarker(monaco: typeof Monaco, m: Monaco.editor.ITextModel, error: string): Monaco.editor.IMarkerData {
