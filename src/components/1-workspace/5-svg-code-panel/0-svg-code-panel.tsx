@@ -51,7 +51,7 @@ function PanelHeader() {
 
     return (
         <div className="shrink-0 px-3 h-11 border-b flex items-center gap-2">
-            <span className="text-xs 1font-medium tracking-tighter">SVG source</span>
+            <span className="text-xs font-bold">SVG source</span>
 
             {!codePanel.sync && (<>
                 <Button variant="outline" size="xs" disabled={!dirty} onClick={() => applyCodeToCanvas()} title="Parse the code and replace the canvas" className="ml-auto">
