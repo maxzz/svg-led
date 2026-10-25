@@ -12,10 +12,24 @@
 
 /* Custom fonts */
 
+/* Assistant Regular (400), from https://github.com/KyleAMathews/typefaces/tree/master/packages/assistant */
+@font-face {
+    font-family: "Assistant";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src:
+        local("Assistant Regular"),
+        local("Assistant-Regular"),
+        url("../fonts/assistant-latin-400.woff2") format("woff2"),
+        url("../fonts/assistant-latin-400.woff") format("woff");
+}
+
 @theme inline {
     --font-ui: "Yanone Kaffeesatz Variable", sans-serif;
     --font-condensed: "Roboto Condensed Variable", sans-serif;
     --font-code: "Geist Mono Variable", monospace;
+    --font-assistant: "Assistant", sans-serif;
 }
 
 /* Standard shadcn https://zippystarter.com/tools/shadcn-ui-theme-generator */
