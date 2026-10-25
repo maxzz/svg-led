@@ -185,27 +185,6 @@ function ColorPalette({ current, onChange, defaultShade }: { current: string; on
 }
 
 //---------------------------------------------------------------------------
-// Full picker (Color.js + picker UI), loaded on demand.
-// Hovering the selector button starts the load; clicking it opens the picker once the module is ready.
-// The picker never mounts with a placeholder, so the palette stays put while it loads.
-
-type PickerModule = typeof import("./4-1-color-picker-panel");
-
-let pickerModule: PickerModule | null = null;
-let pickerLoad: Promise<PickerModule> | null = null;
-
-function loadColorPicker(): Promise<PickerModule> {
-    pickerLoad ??= import("./4-1-color-picker-panel").then(
-        (m) => (pickerModule = m),
-        (err) => {
-            pickerLoad = null;
-            throw err;
-        },
-    );
-    return pickerLoad;
-}
-
-//---------------------------------------------------------------------------
 // Palette
 
 // Excalidraw's palette (packages/common/src/colors.ts). Each family has five shades, lightest first.
@@ -245,6 +224,11 @@ const PALETTE_CELLS: readonly PaletteCell[] = [
     { key: 'b', id: 'red',        /**/shades: FAMILIES.red },
 ];
 
+export const STROKE_SWATCHES = /**/['#1e1e1e', '#e03131', '#2f9e44', '#1971c2', '#f08c00'];
+export const FILL_SWATCHES =   /**/[/**/ 'none', '#ffc9c9', '#b2f2bb', '#a5d8ff', '#ffec99'];
+
+//---------------------------------------------------------------------------
+
 /** Hex text field. Shows the hex digits (with `#`) for hex colors, otherwise the raw CSS text. */
 function HexField({ value, onChange }: { value: string; onChange: (css: string) => void; }) {
     const isHex = value.startsWith('#');
@@ -276,6 +260,8 @@ function HexField({ value, onChange }: { value: string; onChange: (css: string) 
     );
 }
 
+//---------------------------------------------------------------------------
+
 /** Square showing the current color. Toggles the full picker popover. Hovering it starts loading the picker. */
 function PickerButton({ current }: { current: string; }) {
     return (
@@ -294,6 +280,28 @@ function PickerButton({ current }: { current: string; }) {
         </PopoverTrigger>
     );
 }
+
+// Full picker (Color.js + picker UI), loaded on demand.
+// Hovering the selector button starts the load; clicking it opens the picker once the module is ready.
+// The picker never mounts with a placeholder, so the palette stays put while it loads.
+
+type PickerModule = typeof import("./4-1-color-picker-panel");
+
+let pickerModule: PickerModule | null = null;
+let pickerLoad: Promise<PickerModule> | null = null;
+
+function loadColorPicker(): Promise<PickerModule> {
+    pickerLoad ??= import("./4-1-color-picker-panel").then(
+        (m) => (pickerModule = m),
+        (err) => {
+            pickerLoad = null;
+            throw err;
+        },
+    );
+    return pickerLoad;
+}
+
+//---------------------------------------------------------------------------
 
 function PaletteCellButton({ color, label, title, active, onClick }: { color: string; label: string; title: string; active: boolean; onClick: () => void; }) {
     return (
@@ -365,8 +373,3 @@ function isPaint(value: string): boolean {
 function sameColor(a: string, b: string): boolean {
     return a.toLowerCase() === b.toLowerCase();
 }
-
-//---------------------------------------------------------------------------
-
-export const STROKE_SWATCHES = /**/['#1e1e1e', '#e03131', '#2f9e44', '#1971c2', '#f08c00'];
-export const FILL_SWATCHES =   /**/[/**/ 'none', '#ffc9c9', '#b2f2bb', '#a5d8ff', '#ffec99'];
