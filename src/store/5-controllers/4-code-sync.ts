@@ -44,12 +44,11 @@ function attach(store: AppStore, { editor, monaco }: MonacoHandle): () => void {
         const text = docToText();
         const old = m.getValue();
         if (old !== text) {
-            // Replace only the changed span: a whole-model replace drops Monaco's tokens, which flashes the highlighting
-            const { start, oldEnd, newText } = changedSpan(old, text);
-            const range = monaco.Range.fromPositions(m.getPositionAt(start), m.getPositionAt(oldEnd));
+            // Replace only the changed regions: a whole-model replace drops Monaco's tokens, which flashes the highlighting
+            const edits = changedEdits(monaco, m, old, text);
             writing = true;
             editor.pushUndoStop();
-            editor.executeEdits(MARKER_OWNER, [{ range, text: newText }]);
+            editor.executeEdits(MARKER_OWNER, edits);
             editor.pushUndoStop();
             writing = false;
         }
@@ -166,22 +165,62 @@ function attach(store: AppStore, { editor, monaco }: MonacoHandle): () => void {
 const PARSE_DELAY_MS = 400;
 const MARKER_OWNER = 'svg-led';
 
-/** The smallest span of `oldText` that must be replaced by `newText` to turn one into the other (offsets into `oldText`) */
-function changedSpan(oldText: string, newText: string): { start: number; oldEnd: number; newText: string; } {
-    const max = Math.min(oldText.length, newText.length);
-    let prefix = 0;
-    while (prefix < max && oldText[prefix] === newText[prefix]) {
-        prefix++;
+/**
+ * Edits that turn the model text `oldText` into `newText`, one per changed region.
+ * Same line count (property changes): each run of consecutive changed lines is a region, and inside it only
+ * the changed characters are replaced, so several selected objects give several small edits.
+ * Different line count: one edit for the smallest changed character span.
+ */
+function changedEdits(monaco: typeof Monaco, m: Monaco.editor.ITextModel, oldText: string, newText: string): Monaco.editor.IIdentifiedSingleEditOperation[] {
+    const a = oldText.split('\n');
+    const b = newText.split('\n');
+
+    if (a.length !== b.length) {
+        const max = Math.min(oldText.length, newText.length);
+        let prefix = 0;
+        while (prefix < max && oldText[prefix] === newText[prefix]) {
+            prefix++;
+        }
+        let suffix = 0;
+        while (suffix < max - prefix && oldText[oldText.length - 1 - suffix] === newText[newText.length - 1 - suffix]) {
+            suffix++;
+        }
+        const range = monaco.Range.fromPositions(m.getPositionAt(prefix), m.getPositionAt(oldText.length - suffix));
+        return [{ range, text: newText.slice(prefix, newText.length - suffix) }];
     }
-    let suffix = 0;
-    while (suffix < max - prefix && oldText[oldText.length - 1 - suffix] === newText[newText.length - 1 - suffix]) {
-        suffix++;
+
+    const edits: Monaco.editor.IIdentifiedSingleEditOperation[] = [];
+    for (let i = 0; i < a.length;) {
+        if (a[i] === b[i]) {
+            i++;
+            continue;
+        }
+        const first = i;
+        while (i < a.length && a[i] !== b[i]) {
+            i++;
+        }
+        const last = i - 1;                                             // region = lines first..last
+        const oldBlock = a.slice(first, last + 1).join('\n');
+        const newBlock = b.slice(first, last + 1).join('\n');
+
+        const max = Math.min(oldBlock.length, newBlock.length);
+        let prefix = 0;
+        while (prefix < max && oldBlock[prefix] === newBlock[prefix]) {
+            prefix++;
+        }
+        let suffix = 0;
+        while (suffix < max - prefix && oldBlock[oldBlock.length - 1 - suffix] === newBlock[newBlock.length - 1 - suffix]) {
+            suffix++;
+        }
+
+        const blockStart = m.getOffsetAt({ lineNumber: first + 1, column: 1 });
+        const range = monaco.Range.fromPositions(
+            m.getPositionAt(blockStart + prefix),
+            m.getPositionAt(blockStart + oldBlock.length - suffix),
+        );
+        edits.push({ range, text: newBlock.slice(prefix, newBlock.length - suffix) });
     }
-    return {
-        start: prefix,
-        oldEnd: oldText.length - suffix,
-        newText: newText.slice(prefix, newText.length - suffix),
-    };
+    return edits;
 }
 
 function errorMarker(monaco: typeof Monaco, m: Monaco.editor.ITextModel, error: string): Monaco.editor.IMarkerData {
