@@ -17,6 +17,7 @@ type ColorRowProps = {
 export function ColorRow({ value, swatches, defaultShade = 4, onChange }: ColorRowProps) {
     const current = value === MIXED ? '' : value ?? '';
     const [open, setOpen] = useState(false);
+    const isCustom = !!current && !swatches.some((color) => sameColor(color, current));
 
     function onKeyDown(e: KeyboardEvent<HTMLInputElement>) {
         if (e.key === 'Enter') {
@@ -35,7 +36,7 @@ export function ColorRow({ value, swatches, defaultShade = 4, onChange }: ColorR
 
                 <Popover open={open} onOpenChange={setOpen}>
                     <PopoverTrigger asChild>
-                        <button className="relative size-5 ring-1 ring-foreground/15 rounded overflow-hidden cursor-pointer" style={{ background: CHECKERS }} title="Pick a color" type="button">
+                        <button className={cn("relative size-5 ring-1 ring-foreground/15 rounded overflow-hidden cursor-pointer", isCustom && activeButtonClasses)} style={{ background: CHECKERS }} title="Pick a color" type="button">
                             {isPaint(current) && <span className="absolute inset-0" style={{ background: current }} />}
                         </button>
                     </PopoverTrigger>
