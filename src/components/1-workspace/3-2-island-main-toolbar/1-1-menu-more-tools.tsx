@@ -1,5 +1,5 @@
-import { Command, EllipsisVertical, Search } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/ui/shadcn/dropdown-menu";
+import { Archive, Command, EllipsisVertical, Search } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuSeparator, DropdownMenuTrigger } from "@/ui/shadcn/dropdown-menu";
 import { islandButtonClasses } from "@/ui/local-ui/9-island";
 import { CommandMenuItem } from "./1-8-menu-item-as-command";
 
@@ -14,6 +14,8 @@ export function MoreMenu() {
             <DropdownMenuContent className="min-w-56" align="end" sideOffset={8}>
                 <CommandMenuItem id="help.palette" icon={<Command className={ic} />} />
                 <CommandMenuItem id="help.find" icon={<Search className={ic} />} />
+                <DropdownMenuSeparator />
+                <CommandMenuItem id="file.scraps" icon={<Archive className={ic} />} />
             </DropdownMenuContent>
         </DropdownMenu>
     );

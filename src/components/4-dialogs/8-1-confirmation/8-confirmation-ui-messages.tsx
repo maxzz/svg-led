@@ -19,3 +19,14 @@ export function getConfirmOverwriteSavedPathMessages(name: string): Confirmation
         </>),
     };
 }
+
+export function getConfirmOverwriteScrapMessages(name: string): ConfirmationUi {
+    return {
+        ...confirmOverwriteSavedPathMessages,
+        title: "Overwrite scrap?",
+        message: (<>
+            A scrap named <span className="font-medium text-orange-600">{name}</span> already exists.
+            Save will replace its elements with the current ones.
+        </>),
+    };
+}

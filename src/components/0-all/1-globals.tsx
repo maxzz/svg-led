@@ -5,6 +5,7 @@ import { ViewBoxSettingsDialog } from "@/components/4-dialogs/8-5-viewbox-settin
 import { ShortcutsHelpDialog } from "@/components/4-dialogs/8-6-shortcuts-help/0-shortcuts-help-dialog";
 import { CommandPalette } from "@/components/4-dialogs/8-7-command-palette/0-command-palette";
 import { FindOnCanvasDialog } from "@/components/4-dialogs/8-8-find-on-canvas/0-find-on-canvas";
+import { ScrapsDialog } from "@/components/4-dialogs/8-9-scraps/0-scraps-dialog";
 
 export function AllDialogs() {
     return (<>
@@ -15,5 +16,6 @@ export function AllDialogs() {
         <ShortcutsHelpDialog />
         <CommandPalette />
         <FindOnCanvasDialog />
+        <ScrapsDialog />
     </>);
 }
