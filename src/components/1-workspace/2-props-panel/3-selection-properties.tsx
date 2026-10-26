@@ -4,10 +4,10 @@ import { useDocSnapshot } from "@/store/3-document";
 import { selectionAtom } from "@/store/4-editor";
 import { PROPERTY_SECTIONS } from "./1-sections/9-registry";
 
-export function SelectionProperties() {
+/** Selected nodes that exist in the document, with their ids */
+export function useSelectedNodes(): { ids: string[]; nodes: SvgNode[]; } {
     const doc = useDocSnapshot();
     const selection = useAtomValue(selectionAtom);
-
     const ids: string[] = [];
     const nodes: SvgNode[] = [];
 
@@ -18,16 +18,23 @@ export function SelectionProperties() {
             nodes.push(loc.node);
         }
     }
+    return { ids, nodes };
+}
+
+/** Name shown in the Properties header: the element's tag and id, or the count for a multi-selection */
+export function selectionTitle(nodes: SvgNode[]): string | null {
+    if (!nodes.length) return null;
+    return nodes.length === 1 ? nodeTitle(nodes[0]) : `${nodes.length} elements`;
+}
+
+export function SelectionProperties() {
+    const { ids, nodes } = useSelectedNodes();
 
     if (!nodes.length) {
         return null;
     }
 
     return (<>
-        <div className="select-none pl-4 text-xs font-medium">
-            {nodes.length === 1 ? nodeTitle(nodes[0]) : `${nodes.length} elements`}
-        </div>
-
         {PROPERTY_SECTIONS.filter((s) => s.appliesTo(nodes)).map(
             ({ id, Component }) => <Component mode="selection" ids={ids} nodes={nodes} key={id} />
         )}

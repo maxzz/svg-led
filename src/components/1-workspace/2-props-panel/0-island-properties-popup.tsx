@@ -4,11 +4,9 @@ import { cn } from "@/utils/classnames";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { appSettings } from "@/store/1-ui-settings";
 import { ChevronDown, ChevronUp, Pin } from "lucide-react";
-import { SelectionProperties } from "./3-selection-properties";
+import { SelectionProperties, selectionTitle, useSelectedNodes } from "./3-selection-properties";
 import { ToolProperties } from "./4-tool-properties";
 import { isPropertiesCollapsedAtom, propertiesModeAtom, togglePropertiesCollapsedAtom } from "./9-atoms-properties-popup";
-
-const TITLES = { selection: 'Properties', tool: 'Tool style' } as const;
 
 /** Docked under the main menu; content depends on the selection and the active tool. Hidden when there is nothing to show, unless pinned. */
 export function Island_PropertiesPopup() {
@@ -17,18 +15,21 @@ export function Island_PropertiesPopup() {
     const toggle = useSetAtom(togglePropertiesCollapsedAtom);
     const { prefs } = useSnapshot(appSettings);
     const pinned = prefs.pinProperties;
+    const { nodes } = useSelectedNodes();
 
     if (!mode && !pinned) {
         return null;
     }
 
-    const title = TITLES[mode ?? 'selection'];
+    const title = mode === 'tool'
+        ? 'Tool style'
+        : (mode === 'selection' && selectionTitle(nodes)) || 'Properties';
 
     return (
         <div className="w-50 max-h-[calc(100dvh-8rem)] text-xs text-foreground bg-background ring-1 ring-foreground/10 rounded-lg shadow-md overflow-hidden flex flex-col pointer-events-auto">
             <div className="shrink-0 h-8 flex items-center">
                 <button className="grow min-w-0 px-3 h-8 font-medium text-ui text-muted-foreground hover:text-foreground flex items-center justify-between" onClick={toggle} type="button">
-                    {title}
+                    <span className="truncate">{title}</span>
                     {collapsed ? <ChevronDown className="size-3.5" /> : <ChevronUp className="size-3.5" />}
                 </button>
 
