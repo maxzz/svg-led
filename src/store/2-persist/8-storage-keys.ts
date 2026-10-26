@@ -9,6 +9,7 @@ export const STORAGE_KEYS = {
     toolbar: `${APP_PREFIX}__toolbar__v1`,          // active tool and tool lock
     doc: `${APP_PREFIX}__doc__v1`,                  // autosaved document source
     newShape: `${APP_PREFIX}__new-shape__v1`,       // properties new shapes are created with; shared by all creation tools
+    scraps: `${APP_PREFIX}__scraps__v1`,            // named sets of elements saved from the canvas (Scraps dialog)
 } as const;
 
 /** Keys the separate per-property atoms used before `newShape`. Read once to migrate their values, then removed. */
