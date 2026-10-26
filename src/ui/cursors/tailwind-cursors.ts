@@ -9,10 +9,12 @@ function svgToDataUri(svg: string): string {
     return `data:image/svg+xml,${encodeURIComponent(svg.replace(/\s+/g, ' ').trim())}`;
 }
 
-/** The hotspot is the arrow tip at (1, 1) */
+/** The hotspot is the arrow tip at (1, 1) and at 0 0 is white border */
 function cursorCss(svg: string): string {
     return `url("${svgToDataUri(svg)}") 1 1, default`;
 }
+
+//---------------------------------------------------------------------------
 
 /** Empty canvas, nothing selected */
 export const selectionPointer = cursorCss(`
@@ -23,6 +25,8 @@ export const selectionPointer = cursorCss(`
         <path d="M1 1V14.65L1.84 14.58L5.49 10.57L10.4 10.59L10.24 10.09L1.42 1.16Z" fill="#000"/>
     </svg>
 `);
+
+//---------------------------------------------------------------------------
 
 /** Pointer over an object that is not selected yet: arrow plus a small square at its lower right */
 export const selectionPointerHover = cursorCss(`
@@ -35,6 +39,8 @@ export const selectionPointerHover = cursorCss(`
         <rect x="13" y="15" width="6" height="6" fill="#000"/>
     </svg>
 `);
+
+//---------------------------------------------------------------------------
 
 /** One or more objects selected: arrow plus a four-way move icon at its lower right */
 export const selectionMove = cursorCss(`
@@ -57,6 +63,8 @@ export const selectionMove = cursorCss(`
     </svg>
 `);
 
+//---------------------------------------------------------------------------
+
 export function cursorsPlugin({ addUtilities }: PluginAPI): void {
     addUtilities({
         '.cursor-svg-pointer': { cursor: selectionPointer },
@@ -66,3 +74,5 @@ export function cursorsPlugin({ addUtilities }: PluginAPI): void {
 }
 
 export default cursorsPlugin;
+
+//---------------------------------------------------------------------------
