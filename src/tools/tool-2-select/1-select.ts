@@ -1,5 +1,5 @@
 import { snapshot } from "valtio";
-import { type Getter, type Setter } from "jotai";
+import { type Getter, type Setter, atom } from "jotai";
 import { MousePointer2 } from "lucide-react";
 
 import { type ResizeHandle, type ToolDef, type ToolPointerEvent } from "../9-types-tool-def";
@@ -17,6 +17,9 @@ import { selectedGroupOnPath, selectionUnitId } from "../0-shared/4-group-units"
 import { clearSnapGuides, collectSnapTargets, setSnapGuides, snapActive, snapBox, snapThreshold } from "../core-snapping";
 import { LASSO_STEP_PX, type Polyline, lassoHits, simplifyLasso } from "./2-lasso";
 
+/** True while a move gesture drags the selection. The hover state is cleared on pointer down, so the cursor needs this to keep the move icon during the drag. */
+const movingSelectionAtom = atom(false);
+
 export const selectTool: ToolDef = {
     id: ToolId.select,
     label: 'Selection',
@@ -32,12 +35,16 @@ export const selectTool: ToolDef = {
         }),
     cursor: selectionPointer,
     getCursor(get) {
-        const selection = get(selectionAtom);
-        const hover = get(hoverNodeIdAtom);
-        if (hover && !selection.includes(hover)) {
-            return selectionPointerHover; // over an object that is not selected yet
+        if (get(movingSelectionAtom)) {
+            return selectionMove; // dragging the selection
         }
-        return selection.length ? selectionMove : selectionPointer; // one or more selected: move icon
+        const hover = get(hoverNodeIdAtom);
+        if (!hover) {
+            return selectionPointer; // not over any object
+        }
+        return get(selectionAtom).includes(hover)
+            ? selectionMove // over a selected object
+            : selectionPointerHover; // over an object that is not selected yet
     },
 
     onPointerDown({ get, set }, e) {
@@ -108,6 +115,7 @@ export const selectTool: ToolDef = {
                 ids = duplicateNodes(ids);
             }
             set(selectionAtom, ids);
+            set(movingSelectionAtom, true);
             gesture = { type: 'move', move: beginMove(ids, e, duplicate) };
             return;
         }
@@ -166,6 +174,7 @@ export const selectTool: ToolDef = {
 
     onPointerUp({ set }) {
         clearSnapGuides();
+        set(movingSelectionAtom, false);
         if (!gesture) {
             return;
         }
