@@ -44,7 +44,7 @@ const FILE: Command[] = [
             reportFile(rv);
         },
     },
-    { id: 'file.save', label: 'Save to...', group: 'file', shortcut: 'Ctrl+S', run: async () => reportFile(await saveSvgFile(), 'Saved') },
+    { id: 'file.save', label: 'Save', group: 'file', shortcut: 'Ctrl+S', run: async () => reportFile(await saveSvgFile(), 'Saved') },
     { id: 'file.saveAs', label: 'Save as...', group: 'file', shortcut: 'Ctrl+Shift+S', run: async () => reportFile(await saveSvgFileAs(), 'Saved') },
     { id: 'file.exportSvg', label: 'Export SVG', group: 'file', run: () => exportSvgDownload() },
     { id: 'file.exportPng1', label: 'Export PNG (1x)', group: 'file', shortcut: 'Ctrl+Shift+E', run: async () => reportFile(await exportPng(1)) },
