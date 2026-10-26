@@ -4,38 +4,40 @@ import type { PluginAPI } from 'tailwindcss/plugin';
 // Rules: every black shape has a white border at least 1px wide, and every line or dot is at least 1px thick.
 // Lines are centered on pixel centers (x.5) so a 1px stroke covers exactly one pixel.
 
-const SIZE = 24;
-const BLACK = '#000';
-const WHITE = '#fff';
-
 /** Solid arrow. Its tip is at (1, 1), so the 1px white border still fits inside the 24px box. */
 const ARROW = 'M1 1V14.65L1.84 14.58L5.49 10.57L10.4 10.59L10.24 10.09L1.42 1.16Z';
 
-/** The arrow tip is the hotspot */
-const HOTSPOT = '1 1';
+//---------------------------------------------------------------------------
 
 function svgToDataUri(svg: string): string {
     return `data:image/svg+xml,${encodeURIComponent(svg.replace(/\s+/g, ' ').trim())}`;
 }
 
 function cursorCss(body: string): string {
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${SIZE}" height="${SIZE}" viewBox="0 0 ${SIZE} ${SIZE}">${body}</svg>`;
-    return `url("${svgToDataUri(svg)}") ${HOTSPOT}, default`;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">${body}</svg>`;
+    console.log(svg);
+    return `url("${svgToDataUri(svg)}") 0 0, default`; // // The arrow tip is the hotspot was const HOTSPOT = '1 1'; now 0 0
 }
+
+//---------------------------------------------------------------------------
 
 /** White 1px border (a 2px stroke, half of it covered by the black fill) under a black shape */
 function withWhiteBorder(d: string): string {
-    return `<path d="${d}" fill="${WHITE}" stroke="${WHITE}" stroke-width="2" stroke-linejoin="round"/>`;
+    return `<path d="${d}" fill="#fff" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>`;
 }
 
 function arrow(): string {
-    return `${withWhiteBorder(ARROW)}<path d="${ARROW}" fill="${BLACK}"/>`;
+    return `${withWhiteBorder(ARROW)}<path d="${ARROW}" fill="#000"/>`;
 }
+
+//---------------------------------------------------------------------------
 
 /** Small solid square at the lower right of the arrow: an unselected object is under the pointer */
 function badge(): string {
-    return `<rect x="12" y="14" width="8" height="8" fill="${WHITE}"/><rect x="13" y="15" width="6" height="6" fill="${BLACK}"/>`;
+    return `<rect x="12" y="14" width="8" height="8" fill="#fff"/><rect x="13" y="15" width="6" height="6" fill="#000"/>`;
 }
+
+//---------------------------------------------------------------------------
 
 /** Four-way move icon at the lower right of the arrow: one or more objects are selected */
 function moveIcon(): string {
@@ -49,13 +51,16 @@ function moveIcon(): string {
     ];
     return [
         // white halo, 1px on each side of the 1px black lines and arrowheads
-        `<path d="${lines}" fill="none" stroke="${WHITE}" stroke-width="3"/>`,
-        ...heads.map((points) => `<polygon points="${points}" fill="${WHITE}" stroke="${WHITE}" stroke-width="2" stroke-linejoin="round"/>`),
+        `<path d="${lines}" fill="none" stroke="#fff" stroke-width="3"/>`,
+        ...heads.map((points) => `<polygon points="${points}" fill="#fff" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>`),
         // black 1px lines and solid arrowheads
-        `<path d="${lines}" fill="none" stroke="${BLACK}" stroke-width="1"/>`,
-        ...heads.map((points) => `<polygon points="${points}" fill="${BLACK}"/>`),
+        `<path d="${lines}" fill="none" stroke="#000" stroke-width="1"/>`,
+        ...heads.map((points) => `<polygon points="${points}" fill="#000"/>`),
     ].join('');
 }
+
+//---------------------------------------------------------------------------
+// Cursor definitions
 
 /** Empty canvas, nothing selected */
 export const selectionPointer = cursorCss(arrow());
@@ -66,6 +71,9 @@ export const selectionPointerHover = cursorCss(`${arrow()}${badge()}`);
 /** One or more objects selected */
 export const selectionMove = cursorCss(`${arrow()}${moveIcon()}`);
 
+//---------------------------------------------------------------------------
+// Tailwind plugin
+
 export function cursorsPlugin({ addUtilities }: PluginAPI): void {
     addUtilities({
         '.cursor-svg-pointer': { cursor: selectionPointer },
@@ -75,3 +83,5 @@ export function cursorsPlugin({ addUtilities }: PluginAPI): void {
 }
 
 export default cursorsPlugin;
+
+//---------------------------------------------------------------------------
