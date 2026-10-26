@@ -69,7 +69,7 @@ const FILE: Command[] = [
             }
         },
     },
-    { id: 'file.scraps', label: 'Scraps...', group: 'file', keywords: 'saved snippets library storage load', run: ({ set }) => set(isOpenScrapsDialogAtom, true) },
+    { id: 'file.scraps', label: 'Scraps...', group: 'file', shortcut: 'Ctrl+E', keywords: 'saved snippets library storage load', run: ({ set }) => set(isOpenScrapsDialogAtom, true) },
     {
         id: 'file.reset', label: 'Reset the canvas', group: 'file', keywords: 'new clear',
         run: async ({ set }) => {

@@ -15,7 +15,7 @@ export function MoreMenu() {
                 <CommandMenuItem id="help.palette" icon={<Command className={ic} />} />
                 <CommandMenuItem id="help.find" icon={<Search className={ic} />} />
                 <DropdownMenuSeparator />
-                <CommandMenuItem id="file.scraps" icon={<Archive className={ic} />} label="Scraps" />
+                <CommandMenuItem id="file.scraps" icon={<Archive className={ic} />} />
             </DropdownMenuContent>
         </DropdownMenu>
     );
