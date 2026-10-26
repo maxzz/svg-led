@@ -6,7 +6,9 @@ import type { PluginAPI } from 'tailwindcss/plugin';
 // Lines are centered on pixel centers (x.5) so a 1px stroke covers exactly one pixel.
 
 function svgToDataUri(svg: string): string {
-    return `data:image/svg+xml,${encodeURIComponent(svg.replace(/\s+/g, ' ').trim())}`;
+    // HTML comments are for maintainers only; strip them so they are not exported with the cursor
+    const markup = svg.replace(/<!--[\s\S]*?-->/g, '').replace(/\s+/g, ' ').trim();
+    return `data:image/svg+xml,${encodeURIComponent(markup)}`;
 }
 
 /** The hotspot is the arrow tip at (1, 1) and at 0 0 is white border */
