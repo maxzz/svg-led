@@ -34,15 +34,15 @@ export const selectTool: ToolDef = {
     cursor: 'default', // fallback, the cursor classes below take precedence
     getCursor(get) {
         if (get(movingSelectionAtom)) {
-            return 'cursor-svg-move'; // dragging the selection
+            return 'cursor-solid-move'; // dragging the selection
         }
         const hover = get(hoverNodeIdAtom);
         if (!hover) {
-            return 'cursor-svg-pointer'; // not over any object
+            return 'cursor-solid-ptr'; // not over any object
         }
         return get(selectionAtom).includes(hover)
-            ? 'cursor-svg-move' // over a selected object
-            : 'cursor-svg-pointer-hover'; // over an object that is not selected yet
+            ? 'cursor-solid-move' // over a selected object
+            : 'cursor-solid-hover'; // over an object that is not selected yet
     },
 
     onPointerDown({ get, set }, e) {

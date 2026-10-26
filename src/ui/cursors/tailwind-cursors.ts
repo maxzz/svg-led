@@ -69,9 +69,9 @@ const selectionMove = `
 
 export function cursorsPlugin({ addUtilities }: PluginAPI): void {
     addUtilities({
-        '.cursor-svg-pointer': { cursor: cursorCss(selectionPointer) },
-        '.cursor-svg-pointer-hover': { cursor: cursorCss(selectionPointerHover) },
-        '.cursor-svg-move': { cursor: cursorCss(selectionMove) },
+        '.cursor-solid-ptr': { cursor: cursorCss(selectionPointer) },
+        '.cursor-solid-hover': { cursor: cursorCss(selectionPointerHover) },
+        '.cursor-solid-move': { cursor: cursorCss(selectionMove) },
     });
 }
 

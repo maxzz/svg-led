@@ -28,7 +28,7 @@ export type ToolDef = {
     icon: ComponentType<{ className?: string; }>;
     hint: (ctx: HintContext) => string;
     cursor: string;
-    getCursor?: (get: Getter) => string; // Tailwind class name, e.g. "cursor-svg-move"
+    getCursor?: (get: Getter) => string; // Tailwind class name, e.g. "cursor-solid-move"
     newShapeKind?: NewShapeKind; // Kind of element this tool creates; the properties panel then edits the new-shape style
     onPointerDown?: (ctx: ToolContext, e: ToolPointerEvent) => void;
     onPointerMove?: (ctx: ToolContext, e: ToolPointerEvent) => void;
