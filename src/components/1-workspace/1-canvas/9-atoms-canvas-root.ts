@@ -138,16 +138,17 @@ export const canvasPointerLeaveAtom = atom(
 
 //---------------------------------------------------------------------------
 
+/** Cursor of the canvas: a CSS cursor value, or a Tailwind class name when the tool supplies one (cursors plugin) */
 export const canvasCursorAtom = atom(
-    (get) => {
+    (get): { cursor?: string; className?: string; } => {
         if (get(isPanningAtom)) {
-            return 'grabbing';
+            return { cursor: 'grabbing' };
         }
         if (get(spaceHeldAtom)) {
-            return 'grab';
+            return { cursor: 'grab' };
         }
         const tool = getTool(get(activeToolIdAtom));
-        return tool.getCursor?.(get) ?? tool.cursor;
+        return tool.getCursor ? { className: tool.getCursor(get) } : { cursor: tool.cursor };
     }
 );
 

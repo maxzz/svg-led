@@ -16,7 +16,7 @@ function cursorCss(svg: string): string {
 
 //---------------------------------------------------------------------------
 
-/** Empty canvas, nothing selected */
+/** Empty canvas, nothing selected: just the arrow */
 export const selectionPointer = cursorCss(`
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
         <!-- white 1px border: a 2px stroke, half of it covered by the black fill -->
@@ -28,7 +28,7 @@ export const selectionPointer = cursorCss(`
 
 //---------------------------------------------------------------------------
 
-/** Pointer over an object that is not selected yet: arrow plus a small square at its lower right */
+/** Pointer over an object that is not selected yet: arrow plus a small square at its lower right: the square is white, the arrow is black */
 export const selectionPointerHover = cursorCss(`
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
         <!-- arrow, with its white border -->
@@ -42,7 +42,7 @@ export const selectionPointerHover = cursorCss(`
 
 //---------------------------------------------------------------------------
 
-/** One or more objects selected: arrow plus a four-way move icon at its lower right */
+/** One or more objects selected: arrow plus a four-way move icon at its lower right: the move icon is white, the arrow is black */
 export const selectionMove = cursorCss(`
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
         <!-- arrow, with its white border -->

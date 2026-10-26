@@ -7,8 +7,6 @@ import { type Point, type Rect, type SvgDoc, applyMatrix, findNode, flattenSubpa
 import { type NodeOriginals, applyDocMatrix, captureOriginals, commitHistory, docState, duplicateNodes, nodeDocBBox, nodesDocBBox } from "@/store/3-document";
 import { ToolId, editingGroupIdAtom, hoverNodeIdAtom, lassoAtom, marqueeAtom, screenToDoc, selectionAtom, setActiveToolAtom, setSelectionAtom, viewportAtom } from "@/store/4-editor";
 import { appSettings, SelectionMode } from "@/store/1-ui-settings";
-import { selectionMove, selectionPointer, selectionPointerHover } from "@/ui/cursors/tailwind-cursors";
-
 import { MODIFIERS, isMod } from "./8-definition-of-modifiers";
 import { modifierHint } from "../0-shared/5-hint";
 import { type MoveGesture, beginMove, endMove, pastThreshold, updateMove } from "../0-shared/3-move-gesture";
@@ -33,18 +31,18 @@ export const selectTool: ToolDef = {
             alt: '[Alt] Drag an element to copy · on empty canvas, [Alt] drag to lasso',
             ctrl: '[Ctrl] Click to select inside a group · Drag snaps to other elements',
         }),
-    cursor: selectionPointer,
+    cursor: 'default', // fallback, the cursor classes below take precedence
     getCursor(get) {
         if (get(movingSelectionAtom)) {
-            return selectionMove; // dragging the selection
+            return 'cursor-svg-move'; // dragging the selection
         }
         const hover = get(hoverNodeIdAtom);
         if (!hover) {
-            return selectionPointer; // not over any object
+            return 'cursor-svg-pointer'; // not over any object
         }
         return get(selectionAtom).includes(hover)
-            ? selectionMove // over a selected object
-            : selectionPointerHover; // over an object that is not selected yet
+            ? 'cursor-svg-move' // over a selected object
+            : 'cursor-svg-pointer-hover'; // over an object that is not selected yet
     },
 
     onPointerDown({ get, set }, e) {

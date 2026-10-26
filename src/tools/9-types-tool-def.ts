@@ -12,7 +12,7 @@ import { type HeldKeys, type ToolId } from "@/store/4-editor";
  * @param icon - The tool icon component.
  * @param hint - The tool hint function, one short line under the toolbar while the tool is active. Keys are written in brackets, e.g. "[Shift] add", and drawn as keycaps. While a modifier is held, the line shows what that modifier does (see modifierHint).
  * @param cursor - The tool cursor type.
- * @param getCursor - Optional cursor that depends on app state (hover, selection); takes precedence over `cursor`.
+ * @param getCursor - Optional Tailwind class name of a cursor utility (from the cursors plugin) that depends on app state (hover, selection); takes precedence over `cursor`.
  * @param newShapeKind - The tool new shape kind, kind of element this tool creates; the properties panel then edits the new-shape style.
  * @param onPointerDown - The tool pointer down event handler.
  * @param onPointerMove - The tool pointer move event handler.
@@ -28,7 +28,7 @@ export type ToolDef = {
     icon: ComponentType<{ className?: string; }>;
     hint: (ctx: HintContext) => string;
     cursor: string;
-    getCursor?: (get: Getter) => string;
+    getCursor?: (get: Getter) => string; // Tailwind class name, e.g. "cursor-svg-move"
     newShapeKind?: NewShapeKind; // Kind of element this tool creates; the properties panel then edits the new-shape style
     onPointerDown?: (ctx: ToolContext, e: ToolPointerEvent) => void;
     onPointerMove?: (ctx: ToolContext, e: ToolPointerEvent) => void;
