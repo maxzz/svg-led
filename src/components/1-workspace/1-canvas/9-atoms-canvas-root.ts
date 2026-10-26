@@ -146,7 +146,8 @@ export const canvasCursorAtom = atom(
         if (get(spaceHeldAtom)) {
             return 'grab';
         }
-        return getTool(get(activeToolIdAtom)).cursor;
+        const tool = getTool(get(activeToolIdAtom));
+        return tool.getCursor?.(get) ?? tool.cursor;
     }
 );
 

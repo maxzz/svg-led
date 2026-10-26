@@ -5,8 +5,9 @@ import { MousePointer2 } from "lucide-react";
 import { type ResizeHandle, type ToolDef, type ToolPointerEvent } from "../9-types-tool-def";
 import { type Point, type Rect, type SvgDoc, applyMatrix, findNode, flattenSubpaths, groupPathIds, nodeCtm, nodeOutline, rectContainsRect, rectFromCorners, rectsIntersect, scaleAround, walkNodes } from "@/svg-core";
 import { type NodeOriginals, applyDocMatrix, captureOriginals, commitHistory, docState, duplicateNodes, nodeDocBBox, nodesDocBBox } from "@/store/3-document";
-import { ToolId, editingGroupIdAtom, lassoAtom, marqueeAtom, screenToDoc, selectionAtom, setActiveToolAtom, setSelectionAtom, viewportAtom } from "@/store/4-editor";
+import { ToolId, editingGroupIdAtom, hoverNodeIdAtom, lassoAtom, marqueeAtom, screenToDoc, selectionAtom, setActiveToolAtom, setSelectionAtom, viewportAtom } from "@/store/4-editor";
 import { appSettings, SelectionMode } from "@/store/1-ui-settings";
+import { selectionMove, selectionPointer, selectionPointerHover } from "@/ui/cursors/tailwind-cursors";
 
 import { MODIFIERS, isMod } from "./8-definition-of-modifiers";
 import { modifierHint } from "../0-shared/5-hint";
@@ -29,7 +30,15 @@ export const selectTool: ToolDef = {
             alt: '[Alt] Drag an element to copy · on empty canvas, [Alt] drag to lasso',
             ctrl: '[Ctrl] Click to select inside a group · Drag snaps to other elements',
         }),
-    cursor: 'default',
+    cursor: selectionPointer,
+    getCursor(get) {
+        const selection = get(selectionAtom);
+        const hover = get(hoverNodeIdAtom);
+        if (hover && !selection.includes(hover)) {
+            return selectionPointerHover; // over an object that is not selected yet
+        }
+        return selection.length ? selectionMove : selectionPointer; // one or more selected: move icon
+    },
 
     onPointerDown({ get, set }, e) {
         const selection = get(selectionAtom);

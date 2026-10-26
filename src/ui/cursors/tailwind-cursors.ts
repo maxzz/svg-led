@@ -1,29 +1,76 @@
 import type { PluginAPI } from 'tailwindcss/plugin';
 
+// Cursor artwork, drawn on a 24x24 grid (one unit = one CSS pixel).
+// Rules: every black shape has a white border at least 1px wide, and every line or dot is at least 1px thick.
+// Lines are centered on pixel centers (x.5) so a 1px stroke covers exactly one pixel.
+
+const SIZE = 24;
+const BLACK = '#000';
+const WHITE = '#fff';
+
+/** Solid arrow. Its tip is at (1, 1), so the 1px white border still fits inside the 24px box. */
+const ARROW = 'M1 1V14.65L1.84 14.58L5.49 10.57L10.4 10.59L10.24 10.09L1.42 1.16Z';
+
+/** The arrow tip is the hotspot */
+const HOTSPOT = '1 1';
+
 function svgToDataUri(svg: string): string {
     return `data:image/svg+xml,${encodeURIComponent(svg.replace(/\s+/g, ' ').trim())}`;
 }
 
-export const cursorPointer = `url("${svgToDataUri(`
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-        <path d="M.6.55V14.2l.84-.07 3.65-4.01 4.91.02-.16-.5L1.02.71.6.55z"/>
-        <path fill="#ffff" d="m.6.55.42.15 8.82 8.94.15.5-4.91-.02-3.64 4.01-.83.07V.55m0-.5c-.1 0-.2.03-.29.09a.5.5 0 0 0-.21.41V14.2c0 .14.06.27.16.37.09.09.21.13.34.13h.04l.83-.07a.52.52 0 0 0 .33-.16l3.51-3.84 4.68.02c.16 0 .31-.07.4-.2a.53.53 0 0 0 .08-.44l-.15-.5a.55.55 0 0 0-.12-.21L1.38.35A.57.57 0 0 0 1.2.23L.77.08A.5.5 0 0 0 .6.05Z"/>
-    </svg>
-`)}") 0 0, auto`;
+function cursorCss(body: string): string {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${SIZE}" height="${SIZE}" viewBox="0 0 ${SIZE} ${SIZE}">${body}</svg>`;
+    return `url("${svgToDataUri(svg)}") ${HOTSPOT}, default`;
+}
 
-export const cursorMove = `url("${svgToDataUri(`
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-        <path d="M.6.55V14.2l.84-.07 3.65-4.01 4.91.02-.16-.5L1.02.71.6.55z"/>
-        <path fill="#fffc" d="m.6.55.42.15 8.82 8.94.15.5-4.91-.02-3.64 4.01-.83.07V.55m0-.5c-.1 0-.2.03-.29.09a.5.5 0 0 0-.21.41V14.2c0 .14.06.27.16.37.09.09.21.13.34.13h.04l.83-.07a.52.52 0 0 0 .33-.16l3.51-3.84 4.68.02c.16 0 .31-.07.4-.2a.53.53 0 0 0 .08-.44l-.15-.5a.55.55 0 0 0-.12-.21L1.38.35A.57.57 0 0 0 1.2.23L.77.08A.5.5 0 0 0 .6.05Z"/>
-        <path d="m22.43 15.19-2.23-2.34v1.85h-3.67v-3.67h1.85L16.01 8.8l-2.33 2.23h1.85v3.67h-3.67v-1.85l-2.24 2.37 2.24 2.33V15.7h3.67v3.67h-1.85l2.37 2.24 2.33-2.24h-1.85V15.7h3.67v1.85l2.23-2.36z"/>
-        <path fill="#ffff" d="m16.01 8.8 2.36 2.23h-1.85v3.67h3.67v-1.85l2.23 2.33-2.23 2.36v-1.85h-3.67v3.67h1.85l-2.33 2.23-2.36-2.23h1.85v-3.67h-3.67v1.85l-2.23-2.33 2.23-2.36v1.85h3.67v-3.67h-1.85l2.33-2.23m0-.5a.54.54 0 0 0-.35.14l-2.33 2.23a.51.51 0 0 0-.12.55.5.5 0 0 0 .46.31h1.35v2.67h-2.67v-1.35c0-.2-.12-.39-.32-.46a.58.58 0 0 0-.18-.04.46.46 0 0 0-.36.16l-2.23 2.36a.5.5 0 0 0 0 .69l2.23 2.33c.1.1.23.15.36.15.06 0 .13-.01.19-.04a.5.5 0 0 0 .31-.46v-1.35h2.67v2.67h-1.35c-.2 0-.39.12-.46.32a.5.5 0 0 0 .12.55l2.36 2.23c.1.09.22.14.34.14s.25-.05.35-.14l2.33-2.23a.51.51 0 0 0 .12-.55.5.5 0 0 0-.46-.31h-1.35V16.2h2.67v1.35c0 .2.12.39.32.46.06.02.12.04.18.04.13 0 .27-.05.36-.16l2.23-2.36a.5.5 0 0 0 0-.69l-2.23-2.33a.5.5 0 0 0-.36-.15.43.43 0 0 0-.19.04.5.5 0 0 0-.31.46v1.35h-2.67v-2.67h1.35c.2 0 .39-.12.46-.32a.5.5 0 0 0-.12-.55l-2.36-2.23a.51.51 0 0 0-.34-.14Z"/>
-    </svg>
-`)}") 0 0, auto`;
+/** White 1px border (a 2px stroke, half of it covered by the black fill) under a black shape */
+function withWhiteBorder(d: string): string {
+    return `<path d="${d}" fill="${WHITE}" stroke="${WHITE}" stroke-width="2" stroke-linejoin="round"/>`;
+}
+
+function arrow(): string {
+    return `${withWhiteBorder(ARROW)}<path d="${ARROW}" fill="${BLACK}"/>`;
+}
+
+/** Small solid square at the lower right of the arrow: an unselected object is under the pointer */
+function badge(): string {
+    return `<rect x="12" y="14" width="8" height="8" fill="${WHITE}"/><rect x="13" y="15" width="6" height="6" fill="${BLACK}"/>`;
+}
+
+/** Four-way move icon at the lower right of the arrow: one or more objects are selected */
+function moveIcon(): string {
+    // center (16.5, 16.5): the arms reach 6px, so the arrow tips and their 1px halos stay inside the 24px box
+    const lines = 'M16.5 10.5V22.5M10.5 16.5H22.5';
+    const heads = [
+        '16.5,10.5 14,14.5 19,14.5', // up
+        '16.5,22.5 14,18.5 19,18.5', // down
+        '10.5,16.5 14.5,14 14.5,19', // left
+        '22.5,16.5 18.5,14 18.5,19', // right
+    ];
+    return [
+        // white halo, 1px on each side of the 1px black lines and arrowheads
+        `<path d="${lines}" fill="none" stroke="${WHITE}" stroke-width="3"/>`,
+        ...heads.map((points) => `<polygon points="${points}" fill="${WHITE}" stroke="${WHITE}" stroke-width="2" stroke-linejoin="round"/>`),
+        // black 1px lines and solid arrowheads
+        `<path d="${lines}" fill="none" stroke="${BLACK}" stroke-width="1"/>`,
+        ...heads.map((points) => `<polygon points="${points}" fill="${BLACK}"/>`),
+    ].join('');
+}
+
+/** Empty canvas, nothing selected */
+export const selectionPointer = cursorCss(arrow());
+
+/** Pointer over an object that is not selected yet */
+export const selectionPointerHover = cursorCss(`${arrow()}${badge()}`);
+
+/** One or more objects selected */
+export const selectionMove = cursorCss(`${arrow()}${moveIcon()}`);
 
 export function cursorsPlugin({ addUtilities }: PluginAPI): void {
     addUtilities({
-        '.cursor-svg-pointer': { cursor: cursorPointer },
-        '.cursor-svg-move': { cursor: cursorMove },
+        '.cursor-svg-pointer': { cursor: selectionPointer },
+        '.cursor-svg-pointer-hover': { cursor: selectionPointerHover },
+        '.cursor-svg-move': { cursor: selectionMove },
     });
 }
 
