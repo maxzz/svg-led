@@ -8,12 +8,14 @@ export function matchShortcut(e: KeyboardEvent, shortcut: string): boolean {
     if (mods.has('ctrl') !== ctrl || mods.has('alt') !== e.altKey) {
         return false;
     }
-    // shifted symbols ("?", "+") are matched by their character, letters and digits also by Shift state
+    // Shift must match, for symbols too: "[" with Shift is "{", a different shortcut from "Ctrl+Shift+[".
+    // A symbol typed with Shift still matches by its character ("?" is Shift+"/").
+    const shiftMatches = mods.has('shift') === e.shiftKey;
     const isSymbol = key.length === 1 && !/[a-z0-9]/.test(key);
-    if (!isSymbol && mods.has('shift') !== e.shiftKey) {
+    if (!shiftMatches && !(isSymbol && eventKey(e) === key)) {
         return false;
     }
-    return eventKey(e) === key || codeKey(e) === key;
+    return eventKey(e) === key || (shiftMatches && codeKey(e) === key);
 }
 
 function eventKey(e: KeyboardEvent): string {
