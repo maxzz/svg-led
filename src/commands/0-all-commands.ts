@@ -228,8 +228,8 @@ const VIEWBOX: Command[] = [
 ];
 
 const VIEW: Command[] = [
-    { id: 'view.zoomIn', label: 'Zoom in', group: 'view', shortcut: 'Ctrl+=', run: ({ set }) => set(zoomByAtom, { factor: 1.25 }) },
-    { id: 'view.zoomOut', label: 'Zoom out', group: 'view', shortcut: 'Ctrl+-', run: ({ set }) => set(zoomByAtom, { factor: 0.8 }) },
+    { id: 'view.zoomIn', label: 'Zoom in', group: 'view', shortcut: 'Ctrl+=', alsoKeys: ['Ctrl+Shift+='], run: ({ set }) => set(zoomByAtom, { factor: 1.25 }) },
+    { id: 'view.zoomOut', label: 'Zoom out', group: 'view', shortcut: 'Ctrl+-', alsoKeys: ['Ctrl+Shift+-'], run: ({ set }) => set(zoomByAtom, { factor: 0.8 }) },
     { id: 'view.zoomReset', label: 'Zoom to 100%', group: 'view', shortcut: 'Ctrl+0', run: ({ set }) => set(zoomResetAtom) },
     {
         id: 'view.zoomFit', label: 'Zoom to fit all', group: 'view', shortcut: 'Shift+1',

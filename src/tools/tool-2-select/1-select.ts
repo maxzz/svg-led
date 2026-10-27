@@ -1,13 +1,12 @@
 import { snapshot } from "valtio";
-import { type Getter, type Setter } from "jotai";
+import { type Getter, type Setter, atom } from "jotai";
 import { MousePointer2 } from "lucide-react";
 
 import { type ResizeHandle, type ToolDef, type ToolPointerEvent } from "../9-types-tool-def";
 import { type Point, type Rect, type SvgDoc, applyMatrix, findNode, flattenSubpaths, groupPathIds, nodeCtm, nodeOutline, rectContainsRect, rectFromCorners, rectsIntersect, scaleAround, walkNodes } from "@/svg-core";
 import { type NodeOriginals, applyDocMatrix, captureOriginals, commitHistory, docState, duplicateNodes, nodeDocBBox, nodesDocBBox } from "@/store/3-document";
-import { ToolId, editingGroupIdAtom, lassoAtom, marqueeAtom, screenToDoc, selectionAtom, setActiveToolAtom, setSelectionAtom, viewportAtom } from "@/store/4-editor";
+import { ToolId, editingGroupIdAtom, hoverNodeIdAtom, lassoAtom, marqueeAtom, screenToDoc, selectionAtom, setActiveToolAtom, setSelectionAtom, viewportAtom } from "@/store/4-editor";
 import { appSettings, SelectionMode } from "@/store/1-ui-settings";
-
 import { MODIFIERS, isMod } from "./8-definition-of-modifiers";
 import { modifierHint } from "../0-shared/5-hint";
 import { type MoveGesture, beginMove, endMove, pastThreshold, updateMove } from "../0-shared/3-move-gesture";
@@ -15,6 +14,9 @@ import { hitTestOutlines, docTolerance } from "../0-shared/2-tool-helpers";
 import { selectedGroupOnPath, selectionUnitId } from "../0-shared/4-group-units";
 import { clearSnapGuides, collectSnapTargets, setSnapGuides, snapActive, snapBox, snapThreshold } from "../core-snapping";
 import { LASSO_STEP_PX, type Polyline, lassoHits, simplifyLasso } from "./2-lasso";
+
+/** True while a move gesture drags the selection. The hover state is cleared on pointer down, so the cursor needs this to keep the move icon during the drag. */
+const movingSelectionAtom = atom(false);
 
 export const selectTool: ToolDef = {
     id: ToolId.select,
@@ -29,7 +31,19 @@ export const selectTool: ToolDef = {
             alt: '[Alt] Drag an element to copy · on empty canvas, [Alt] drag to lasso',
             ctrl: '[Ctrl] Click to select inside a group · Drag snaps to other elements',
         }),
-    cursor: 'default',
+    cursor: 'default', // fallback, the cursor classes below take precedence
+    getCursor(get) {
+        if (get(movingSelectionAtom)) {
+            return 'cursor-solid-move'; // dragging the selection
+        }
+        const hover = get(hoverNodeIdAtom);
+        if (!hover) {
+            return 'cursor-solid-ptr'; // not over any object
+        }
+        return get(selectionAtom).includes(hover)
+            ? 'cursor-solid-move' // over a selected object
+            : 'cursor-solid-hover'; // over an object that is not selected yet
+    },
 
     onPointerDown({ get, set }, e) {
         const selection = get(selectionAtom);
@@ -99,6 +113,7 @@ export const selectTool: ToolDef = {
                 ids = duplicateNodes(ids);
             }
             set(selectionAtom, ids);
+            set(movingSelectionAtom, true);
             gesture = { type: 'move', move: beginMove(ids, e, duplicate) };
             return;
         }
@@ -157,6 +172,7 @@ export const selectTool: ToolDef = {
 
     onPointerUp({ set }) {
         clearSnapGuides();
+        set(movingSelectionAtom, false);
         if (!gesture) {
             return;
         }

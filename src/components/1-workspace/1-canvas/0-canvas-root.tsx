@@ -13,7 +13,7 @@ import {
 } from "./9-atoms-canvas-root";
 
 export function CanvasRoot() {
-    const cursor = useAtomValue(canvasCursorAtom);
+    const { cursor, className: cursorClass } = useAtomValue(canvasCursorAtom);
     const ready = useAtomValue(canvasReadyAtom);
     const { canvasBackground } = useSnapshot(appSettings);
 
@@ -31,6 +31,7 @@ export function CanvasRoot() {
                 className={classNames(
                     "absolute inset-0 select-none size-full bg-background touch-none transition-opacity duration-300 ease-in",
                     ready ? "opacity-100" : "opacity-0",
+                    cursorClass,
                 )}
                 style={{ cursor, backgroundColor: canvasBackground || undefined }}
                 onPointerDown={onPointerDown}
