@@ -18,14 +18,14 @@ export const setViewBoxAndFitAtom = atom(
     }
 );
 
-/** Adds a viewBox around the content (or 0 0 512 512 for an empty document) */
+/** Adds a viewBox around the content (or 0 0 24 24 for an empty document) */
 export const addViewBoxAtom = atom(
     null,
     (_get, set) => {
         const bbox = nodesDocBBox(snapshot(docState).doc as typeof docState.doc, topLevelIds());
         const vb = bbox
             ? { x: Math.floor(bbox.x), y: Math.floor(bbox.y), width: Math.ceil(bbox.width), height: Math.ceil(bbox.height) }
-            : { x: 0, y: 0, width: 512, height: 512 };
+            : { x: 0, y: 0, width: 24, height: 24 };
         set(setViewBoxAndFitAtom, vb);
     }
 );
