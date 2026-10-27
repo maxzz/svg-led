@@ -1,6 +1,6 @@
 import { snapshot } from "valtio";
 import {
-    type GroupNode, type Matrix, type Padding, type FitOptions, type SvgDoc, type SvgNode, type ViewBox, type PathNode, type NodeLocation,
+    type Attrs, type GroupNode, type Matrix, type Padding, type FitOptions, type SvgDoc, type SvgNode, type ViewBox, type PathNode, type NodeLocation,
     docToParentMatrix, findNode, fitRectMatrix, isShapeNode, newNodeId, nodeOwnMatrix, parentsMatrix, parseSvg,
     parseSvgFragment, serializeNodes, serializeSvg, setPresentation, shapeToPath, topmostIds, transformNode, translateMatrix,
     viewBoxAround, walkNodes, makeFmt, isIdentity, multiply, scaleMatrix, reuseNodeIds, type Rect, scaleAround, getPresentation,
@@ -52,13 +52,57 @@ export function nodesToText(ids: readonly string[]): string {
 /** Inserts elements from SVG text (a whole document or a fragment) at the top of the stacking order; returns the new ids */
 export function insertSvgMarkup(text: string): string[] | undefined {
     const parsed = parseSvg(text);
-    const nodes = parsed.ok ? parsed.doc.children : parseSvgFragment(text);
+    const nodes = (parsed.ok ? parsed.doc.children : parseSvgFragment(text))?.flatMap(unwrapNestedSvg);
     if (!nodes?.length) {
         return;
     }
     docState.doc.children.push(...nodes);
     commitHistory();
     return nodes.map((n) => n.id);
+}
+
+/**
+ * Replaces a nested <svg> element (and any inside groups) with its contents, so only one <svg> remains.
+ * Its own attributes stay on a wrapping group, as a transform (x/y and viewBox scale) and the remaining
+ * attributes such as presentation attributes that children inherit. A nested <svg> with neither is dropped as is.
+ */
+function unwrapNestedSvg(node: SvgNode): SvgNode[] {
+    if (node.kind === 'g') {
+        node.children = node.children.flatMap(unwrapNestedSvg);
+        return [node];
+    }
+    if (node.kind !== 'passthrough' || node.tag.toLowerCase() !== 'svg') {
+        return [node];
+    }
+
+    const children = (parseSvgFragment(node.inner) ?? []).flatMap(unwrapNestedSvg);
+    const { x, y, width, height, viewBox, xmlns, ...rest } = node.attrs;
+    const transform = nestedSvgTransform(node.attrs);
+    if (!transform && !Object.keys(rest).length) {
+        return children;
+    }
+    return [{ id: newNodeId(), kind: 'g', children, attrs: { ...rest, ...(transform && { transform }) } }];
+}
+
+/** `translate(...) scale(...)` for a nested <svg>'s viewport, or undefined when it maps coordinates unchanged */
+function nestedSvgTransform(attrs: Attrs): string | undefined {
+    const num = (v: string | undefined, fallback: number) => (v === undefined || v.trim() === '' || !Number.isFinite(parseFloat(v)) ? fallback : parseFloat(v));
+    const x = num(attrs.x, 0);
+    const y = num(attrs.y, 0);
+    const vb = (attrs.viewBox ?? '').trim().split(/[\s,]+/).map(Number);
+    const [vbX, vbY, vbW, vbH] = vb.length === 4 && vb.every(Number.isFinite) && vb[2] > 0 && vb[3] > 0 ? vb : [0, 0, 0, 0];
+
+    const width = num(attrs.width, vbW);
+    const height = num(attrs.height, vbH);
+    const sx = vbW ? width / vbW : 1;
+    const sy = vbH ? height / vbH : 1;
+    const tx = x - vbX * sx;
+    const ty = y - vbY * sy;
+
+    if (tx === 0 && ty === 0 && sx === 1 && sy === 1) {
+        return undefined;
+    }
+    return `translate(${tx} ${ty}) scale(${sx} ${sy})`;
 }
 
 // Node lookup and replacement

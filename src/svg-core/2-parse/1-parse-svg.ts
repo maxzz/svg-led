@@ -121,15 +121,23 @@ function readElement(el: Element): SvgNode {
         }
     }
 
-    return { id, kind: 'passthrough', tag: el.tagName, inner: el.innerHTML.trim(), attrs: readAttrs(el) };
+    return { id, kind: 'passthrough', tag: el.tagName, inner: innerMarkup(el), attrs: readAttrs(el) };
 }
 
+/** Attributes as written, except the default namespace declaration: the serializer writes it once on the root */
 function readAttrs(el: Element): Attrs {
     const rv: Attrs = {};
     for (const a of Array.from(el.attributes)) {
-        rv[a.name] = a.value;
+        if (a.name !== 'xmlns') {
+            rv[a.name] = a.value;
+        }
     }
     return rv;
+}
+
+/** Markup inside an element, without the default namespace declarations the serializer adds to each child */
+function innerMarkup(el: Element): string {
+    return el.innerHTML.trim().replace(/\sxmlns="[^"]*"/g, '');
 }
 
 function take(attrs: Attrs, name: string): string | undefined {
