@@ -172,6 +172,13 @@ function withNewIds(node: SvgNode): SvgNode {
 
 export type ReorderDirection = 'front' | 'forward' | 'backward' | 'back';
 
+/** `defs` and `style` stay at the top of their parent and are never moved by z-order commands */
+function isPinnedNode(node: SvgNode): boolean {
+    if (node.kind !== 'passthrough') return false;
+    const name = node.tag.replace(/^.*:/, '').toLowerCase();
+    return name === 'defs' || name === 'style';
+}
+
 export function reorderNodes(ids: readonly string[], direction: ReorderDirection): void {
     const doc = docState.doc;
     const set = new Set(topmostIds(doc, ids));
@@ -179,7 +186,7 @@ export function reorderNodes(ids: readonly string[], direction: ReorderDirection
 
     for (const id of set) {
         const loc = findNode(doc, id);
-        if (loc) {
+        if (loc && !isPinnedNode(loc.node)) {
             const list = groups.get(loc.siblings) ?? [];
             list.push(loc.node);
             groups.set(loc.siblings, list);
@@ -187,7 +194,8 @@ export function reorderNodes(ids: readonly string[], direction: ReorderDirection
     }
 
     for (const [siblings, selected] of groups) {
-        const plain = siblings.slice();
+        const pinned = siblings.filter(isPinnedNode);
+        const plain = siblings.filter((n) => !isPinnedNode(n));
         const isSel = (n: SvgNode) => selected.includes(n);
         let next: SvgNode[];
         switch (direction) {
@@ -214,7 +222,7 @@ export function reorderNodes(ids: readonly string[], direction: ReorderDirection
                 }
                 break;
         }
-        const snapshotNodes = next.map((n) => structuredClone(snapshot(n) as SvgNode));
+        const snapshotNodes = [...pinned, ...next].map((n) => structuredClone(snapshot(n) as SvgNode));
         siblings.splice(0, siblings.length, ...snapshotNodes);
     }
     commitHistory();
