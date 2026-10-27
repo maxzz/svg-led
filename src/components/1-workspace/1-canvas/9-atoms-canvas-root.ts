@@ -1,5 +1,5 @@
 import { type DragEvent, type PointerEvent as ReactPointerEvent } from "react";
-import { type Getter, atom } from "jotai";
+import { type Getter, type Setter, atom } from "jotai";
 import { toast } from "sonner";
 import { appStore } from "@/store/0-app-store";
 import { appSettings } from "@/store/1-ui-settings";
@@ -81,6 +81,16 @@ export const canvasPointerDownAtom = atom(
     }
 );
 
+/** Sets the hovered element from what is under the pointer */
+function updateHover(get: Getter, set: Setter, t: ToolPointerEvent['target']) {
+    const hover = t.type === 'node'
+        ? (get(activeToolIdAtom) === ToolId.points ? t.leafId : selectionUnitId(docState.doc, t.leafId, get(editingGroupIdAtom)))
+        : null;
+    if (get(hoverNodeIdAtom) !== hover) {
+        set(hoverNodeIdAtom, hover);
+    }
+}
+
 export const canvasPointerMoveAtom = atom(
     null,
     (get, set, e: CanvasPointerEvent) => {
@@ -99,13 +109,7 @@ export const canvasPointerMoveAtom = atom(
             return;
         }
 
-        const t = ev.target;
-        const hover = t.type === 'node'
-            ? (get(activeToolIdAtom) === ToolId.points ? t.leafId : selectionUnitId(docState.doc, t.leafId, get(editingGroupIdAtom)))
-            : null;
-        if (get(hoverNodeIdAtom) !== hover) {
-            set(hoverNodeIdAtom, hover);
-        }
+        updateHover(get, set, ev.target);
     }
 );
 
@@ -124,6 +128,8 @@ export const canvasPointerUpAtom = atom(
             toolGesture = false;
             set(toolGestureActiveAtom, false);
             getTool(get(activeToolIdAtom)).onPointerUp?.({ get, set }, toToolEvent(get, e));
+            // Pointer down cleared the hover; restore it for whatever is under the released pointer
+            updateHover(get, set, resolveTarget(document.elementFromPoint(e.clientX, e.clientY)));
         }
     }
 );
