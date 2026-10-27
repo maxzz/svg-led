@@ -3,15 +3,16 @@ import { type Getter, type Setter, atom } from "jotai";
 import { MousePointer2 } from "lucide-react";
 
 import { type ResizeHandle, type ToolDef, type ToolPointerEvent } from "../9-types-tool-def";
-import { type Point, type Rect, type SvgDoc, applyMatrix, findNode, flattenSubpaths, groupPathIds, nodeCtm, nodeOutline, rectContainsRect, rectFromCorners, rectsIntersect, scaleAround, walkNodes } from "@/svg-core";
+import { type Point, type Rect, type SvgDoc, applyMatrix, findNode, flattenSubpaths, nodeCtm, nodeOutline, rectContainsRect, rectFromCorners, rectsIntersect, scaleAround, walkNodes } from "@/svg-core";
 import { type NodeOriginals, applyDocMatrix, captureOriginals, commitHistory, docState, duplicateNodes, nodeDocBBox, nodesDocBBox } from "@/store/3-document";
-import { ToolId, editingGroupIdAtom, hoverNodeIdAtom, lassoAtom, marqueeAtom, screenToDoc, selectionAtom, setActiveToolAtom, setSelectionAtom, viewportAtom } from "@/store/4-editor";
+import { ToolId, hoverNodeIdAtom, lassoAtom, marqueeAtom, screenToDoc, selectionAtom, setActiveToolAtom, setSelectionAtom, viewportAtom } from "@/store/4-editor";
+import { enterIsolationAtom, exitIsolationLevelAtom, getIsolatedId, isHidden, isPickable, isolationRootChildren } from "@/store/6-layers";
 import { appSettings, SelectionMode } from "@/store/1-ui-settings";
 import { MODIFIERS, isMod } from "./8-definition-of-modifiers";
 import { modifierHint } from "../0-shared/5-hint";
 import { type MoveGesture, beginMove, endMove, pastThreshold, updateMove } from "../0-shared/3-move-gesture";
 import { hitTestOutlines, docTolerance } from "../0-shared/2-tool-helpers";
-import { selectedGroupOnPath, selectionUnitId } from "../0-shared/4-group-units";
+import { selectionUnitId } from "../0-shared/4-group-units";
 import { clearSnapGuides, collectSnapTargets, setSnapGuides, snapActive, snapBox, snapThreshold } from "../core-snapping";
 import { LASSO_STEP_PX, type Polyline, lassoHits, simplifyLasso } from "./2-lasso";
 
@@ -26,10 +27,10 @@ export const selectTool: ToolDef = {
     icon: MousePointer2,
     hint: ({ held, dragging }) => dragging
         ? '' //'Release to finish'
-        : modifierHint(held, 'Click to select, drag to move · [Shift] add · [Alt] copy or lasso · [Ctrl] inside group', {
+        : modifierHint(held, 'Click to select, drag to move · Double-click a group to isolate it · [Shift] add · [Alt] copy or lasso · [Ctrl] deep select', {
             shift: '[Shift] Click to add or remove · Drag along one axis',
             alt: '[Alt] Drag an element to copy · on empty canvas, [Alt] drag to lasso',
-            ctrl: '[Ctrl] Click to select inside a group · Drag snaps to other elements',
+            ctrl: '[Ctrl] Click to select an element inside groups · Drag snaps to other elements',
         }),
     cursor: 'default', // fallback, the cursor classes below take precedence
     getCursor(get) {
@@ -60,20 +61,29 @@ export const selectTool: ToolDef = {
             return;
         }
 
+        const isolatedId = getIsolatedId(get);
         if (target.type === 'none') {
-            const hit = hitTestOutlines(e.doc, docTolerance(get, 4));
+            const hit = hitTestOutlines(e.doc, docTolerance(get, 4), isolatedId);
             if (hit) {
                 target = { type: 'node', ...hit };
             }
         }
 
+        if (e.clickCount >= 2 && target.type === 'none') {
+            // Double-click outside of any element leaves the isolated group for its parent
+            if (set(exitIsolationLevelAtom)) {
+                return;
+            }
+        }
+
         if (target.type === 'node' && e.clickCount >= 2) {
-            // Double-click on an element of a selected group enters that group; otherwise the element's points are edited
-            const group = selectedGroupOnPath(docState.doc, target.leafId, selection);
-            set(setSelectionAtom, [target.leafId]);
-            if (group) {
-                set(editingGroupIdAtom, group);
+            // Double-click on a group isolates it and selects what is under the pointer inside it; on an element, its points are edited
+            const unit = selectionUnitId(docState.doc, target.leafId, isolatedId);
+            if (findNode(docState.doc, unit)?.node.kind === 'g') {
+                set(enterIsolationAtom, unit);
+                set(setSelectionAtom, [selectionUnitId(docState.doc, target.leafId, unit)]);
             } else {
+                set(setSelectionAtom, [unit]);
                 set(setActiveToolAtom, ToolId.points);
             }
             return;
@@ -84,17 +94,9 @@ export const selectTool: ToolDef = {
             if (target.type !== 'node') {
                 id = target.nodeId;
             } else if (isMod(e, M.deepSelect)) {
-                // Ctrl+click selects the element itself and edits its innermost group
-                const path = groupPathIds(docState.doc, target.leafId);
-                set(editingGroupIdAtom, path.length ? path[path.length - 1] : null);
-                id = target.leafId;
+                id = target.leafId; // Ctrl+click selects the element itself, however deep it is inside groups
             } else {
-                // A click outside the group being edited ends editing; otherwise the unit is a child of that group
-                const editing = get(editingGroupIdAtom);
-                if (editing && !groupPathIds(docState.doc, target.leafId).includes(editing)) {
-                    set(editingGroupIdAtom, null);
-                }
-                id = selectionUnitId(docState.doc, target.leafId, get(editingGroupIdAtom));
+                id = selectionUnitId(docState.doc, target.leafId, isolatedId); // a child of the isolated group, or a top-level element
             }
 
             let ids = selection;
@@ -121,13 +123,12 @@ export const selectTool: ToolDef = {
         // empty canvas: rubber band, or a lasso while Alt is held
         const additive = isMod(e, M.toggleSelection);
         if (!additive) {
-            set(editingGroupIdAtom, null);
             set(setSelectionAtom, []);
         }
         const doc = snapshot(docState).doc as SvgDoc;
         const bboxes = new Map<string, Rect>();
-        for (const node of doc.children) {
-            const b = nodeDocBBox(doc, node.id);
+        for (const node of isolationRootChildren(doc, isolatedId)) {
+            const b = isPickable(doc, node.id, isolatedId) ? nodeDocBBox(doc, node.id) : null;
             b && bboxes.set(node.id, b);
         }
         const origin = e.screen;
@@ -283,18 +284,21 @@ function updateArea(get: Getter, set: Setter, g: AreaGesture, e: ToolPointerEven
 }
 
 /**
- * Document-space polylines of one top-level element. Paths and shapes contribute their flattened outline;
- * elements without outline geometry (text, images, ...) contribute the outline of their bounding box.
+ * Document-space polylines of one selectable element (top-level, or a child of the isolated group). Paths and shapes contribute
+ * their flattened outline; elements without outline geometry (text, images, ...) contribute the outline of their bounding box.
  * Groups have no geometry of their own, so their members are walked instead.
  */
 function elementPolylines(doc: SvgDoc, topId: string): Polyline[] {
-    const top = doc.children.find((node) => node.id === topId);
+    const top = findNode(doc, topId)?.node;
     if (!top) {
         return [];
     }
 
     const lines: Polyline[] = [];
     walkNodes([top], (node) => {
+        if (isHidden(node)) {
+            return false;
+        }
         if (node.kind === 'g') {
             return;
         }

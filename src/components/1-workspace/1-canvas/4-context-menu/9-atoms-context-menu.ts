@@ -4,9 +4,10 @@ import { snapshot } from "valtio";
 import { type SvgDoc, rectContainsPoint } from "@/svg-core";
 import { docState, nodesDocBBox } from "@/store/3-document";
 import {
-    ToolId, activeToolIdAtom, editingGroupIdAtom, nodeAnchorKey, screenToDoc, selectedAnchorsAtom, selectionAtom, setSelectionAtom,
+    ToolId, activeToolIdAtom, nodeAnchorKey, screenToDoc, selectedAnchorsAtom, selectionAtom, setSelectionAtom,
     viewportAtom,
 } from "@/store/4-editor";
+import { filterTarget, getIsolatedId } from "@/store/6-layers";
 import { resolveTarget, selectionUnitId } from "@/tools";
 import { docTolerance, hitTestOutlines } from "@/tools/0-shared/2-tool-helpers";
 
@@ -25,7 +26,8 @@ export const openCanvasMenuAtom = atom(
     (get, set, e: ReactMouseEvent<SVGSVGElement>) => {
         const r = e.currentTarget.getBoundingClientRect();
         const p = screenToDoc(get(viewportAtom), { x: e.clientX - r.left, y: e.clientY - r.top });
-        const target = resolveTarget(e.target as Element);
+        const isolatedId = getIsolatedId(get);
+        const target = filterTarget(docState.doc, resolveTarget(e.target as Element), isolatedId);
 
         if (get(activeToolIdAtom) === ToolId.points) {
             if (target.type === 'anchor' || target.type === 'shape-handle') {
@@ -49,13 +51,13 @@ export const openCanvasMenuAtom = atom(
                 leafId = target.nodeId;
                 break;
             case 'none':
-                leafId = hitTestOutlines(p, docTolerance(get, 4))?.leafId; // thin strokes are hard to hit
+                leafId = hitTestOutlines(p, docTolerance(get, 4), isolatedId)?.leafId; // thin strokes are hard to hit
                 break;
         }
 
         const selection = get(selectionAtom);
         if (leafId) {
-            const unit = selectionUnitId(docState.doc, leafId, get(editingGroupIdAtom));
+            const unit = selectionUnitId(docState.doc, leafId, isolatedId);
             if (!selection.includes(unit)) {
                 set(setSelectionAtom, [unit]);
             }

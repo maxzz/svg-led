@@ -4,6 +4,7 @@ import { type Anchor, type Point, type SubPath, applyMatrix, constrain45, distan
 import { commitHistory, docPrecision, docState, getNodeProxy } from "@/store/3-document";
 import { type PenDraft, ToolId, penDraftAtom, selectionAtom, setSelectionAtom } from "@/store/4-editor";
 import { newShapeStyleAtom } from "@/store/2-persist";
+import { insertNodeAtTop, newElementMatrix } from "@/store/6-layers";
 import { type ToolDef } from "../9-types-tool-def";
 import { MODIFIERS, isMod } from "../tool-2-select/8-definition-of-modifiers";
 import { docTolerance, nodeMatrices, snapDoc } from "../0-shared/2-tool-helpers";
@@ -60,10 +61,10 @@ export const penTool: ToolDef = {
                 }
             }
 
-            const p = snapDoc(e.doc);
+            const p = applyMatrix(newElementMatrix(get), snapDoc(e.doc));
             const id = newNodeId();
             const subpaths: SubPath[] = [{ anchors: [{ x: p.x, y: p.y, kind: 'corner' }], closed: false }];
-            docState.doc.children.push({ id, kind: 'path', d: subpathsToPathData(subpaths, docPrecision()), attrs: styleAttrs(get(newShapeStyleAtom)) });
+            insertNodeAtTop(get, { id, kind: 'path', d: subpathsToPathData(subpaths, docPrecision()), attrs: styleAttrs(get(newShapeStyleAtom)) });
             set(penDraftAtom, { nodeId: id, subpaths, si: 0, isNew: true, startCount: 0 });
             set(setSelectionAtom, [id]);
             gesture = { ai: 0, startScreen: e.screen, moved: false, closing: false };

@@ -1,21 +1,22 @@
 import { atom } from "jotai";
-import { allNodeIds } from "@/svg-core";
+import { findNode } from "@/svg-core";
 import { docState, redo, undo } from "../3-document";
-import { editingGroupIdAtom, selectedAnchorsAtom, selectionAtom } from "./2-selection-atoms";
+import { isHiddenOrLocked } from "../6-layers/1-layer-attrs";
+import { isolatedGroupIdAtom, selectedAnchorsAtom, selectionAtom } from "./2-selection-atoms";
 
-/** Keeps only the selected ids that still exist after the document was replaced; ends group editing of a removed group */
+/** Keeps only the selected ids that still exist (and are neither hidden nor locked) after the document was replaced; ends isolation of a removed group */
 export const pruneSelectionAtom = atom(
     null,
     (get, set) => {
-        const ids = allNodeIds(docState.doc);
+        const doc = docState.doc;
         const sel = get(selectionAtom);
-        const next = sel.filter((id) => ids.has(id));
+        const next = sel.filter((id) => !isHiddenOrLocked(doc, id));
         if (next.length !== sel.length) {
             set(selectionAtom, next);
         }
-        const editing = get(editingGroupIdAtom);
-        if (editing && !ids.has(editing)) {
-            set(editingGroupIdAtom, null);
+        const isolated = get(isolatedGroupIdAtom);
+        if (isolated && findNode(doc, isolated)?.node.kind !== 'g') {
+            set(isolatedGroupIdAtom, null);
         }
         set(selectedAnchorsAtom, []);
     }

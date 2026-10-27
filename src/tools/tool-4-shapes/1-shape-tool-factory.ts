@@ -1,6 +1,7 @@
 import { type ComponentType } from "react";
-import { type Point, type ShapeNode, newNodeId } from "@/svg-core";
-import { commitHistory, docState, getNodeProxy, replaceNode } from "@/store/3-document";
+import { type Matrix, type Point, type ShapeNode, applyMatrix, newNodeId } from "@/svg-core";
+import { commitHistory, getNodeProxy, replaceNode } from "@/store/3-document";
+import { insertNodeAtTop, newElementMatrix, removeNode } from "@/store/6-layers";
 import { type ToolId, selectionAtom, setActiveToolAtom, setSelectionAtom, toolLockedAtom } from "@/store/4-editor";
 import { type CornerRadius, newShapeStyleAtom } from "@/store/2-persist";
 import { type NewShapeKind, type ToolDef } from "../9-types-tool-def";
@@ -31,7 +32,7 @@ type ShapeToolConfig = {
 
 /** Rectangle, ellipse and line share the same drag-to-draw gesture */
 export function createShapeTool(config: ShapeToolConfig): ToolDef {
-    let drawing: { id: string; start: Point; corner: CornerRadius; } | null = null;
+    let drawing: { id: string; start: Point; startDoc: Point; corner: CornerRadius; toLocal: Matrix; } | null = null;
 
     return {
         id: config.id,
@@ -49,20 +50,23 @@ export function createShapeTool(config: ShapeToolConfig): ToolDef {
         newShapeKind: config.kind,
 
         onPointerDown({ get, set }, e) {
-            const start = snapDoc(e.doc);
+            // geometry is kept in the coordinates of the group the shape goes into (the isolated group, or the document)
+            const toLocal = newElementMatrix(get);
+            const startDoc = snapDoc(e.doc);
+            const start = applyMatrix(toLocal, startDoc);
             const id = newNodeId();
             const style = get(newShapeStyleAtom);
             const corner: CornerRadius = { rx: style.rx, ry: style.ry };
-            docState.doc.children.push(config.create(id, start, start, styleAttrs(style), corner));
+            insertNodeAtTop(get, config.create(id, start, start, styleAttrs(style), corner));
             set(setSelectionAtom, [id]);
-            drawing = { id, start, corner };
+            drawing = { id, start, startDoc, corner, toLocal };
         },
 
         onPointerMove(_ctx, e) {
             if (!drawing) {
                 return;
             }
-            let b = snapDoc(e.doc);
+            let b = applyMatrix(drawing.toLocal, snapDoc(e.doc));
             if (isMod(e, M.constrain)) {
                 b = config.constrain(drawing.start, b);
             }
@@ -78,14 +82,12 @@ export function createShapeTool(config: ShapeToolConfig): ToolDef {
             if (!drawing) {
                 return;
             }
-            const { id, start } = drawing;
+            const { id, startDoc } = drawing;
             drawing = null;
 
-            const tooSmall = Math.hypot(e.doc.x - start.x, e.doc.y - start.y) < docTolerance(get, 2);
+            const tooSmall = Math.hypot(e.doc.x - startDoc.x, e.doc.y - startDoc.y) < docTolerance(get, 2);
             if (tooSmall) {
-                const list = docState.doc.children;
-                const index = list.findIndex((n) => n.id === id);
-                index >= 0 && list.splice(index, 1);
+                removeNode(id);
                 set(selectionAtom, []);
                 return;
             }

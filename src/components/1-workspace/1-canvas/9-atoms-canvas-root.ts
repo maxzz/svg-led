@@ -3,9 +3,10 @@ import { type Getter, type Setter, atom } from "jotai";
 import { toast } from "sonner";
 import { appStore } from "@/store/0-app-store";
 import { appSettings } from "@/store/1-ui-settings";
-import { docState, insertSvgMarkup, loadSvgFile } from "@/store/3-document";
+import { docState, loadSvgFile } from "@/store/3-document";
+import { filterTarget, getIsolatedId, insertMarkupAtTop } from "@/store/6-layers";
 import {
-    ToolId, activeToolIdAtom, canvasSizeAtom, editingGroupIdAtom, hoverNodeIdAtom, isPanningAtom, panByAtom, pointerDocAtom, pruneSelectionAtom,
+    ToolId, activeToolIdAtom, canvasSizeAtom, hoverNodeIdAtom, isPanningAtom, panByAtom, pointerDocAtom, pruneSelectionAtom,
     heldKeysOf, screenToDoc, setHeldKeysAtom, setSelectionAtom, spaceHeldAtom, toolGestureActiveAtom, viewportAtom, zoomByAtom, zoomToFitAtom,
 } from "@/store/4-editor";
 import { type Point } from "@/svg-core";
@@ -45,8 +46,13 @@ function toToolEvent(get: Getter, e: CanvasPointerEvent): ToolPointerEvent {
         alt: e.altKey,
         ctrl: e.ctrlKey || e.metaKey,
         clickCount: 1,                  // set on pointer down, see nextClickCount
-        target: resolveTarget(e.target as Element),
+        target: pickableTarget(get, e.target as Element),
     };
+}
+
+/** What is under the pointer; hidden, locked and out-of-isolation elements count as empty canvas for every tool */
+function pickableTarget(get: Getter, el: Element | null) {
+    return filterTarget(docState.doc, resolveTarget(el), getIsolatedId(get));
 }
 
 //---------------------------------------------------------------------------
@@ -84,7 +90,7 @@ export const canvasPointerDownAtom = atom(
 /** Sets the hovered element from what is under the pointer */
 function updateHover(get: Getter, set: Setter, t: ToolPointerEvent['target']) {
     const hover = t.type === 'node'
-        ? (get(activeToolIdAtom) === ToolId.points ? t.leafId : selectionUnitId(docState.doc, t.leafId, get(editingGroupIdAtom)))
+        ? (get(activeToolIdAtom) === ToolId.points ? t.leafId : selectionUnitId(docState.doc, t.leafId, getIsolatedId(get)))
         : null;
     if (get(hoverNodeIdAtom) !== hover) {
         set(hoverNodeIdAtom, hover);
@@ -129,7 +135,7 @@ export const canvasPointerUpAtom = atom(
             set(toolGestureActiveAtom, false);
             getTool(get(activeToolIdAtom)).onPointerUp?.({ get, set }, toToolEvent(get, e));
             // Pointer down cleared the hover; restore it for whatever is under the released pointer
-            updateHover(get, set, resolveTarget(document.elementFromPoint(e.clientX, e.clientY)));
+            updateHover(get, set, pickableTarget(get, document.elementFromPoint(e.clientX, e.clientY)));
         }
     }
 );
@@ -167,7 +173,7 @@ export function canvasDragOver(e: DragEvent) {
 
 export const canvasDropAtom = atom(
     null,
-    async (_get, set, e: DragEvent) => {
+    async (get, set, e: DragEvent) => {
         e.preventDefault();
         const file = Array.from(e.dataTransfer.files).find((f) => f.type === 'image/svg+xml' || f.name.toLowerCase().endsWith('.svg'));
         if (file) {
@@ -182,7 +188,7 @@ export const canvasDropAtom = atom(
         }
         const text = e.dataTransfer.getData('text/plain');
         if (text.includes('<')) {
-            const ids = insertSvgMarkup(text);
+            const ids = insertMarkupAtTop(get, text);
             ids ? set(setSelectionAtom, ids) : toast.error('Dropped text is not SVG markup');
             set(pruneSelectionAtom);
         }

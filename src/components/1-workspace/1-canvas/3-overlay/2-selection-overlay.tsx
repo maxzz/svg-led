@@ -1,7 +1,7 @@
 import { useAtomValue } from "jotai";
 import { type SvgDoc, type Rect, findNode } from "@/svg-core";
 import { nodesDocBBox, useDocSnapshot } from "@/store/3-document";
-import { editingGroupIdAtom, hoverNodeIdAtom, rectToScreen, selectionAtom, viewportAtom } from "@/store/4-editor";
+import { hoverNodeIdAtom, rectToScreen, selectionAtom, viewportAtom } from "@/store/4-editor";
 import { type ResizeHandle } from "@/tools/9-types-tool-def";
 import { nodeScreenMatrix, outlineScreenD } from "./0-overlay-geometry";
 
@@ -25,14 +25,9 @@ export function SelectionOverlay() {
     const vp = useAtomValue(viewportAtom);
     const selection = useAtomValue(selectionAtom);
     const hover = useAtomValue(hoverNodeIdAtom);
-    const editing = useAtomValue(editingGroupIdAtom);
-
     const bbox = selection.length ? nodesDocBBox(doc, selection) : null;
     const r = bbox && rectToScreen(vp, bbox);
     const box = r && { x: r.x - PAD, y: r.y - PAD, width: r.width + PAD * 2, height: r.height + PAD * 2 };
-
-    const editingBBox = editing ? nodesDocBBox(doc, [editing]) : null;
-    const editingRect = editingBBox && rectToScreen(vp, editingBBox);
 
     // a selected group or several elements show a dashed box, a single element a solid one
     const dashed = selection.length > 1 || selection.some((id) => findNode(doc, id)?.node.kind === 'g');
@@ -45,14 +40,6 @@ export function SelectionOverlay() {
 
             {selection.map(
                 (id) => <Outline doc={doc} id={id} key={id} className="stroke-(--editor-accent)" />
-            )}
-
-            {editingRect && (
-                <rect
-                    className="stroke-(--editor-accent) pointer-events-none"
-                    x={editingRect.x - PAD} y={editingRect.y - PAD} width={editingRect.width + PAD * 2} height={editingRect.height + PAD * 2}
-                    fill="none" strokeWidth={1} strokeDasharray="4 3"
-                />
             )}
 
             {box && (<>

@@ -4,7 +4,7 @@ import {
     docToParentMatrix, findNode, fitRectMatrix, isShapeNode, newNodeId, nodeOwnMatrix, parentsMatrix, parseSvg,
     parseSvgFragment, serializeNodes, serializeSvg, setPresentation, shapeToPath, topmostIds, transformNode, translateMatrix,
     viewBoxAround, walkNodes, makeFmt, isIdentity, multiply, scaleMatrix, reuseNodeIds, type Rect, scaleAround, getPresentation,
-    combinePaths, isCompoundPath, releaseCompoundPath,
+    combinePaths, isCompoundPath, releaseCompoundPath, IDENTITY, invert,
 } from "@/svg-core";
 import { docPrecision, docState } from "./1-doc-store";
 import { type ChangeOrigin, commitHistory, resetHistory } from "./2-doc-history";
@@ -49,16 +49,37 @@ export function nodesToText(ids: readonly string[]): string {
     return serializeNodes(nodes, { precision: docPrecision() });
 }
 
-/** Inserts elements from SVG text (a whole document or a fragment) at the top of the stacking order; returns the new ids */
-export function insertSvgMarkup(text: string): string[] | undefined {
+/**
+ * Inserts elements from SVG text (a whole document or a fragment) at the top of the stacking order of the group `parentId`
+ * (or of the document); returns the new ids
+ */
+export function insertSvgMarkup(text: string, parentId: string | null = null): string[] | undefined {
     const parsed = parseSvg(text);
     const nodes = (parsed.ok ? parsed.doc.children : parseSvgFragment(text))?.flatMap(unwrapNestedSvg);
     if (!nodes?.length) {
         return;
     }
-    docState.doc.children.push(...nodes);
+    const rv = insertNodesAtTop(nodes, parentId);
     commitHistory();
-    return nodes.map((n) => n.id);
+    return rv;
+}
+
+/** Children array of the group `parentId` and the matrix from document to that group's coordinates; the document root when there is no such group */
+export function insertionParent(parentId: string | null): { siblings: SvgNode[]; docToLocal: Matrix; } {
+    const loc = parentId ? findNode(docState.doc, parentId) : undefined;
+    if (loc?.node.kind !== 'g') {
+        return { siblings: docState.doc.children, docToLocal: IDENTITY };
+    }
+    return { siblings: loc.node.children, docToLocal: invert(parentsMatrix([...loc.parents, loc.node])) };
+}
+
+/** Appends nodes given in document coordinates on top of the group `parentId` (or the document); no history commit. Returns the ids. */
+export function insertNodesAtTop(nodes: readonly SvgNode[], parentId: string | null): string[] {
+    const { siblings, docToLocal } = insertionParent(parentId);
+    const precision = docPrecision();
+    const placed = nodes.map((n) => isIdentity(docToLocal) ? n : transformNode(n, docToLocal, precision));
+    siblings.push(...placed);
+    return placed.map((n) => n.id);
 }
 
 /**

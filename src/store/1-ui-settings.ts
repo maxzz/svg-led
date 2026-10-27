@@ -45,6 +45,11 @@ export interface CodePanelSettings {
     sync: boolean;               // Two-way sync between the source code and the canvas
 }
 
+export interface LayersPanelSettings {
+    open: boolean;               // Layers panel is slid out from the right edge
+    width: number;               // Panel width in px
+}
+
 export interface EditorPreferences {
     showViewBox: boolean;        // Draw the viewBox frame and dim everything outside it
     showGrid: boolean;           // Draw the grid in document units
@@ -82,6 +87,7 @@ export interface AppSettings {
     welcomeTransition: WelcomeTransition; // Transition between the Welcome and main pages
     canvasBackground: string;    // Canvas background color; empty string means the theme background
     codePanel: CodePanelSettings;
+    layersPanel: LayersPanelSettings;
     propertySections: PropertySectionsSettings; // Expanded state of collapsible property sections
     prefs: EditorPreferences;
     monaco: MonacoSettings;      // Monaco code editor options
@@ -104,6 +110,10 @@ const DEFAULT_SETTINGS: AppSettings = {
         open: false,
         width: 420,
         sync: true,
+    },
+    layersPanel: {
+        open: false,
+        width: 280,
     },
     propertySections: {
         strokeOpen: true,
@@ -150,6 +160,7 @@ function loadSettings(): AppSettings {
                 ...parsed,
                 welcomeTransition: isWelcomeTransition(parsed.welcomeTransition) ? parsed.welcomeTransition : DEFAULT_SETTINGS.welcomeTransition,
                 codePanel: { ...DEFAULT_SETTINGS.codePanel, ...parsed.codePanel },
+                layersPanel: { ...DEFAULT_SETTINGS.layersPanel, ...parsed.layersPanel },
                 propertySections: { ...DEFAULT_SETTINGS.propertySections, ...parsed.propertySections },
                 prefs: {
                     ...DEFAULT_SETTINGS.prefs,

@@ -1,5 +1,6 @@
 import { type AppStore } from "../0-app-store";
-import { ToolId, activeToolIdAtom, editingGroupIdAtom, exitGroupEditingAtom, heldKeysOf, NO_HELD_KEYS, selectionAtom, setActiveToolAtom, setHeldKeysAtom, setSelectionAtom, spaceHeldAtom } from "../4-editor";
+import { ToolId, activeToolIdAtom, heldKeysOf, NO_HELD_KEYS, selectionAtom, setActiveToolAtom, setHeldKeysAtom, setSelectionAtom, spaceHeldAtom } from "../4-editor";
+import { exitIsolationLevelAtom } from "../6-layers";
 import { getTool, toolByShortcut } from "@/tools";
 import { COMMANDS, isEditableTarget, matchShortcut, nudgeSelection } from "@/commands";
 
@@ -57,9 +58,7 @@ export function installKeyboard(store: AppStore): () => void {
         if (e.key === 'Escape') {
             if (store.get(activeToolIdAtom) !== ToolId.select) {
                 store.set(setActiveToolAtom, ToolId.select);
-            } else if (store.get(editingGroupIdAtom)) {
-                store.set(exitGroupEditingAtom);
-            } else {
+            } else if (!store.set(exitIsolationLevelAtom)) {
                 store.set(setSelectionAtom, []);
             }
         }

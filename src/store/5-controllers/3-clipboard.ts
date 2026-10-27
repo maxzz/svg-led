@@ -1,6 +1,7 @@
 import { type AppStore } from "../0-app-store";
-import { deleteNodes, insertSvgMarkup, nodesToText } from "../3-document";
+import { deleteNodes, nodesToText } from "../3-document";
 import { selectionAtom, setSelectionAtom } from "../4-editor";
+import { insertMarkupAtTop } from "../6-layers";
 import { isEditableTarget } from "@/commands";
 
 /** Copy, cut and paste of elements as SVG markup, so they can be pasted into other apps and back */
@@ -31,7 +32,7 @@ export function installClipboard(store: AppStore): () => void {
         if (isEditableTarget(e.target) || !text.includes('<')) {
             return;
         }
-        const ids = insertSvgMarkup(text);
+        const ids = insertMarkupAtTop(store.get, text);
         if (ids) {
             e.preventDefault();
             store.set(setSelectionAtom, ids);

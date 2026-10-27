@@ -3,6 +3,7 @@ import { type Matrix, type Point, type SvgNode, applyMatrix, distanceToOutline, 
 import { appSettings } from "@/store/1-ui-settings";
 import { docState } from "@/store/3-document";
 import { viewportAtom } from "@/store/4-editor";
+import { isHidden, isLocked } from "@/store/6-layers";
 
 /** Pixels on screen expressed in document units at the current zoom */
 export function docTolerance(get: Getter, px: number): number {
@@ -36,12 +37,19 @@ export function docToLocal(id: string, p: Point): Point {
 /**
  * Geometry hit test for thin strokes that are hard to hit with the pointer:
  * returns the topmost element whose outline passes within `tolerance` (document units).
+ * Hidden and locked elements are skipped, and so is everything outside the isolated group.
  */
-export function hitTestOutlines(p: Point, tolerance: number): { topId: string; leafId: string; } | undefined {
+export function hitTestOutlines(p: Point, tolerance: number, isolatedId: string | null): { topId: string; leafId: string; } | undefined {
     let rv: { topId: string; leafId: string; } | undefined;
     walkNodes(
         docState.doc.children,
         (node: SvgNode, parents) => {
+            if (isHidden(node) || isLocked(node)) {
+                return false;
+            }
+            if (isolatedId && node.kind !== 'g' && !parents.some((g) => g.id === isolatedId)) {
+                return;
+            }
             const outline = nodeOutline(node);
             if (!outline) {
                 return;
