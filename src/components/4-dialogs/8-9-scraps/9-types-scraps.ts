@@ -1,9 +1,9 @@
 import { type Setter, atom } from "jotai";
 import { snapshot } from "valtio";
 import { toast } from "sonner";
-import { type Attrs, type SvgDoc, type ViewBox, parseSvg, topmostIds } from "@/svg-core";
+import { type Attrs, type SvgDoc, type SvgNode, type ViewBox, newNodeId, parseSvg, parseSvgFragment, topmostIds } from "@/svg-core";
 import { STORAGE_KEYS, atomWithDialogOptions } from "@/store/2-persist";
-import { buildSvgExportText, commitHistory, docState, insertSvgMarkup, topLevelIds } from "@/store/3-document";
+import { buildSvgExportText, commitHistory, docState, topLevelIds } from "@/store/3-document";
 import { selectionAtom, setSelectionAtom } from "@/store/4-editor";
 
 //---------------------------------------------------------------------------
@@ -109,12 +109,15 @@ export const doLoadScrapAtom = atom(
         }
 
         if (mode === 'add') {
-            const ids = insertSvgMarkup(scrap.svg);
-            if (!ids) {
+            const parsed = parseSvg(scrap.svg);
+            const nodes = parsed.ok ? parsed.doc.children.flatMap(unwrapNestedSvg) : [];
+            if (!nodes.length) {
                 toast.error(`Scrap "${name}" has no elements`);
                 return false;
             }
-            set(setSelectionAtom, ids);
+            docState.doc.children.push(...nodes);
+            commitHistory();
+            set(setSelectionAtom, nodes.map((n) => n.id));
             return true;
         }
 
@@ -129,6 +132,44 @@ export const doLoadScrapAtom = atom(
         return true; // the caller zooms to fit after closing the dialog
     }
 );
+
+/**
+ * Returns the contents of a nested <svg> element as top-level nodes, without the <svg> itself.
+ * Its x/y and viewBox-to-size scale become a transform on a group, and only when they are not the identity.
+ */
+function unwrapNestedSvg(node: SvgNode): SvgNode[] {
+    if (node.kind !== 'passthrough' || node.tag.toLowerCase() !== 'svg') {
+        return [node];
+    }
+
+    const children = (parseSvgFragment(node.inner) ?? []).flatMap(unwrapNestedSvg);
+    const transform = nestedSvgTransform(node.attrs);
+    if (!transform) {
+        return children;
+    }
+    return [{ id: newNodeId(), kind: 'g', children, attrs: { transform } }];
+}
+
+/** `translate(...) scale(...)` for a nested <svg>'s viewport, or undefined when it maps coordinates unchanged */
+function nestedSvgTransform(attrs: Attrs): string | undefined {
+    const num = (v: string | undefined, fallback: number) => (v === undefined || v.trim() === '' || !Number.isFinite(parseFloat(v)) ? fallback : parseFloat(v));
+    const x = num(attrs.x, 0);
+    const y = num(attrs.y, 0);
+    const vb = (attrs.viewBox ?? '').trim().split(/[\s,]+/).map(Number);
+    const [vbX, vbY, vbW, vbH] = vb.length === 4 && vb.every(Number.isFinite) && vb[2] > 0 && vb[3] > 0 ? vb : [0, 0, 0, 0];
+
+    const width = num(attrs.width, vbW);
+    const height = num(attrs.height, vbH);
+    const sx = vbW ? width / vbW : 1;
+    const sy = vbH ? height / vbH : 1;
+    const tx = x - vbX * sx;
+    const ty = y - vbY * sy;
+
+    if (tx === 0 && ty === 0 && sx === 1 && sy === 1) {
+        return undefined;
+    }
+    return `translate(${tx} ${ty}) scale(${sx} ${sy})`;
+}
 
 export const doDeleteScrapAtom = atom(
     null,
