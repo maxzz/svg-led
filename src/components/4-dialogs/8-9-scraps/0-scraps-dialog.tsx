@@ -8,7 +8,9 @@ import { Label } from "@/ui/shadcn/label";
 import { ScrollArea } from "@/ui/shadcn/scroll-area";
 import { TabSelect } from "@/ui/local-ui/5-tab-select";
 import { topLevelIds } from "@/store/3-document";
-import { selectionAtom } from "@/store/4-editor";
+import { selectionAtom, zoomToFitAtom } from "@/store/4-editor";
+import { appSettings } from "@/store/1-ui-settings";
+import { PROPERTIES_POPUP_RIGHT_EDGE_PX } from "@/components/1-workspace/2-props-panel/9-atoms-properties-popup";
 import { classNames } from "@/utils";
 import { doAsyncExecuteConfirmDialogAtom } from "../8-1-confirmation/9-types-confirmation";
 import { getConfirmOverwriteScrapMessages } from "../8-1-confirmation/8-confirmation-ui-messages";
@@ -68,6 +70,7 @@ function LoadSection({ selectedName, setSelectedName, selectScrap }: { selectedN
     const doLoad = useSetAtom(doLoadScrapAtom);
     const doDelete = useSetAtom(doDeleteScrapAtom);
     const setIsOpen = useSetAtom(isOpenScrapsDialogAtom);
+    const zoomToFit = useSetAtom(zoomToFitAtom);
     const rowRefs = useRef(new Map<string, HTMLDivElement>());
 
     const loadMode: ScrapLoadMode = options.loadMode === 'replace' ? 'replace' : 'add';
@@ -90,7 +93,14 @@ function LoadSection({ selectedName, setSelectedName, selectScrap }: { selectedN
     );
 
     function load(name: string) {
-        doLoad({ name, mode: loadMode }) && setIsOpen(false);
+        if (!doLoad({ name, mode: loadMode })) {
+            return;
+        }
+        setIsOpen(false);
+        // Replacing the canvas zooms to fit once the dialog is closed, honoring the Properties panel setting
+        if (loadMode === 'replace') {
+            zoomToFit({ leftInset: appSettings.prefs.fitAvoidsProperties ? PROPERTIES_POPUP_RIGHT_EDGE_PX : 0 });
+        }
     }
 
     function selectIndex(index: number) {

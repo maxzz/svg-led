@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { type Attrs, type SvgDoc, type ViewBox, parseSvg, topmostIds } from "@/svg-core";
 import { STORAGE_KEYS, atomWithDialogOptions } from "@/store/2-persist";
 import { buildSvgExportText, commitHistory, docState, insertSvgMarkup, topLevelIds } from "@/store/3-document";
-import { selectionAtom, setSelectionAtom, zoomToFitAtom } from "@/store/4-editor";
+import { selectionAtom, setSelectionAtom } from "@/store/4-editor";
 
 //---------------------------------------------------------------------------
 
@@ -126,8 +126,7 @@ export const doLoadScrapAtom = atom(
         docState.doc = { viewBox: scrap.viewBox, rootAttrs: scrap.rootAttrs, children: parsed.doc.children };
         commitHistory({ origin: 'load' });
         set(setSelectionAtom, []);
-        set(zoomToFitAtom);
-        return true;
+        return true; // the caller zooms to fit after closing the dialog
     }
 );
 
