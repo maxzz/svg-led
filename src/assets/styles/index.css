@@ -196,3 +196,15 @@
     width: 3px !important;
     background-color: var(--editor-accent);
 }
+
+/*
+ * Monaco's hover tooltips (e.g. "Close (Escape)" on the find widget's X) are placed over their own trigger.
+ * Hovering the tooltip hides it, which shows it again, so the tooltip opens and closes forever and eats the click.
+ * Let pointer events pass through the tooltips so the trigger underneath gets the click.
+ */
+.context-view:has(.monaco-hover),
+.monaco-hover,
+.workbench-hover,
+.workbench-hover-container {
+    pointer-events: none;
+}
