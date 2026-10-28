@@ -46,7 +46,7 @@ const SLIDE = { type: 'spring', stiffness: 420, damping: 40 } as const;
 
 function PanelHeader() {
     return (
-        <div className="shrink-0 px-3 h-11 border-b flex items-center gap-2">
+        <div className="shrink-0 px-3 h-7 border-b flex items-center gap-2">
             <span className="text-xs font-bold">Layers</span>
             <Button className="ml-auto" variant="ghost" size="icon-xs" onClick={() => { appSettings.layersPanel.open = false; }} title="Close — Ctrl+Shift+L">
                 <X />
