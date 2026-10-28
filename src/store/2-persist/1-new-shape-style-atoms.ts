@@ -1,4 +1,4 @@
-import { LEGACY_STYLE_KEYS, STORAGE_KEYS } from "./8-storage-keys";
+import { LEGACY_STYLE_KEYS, STORAGE_KEYS } from "./8-storage-key-defs";
 import { atomWithStoredOptions } from "../../utils/util-hooks/app-specific/atom-with-stored-options";
 import { type DashStyle } from "./7-stroke-dash-atoms";
 

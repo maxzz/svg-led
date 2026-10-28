@@ -1,4 +1,5 @@
 import { type CSSProperties } from "react";
+
 import { type Attrs, parseStyle } from "@/svg-core";
 
 const cache = new WeakMap<object, Record<string, unknown>>();

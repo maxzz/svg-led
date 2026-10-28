@@ -1,10 +1,12 @@
 import { type Setter, atom } from "jotai";
 import { snapshot } from "valtio";
 import { toast } from "sonner";
+
 import { type SvgDoc, type ViewBox, type Attrs, parseSvg, topmostIds } from "@/svg-core";
 import { STORAGE_KEYS, atomWithDialogOptions } from "@/store/2-persist";
-import { buildSvgExportText, commitHistory, docState, insertSvgMarkup, topLevelIds } from "@/store/3-document";
+import { buildSvgExportText, commitHistory, docState, topLevelIds } from "@/store/3-document";
 import { selectionAtom, setSelectionAtom } from "@/store/4-editor";
+import { insertMarkupAtTop } from "@/store/6-layers";
 
 //---------------------------------------------------------------------------
 
@@ -25,7 +27,9 @@ export type Scrap = {
 const scrapsBaseAtom = atom<Scrap[]>(loadScraps());
 
 /** Saved scraps, newest first */
-export const scrapsAtom = atom((get) => [...get(scrapsBaseAtom)].sort((a, b) => b.updatedAt - a.updatedAt));
+export const scrapsAtom = atom(
+    (get) => [...get(scrapsBaseAtom)].sort((a, b) => b.updatedAt - a.updatedAt)
+);
 
 function loadScraps(): Scrap[] {
     try {
@@ -109,7 +113,7 @@ export const doLoadScrapAtom = atom(
         }
 
         if (mode === 'add') {
-            const ids = insertSvgMarkup(scrap.svg);
+            const ids = insertMarkupAtTop(get, scrap.svg);
             if (!ids) {
                 toast.error(`Scrap "${name}" has no elements`);
                 return false;

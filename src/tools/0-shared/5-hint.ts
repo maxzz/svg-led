@@ -9,8 +9,6 @@ export function hintParts(hint: string): HintPart[] {
     return hint.split(/\[([^\]]+)\]/).flatMap((part, i): HintPart[] => (i % 2 ? [{ key: part }] : part ? [{ text: part }] : []));
 }
 
-const MODIFIER_ORDER = ['shift', 'alt', 'ctrl'] as const;
-
 /**
  * Hint for the modifier keys held right now: the text of each held key, joined.
  * With no modifier held, the legend is shown. It lists every combination of the tool,
@@ -20,3 +18,5 @@ export function modifierHint(held: HeldKeys, legend: string, byKey: Partial<Reco
     const shown = MODIFIER_ORDER.flatMap((key) => (held[key] && byKey[key] ? [byKey[key]] : []));
     return shown.length ? shown.join(' · ') : legend;
 }
+
+const MODIFIER_ORDER = ['shift', 'alt', 'ctrl'] as const;

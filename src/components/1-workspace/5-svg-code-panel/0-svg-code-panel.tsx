@@ -32,12 +32,14 @@ export function SvgCodePanel() {
                     <div className="h-full flex flex-col" style={{ width: codePanel.width }}>
                         <PanelHeader />
                         <ErrorBar />
+
                         <div className="grow min-h-0">
                             <Suspense fallback={<div className="p-3 text-muted-foreground">Loading editor...</div>}>
                                 <MonacoHost />
                             </Suspense>
                         </div>
                     </div>
+                    
                     <ResizeHandle />
                 </motion.aside>
             )}
@@ -45,12 +47,14 @@ export function SvgCodePanel() {
     );
 }
 
+//---------------------------------------------------------------------------
+
 function PanelHeader() {
     const { codePanel } = useSnapshot(appSettings);
     const dirty = useAtomValue(codeDirtyAtom);
 
     return (
-        <div className="shrink-0 px-3 h-11 border-b flex items-center gap-2">
+        <div className="shrink-0 px-3 h-7 border-b flex items-center gap-2">
             <span className="text-xs font-bold">SVG source</span>
 
             {!codePanel.sync && (<>
@@ -63,7 +67,7 @@ function PanelHeader() {
             </>)}
 
             <label className="select-none ml-auto text-xs text-muted-foreground flex items-center gap-1.5 cursor-pointer" title="Two-way sync between the code and the canvas">
-                <Checkbox checked={codePanel.sync} onCheckedChange={(v) => setCodeSync(v === true)} />
+                <Checkbox className="size-3.5" checked={codePanel.sync} onCheckedChange={(v) => setCodeSync(v === true)} />
                 Sync
             </label>
 
@@ -74,18 +78,7 @@ function PanelHeader() {
     );
 }
 
-function ErrorBar() {
-    const error = useAtomValue(codeErrorAtom);
-    if (!error) {
-        return null;
-    }
-    
-    return (
-        <div className="shrink-0 whitespace-pre-wrap px-3 py-1.5 max-h-20 text-ui text-destructive bg-destructive/10 border-b overflow-auto">
-            {error}
-        </div>
-    );
-}
+//---------------------------------------------------------------------------
 
 function ResizeHandle() {
     const down = useSetAtom(panelResizeDownAtom);
@@ -100,5 +93,20 @@ function ResizeHandle() {
             onPointerUp={() => up()}
             onPointerCancel={() => up()}
         />
+    );
+}
+
+//---------------------------------------------------------------------------
+
+function ErrorBar() {
+    const error = useAtomValue(codeErrorAtom);
+    if (!error) {
+        return null;
+    }
+    
+    return (
+        <div className="shrink-0 whitespace-pre-wrap px-3 py-1.5 max-h-20 text-ui text-destructive bg-destructive/10 border-b overflow-auto">
+            {error}
+        </div>
     );
 }

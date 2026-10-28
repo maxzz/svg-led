@@ -4,37 +4,37 @@ overview: Add a right-side Layers panel (hierarchical tree with visibility/lock 
 todos:
   - id: settings-atoms
     content: Add layersPanel settings; rename editingGroupIdAtom to isolatedGroupIdAtom and update all references
-    status: pending
+    status: completed
   - id: store-layers
     content: "Create src/store/6-layers: layer attrs (hide/lock), isolation atoms, pickable filter, insertNodeAtTop, layer actions"
-    status: pending
+    status: completed
   - id: canvas-integration
     content: Wire pickable filter into canvas target resolution, hitTestOutlines, marquee/lasso, context menu, select-all
-    status: pending
+    status: completed
   - id: select-tool
     content: "Select tool: double-click isolate/exit, Ctrl deep-select without changing isolation, hint text"
-    status: pending
+    status: completed
   - id: insert-in-isolation
     content: Shape, pen, and paste insert into the isolated group via insertNodeAtTop/removeNode
-    status: pending
+    status: completed
   - id: dimming
     content: NodeView dimming of non-isolated content; remove editing-group dashed rect; keep isolation across tool switches; prune on undo
-    status: pending
+    status: completed
   - id: keyboard-commands
     content: Escape behavior and new commands (layers panel toggle, isolate/exit, hide/lock, show/unlock all)
-    status: pending
+    status: completed
   - id: panel-ui
     content: "Build 6-layers-panel: panel shell + resize, tree, row (eye/lock/chevron/thumb/name/circle), thumbnail, bottom bar"
-    status: pending
+    status: completed
   - id: panel-selection
     content: "Panel selection atoms: plain/Ctrl/Shift click, drag-toggle across circles, expanded set, locate"
-    status: pending
+    status: completed
   - id: breadcrumbs
     content: Isolation breadcrumbs island with back arrow, root, and clickable chain levels
-    status: pending
+    status: completed
   - id: verify
     content: Typecheck (tsc), run vitest, and manually verify flows in the browser
-    status: pending
+    status: completed
 isProject: false
 ---
 

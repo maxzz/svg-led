@@ -8,7 +8,10 @@ import { Island_Zoom } from "../3-1-islands/2-1-island-zoom";
 import { Island_Undo } from "../3-1-islands/2-2-island-undo";
 import { Island_Help } from "../3-1-islands/2-3-island-help";
 import { Island_Hint } from "../3-3-hint-panel/0-island-hint";
-/** The whole editor: code panel on the left, then the canvas with floating UI on top of it */
+import { LayersPanel } from "../6-layers-panel";
+import { Island_IsolationBreadcrumbs } from "../7-isolation-breadcrumbs";
+
+/** The whole editor: code panel on the left, the canvas with floating UI on top of it, the Layers panel on the right */
 export function Workspace() {
     return (
         <div className="relative h-dvh text-xs text-foreground bg-background overflow-hidden flex">
@@ -18,6 +21,8 @@ export function Workspace() {
                 <CanvasRoot />
                 <FloatingUi />
             </div>
+
+            <LayersPanel />
         </div>
     );
 }
@@ -27,6 +32,7 @@ function FloatingUi() {
         <div className="absolute top-3 inset-x-3 flex flex-col gap-2 pointer-events-none">
             <div className="flex flex-col items-center gap-2 pointer-events-none">
                 <Island_MainToolbar />
+                <Island_IsolationBreadcrumbs />
                 <Island_Hint placement={HintPlacement.top} />
             </div>
 

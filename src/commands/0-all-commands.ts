@@ -3,14 +3,18 @@ import { isShapeNode } from "@/svg-core";
 import { appSettings } from "@/store/1-ui-settings";
 import {
     type FileResult, commitHistory, convertToPath, copyPngToClipboard, copySvgToClipboard, createEmptyDoc, deleteNodes, docState, docToText, duplicateNodes,
-    exportPng, exportSvgDownload, flipNodes, getNodeProxy, groupNodes, historyState, insertSvgMarkup, isPointEditable, moveNodes,
-    nodesToText, openSvgFile, readNodeStyle, reorderNodes, saveSvgFile, saveSvgFileAs, topLevelIds, ungroupNodes, writeNodesStyle,
+    exportPng, exportSvgDownload, flipNodes, getNodeProxy, groupNodes, historyState, isPointEditable, moveNodes,
+    nodesToText, openSvgFile, readNodeStyle, reorderNodes, saveSvgFile, saveSvgFileAs, ungroupNodes, writeNodesStyle,
     canMakeCompoundPath, makeCompoundPath, canReleaseCompoundPath, releaseCompoundPaths,
 } from "@/store/3-document";
 import {
     ToolId, activeToolIdAtom, copiedStyleAtom, redoAtom, selectionAtom, setActiveToolAtom, setSelectionAtom, undoAtom, zoomByAtom,
     zoomResetAtom, zoomToFitAtom, zoomToSelectionAtom,
 } from "@/store/4-editor";
+import {
+    exitIsolationToAtom, getIsolatedId, hasHidden, hasLocked, hideSelectionAtom, insertMarkupAtTop, isPickable, isolateSelectionAtom,
+    isolationRootChildren, lockSelectionAtom, showAllAtom, unlockAllAtom,
+} from "@/store/6-layers";
 import { TOOLS } from "@/tools";
 import { doAsyncExecuteConfirmDialogAtom } from "@/components/4-dialogs/8-1-confirmation/9-types-confirmation";
 import { fitViewBoxDialogAtom } from "@/components/4-dialogs/8-4-fit-viewbox/9-types-fit-viewbox";
@@ -60,9 +64,9 @@ const FILE: Command[] = [
     },
     {
         id: 'file.pasteSvg', label: 'Paste SVG from clipboard', group: 'file', keywords: 'import insert',
-        run: async ({ set }) => {
+        run: async ({ get, set }) => {
             try {
-                const ids = insertSvgMarkup(await navigator.clipboard.readText());
+                const ids = insertMarkupAtTop(get, await navigator.clipboard.readText());
                 ids ? set(setSelectionAtom, ids) : toast.error('The clipboard does not contain SVG markup');
             } catch (e) {
                 toast.error(String(e));
@@ -165,9 +169,11 @@ const EDIT: Command[] = [
     },
     {
         id: 'edit.selectAll', label: 'Select all', group: 'edit', shortcut: 'Ctrl+A',
-        run: ({ set }) => {
+        run: ({ get, set }) => {
             set(setActiveToolAtom, ToolId.select);
-            set(setSelectionAtom, topLevelIds());
+            const isolatedId = getIsolatedId(get);
+            const doc = docState.doc;
+            set(setSelectionAtom, isolationRootChildren(doc, isolatedId).map((n) => n.id).filter((id) => isPickable(doc, id, isolatedId)));
         },
     },
     { id: 'edit.deselect', label: 'Deselect', group: 'edit', enabled: hasSelection, run: ({ set }) => set(setSelectionAtom, []) },
@@ -217,6 +223,19 @@ const OBJECT: Command[] = [
         enabled: (get) => { const ids = get(selectionAtom); return ids.length === 1 && isPointEditable(ids[0]); },
         run: ({ set }) => set(setActiveToolAtom, ToolId.points),
     },
+    {
+        id: 'object.isolate', label: 'Enter isolation mode', group: 'object', keywords: 'isolate group edit inside layers',
+        enabled: (get) => { const ids = get(selectionAtom); return ids.length === 1 && getNodeProxy(ids[0])?.kind === 'g'; },
+        run: ({ set }) => set(isolateSelectionAtom),
+    },
+    {
+        id: 'object.exitIsolation', label: 'Exit isolation mode', group: 'object', keywords: 'isolate leave group layers',
+        enabled: (get) => getIsolatedId(get) !== null, run: ({ set }) => { set(exitIsolationToAtom, null); },
+    },
+    { id: 'object.hide', label: 'Hide selection', group: 'object', shortcut: 'Ctrl+Shift+H', keywords: 'visibility layers', enabled: hasSelection, run: ({ set }) => set(hideSelectionAtom) },
+    { id: 'object.showAll', label: 'Show all', group: 'object', keywords: 'visibility unhide layers', enabled: () => hasHidden(docState.doc), run: ({ set }) => set(showAllAtom) },
+    { id: 'object.lock', label: 'Lock selection', group: 'object', shortcut: 'Ctrl+Shift+K', keywords: 'padlock layers', enabled: hasSelection, run: ({ set }) => set(lockSelectionAtom) },
+    { id: 'object.unlockAll', label: 'Unlock all', group: 'object', keywords: 'padlock layers', enabled: () => hasLocked(docState.doc), run: ({ set }) => set(unlockAllAtom) },
 ];
 
 const VIEWBOX: Command[] = [
@@ -241,6 +260,7 @@ const VIEW: Command[] = [
     { id: 'view.grid', label: 'Toggle grid', group: 'view', shortcut: "Ctrl+'", run: () => { appSettings.prefs.showGrid = !appSettings.prefs.showGrid; } },
     { id: 'view.snap', label: 'Toggle snap to grid', group: 'view', run: () => { appSettings.prefs.snapToGrid = !appSettings.prefs.snapToGrid; } },
     { id: 'view.codePanel', label: 'Toggle SVG source panel', group: 'view', shortcut: 'Ctrl+B', keywords: 'code monaco editor', run: () => { appSettings.codePanel.open = !appSettings.codePanel.open; } },
+    { id: 'view.layersPanel', label: 'Toggle Layers panel', group: 'view', shortcut: 'Ctrl+Shift+L', keywords: 'tree hierarchy groups', run: () => { appSettings.layersPanel.open = !appSettings.layersPanel.open; } },
     { id: 'view.theme', label: 'Toggle dark theme', group: 'view', run: () => { appSettings.theme = appSettings.theme === 'dark' ? 'light' : 'dark'; }, },
 ];
 
