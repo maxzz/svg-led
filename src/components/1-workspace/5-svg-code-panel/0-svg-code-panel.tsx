@@ -32,18 +32,22 @@ export function SvgCodePanel() {
                     <div className="h-full flex flex-col" style={{ width: codePanel.width }}>
                         <PanelHeader />
                         <ErrorBar />
+
                         <div className="grow min-h-0">
                             <Suspense fallback={<div className="p-3 text-muted-foreground">Loading editor...</div>}>
                                 <MonacoHost />
                             </Suspense>
                         </div>
                     </div>
+                    
                     <ResizeHandle />
                 </motion.aside>
             )}
         </AnimatePresence>
     );
 }
+
+//---------------------------------------------------------------------------
 
 function PanelHeader() {
     const { codePanel } = useSnapshot(appSettings);
@@ -74,18 +78,7 @@ function PanelHeader() {
     );
 }
 
-function ErrorBar() {
-    const error = useAtomValue(codeErrorAtom);
-    if (!error) {
-        return null;
-    }
-    
-    return (
-        <div className="shrink-0 whitespace-pre-wrap px-3 py-1.5 max-h-20 text-ui text-destructive bg-destructive/10 border-b overflow-auto">
-            {error}
-        </div>
-    );
-}
+//---------------------------------------------------------------------------
 
 function ResizeHandle() {
     const down = useSetAtom(panelResizeDownAtom);
@@ -100,5 +93,20 @@ function ResizeHandle() {
             onPointerUp={() => up()}
             onPointerCancel={() => up()}
         />
+    );
+}
+
+//---------------------------------------------------------------------------
+
+function ErrorBar() {
+    const error = useAtomValue(codeErrorAtom);
+    if (!error) {
+        return null;
+    }
+    
+    return (
+        <div className="shrink-0 whitespace-pre-wrap px-3 py-1.5 max-h-20 text-ui text-destructive bg-destructive/10 border-b overflow-auto">
+            {error}
+        </div>
     );
 }

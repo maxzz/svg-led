@@ -5,8 +5,8 @@ import { Button } from "@/ui/shadcn/button";
 import { X } from "lucide-react";
 import { appSettings } from "@/store/1-ui-settings";
 
-import { LayersTree } from "./1-layers-tree";
-import { LayersBottomBar } from "./4-layers-bottom-bar";
+import { LayersTree } from "./1-0-layers-tree";
+import { LayersBottomBar } from "./1-3-layers-bottom-bar";
 import { isLayersPanelResizingAtom, layersResizeDownAtom, layersResizeMoveAtom, layersResizeUpAtom } from "./9-atoms-layers-panel";
 
 /** Layers of the document as a tree, slides out from the right edge */
@@ -26,9 +26,11 @@ export function LayersPanel() {
                 >
                     <div className="h-full flex flex-col" style={{ width: layersPanel.width }}>
                         <PanelHeader />
+
                         <div className="grow min-h-0 overflow-y-auto overflow-x-hidden">
                             <LayersTree />
                         </div>
+                        
                         <LayersBottomBar />
                     </div>
                     <ResizeHandle />

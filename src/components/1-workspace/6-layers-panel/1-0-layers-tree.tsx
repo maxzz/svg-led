@@ -5,7 +5,7 @@ import { Group } from "lucide-react";
 import { findNode } from "@/svg-core";
 import { docState } from "@/store/3-document";
 import { isHidden, isLocked, isolatedIdAtom, isolationChainAtom } from "@/store/6-layers";
-import { LayerRow } from "./2-layer-row";
+import { LayerRow } from "./1-1-layer-row";
 
 /** The layers of the document, or only the isolated group and its contents in isolation mode */
 export function LayersTree() {

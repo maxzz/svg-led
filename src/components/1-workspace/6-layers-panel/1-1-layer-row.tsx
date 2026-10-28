@@ -6,7 +6,7 @@ import { ChevronRight, Eye, EyeOff, Lock } from "lucide-react";
 
 import { type GroupNode, type SvgNode } from "@/svg-core";
 import { enterIsolationAtom, isHidden, isLocked, isolatedIdAtom, layerName, toggleHiddenAtom, toggleLockedAtom } from "@/store/6-layers";
-import { LayerThumbnail } from "./3-layer-thumbnail";
+import { LayerThumbnail } from "./1-2-layer-thumbnail";
 import { circlePointerDownAtom, circlePointerMoveAtom, circlePointerUpAtom, isExpandedFamily, isSelectedFamily, rowClickAtom, toggleExpandedAtom } from "./9-atoms-layers-panel";
 
 type LayerRowProps = {
