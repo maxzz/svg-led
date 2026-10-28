@@ -87,6 +87,7 @@ export const rowClickAtom = atom(
             set(rangeAnchorAtom, id);
             return;
         }
+
         if (shift) {
             const rows = visibleRowIds(get(expandedIdsAtom), getIsolatedId(get));
             const anchor = [get(rangeAnchorAtom), ...rows.filter((r) => selection.includes(r))].find((a) => a && rows.includes(a));
@@ -97,6 +98,7 @@ export const rowClickAtom = atom(
                 return;
             }
         }
+        
         set(selectLayersAtom, [id]);
         set(rangeAnchorAtom, id);
     }

@@ -1,9 +1,8 @@
 import { type ComponentType } from "react";
 import { type WritableAtom, useAtomValue, useSetAtom } from "jotai";
 import { Copy, Crosshair, FolderPlus, Group, Scan, Trash2 } from "lucide-react";
-import {
-    canIsolateSelectionAtom, deleteSelectionAtom, duplicateSelectionAtom, groupSelectionAtom, hasLiveSelectionAtom, isolateSelectionAtom, newGroupAtom,
-} from "@/store/6-layers";
+
+import { canIsolateSelectionAtom, deleteSelectionAtom, duplicateSelectionAtom, groupSelectionAtom, hasLiveSelectionAtom, isolateSelectionAtom, newGroupAtom } from "@/store/6-layers";
 import { locateSelectionAtom } from "./9-atoms-layers-panel";
 
 /** Operations on layers, as at the bottom of Illustrator's Layers panel */

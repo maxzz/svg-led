@@ -1,14 +1,13 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
 import { AnimatePresence, motion } from "motion/react";
+import { Button } from "@/ui/shadcn/button";
 import { X } from "lucide-react";
 import { appSettings } from "@/store/1-ui-settings";
-import { Button } from "@/ui/shadcn/button";
+
 import { LayersTree } from "./1-layers-tree";
 import { LayersBottomBar } from "./4-layers-bottom-bar";
 import { isLayersPanelResizingAtom, layersResizeDownAtom, layersResizeMoveAtom, layersResizeUpAtom } from "./9-atoms-layers-panel";
-
-const SLIDE = { type: 'spring', stiffness: 420, damping: 40 } as const;
 
 /** Layers of the document as a tree, slides out from the right edge */
 export function LayersPanel() {
@@ -39,6 +38,10 @@ export function LayersPanel() {
     );
 }
 
+const SLIDE = { type: 'spring', stiffness: 420, damping: 40 } as const;
+
+//---------------------------------------------------------------------------
+
 function PanelHeader() {
     return (
         <div className="shrink-0 px-3 h-11 border-b flex items-center gap-2">
@@ -49,6 +52,8 @@ function PanelHeader() {
         </div>
     );
 }
+
+//---------------------------------------------------------------------------
 
 function ResizeHandle() {
     const down = useSetAtom(layersResizeDownAtom);

@@ -1,6 +1,7 @@
 import { useAtomValue } from "jotai";
 import { useSnapshot } from "valtio";
 import { Group } from "lucide-react";
+
 import { findNode } from "@/svg-core";
 import { docState } from "@/store/3-document";
 import { isHidden, isLocked, isolatedIdAtom, isolationChainAtom } from "@/store/6-layers";
@@ -9,8 +10,14 @@ import { LayerRow } from "./2-layer-row";
 /** The layers of the document, or only the isolated group and its contents in isolation mode */
 export function LayersTree() {
     const isolatedId = useAtomValue(isolatedIdAtom);
-    return isolatedId ? <IsolatedTree /> : <DocumentTree />;
+    return (
+        isolatedId
+            ? <IsolatedTree />
+            : <DocumentTree />
+    );
 }
+
+//---------------------------------------------------------------------------
 
 function DocumentTree() {
     const { doc } = useSnapshot(docState);
@@ -25,6 +32,8 @@ function DocumentTree() {
     }
     return <>{rows}</>;
 }
+
+//---------------------------------------------------------------------------
 
 /** Illustrator shows an "Isolation Mode" row above the isolated group */
 function IsolatedTree() {
