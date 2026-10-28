@@ -1,12 +1,13 @@
 import { Fragment } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
+import { classNames } from "@/utils";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowLeft, ChevronRight, Layers } from "lucide-react";
+import { Island } from "@/ui/local-ui/9-island";
+
 import { docState } from "@/store/3-document";
 import { exitIsolationLevelAtom, exitIsolationToAtom, isolationChainAtom } from "@/store/6-layers";
-import { Island } from "@/ui/local-ui/9-island";
-import { classNames } from "@/utils";
 
 /** Isolation path, as in Illustrator: back one level, the document, then every isolated group; a click goes back to that level */
 export function Island_IsolationBreadcrumbs() {
@@ -46,23 +47,27 @@ function Breadcrumbs() {
                 <span className="truncate">{fileName}</span>
             </button>
 
-            {chain.map((level, i) => {
-                const last = i === chain.length - 1;
-                return (
-                    <Fragment key={level.id}>
-                        <ChevronRight className="shrink-0 size-3 text-muted-foreground" />
-                        <button
-                            className={classNames(crumbClasses, last ? "font-bold text-foreground" : "underline decoration-dotted underline-offset-2")}
-                            title={last ? "Isolated group" : "Isolate this group"}
-                            disabled={last}
-                            onClick={() => goTo(level.id)}
-                            type="button"
-                        >
-                            <span className="truncate">{level.label}</span>
-                        </button>
-                    </Fragment>
-                );
-            })}
+            {chain.map(
+                (level, i) => {
+                    const last = i === chain.length - 1;
+                    return (
+                        <Fragment key={level.id}>
+                            <ChevronRight className="shrink-0 size-3 text-muted-foreground" />
+                            <button
+                                className={classNames(crumbClasses, last ? "font-bold text-foreground" : "underline decoration-dotted underline-offset-2")}
+                                disabled={last}
+                                onClick={() => goTo(level.id)}
+                                title={last ? "Isolated group" : "Isolate this group"}
+                                type="button"
+                            >
+                                <span className="truncate">
+                                    {level.label}
+                                </span>
+                            </button>
+                        </Fragment>
+                    );
+                }
+            )}
         </Island>
     );
 }
