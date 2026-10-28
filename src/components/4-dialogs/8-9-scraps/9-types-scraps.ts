@@ -1,6 +1,7 @@
 import { type Setter, atom } from "jotai";
 import { snapshot } from "valtio";
 import { toast } from "sonner";
+
 import { type SvgDoc, type ViewBox, type Attrs, parseSvg, topmostIds } from "@/svg-core";
 import { STORAGE_KEYS, atomWithDialogOptions } from "@/store/2-persist";
 import { buildSvgExportText, commitHistory, docState, topLevelIds } from "@/store/3-document";
@@ -26,7 +27,9 @@ export type Scrap = {
 const scrapsBaseAtom = atom<Scrap[]>(loadScraps());
 
 /** Saved scraps, newest first */
-export const scrapsAtom = atom((get) => [...get(scrapsBaseAtom)].sort((a, b) => b.updatedAt - a.updatedAt));
+export const scrapsAtom = atom(
+    (get) => [...get(scrapsBaseAtom)].sort((a, b) => b.updatedAt - a.updatedAt)
+);
 
 function loadScraps(): Scrap[] {
     try {
