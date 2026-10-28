@@ -41,4 +41,6 @@ const EDITOR_OPTIONS = {
     renderLineHighlight: 'gutter',
     folding: true,
     glyphMargin: false,
+    // Monaco pushes the text down while the find widget is open; the widget floats over the first line instead
+    find: { addExtraSpaceOnTop: false },
 } as const;

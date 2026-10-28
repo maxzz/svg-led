@@ -1,0 +1,22 @@
+/* Monaco decorations for the lines of the selected elements (class names are set by the code-sync controller) */
+.svgled-code-selected {
+    background-color: color-mix(in oklch, var(--editor-accent) 14%, transparent);
+}
+
+.svgled-code-selected-gutter {
+    margin-left: 3px;
+    width: 3px !important;
+    background-color: var(--editor-accent);
+}
+
+/*
+ * Monaco's hover tooltips (e.g. "Close (Escape)" on the find widget's X) are placed over their own trigger.
+ * Hovering the tooltip hides it, which shows it again, so the tooltip opens and closes forever and eats the click.
+ * Let pointer events pass through the tooltips so the trigger underneath gets the click.
+ */
+.context-view:has(.monaco-hover),
+.monaco-hover,
+.workbench-hover,
+.workbench-hover-container {
+    pointer-events: none;
+}
