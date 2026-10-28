@@ -1,6 +1,7 @@
 import { type Getter } from "jotai";
-import { type Matrix, type Point, type SvgNode, applyMatrix, distanceToOutline, findNode, getPresentation, invert, matrixScale, nodeCtm, nodeOutline, pointInOutline, walkNodes } from "@/svg-core";
 import { appSettings } from "@/store/1-ui-settings";
+
+import { type Matrix, type Point, type SvgNode, applyMatrix, distanceToOutline, findNode, getPresentation, invert, matrixScale, nodeCtm, nodeOutline, pointInOutline, walkNodes } from "@/svg-core";
 import { docState } from "@/store/3-document";
 import { viewportAtom } from "@/store/4-editor";
 import { isHidden, isLocked } from "@/store/6-layers";
@@ -33,6 +34,8 @@ export function docToLocal(id: string, p: Point): Point {
     const m = nodeMatrices(id);
     return m ? applyMatrix(m.inv, p) : p;
 }
+
+//---------------------------------------------------------------------------
 
 /**
  * Geometry hit test for thin strokes that are hard to hit with the pointer:

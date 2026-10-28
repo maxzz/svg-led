@@ -14,10 +14,12 @@ export function selectionUnitId(doc: SvgDoc, leafId: string, isolatedGroupId: st
 /** The innermost group around `leafId` that is in the selection, if any */
 export function selectedGroupOnPath(doc: SvgDoc, leafId: string, selection: readonly string[]): string | undefined {
     const path = groupPathIds(doc, leafId);
+
     for (let i = path.length - 1; i >= 0; i--) {
         if (selection.includes(path[i])) {
             return path[i];
         }
     }
+    
     return undefined;
 }

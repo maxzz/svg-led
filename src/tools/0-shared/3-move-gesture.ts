@@ -15,8 +15,6 @@ export type MoveGesture = {
     snapTargets: Rect[];         // bboxes of everything else, for "Snap to objects"
 };
 
-export const DRAG_THRESHOLD_PX = 3;
-
 export function beginMove(ids: readonly string[], e: ToolPointerEvent, forceCommit = false): MoveGesture {
     const doc = docState.doc as SvgDoc;
     return {
@@ -76,3 +74,5 @@ export function endMove(g: MoveGesture): void {
 export function pastThreshold(a: Point, b: Point): boolean {
     return Math.hypot(b.x - a.x, b.y - a.y) >= DRAG_THRESHOLD_PX;
 }
+
+export const DRAG_THRESHOLD_PX = 3;
