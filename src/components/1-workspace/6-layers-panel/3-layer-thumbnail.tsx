@@ -14,7 +14,7 @@ export function LayerThumbnail({ node, snap }: { node: SvgNode; snap: SvgNode; }
     return (
         <div className="shrink-0 size-6 bg-white ring-1 ring-foreground/15 rounded-xs overflow-hidden flex items-center justify-center">
             {box && (
-                <svg className="size-full [&_[display=none]]:inline" viewBox={thumbViewBox(box)} aria-hidden>
+                <svg className="size-full **:[[display=none]]:inline" viewBox={thumbViewBox(box)} aria-hidden>
                     <NodeView node={node} detached />
                 </svg>
             )}

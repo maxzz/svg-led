@@ -15,7 +15,7 @@ export function DocLayer() {
     return (
         <g
             // Content outside the isolated group is dimmed and cannot be clicked; locked elements let clicks through to what is below
-            className="[&_[data-isolation-dim]]:opacity-30 [&_[data-isolation-dim]]:pointer-events-none [&_[data-locked=true]]:pointer-events-none"
+            className="**:data-isolation-dim:opacity-30 **:data-isolation-dim:pointer-events-none **:data-[locked=true]:pointer-events-none"
             transform={`matrix(${vp.zoom} 0 0 ${vp.zoom} ${vp.x} ${vp.y})`}
         >
             {doc.children.map((_, i) => {
