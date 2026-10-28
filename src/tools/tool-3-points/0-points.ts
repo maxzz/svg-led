@@ -2,6 +2,7 @@ import { MousePointer } from "lucide-react";
 import { snapshot } from "valtio";
 import { type Getter, type Setter } from "jotai";
 import { toast } from "sonner";
+
 import {
     type Matrix, type Point, type Rect, type ShapeNode, type SubPath, type SvgDoc, type SvgNode, applyMatrix, applyShapeHandle, applyToVector,
     constrain45, deleteAnchors, findNode, getAnchor, getShapeHandles, insertAnchor, isShapeNode, matrixScale, moveAnchor, nearestSegment,
@@ -9,10 +10,8 @@ import {
     toggleAnchorKind, walkNodes,
 } from "@/svg-core";
 import { commitHistory, docPrecision, docState, getNodeProxy, replaceNode } from "@/store/3-document";
-import {
-    ToolId, anchorsOfNode, lassoAtom, marqueeAtom, nodeAnchorKey, screenToDoc, selectedAnchorsAtom, selectionAtom, setActiveToolAtom,
-    splitNodeAnchorKey, viewportAtom,
-} from "@/store/4-editor";
+import { ToolId, anchorsOfNode, lassoAtom, marqueeAtom, nodeAnchorKey, screenToDoc, selectedAnchorsAtom, selectionAtom, setActiveToolAtom, splitNodeAnchorKey, viewportAtom } from "@/store/4-editor";
+
 import { getIsolatedId, isPickable } from "@/store/6-layers";
 import { type ToolDef, type ToolPointerEvent } from "../9-types-tool-def";
 import { MODIFIERS, isMod } from "../tool-2-select/8-definition-of-modifiers";
@@ -91,7 +90,7 @@ export const pointsTool: ToolDef = {
     icon: MousePointer,
     hint: ({ held, dragging }) => dragging
         ? 'Release to finish'
-                : modifierHint(held, 'Drag points and handles · [Shift] add · [Alt] break handle · [Ctrl] add/delete point', {
+        : modifierHint(held, 'Drag points and handles · [Shift] add · [Alt] break handle · [Ctrl] add/delete point', {
             shift: '[Shift] Click to add or remove · Drag a handle to snap to 45°',
             alt: '[Alt] Drag a handle to move it alone · Click a point to toggle corner or smooth · on empty canvas, [Alt] drag to lasso',
             ctrl: '[Ctrl] Click a segment to add a point · Click a point to delete it',
