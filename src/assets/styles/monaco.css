@@ -10,13 +10,13 @@
 }
 
 /*
- * Monaco's hover tooltips (e.g. "Close (Escape)" on the find widget's X) are not needed in this editor.
- * Monaco has no option to switch off one button's tooltip, so the tooltips are hidden entirely.
- * This also stops their open/close loop, since a hidden tooltip can't cover the button and catch the click.
+ * Monaco's hover tooltips are placed over their own trigger. Hovering one hides it, which shows it again,
+ * so it opens and closes forever and eats the click. Let pointer events pass through the tooltips.
+ * The find widget's X tooltip is blocked separately in 1-monaco-host.tsx.
  */
 .context-view:has(.monaco-hover),
 .monaco-hover,
 .workbench-hover,
 .workbench-hover-container {
-    display: none !important;
+    pointer-events: none;
 }
