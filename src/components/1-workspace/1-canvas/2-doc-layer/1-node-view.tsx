@@ -1,7 +1,8 @@
 import { createElement, memo } from "react";
 import { useSnapshot } from "valtio";
+
 import { type GroupNode, type SvgNode } from "@/svg-core";
-import { attrsToProps } from "./1-attrs-to-props";
+import { attrsToProps } from "./2-attrs-to-props";
 
 type NodeViewProps = {
     node: SvgNode;
@@ -16,6 +17,7 @@ type NodeViewProps = {
 
 /** Renders one document node; subscribes to that node only, so editing one element re-renders just that element */
 export const NodeView = memo(
+
     function NodeView({ node, isolation, detached }: NodeViewProps) {
         const snap = useSnapshot(node) as SvgNode;
         const chain = isolation?.split(' ');
