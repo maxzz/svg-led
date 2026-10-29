@@ -104,7 +104,7 @@ Open the Layers panel with **Ctrl+Shift+L**, the Layers button in the bottom-rig
 - A thumbnail and the name (the element's `id`, otherwise a tag such as `<Path>`). Double-click the name, or press **F2** with one element selected, to rename it in place. Enter applies, Escape cancels, and an empty name removes the `id`. Spaces become underscores, and a name that is already used or is not a valid id is refused. References to the old id (`url(#...)`, `href`) are not updated.
 - A selection circle at the end of the row. Clicking it selects only that row. Ctrl+click toggles one row, Shift+click selects a range, and pressing on a circle and dragging across others toggles each one once.
 
-Drag a row to reorder layers. If the row is selected, the whole selection moves, in its stacking order. A line shows a drop above or below a row; on the middle of a group row, a box shows a drop into the group, on top of its children. Elements keep their place on the canvas when they move between groups with different transforms, and a group cannot be dropped into itself.
+Drag a row to reorder layers. If the row is selected, the whole selection moves, in its stacking order. A line shows a drop above or below a row; on the middle of a group row, a box shows a drop into the group, on top of its children. In the gap under an expanded group, the pointer's horizontal position picks the level: over the indented children the drop goes inside the group, and moving left toward the group's own indent places it after the group, at the group's level. Elements keep their place on the canvas when they move between groups with different transforms, and a group cannot be dropped into itself.
 
 The bottom bar has Locate, Isolate, New group, Group, Duplicate and Delete.
 
