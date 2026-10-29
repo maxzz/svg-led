@@ -129,7 +129,7 @@ flowchart LR
   - `edit.selectAll` selects only the pickable children of the isolation root.
   - Delete and Hide also clear the selection.
 
-## Out of scope (can follow later)
-- Reordering layers by drag-and-drop in the tree.
-- Renaming layers in place.
-- Dragging across the eye and lock icons to toggle several rows at once.
+## Follow-up (done, formerly out of scope)
+- Reordering layers by drag-and-drop in the tree: `src/store/7-layers-edit/1-move-layers.ts` (`moveLayers`, `canDropLayers`; geometry is converted to the new parent's coordinates) and `6-layers-panel/2-reorder/` (gesture atoms, Motion drop indicator and drag ghost).
+- Renaming layers in place: `src/store/7-layers-edit/2-rename-layer.ts` and `6-layers-panel/3-rename/` (double-click the name, or the `object.rename` command on F2).
+- Dragging across the eye and lock icons to toggle several rows at once: `src/store/7-layers-edit/3-layer-flags.ts` and `6-layers-panel/4-toggle-sweep/` (one undo step per sweep).
