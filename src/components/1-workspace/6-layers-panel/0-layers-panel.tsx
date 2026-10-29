@@ -7,6 +7,7 @@ import { appSettings } from "@/store/1-ui-settings";
 
 import { LayersTree } from "./1-0-layers-tree";
 import { LayersBottomBar } from "./1-3-layers-bottom-bar";
+import { LayersDragGhost, LayersDropIndicator, rowDragCancelAtom, rowDragMoveAtom, rowDragUpAtom } from "./2-reorder";
 import { isLayersPanelResizingAtom, layersResizeDownAtom, layersResizeMoveAtom, layersResizeUpAtom } from "./9-atoms-layers-panel";
 
 /** Layers of the document as a tree, slides out from the right edge */
@@ -27,9 +28,7 @@ export function LayersPanel() {
                     <div className="h-full flex flex-col" style={{ width: layersPanel.width }}>
                         <PanelHeader />
 
-                        <div className="grow min-h-0 overflow-y-auto overflow-x-hidden">
-                            <LayersTree />
-                        </div>
+                        <TreeScroller />
                         
                         <LayersBottomBar />
                     </div>
@@ -51,6 +50,29 @@ function PanelHeader() {
             <Button className="ml-auto" variant="ghost" size="icon-xs" onClick={() => { appSettings.layersPanel.open = false; }} title="Close — Ctrl+Shift+L">
                 <X />
             </Button>
+        </div>
+    );
+}
+
+//---------------------------------------------------------------------------
+
+/** Scrollable tree; rows start a reorder drag on pointer down, and this container follows it until the drop */
+function TreeScroller() {
+    const move = useSetAtom(rowDragMoveAtom);
+    const up = useSetAtom(rowDragUpAtom);
+    const cancel = useSetAtom(rowDragCancelAtom);
+
+    return (
+        <div
+            className="relative grow min-h-0 overflow-y-auto overflow-x-hidden"
+            data-layers-scroll
+            onPointerMove={(e) => move({ pointerId: e.pointerId, buttons: e.buttons, clientX: e.clientX, clientY: e.clientY })}
+            onPointerUp={() => up()}
+            onPointerCancel={() => cancel()}
+        >
+            <LayersTree />
+            <LayersDropIndicator />
+            <LayersDragGhost />
         </div>
     );
 }
