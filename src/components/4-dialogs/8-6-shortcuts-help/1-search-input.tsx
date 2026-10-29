@@ -4,7 +4,7 @@ import { KeyboardIcon, XIcon } from "lucide-react";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/ui/shadcn/input-group";
 import { cn } from "@/utils/classnames";
 import { recordKeys } from "./8-shortcuts-data";
-import { clearShortcutsSearchAtom, isRecordingShortcutsAtom, shortcutsQueryAtom, shortcutsRecordedAtom, shortcutsSearchTextAtom, toggleRecordingShortcutsAtom } from "./9-types-shortcuts-search";
+import { clearShortcutsSearchAtom, isRecordingShortcutsAtom, recordShortcutKeysAtom, shortcutsQueryAtom, shortcutsSearchTextAtom, toggleRecordingShortcutsAtom } from "./9-types-shortcuts-search";
 
 export function ShortcutsSearchInput() {
     return (
@@ -24,7 +24,7 @@ function SearchField() {
     const isRecording = useAtomValue(isRecordingShortcutsAtom);
     const searchText = useAtomValue(shortcutsSearchTextAtom);
     const setQuery = useSetAtom(shortcutsQueryAtom);
-    const setRecorded = useSetAtom(shortcutsRecordedAtom);
+    const recordShortcutKeys = useSetAtom(recordShortcutKeysAtom);
     const toggleRecording = useSetAtom(toggleRecordingShortcutsAtom);
 
     function onKeyDown(e: ReactKeyboardEvent<HTMLInputElement>) {
@@ -37,7 +37,9 @@ function SearchField() {
             return;
         }
         e.preventDefault();
-        setRecorded(recordKeys(e));
+        if (!e.repeat) { // a held Esc must not count as the second press
+            recordShortcutKeys(recordKeys(e));
+        }
     }
 
     return (
@@ -47,7 +49,7 @@ function SearchField() {
             onKeyDown={onKeyDown}
             readOnly={isRecording}
             data-recording={isRecording || undefined}
-            placeholder={isRecording ? "Press a key combination, e.g. Shift+1" : "Search by command name, e.g. 'zoom', or type keys, e.g. 'Ctrl+Z'"}
+            placeholder={isRecording ? "Press a key combination, e.g. Shift+1 (Esc twice returns to name search)" : "Search by command name, e.g. 'zoom', or type keys, e.g. 'Ctrl+Z'"}
             aria-label={isRecording ? "Press a key combination to search" : "Search commands by name"}
             autoFocus
         />

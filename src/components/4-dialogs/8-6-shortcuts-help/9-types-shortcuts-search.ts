@@ -27,6 +27,18 @@ export const toggleRecordingShortcutsAtom = atom(
     }
 );
 
+/** Records a key press in record mode; a second Esc in a row leaves record mode and returns to the name search */
+export const recordShortcutKeysAtom = atom(
+    null,
+    (get, set, recorded: RecordedKeys) => {
+        if (recorded.text === 'Esc' && get(shortcutsRecordedAtom)?.text === 'Esc') {
+            set(toggleRecordingShortcutsAtom);
+            return;
+        }
+        set(shortcutsRecordedAtom, recorded);
+    }
+);
+
 /** Called when the dialog closes, so it opens with an empty search and remeasures its height */
 export const resetShortcutsHelpAtom = atom(
     null,
