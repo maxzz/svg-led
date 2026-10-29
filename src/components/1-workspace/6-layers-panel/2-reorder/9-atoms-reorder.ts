@@ -90,7 +90,7 @@ export const rowDragMoveAtom = atom(
         const hit = dropAt(e.clientX, e.clientY, container, getIsolatedId(get));
         const valid = hit && canDropLayers(docState.doc, gesture.ids, hit.drop);
         gesture.drop = valid ? hit.drop : null;
-        set(dropIndicatorAtom, valid && container ? indicatorFor(hit.row, hit.drop.place, container) : null);
+        set(dropIndicatorAtom, valid && container ? indicatorFor(hit.anchor, hit.drop.place, hit.depth, container) : null);
     }
 );
 
@@ -126,20 +126,33 @@ function dragLabel(ids: readonly string[]): string {
     return node ? layerName(node) : `${ids.length} layers`;
 }
 
+type DropHit = {
+    anchor: HTMLElement;         // row whose edge the indicator line is drawn on
+    drop: LayerDrop;
+    depth: number;               // indent of the insertion line
+};
+
 /**
  * Row under the pointer and the drop it means. Groups have three zones (above, inside, below), other rows two.
  * Below an open group means on top of its children, which are listed right under it. The isolated group only takes drops inside.
+ * The empty space under the last row counts as below that row, so the end of the tree stays reachable.
  */
-function dropAt(x: number, y: number, container: HTMLElement | null, isolatedId: string | null): { row: HTMLElement; drop: LayerDrop; } | undefined {
-    const row = document.elementFromPoint(x, y)?.closest<HTMLElement>('[data-layer-id]');
+function dropAt(x: number, y: number, container: HTMLElement | null, isolatedId: string | null): DropHit | undefined {
+    if (!container) {
+        return;
+    }
+    const rows = [...container.querySelectorAll<HTMLElement>('[data-layer-id]')];
+    const hit = document.elementFromPoint(x, y)?.closest<HTMLElement>('[data-layer-id]');
+    const row = hit && container.contains(hit) ? hit : rowPastEnd(rows, container, x, y);
     const targetId = row?.dataset.layerId;
-    if (!row || !targetId || !container?.contains(row)) {
+    if (!row || !targetId) {
         return;
     }
 
     const rect = row.getBoundingClientRect();
     const f = (y - rect.top) / Math.max(rect.height, 1);
     const isGroup = row.dataset.layerGroup === 'true';
+    const rowDepth = Number(row.dataset.layerDepth ?? 0);
 
     let place: DropPlace = isGroup
         ? f < 0.25 ? 'above' : f > 0.75 ? 'below' : 'inside'
@@ -147,14 +160,53 @@ function dropAt(x: number, y: number, container: HTMLElement | null, isolatedId:
     if (targetId === isolatedId || (place === 'below' && row.dataset.layerOpen === 'true')) {
         place = 'inside';
     }
-    return { row, drop: { targetId, place } };
+
+    // The gap under a row can belong to several levels: the pointer's x picks one, so a drop under the last
+    // child of an expanded group lands inside that group when the pointer is over the children, but after the
+    // group itself when the pointer moves left, toward that group's own indent.
+    if (place === 'below') {
+        return dropBelow(rows, row, x, rowDepth, isolatedId);
+    }
+    return { anchor: row, drop: { targetId, place }, depth: rowDepth };
 }
 
-/** Line above or below the row at the row's indent, or a box around a group row for drops inside it */
-function indicatorFor(row: HTMLElement, place: DropPlace, container: HTMLElement): DropIndicator {
+/** The last row, when the pointer is in the panel's empty space under the tree */
+function rowPastEnd(rows: HTMLElement[], container: HTMLElement, x: number, y: number): HTMLElement | undefined {
+    const last = rows.at(-1);
+    const bounds = container.getBoundingClientRect();
+    if (last && y > last.getBoundingClientRect().bottom && y <= bounds.bottom && x >= bounds.left && x <= bounds.right) {
+        return last;
+    }
+    return undefined;
+}
+
+function dropBelow(rows: HTMLElement[], row: HTMLElement, x: number, rowDepth: number, isolatedId: string | null): DropHit {
+    const index = rows.indexOf(row);
+    const next = rows[index + 1];
+    const nextDepth = next ? Number(next.dataset.layerDepth ?? 0) : 0;
+    const minDepth = Math.max(nextDepth, isolationFloor(rows, isolatedId));
+
+    const rel = x - row.getBoundingClientRect().left - ROW_NAME_LEFT_PX;
+    const depth = Math.min(rowDepth, Math.max(minDepth, Math.floor(rel / ROW_INDENT_PX)));
+
+    const ancestor = depth < rowDepth ? rows.slice(0, index).findLast((r) => Number(r.dataset.layerDepth ?? 0) === depth) : undefined;
+    return {
+        anchor: row,
+        drop: { targetId: ancestor?.dataset.layerId ?? row.dataset.layerId!, place: 'below' },
+        depth: ancestor ? depth : rowDepth,
+    };
+}
+
+/** Levels shallower than this sit outside the isolated group, and drops may not leave it */
+function isolationFloor(rows: HTMLElement[], isolatedId: string | null): number {
+    const root = isolatedId ? rows.find((r) => r.dataset.layerId === isolatedId) : undefined;
+    return root ? Number(root.dataset.layerDepth ?? 0) + 1 : 0;
+}
+
+/** Line above or below the row at the insertion's indent, or a box around a group row for drops inside it */
+function indicatorFor(row: HTMLElement, place: DropPlace, depth: number, container: HTMLElement): DropIndicator {
     const rect = row.getBoundingClientRect();
     const top = rect.top - container.getBoundingClientRect().top + container.scrollTop;
-    const depth = Number(row.dataset.layerDepth ?? 0);
     if (place === 'inside') {
         return { top, left: ROW_NAME_LEFT_PX, height: rect.height, box: true };
     }
