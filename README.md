@@ -100,9 +100,11 @@ The mouse wheel zooms around the cursor; Shift+wheel pans horizontally; a trackp
 
 Open the Layers panel with **Ctrl+Shift+L**, the Layers button in the bottom-right island, or **Toggle Layers panel** in the command palette. It slides out from the right edge and can be resized. The tree lists the topmost element first, and groups can be collapsed. Each row has:
 
-- An eye button to hide the element and a padlock to lock it. Hidden and locked elements cannot be selected on the canvas or in the panel. Both states are stored in the SVG as `display="none"` and `data-locked="true"`, so they are saved and can be undone.
-- A thumbnail and the name (the element's `id`, otherwise a tag such as `<Path>`).
+- An eye button to hide the element and a padlock to lock it. Hidden and locked elements cannot be selected on the canvas or in the panel. Both states are stored in the SVG as `display="none"` and `data-locked="true"`, so they are saved and can be undone. Press on an eye or padlock and drag up or down to give every row you cross the same state; the whole sweep is one undo step.
+- A thumbnail and the name (the element's `id`, otherwise a tag such as `<Path>`). Double-click the name, or press **F2** with one element selected, to rename it in place. Enter applies, Escape cancels, and an empty name removes the `id`. Spaces become underscores, and a name that is already used or is not a valid id is refused. References to the old id (`url(#...)`, `href`) are not updated.
 - A selection circle at the end of the row. Clicking it selects only that row. Ctrl+click toggles one row, Shift+click selects a range, and pressing on a circle and dragging across others toggles each one once.
+
+Drag a row to reorder layers. If the row is selected, the whole selection moves, in its stacking order. A line shows a drop above or below a row; on the middle of a group row, a box shows a drop into the group, on top of its children. Elements keep their place on the canvas when they move between groups with different transforms, and a group cannot be dropped into itself.
 
 The bottom bar has Locate, Isolate, New group, Group, Duplicate and Delete.
 
@@ -134,7 +136,7 @@ Ctrl means Cmd on macOS.
 | Tools | Select `V` or `1`, Points `A` or `2`, Hand `H`, Rectangle `R` or `3`, Ellipse `O` or `4`, Line `L` or `5`, Pen `P` or `6` |
 | File | Open `Ctrl+O`, Save `Ctrl+S`, Save as `Ctrl+Shift+S`, Export PNG (1x) `Ctrl+Shift+E`, Scraps `Ctrl+E` |
 | Edit | Undo `Ctrl+Z`, Redo `Ctrl+Shift+Z` or `Ctrl+Y`, Copy `Ctrl+C`, Cut `Ctrl+X`, Paste `Ctrl+V`, Delete `Delete` or `Backspace`, Duplicate `Ctrl+D`, Select all `Ctrl+A` |
-| Object | Group `Ctrl+G`, Ungroup `Ctrl+Shift+G`, Convert to path `Ctrl+Shift+P`, Bring forward / to front `Ctrl+]` / `Ctrl+Shift+]`, Send backward / to back `Ctrl+[` / `Ctrl+Shift+[`, Hide selection `Ctrl+Shift+H`, Lock selection `Ctrl+Shift+K` |
+| Object | Group `Ctrl+G`, Ungroup `Ctrl+Shift+G`, Convert to path `Ctrl+Shift+P`, Bring forward / to front `Ctrl+]` / `Ctrl+Shift+]`, Send backward / to back `Ctrl+[` / `Ctrl+Shift+[`, Hide selection `Ctrl+Shift+H`, Lock selection `Ctrl+Shift+K`, Rename layer `F2` |
 | ViewBox | Fit selection to viewBox `Ctrl+Alt+F` |
 | View | Zoom in / out `Ctrl+=` / `Ctrl+-`, 100% `Ctrl+0`, Fit all `Shift+1`, Fit selection `Shift+2`, Grid `Ctrl+'`, SVG source `Ctrl+B`, Layers panel `Ctrl+Shift+L` |
 | Help | Command palette `Ctrl+/`, Find on canvas `Ctrl+F`, Shortcuts help `?`, Options `Ctrl+,` |
@@ -210,6 +212,7 @@ src/
     4-editor/                 tool, selection, viewport, interaction, history, code and view atoms
     5-controllers/            autosave, keyboard, clipboard, code sync
     6-layers/                 layer attributes (hidden, locked), isolation mode, pickable elements, insertion, layer actions
+    7-layers-edit/            moving layers in the tree, renaming, hide and lock without a history commit (sweeps)
   tools/
     0-shared/                 target resolution, move gesture, style helpers, hint text
     tool-1-hand/ tool-2-select/ tool-3-points/ tool-4-shapes/ tool-5-pen/
@@ -228,7 +231,7 @@ src/
       3-2-island-main-toolbar/ toolbar, tool buttons, main menu
       3-3-hint-panel/         tool hint line
       5-svg-code-panel/       slide-out source panel, Monaco host, local Monaco worker setup
-      6-layers-panel/         Layers panel: tree, rows, thumbnails, bottom bar
+      6-layers-panel/         Layers panel: tree, rows, thumbnails, bottom bar; reorder, rename and eye/lock sweep in subfolders
       7-isolation-breadcrumbs/ breadcrumb bar for isolation mode
     4-dialogs/                confirmation, options, fit viewBox, viewBox settings, shortcuts help,
                               command palette, find on canvas, scraps
@@ -709,13 +712,12 @@ Current limitations:
 - Once a path's points are edited, its `d` is rewritten as absolute `M`, `L`, `C` and `Z` commands; the original command style is not preserved.
 - Open and Save use the File System Access API in Chromium-based browsers; other browsers fall back to a file input and a download.
 - Isolation mode works on groups only. A top-level element cannot be isolated.
-- The Layers panel cannot reorder layers by drag-and-drop or rename them, and the eye and lock buttons apply to one row at a time.
+- Renaming a layer changes its `id` but not the references to it.
 
 Ideas the architecture already allows:
 
 - Snapping to anchors and smart guides
 - Rulers
-- Reordering and renaming layers from the Layers panel
 - Boolean path operations
 - A text tool and a gradient editor
 - Multiple documents in tabs
