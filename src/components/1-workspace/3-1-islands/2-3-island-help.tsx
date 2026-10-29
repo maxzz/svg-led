@@ -1,6 +1,6 @@
 import { useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
-import { CircleQuestionMark, Code } from "lucide-react";
+import { CircleQuestionMark, Code, Layers } from "lucide-react";
 import { appSettings } from "@/store/1-ui-settings";
 import { runCommandAtom } from "@/commands";
 import { Island, islandButtonClasses } from "@/ui/local-ui/9-island";
@@ -9,7 +9,7 @@ import { ViewBoxSettingsPopover } from "@/components/4-dialogs/8-5-viewbox-setti
 import { ViewBoxDimsLabel } from "./2-4-viewbox-dims-label";
 
 export function Island_Help() {
-    const { codePanel, prefs } = useSnapshot(appSettings);
+    const { codePanel, layersPanel, prefs } = useSnapshot(appSettings);
     const run = useSetAtom(runCommandAtom);
     
     return (
@@ -24,6 +24,10 @@ export function Island_Help() {
 
             <button className={islandButtonClasses} data-active={codePanel.open} title="SVG source — Ctrl+B" onClick={() => run('view.codePanel')} type="button">
                 <Code className="size-4" />
+            </button>
+
+            <button className={islandButtonClasses} data-active={layersPanel.open} title="Layers — Ctrl+Shift+L" onClick={() => run('view.layersPanel')} type="button">
+                <Layers className="size-4" />
             </button>
 
             <button className={islandButtonClasses} title="Help — ?" onClick={() => run('help.shortcuts')} type="button">
