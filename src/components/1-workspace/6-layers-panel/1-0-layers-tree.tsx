@@ -25,12 +25,14 @@ function DocumentTree() {
         return <div className="p-3 text-muted-foreground">No layers yet. Draw something or paste SVG markup.</div>;
     }
 
-    const rows = [];
-    for (let i = doc.children.length - 1; i >= 0; i--) {
-        const node = docState.doc.children[i];
-        node && rows.push(<LayerRow key={node.id} node={node} depth={0} hiddenByParent={false} lockedByParent={false} />);
-    }
-    return <>{rows}</>;
+    // reading every child snapshot (not only the count) re-renders the tree when undo replaces nodes with equal-looking copies
+    const rows = doc.children.map(
+        (_, i) => {
+            const node = docState.doc.children[i];
+            return node && <LayerRow key={node.id} node={node} depth={0} hiddenByParent={false} lockedByParent={false} />;
+        }
+    );
+    return <>{rows.reverse()}</>;
 }
 
 //---------------------------------------------------------------------------

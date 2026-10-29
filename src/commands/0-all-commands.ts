@@ -25,6 +25,7 @@ import { isOpenFindOnCanvasAtom } from "@/components/4-dialogs/8-8-find-on-canva
 import { isOpenOptionsDialogAtom } from "@/components/4-dialogs/8-3-options/9-types-options";
 import { isOpenScrapsDialogAtom } from "@/components/4-dialogs/8-9-scraps/9-types-scraps";
 import { PROPERTIES_POPUP_RIGHT_EDGE_PX } from "@/components/1-workspace/2-props-panel/9-atoms-properties-popup";
+import { renameSelectionAtom } from "@/components/1-workspace/6-layers-panel/3-rename/9-atoms-rename";
 import { type Command } from "./9-command-types";
 
 const hasSelection = (get: Parameters<NonNullable<Command['enabled']>>[0]) => get(selectionAtom).length > 0;
@@ -236,6 +237,7 @@ const OBJECT: Command[] = [
     { id: 'object.showAll', label: 'Show all', group: 'object', keywords: 'visibility unhide layers', enabled: () => hasHidden(docState.doc), run: ({ set }) => set(showAllAtom) },
     { id: 'object.lock', label: 'Lock selection', group: 'object', shortcut: 'Ctrl+Shift+K', keywords: 'padlock layers', enabled: hasSelection, run: ({ set }) => set(lockSelectionAtom) },
     { id: 'object.unlockAll', label: 'Unlock all', group: 'object', keywords: 'padlock layers', enabled: () => hasLocked(docState.doc), run: ({ set }) => set(unlockAllAtom) },
+    { id: 'object.rename', label: 'Rename layer', group: 'object', shortcut: 'F2', keywords: 'id name layers', enabled: (get) => get(selectionAtom).length === 1, run: ({ set }) => set(renameSelectionAtom) },
 ];
 
 const VIEWBOX: Command[] = [

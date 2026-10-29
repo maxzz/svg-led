@@ -7,6 +7,15 @@ import { selectionAtom, setSelectionAtom } from "@/store/4-editor";
 import { getIsolatedId, isHiddenOrLocked } from "@/store/6-layers";
 
 //---------------------------------------------------------------------------
+// Row layout
+
+/** Indent per tree level */
+export const ROW_INDENT_PX = 12;
+
+/** Left edge of the name column at depth 0: the eye and padlock cells plus the padding before the expander */
+export const ROW_NAME_LEFT_PX = 2 * 28 + 4;
+
+//---------------------------------------------------------------------------
 // Expanded groups
 
 export const expandedIdsAtom = atom<ReadonlySet<string>>(new Set<string>());
