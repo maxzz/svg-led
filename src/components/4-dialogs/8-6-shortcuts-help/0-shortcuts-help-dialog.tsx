@@ -1,11 +1,13 @@
-﻿import { Fragment, type ReactNode, useState } from "react";
+﻿import { Fragment, type KeyboardEvent as ReactKeyboardEvent, type ReactNode, useRef, useState } from "react";
 import { useAtom } from "jotai";
-import { COMMANDS, COMMAND_GROUP_LABELS, type CommandGroup, displayShortcut } from "@/commands";
+import { KeyboardIcon, XIcon } from "lucide-react";
+import { COMMANDS, COMMAND_GROUP_LABELS, type CommandGroup, displayShortcut, matchShortcut } from "@/commands";
 import { MODIFIERS, MODIFIER_DESCRIPTIONS, MODIFIER_LABELS, type Modifier, TOOLS, toolShortcuts } from "@/tools";
 import { HintText } from "@/components/1-workspace/3-3-hint-panel/1-hint-text";
 import { KeyText } from "@/ui/local-ui/9-key-text";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/ui/shadcn/dialog";
-import { Input } from "@/ui/shadcn/input";
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/ui/shadcn/input-group";
+import { cn } from "@/utils/classnames";
 import { isOpenShortcutsHelpDialogAtom } from "./9-types-shortcuts-help";
 
 export function ShortcutsHelpDialog() {
@@ -13,7 +15,7 @@ export function ShortcutsHelpDialog() {
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogContent className="p-0! w-[min(64rem,calc(100vw-2rem))]! max-w-5xl gap-0!" withScroll>
+            <DialogContent className="p-0! w-[min(64rem,calc(100vw-2rem))]! max-w-5xl gap-0!" withScroll onEscapeKeyDown={keepOpenWhileRecording}>
                 <DialogHeader className="px-4 py-3 text-left border-b gap-0">
                     <DialogTitle className="text-sm">
                         Help and keyboard shortcuts
@@ -32,31 +34,85 @@ export function ShortcutsHelpDialog() {
 /** Mounted only while the dialog is open, so the search query starts empty each time */
 function ShortcutsHelpBody() {
     const [query, setQuery] = useState('');
+    const [recorded, setRecorded] = useState<RecordedKeys | null>(null);
+    const [isRecording, setIsRecording] = useState(false);
+    const inputRef = useRef<HTMLInputElement>(null);
 
-    const toolRows = filterRows(TOOL_ROWS, query);
-    const viewSections = filterSections(VIEW_SECTIONS, query);
-    const editorSections = filterSections(EDITOR_SECTIONS, query);
-    const canvasRows = filterRows(CANVAS_ROWS, query);
-    const modifierSections = filterSections(MODIFIER_SECTIONS, query);
+    function toggleRecording() {
+        setIsRecording((v) => !v);
+        clear();
+    }
+
+    function clear() {
+        setQuery('');
+        setRecorded(null);
+        inputRef.current?.focus();
+    }
+
+    function onKeyDown(e: ReactKeyboardEvent<HTMLInputElement>) {
+        if (e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey && e.code === 'KeyK') {
+            e.preventDefault();
+            toggleRecording();
+            return;
+        }
+        if (!isRecording || e.key === 'Tab') {
+            return;
+        }
+        e.preventDefault();
+        setRecorded(recordKeys(e));
+    }
+
+    const matcher = isRecording ? keysMatcher(recorded) : nameMatcher(query);
+
+    const toolRows = filterRows(TOOL_ROWS, matcher);
+    const viewSections = filterSections(VIEW_SECTIONS, matcher);
+    const editorSections = filterSections(EDITOR_SECTIONS, matcher);
+    const canvasRows = filterRows(CANVAS_ROWS, matcher);
+    const modifierSections = filterSections(MODIFIER_SECTIONS, matcher);
 
     const isLeftEmpty = !toolRows.length && !viewSections.length;
     const isRightEmpty = !editorSections.length && !canvasRows.length && !modifierSections.length;
 
+    const inputText = isRecording ? (recorded ? displayShortcut(recorded.text) : '') : query;
+
     return (<>
         <div className="px-4 py-2 border-b">
-            <Input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search by command name or key combination, e.g. 'zoom' or 'Ctrl+Z'"
-                aria-label="Search shortcuts"
-                autoFocus
-            />
+            <InputGroup className="rounded-sm">
+                <InputGroupInput
+                    ref={inputRef}
+                    value={inputText}
+                    onChange={(e) => !isRecording && setQuery(e.target.value)}
+                    onKeyDown={onKeyDown}
+                    readOnly={isRecording}
+                    data-recording={isRecording || undefined}
+                    placeholder={isRecording ? "Press a key combination, e.g. Shift+1" : "Search by command name, e.g. 'zoom', or type keys, e.g. 'Ctrl+Z'"}
+                    aria-label={isRecording ? "Press a key combination to search" : "Search commands by name"}
+                    autoFocus
+                />
+                <InputGroupAddon align="inline-end">
+                    {!!inputText && (
+                        <InputGroupButton size="icon-xs" title="Clear" aria-label="Clear" onClick={clear}>
+                            <XIcon />
+                        </InputGroupButton>
+                    )}
+                    <InputGroupButton
+                        size="icon-xs"
+                        className={cn(isRecording && "text-primary bg-primary/10")}
+                        title="Record keys (Alt+K): search by pressing a key combination"
+                        aria-label="Record keys"
+                        aria-pressed={isRecording}
+                        onClick={toggleRecording}
+                    >
+                        <KeyboardIcon />
+                    </InputGroupButton>
+                </InputGroupAddon>
+            </InputGroup>
         </div>
 
         {isLeftEmpty && isRightEmpty
             ? (
                 <div className="px-4 py-8 text-xs text-center text-muted-foreground">
-                    No commands match "{query}"
+                    No commands match "{inputText}"
                 </div>
             )
             : (
@@ -112,29 +168,120 @@ function ShortcutsHelpBody() {
 type ShortcutRowData = { id: string; label: string; shortcuts: string[]; };
 type ShortcutSectionData = { id: string; heading: string; rows: ShortcutRowData[]; };
 
-/** Lowercase, without spaces and '+', with Mac symbols spelled out, so 'Ctrl+Shift+Z', 'ctrl shift z' and '⌘⇧Z' compare equal */
-function normalizeKeys(text: string): string {
-    return text.toLowerCase().replace(/⌘/g, 'ctrl').replace(/⌥/g, 'alt').replace(/⇧/g, 'shift').replace(/[\s+]/g, '');
+type Matcher = {
+    row: (row: ShortcutRowData) => boolean;
+    heading: (heading: string) => boolean;
+};
+
+const matchAll: Matcher = { row: () => true, heading: () => false };
+
+function words(text: string): string[] {
+    return text.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
 }
 
-function rowMatches(row: ShortcutRowData, query: string): boolean {
-    const text = query.trim().toLowerCase();
-    if (!text || row.label.toLowerCase().includes(text)) {
-        return true;
+/** 'Ctrl+Shift+Z' -> ['ctrl', 'shift', 'z']; Mac symbols are spelled out */
+function keyTokens(text: string): string[] {
+    return text.toLowerCase()
+        .replace(/⌘/g, '+ctrl+').replace(/⌥/g, '+alt+').replace(/⇧/g, '+shift+')
+        .split('+').map((t) => t.trim()).filter(Boolean);
+}
+
+/**
+ * Every typed word must start a word of the label ('h' finds 'Hand' and 'Hide selection'),
+ * or every typed key must be a whole key of the shortcut ('h' finds Ctrl+Shift+H, but never matches inside 'Shift').
+ * Text with '+' or without letters and digits ('Ctrl+Z', 'shift+1', '?') is read as keys only.
+ */
+function nameMatcher(query: string): Matcher {
+    const text = query.trim();
+    if (!text) {
+        return matchAll;
     }
-    const keys = normalizeKeys(text);
-    return !!keys && row.shortcuts.some((shortcut) => normalizeKeys(shortcut).includes(keys));
+
+    const isKeysOnly = text.includes('+') || !words(text).length;
+    const keys = isKeysOnly ? keyTokens(text) : words(text);
+    const matchesKeys = (row: ShortcutRowData) => row.shortcuts.some((s) => { const tokens = keyTokens(s); return keys.every((k) => tokens.includes(k)); });
+
+    if (isKeysOnly) {
+        return { row: matchesKeys, heading: () => false };
+    }
+
+    const queryWords = words(text);
+    const matchesText = (label: string) => {
+        const labelWords = words(label);
+        return queryWords.every((q) => labelWords.some((w) => w.startsWith(q)));
+    };
+    return { row: (row) => matchesText(row.label) || matchesKeys(row), heading: matchesText };
 }
 
-function filterRows(rows: ShortcutRowData[], query: string): ShortcutRowData[] {
-    return rows.filter((row) => rowMatches(row, query));
+/** A key combination pressed in record mode; 'event' is absent while only modifiers are held */
+type RecordedKeys = {
+    text: string;
+    mods: string[];
+    event?: KeyboardEvent;
+};
+
+const MODIFIER_KEYS = new Set(['Control', 'Meta', 'Alt', 'Shift']);
+
+function recordKeys(e: ReactKeyboardEvent): RecordedKeys {
+    const mods = [(e.ctrlKey || e.metaKey) && 'Ctrl', e.altKey && 'Alt', e.shiftKey && 'Shift'].filter((m): m is string => !!m);
+    if (MODIFIER_KEYS.has(e.key)) {
+        return { text: mods.join('+'), mods };
+    }
+    const key = recordedKeyName(e);
+    return {
+        text: [...mods, key].join('+'),
+        mods,
+        event: e.nativeEvent,
+    };
+}
+
+/** Layout-independent name of the main key, spelled like the shortcut list: Shift+1 stays '1', not '!' */
+function recordedKeyName(e: ReactKeyboardEvent): string {
+    const c = e.code;
+    if (c.startsWith('Key')) return c.slice(3);
+    if (c.startsWith('Digit')) return c.slice(5);
+    if (e.key.startsWith('Arrow')) return 'Arrows';
+    const byCode: Record<string, string> = { BracketLeft: '[', BracketRight: ']', Equal: '=', Minus: '-', Slash: '/', Comma: ',', Period: '.', Space: 'Space', Escape: 'Esc' };
+    return byCode[c] ?? (e.key.length === 1 ? e.key.toUpperCase() : e.key);
+}
+
+/** Modifiers alone find every shortcut that uses them; a full combination finds the shortcuts it would trigger */
+function keysMatcher(recorded: RecordedKeys | null): Matcher {
+    if (!recorded) {
+        return matchAll;
+    }
+    const mods = recorded.mods.map((m) => m.toLowerCase());
+    const recordedTokens = keyTokens(recorded.text);
+    const { event } = recorded;
+
+    return {
+        row: (row) => row.shortcuts.some((s) => {
+            const tokens = keyTokens(s);
+            if (!event) {
+                return mods.every((m) => tokens.includes(m));
+            }
+            const isSameKeys = tokens.length === recordedTokens.length && recordedTokens.every((t) => tokens.includes(t));
+            return isSameKeys || matchShortcut(event, s);
+        }),
+        heading: () => false,
+    };
+}
+
+/** In record mode Esc is a key to search for, so it must not close the dialog */
+function keepOpenWhileRecording(e: KeyboardEvent) {
+    if ((e.target as HTMLElement | null)?.dataset?.recording) {
+        e.preventDefault();
+    }
+}
+
+function filterRows(rows: ShortcutRowData[], matcher: Matcher): ShortcutRowData[] {
+    return rows.filter(matcher.row);
 }
 
 /** A section whose heading matches keeps all its rows; otherwise only the matching rows, and empty sections are dropped */
-function filterSections(sections: ShortcutSectionData[], query: string): ShortcutSectionData[] {
-    const text = query.trim().toLowerCase();
+function filterSections(sections: ShortcutSectionData[], matcher: Matcher): ShortcutSectionData[] {
     return sections
-        .map((section) => (text && section.heading.toLowerCase().includes(text) ? section : { ...section, rows: filterRows(section.rows, query) }))
+        .map((section) => (matcher.heading(section.heading) ? section : { ...section, rows: filterRows(section.rows, matcher) }))
         .filter((section) => section.rows.length);
 }
 
