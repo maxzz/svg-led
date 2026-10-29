@@ -5,7 +5,7 @@ import { MousePointer2 } from "lucide-react";
 import { type ResizeHandle, type ToolDef, type ToolPointerEvent } from "../9-types-tool-def";
 import { type Point, type Rect, type SvgDoc, applyMatrix, findNode, flattenSubpaths, nodeCtm, nodeOutline, rectContainsRect, rectFromCorners, rectsIntersect, scaleAround, walkNodes } from "@/svg-core";
 import { type NodeOriginals, applyDocMatrix, captureOriginals, commitHistory, docState, duplicateNodes, nodeDocBBox, nodesDocBBox } from "@/store/3-document";
-import { ToolId, hoverNodeIdAtom, lassoAtom, marqueeAtom, screenToDoc, selectionAtom, setActiveToolAtom, setSelectionAtom, viewportAtom } from "@/store/4-editor";
+import { ToolId, hoverNodeIdAtom, lassoAtom, marqueeAtom, screenToDoc, selectionAtom, setSelectionAtom, viewportAtom } from "@/store/4-editor";
 import { enterIsolationAtom, exitIsolationLevelAtom, getIsolatedId, isHidden, isPickable, isolationRootChildren } from "@/store/6-layers";
 import { appSettings, SelectionMode } from "@/store/1-ui-settings";
 import { MODIFIERS, isMod } from "./8-definition-of-modifiers";
@@ -77,16 +77,14 @@ export const selectTool: ToolDef = {
         }
 
         if (target.type === 'node' && e.clickCount >= 2) {
-            // Double-click on a group isolates it and selects what is under the pointer inside it; on an element, its points are edited
+            // Double-click on a group isolates it and selects what is under the pointer inside it.
+            // Other elements get a plain click; the Direct selection tool is only activated from the toolbar, the keyboard or a menu
             const unit = selectionUnitId(docState.doc, target.leafId, isolatedId);
             if (findNode(docState.doc, unit)?.node.kind === 'g') {
                 set(enterIsolationAtom, unit);
                 set(setSelectionAtom, [selectionUnitId(docState.doc, target.leafId, unit)]);
-            } else {
-                set(setSelectionAtom, [unit]);
-                set(setActiveToolAtom, ToolId.points);
+                return;
             }
-            return;
         }
 
         if (target.type === 'node' || target.type === 'anchor' || target.type === 'shape-handle' || target.type === 'handle') {

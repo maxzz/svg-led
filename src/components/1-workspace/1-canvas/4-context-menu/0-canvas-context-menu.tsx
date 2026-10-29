@@ -3,12 +3,13 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { snapshot, useSnapshot } from "valtio";
 import {
     ArrowDown, ArrowDownToLine, ArrowUp, ArrowUpToLine, ClipboardPaste, Combine, Copy, CopyPlus, FileCode, FlipHorizontal, FlipVertical, Group, ImageDown,
-    Layers, Moon, MousePointer2, PaintBucket, Pipette, Scissors, Spline, SquareDashedMousePointer, Split, Trash, Ungroup, Waypoints,
+    Layers, Moon, MousePointer2, PaintBucket, Pipette, Scan, Scissors, Spline, SquareDashedMousePointer, Split, Trash, Ungroup, Waypoints,
 } from "lucide-react";
 import { appSettings } from "@/store/1-ui-settings";
 import { type SvgDoc, type SvgNode, findNode, isCompoundPath, isShapeNode } from "@/svg-core";
 import { docState, isPointEditable } from "@/store/3-document";
 import { ToolId, copiedStyleAtom, selectedAnchorsAtom, selectionAtom, setActiveToolAtom } from "@/store/4-editor";
+import { canIsolateSelectionAtom } from "@/store/6-layers";
 import { deleteSelectedAnchors, toggleSelectedAnchors } from "@/tools/tool-3-points";
 import { ContextMenu, ContextMenuContent, ContextMenuTrigger } from "@/ui/shadcn/context-menu";
 import { canvasMenuKindAtom } from "./9-atoms-context-menu";
@@ -88,6 +89,7 @@ function ElementsEntries() {
     const hasShape = nodes.some((n) => isShapeNode(n));
     const hasCompound = nodes.some((n) => isCompoundPath(n));
     const canEditPoints = selection.length === 1 && isPointEditable(selection[0]);
+    const canIsolate = useAtomValue(canIsolateSelectionAtom);
 
     return renderEntries([
         <CommandItem id="edit.cut" icon={<Scissors className={ic} />} />,
@@ -107,6 +109,7 @@ function ElementsEntries() {
         hasCompound && <CommandItem id="object.releaseCompound" icon={<Split className={ic} />} />,
         hasShape && <CommandItem id="object.convertToPath" icon={<Spline className={ic} />} />,
         canEditPoints && <CommandItem id="object.editPoints" icon={<Waypoints className={ic} />} />,
+        canIsolate && <CommandItem id="object.isolate" icon={<Scan className={ic} />} />,
         SEP,
 
         <SubMenu

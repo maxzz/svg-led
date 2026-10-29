@@ -13,7 +13,7 @@ import {
 } from "@/store/4-editor";
 import {
     exitIsolationToAtom, getIsolatedId, hasHidden, hasLocked, hideSelectionAtom, insertMarkupAtTop, isPickable, isolateSelectionAtom,
-    isolationRootChildren, lockSelectionAtom, showAllAtom, unlockAllAtom,
+    isolationRootChildren, lockSelectionAtom, selectedIsolationTarget, showAllAtom, unlockAllAtom,
 } from "@/store/6-layers";
 import { TOOLS } from "@/tools";
 import { doAsyncExecuteConfirmDialogAtom } from "@/components/4-dialogs/8-1-confirmation/9-types-confirmation";
@@ -225,7 +225,7 @@ const OBJECT: Command[] = [
     },
     {
         id: 'object.isolate', label: 'Enter isolation mode', group: 'object', keywords: 'isolate group edit inside layers',
-        enabled: (get) => { const ids = get(selectionAtom); return ids.length === 1 && getNodeProxy(ids[0])?.kind === 'g'; },
+        enabled: (get) => selectedIsolationTarget(get) !== null,
         run: ({ set }) => set(isolateSelectionAtom),
     },
     {
