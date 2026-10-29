@@ -93,10 +93,3 @@ function RecordKeysButton() {
 function focusSearchField(e: MouseEvent<HTMLElement>) {
     e.currentTarget.closest('[data-slot="input-group"]')?.querySelector('input')?.focus();
 }
-
-/** In record mode Esc is a key to search for, so it must not close the dialog */
-export function keepOpenWhileRecording(e: KeyboardEvent) {
-    if ((e.target as HTMLElement | null)?.dataset?.recording) {
-        e.preventDefault();
-    }
-}

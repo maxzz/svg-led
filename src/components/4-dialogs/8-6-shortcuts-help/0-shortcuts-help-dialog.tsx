@@ -3,16 +3,17 @@ import { useAtom, useSetAtom } from "jotai";
 import { HintText } from "@/components/1-workspace/3-3-hint-panel/1-hint-text";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/ui/shadcn/dialog";
 import { isOpenShortcutsHelpDialogAtom } from "./9-types-shortcuts-help";
-import { resetShortcutsHelpAtom } from "./9-types-shortcuts-search";
-import { ShortcutsSearchInput, keepOpenWhileRecording } from "./1-search-input";
+import { clearShortcutsSearchAtom, resetShortcutsHelpAtom } from "./9-types-shortcuts-search";
+import { ShortcutsSearchInput } from "./1-search-input";
 import { ShortcutsSearchResults } from "./2-search-results";
 
 export function ShortcutsHelpDialog() {
     const [isOpen, setIsOpen] = useAtom(isOpenShortcutsHelpDialogAtom);
+    const clearSearch = useSetAtom(clearShortcutsSearchAtom);
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogContent className="p-0! w-[min(64rem,calc(100vw-2rem))]! max-w-5xl gap-0!" withScroll onEscapeKeyDown={keepOpenWhileRecording}>
+            <DialogContent className="p-0! w-[min(64rem,calc(100vw-2rem))]! max-w-5xl gap-0!" withScroll onEscapeKeyDown={(e) => onSearchEscape(e, clearSearch)}>
                 <DialogHeader className="px-4 py-3 text-left border-b gap-0">
                     <DialogTitle className="text-sm">
                         Help and keyboard shortcuts
@@ -40,4 +41,21 @@ function ShortcutsHelpBody() {
         <ShortcutsSearchInput />
         <ShortcutsSearchResults />
     </>);
+}
+
+/**
+ * Esc closes the dialog when the search field is empty.
+ * A name-search value clears on the first Esc. In record mode Esc is a key to search for, so the dialog stays open.
+ */
+function onSearchEscape(e: KeyboardEvent, clearSearch: () => void) {
+    const target = e.target;
+    if (!(target instanceof HTMLInputElement) || target.dataset.slot !== 'input-group-control') {
+        return;
+    }
+    if (target.dataset.recording || target.value) {
+        e.preventDefault();
+    }
+    if (!target.dataset.recording && target.value) {
+        clearSearch();
+    }
 }
