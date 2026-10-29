@@ -1,9 +1,9 @@
-import { atom } from "jotai";
+import { type Getter, atom } from "jotai";
 import { type GroupNode, type SvgDoc, findNode, newNodeId, topmostIds } from "@/svg-core";
 import { commitHistory, deleteNodes, docState, duplicateNodes, groupNodes } from "../3-document";
 import { isolatedGroupIdAtom, selectionAtom, setSelectionAtom } from "../4-editor";
 import { isHidden, isLocked, setNodesHidden, setNodesLocked, showAll, unlockAll } from "./1-layer-attrs";
-import { docProxyAtom, enterIsolationAtom, getIsolatedId, isolationRootChildren, validIsolatedId } from "./2-isolation-atoms";
+import { docProxyAtom, enterIsolationAtom, getIsolatedId, isolationRootChildren, isolationTargetOf, validIsolatedId } from "./2-isolation-atoms";
 
 /** Selected ids that still exist, for enabled states (reactive to document changes) */
 const liveSelectionAtom = atom(
@@ -17,9 +17,15 @@ export const canIsolateSelectionAtom = atom(
     (get) => {
         const doc = get(docProxyAtom).doc as unknown as SvgDoc;
         const ids = get(liveSelectionAtom);
-        return ids.length === 1 && !!validIsolatedId(doc, ids[0]) && ids[0] !== get(isolatedGroupIdAtom);
+        return ids.length === 1 && isolationTargetOf(doc, ids[0], validIsolatedId(doc, get(isolatedGroupIdAtom))) !== null;
     }
 );
+
+/** The group that "Enter isolation mode" opens for the single selected element, or null */
+export function selectedIsolationTarget(get: Getter): string | null {
+    const ids = get(selectionAtom);
+    return ids.length === 1 ? isolationTargetOf(docState.doc, ids[0], getIsolatedId(get)) : null;
+}
 
 export const hasLiveSelectionAtom = atom(
     (get) => get(liveSelectionAtom).length > 0
@@ -56,11 +62,17 @@ export const groupSelectionAtom = atom(
     }
 );
 
+/** Enters isolation for the selected group, or for the group of the selected element. The selected element stays selected inside it. */
 export const isolateSelectionAtom = atom(
     null,
     (get, set) => {
-        const ids = get(selectionAtom);
-        ids.length === 1 && set(enterIsolationAtom, ids[0]);
+        const target = selectedIsolationTarget(get);
+        if (!target) {
+            return;
+        }
+        const [id] = get(selectionAtom);
+        set(enterIsolationAtom, target);
+        id !== target && set(setSelectionAtom, [id]);
     }
 );
 

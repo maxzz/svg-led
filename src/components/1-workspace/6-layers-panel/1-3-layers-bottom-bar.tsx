@@ -13,7 +13,7 @@ export function LayersBottomBar() {
     return (
         <div className="shrink-0 px-1 h-9 border-t flex items-center justify-end gap-0.5">
             <BarButton icon={Crosshair} title="Locate the selection in the tree" atom={locateSelectionAtom} disabled={!hasSelection} />
-            <BarButton icon={Scan} title="Enter isolation mode for the selected group" atom={isolateSelectionAtom} disabled={!canIsolate} />
+            <BarButton icon={Scan} title="Enter isolation mode for the selected group, or the group of the selected element" atom={isolateSelectionAtom} disabled={!canIsolate} />
             <span className="mx-1 w-px h-4 bg-border" />
             <BarButton icon={FolderPlus} title="New group" atom={newGroupAtom} />
             <BarButton icon={Group} title="Group the selection — Ctrl+G" atom={groupSelectionAtom} disabled={!hasSelection} />

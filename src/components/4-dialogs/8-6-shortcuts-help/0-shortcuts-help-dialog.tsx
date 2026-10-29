@@ -18,7 +18,7 @@ export function ShortcutsHelpDialog() {
                         Help and keyboard shortcuts
                     </DialogTitle>
                     <DialogDescription className="text-xs sr-only">
-                        <HintText text="[Space]+drag or the middle mouse button pans · Wheel zooms · [Shift]+wheel scrolls sideways · Double-click a group to enter it, or an element to edit its points" />
+                        <HintText text="[Space]+drag or the middle mouse button pans · Wheel zooms · [Shift]+wheel scrolls sideways · Double-click a group to enter isolation mode" />
                     </DialogDescription>
                 </DialogHeader>
 
@@ -58,8 +58,8 @@ export function ShortcutsHelpDialog() {
     );
 }
 
-// * Click to select, Shift+click to add, drag to move (Alt+drag copies), double-click a group to enter it, Ctrl+click to select inside a group, double-click an element to edit points
-// * Space+drag or the middle mouse button pans; the wheel zooms, Shift+wheel scrolls sideways. Double-click an element to edit its points.
+// * Click to select, Shift+click to add, drag to move (Alt+drag copies), double-click a group to enter isolation mode, Ctrl+click to select inside a group
+// * Space+drag or the middle mouse button pans; the wheel zooms, Shift+wheel scrolls sideways.
 
 //---------------------------------------------------------------------------
 

@@ -60,6 +60,19 @@ export const isolatedIdAtom = atom(
     (get) => get(isolationChainAtom).at(-1)?.id ?? null
 );
 
+/**
+ * The group that "Enter isolation mode" opens for a selected element: the element itself when it is a group,
+ * otherwise the group it sits in. Null when there is none, or when that group is already isolated.
+ */
+export function isolationTargetOf(doc: SvgDoc, id: string, isolatedId: string | null): string | null {
+    const loc = findNode(doc, id);
+    if (!loc) {
+        return null;
+    }
+    const group = loc.node.kind === 'g' ? loc.node : loc.parents.at(-1);
+    return group?.kind === 'g' && group.id !== isolatedId ? group.id : null;
+}
+
 //---------------------------------------------------------------------------
 
 /** Isolates a group: only its contents can be picked, the rest of the drawing is dimmed */
