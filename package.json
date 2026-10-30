@@ -21,7 +21,7 @@
         "typescript": "~7.0.2",
         "upen": "^1.0.2",
         "vite": "^8.3.5",
-        "vitest": "^5.0.3"
+        "vitest": "^5.0.5"
     },
     "dependencies": {
         "@fontsource-variable/geist": "^5.3.0",
