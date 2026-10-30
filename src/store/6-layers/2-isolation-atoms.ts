@@ -1,11 +1,11 @@
 import { type Getter, atom } from "jotai";
-import { atomWithProxy } from "jotai-valtio";
 import { type SvgDoc, type SvgNode, findNode, isCompoundPath } from "@/svg-core";
 import { docState } from "../3-document";
 import { isolatedGroupIdAtom, setSelectionAtom } from "../4-editor";
+import { atomWithValtio } from "../atom-with-valtio";
 
 /** The Valtio document as a Jotai atom, so derived atoms update when the document changes */
-export const docProxyAtom = atomWithProxy(docState);
+export const docProxyAtom = atomWithValtio(docState);
 
 /** The isolated id when it still names a group of the document (undo or a reload can remove it) */
 export function validIsolatedId(doc: SvgDoc, id: string | null): string | null {

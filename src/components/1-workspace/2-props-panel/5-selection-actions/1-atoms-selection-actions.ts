@@ -1,10 +1,10 @@
 import { atom } from "jotai";
-import { atomWithProxy } from "jotai-valtio";
 import { type LucideIcon } from "lucide-react";
 import { type SvgDoc, type SvgNode, findNode } from "@/svg-core";
 import { displayShortcut, getCommand } from "@/commands";
 import { docState } from "@/store/3-document";
 import { selectionAtom } from "@/store/4-editor";
+import { atomWithValtio } from "@/store/atom-with-valtio";
 import { appSettings } from "@/store/1-ui-settings";
 import { type SelectionActionContext, SELECTION_ACTION_RULES } from "./0-selection-action-rules";
 
@@ -12,10 +12,10 @@ import { type SelectionActionContext, SELECTION_ACTION_RULES } from "./0-selecti
 // Jotai state for the selection actions
 
 /** The Valtio document as a Jotai atom, so derived atoms update when the document changes */
-const docAtom = atomWithProxy(docState);
+const docAtom = atomWithValtio(docState);
 
 /** The Valtio app settings as a Jotai atom, so the action list updates when a preference changes */
-const settingsAtom = atomWithProxy(appSettings);
+const settingsAtom = atomWithValtio(appSettings);
 
 /** Selected nodes that exist in the document, in selection order */
 export const selectedNodesAtom = atom((get): SvgNode[] => {
