@@ -1,7 +1,7 @@
 import { createElement, memo } from "react";
 import { useSnapshot } from "valtio";
 
-import { type GroupNode, type SvgNode } from "@/svg-core";
+import { type GroupNode, type SvgNode, inertPointerEvents } from "@/svg-core";
 import { attrsToProps } from "./2-attrs-to-props";
 
 type NodeViewProps = {
@@ -22,9 +22,12 @@ export const NodeView = memo(
         const snap = useSnapshot(node) as SvgNode;
         const chain = isolation?.split(' ');
         const onChain = !!chain?.includes(snap.id);
+        // A fully transparent shape (fill="#0000") would otherwise sit on top of a group and take the click
+        const pointerEvents = snap.kind !== 'g' && !detached ? inertPointerEvents(snap.attrs) : undefined;
         const props = {
             ...attrsToProps(snap.attrs),
             ...(!detached && { 'data-nid': snap.id }),
+            ...(pointerEvents && { pointerEvents }),
             ...(chain && !onChain && { 'data-isolation-dim': '' }),
         };
 

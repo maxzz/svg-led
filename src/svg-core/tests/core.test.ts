@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-    type SvgDoc, type SvgNode, type GroupNode, reuseNodeIds, applyMatrix, buildSourceMap, cubicBBox, cubicPoint, deleteAnchors, fitRectMatrix, getPresentation, insertAnchor,
+    type SvgDoc, type SvgNode, type GroupNode, reuseNodeIds, applyMatrix, buildSourceMap, cubicBBox, cubicPoint, deleteAnchors, fitRectMatrix, getPresentation, inertPointerEvents, insertAnchor,
     invert, multiply, nearestSegment, nodeAtOffset, parsePathData, parseTransform, pathDataToSubpaths, rotateMatrix, scanElements,
     serializeSvg, setHandle, setPresentation, shapeToSubpaths, subpathsToPathData, toggleAnchorKind, transformNode, transformPathData,
     uniformPadding, localBBox,
@@ -177,6 +177,18 @@ describe("serialize and source map", () => {
 });
 
 describe("presentation", () => {
+    it("does not hit a fully transparent shape, and keeps a stroked one hittable along its stroke", () => {
+        expect(inertPointerEvents({ fill: '#0000' })).toBe('none');
+        expect(inertPointerEvents({ fill: '#00000000' })).toBe('none');
+        expect(inertPointerEvents({ fill: 'rgba(0, 0, 0, 0)' })).toBe('none');
+        expect(inertPointerEvents({ fill: '#000' })).toBeUndefined();
+        expect(inertPointerEvents({ fill: 'none', stroke: '#000' })).toBe('visibleStroke');
+        expect(inertPointerEvents({ fill: 'none', stroke: 'none' })).toBe('none');
+        expect(inertPointerEvents({ fill: '#0000', 'pointer-events': 'all' })).toBeUndefined();
+        expect(inertPointerEvents({ fill: '#0000', class: 'cls' })).toBeUndefined();
+        expect(inertPointerEvents({ opacity: '0', fill: '#000' })).toBe('none');
+    });
+
     it("reads style first and removes the style entry on write", () => {
         const attrs: Record<string, string> = { fill: 'red', style: 'fill:blue;stroke:black' };
         expect(getPresentation(attrs, 'fill')).toBe('blue');

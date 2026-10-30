@@ -1,7 +1,7 @@
 import { type Getter } from "jotai";
 import { appSettings } from "@/store/1-ui-settings";
 
-import { type Matrix, type Point, type SvgNode, applyMatrix, distanceToOutline, findNode, getPresentation, invert, matrixScale, nodeCtm, nodeOutline, pointInOutline, walkNodes } from "@/svg-core";
+import { type Matrix, type Point, type SvgNode, applyMatrix, distanceToOutline, fillIsHittable, findNode, invert, matrixScale, nodeCtm, nodeOutline, pointInOutline, walkNodes } from "@/svg-core";
 import { docState } from "@/store/3-document";
 import { viewportAtom } from "@/store/4-editor";
 import { isHidden, isLocked } from "@/store/6-layers";
@@ -73,6 +73,5 @@ export function hitTestOutlines(p: Point, tolerance: number, isolatedId: string 
 }
 
 function isFilled(node: SvgNode): boolean {
-    const fill = getPresentation(node.attrs, 'fill');
-    return fill !== 'none' && fill !== 'transparent';
+    return fillIsHittable(node.attrs);
 }
