@@ -14,6 +14,7 @@ import { PROPERTIES_POPUP_RIGHT_EDGE_PX } from "@/components/1-workspace/2-props
 import { classNames } from "@/utils";
 import { doAsyncExecuteConfirmDialogAtom } from "../8-1-confirmation/9-types-confirmation";
 import { getConfirmOverwriteScrapMessages } from "../8-1-confirmation/8-confirmation-ui-messages";
+import { ScrapsDragGhost, ScrapsDropIndicator, isDraggedFamily, rowDragCancelAtom, rowDragDownAtom, rowDragMoveAtom, rowDragUpAtom } from "./1-reorder";
 import { type Scrap, type ScrapLoadMode, type ScrapSaveScope, doDeleteScrapAtom, doLoadScrapAtom, doSaveScrapAtom, isOpenScrapsDialogAtom, scrapsAtom, scrapsOptionsAtom } from "./9-types-scraps";
 
 export function ScrapsDialog() {
@@ -71,6 +72,9 @@ function LoadSection({ selectedName, setSelectedName, selectScrap }: { selectedN
     const doDelete = useSetAtom(doDeleteScrapAtom);
     const setIsOpen = useSetAtom(isOpenScrapsDialogAtom);
     const zoomToFit = useSetAtom(zoomToFitAtom);
+    const move = useSetAtom(rowDragMoveAtom);
+    const up = useSetAtom(rowDragUpAtom);
+    const cancel = useSetAtom(rowDragCancelAtom);
     const rowRefs = useRef(new Map<string, HTMLDivElement>());
 
     const loadMode: ScrapLoadMode = options.loadMode === 'replace' ? 'replace' : 'add';
@@ -91,6 +95,8 @@ function LoadSection({ selectedName, setSelectedName, selectScrap }: { selectedN
         },
         [selectedName]
     );
+
+    useEffect(() => () => { cancel(); }, [cancel]);
 
     function load(name: string) {
         if (!doLoad({ name, mode: loadMode })) {
@@ -128,12 +134,21 @@ function LoadSection({ selectedName, setSelectedName, selectScrap }: { selectedN
                     Saved scraps
                 </span>
                 <span className="text-[10px] text-muted-foreground">
-                    Double-click to load
+                    Drag to reorder · double-click to load
                 </span>
             </div>
 
-            <ScrollArea className="h-56 border rounded-md" fixedWidth parentContentWidth>
-                <div className="p-1 flex flex-col gap-0.5" onKeyDown={onListKeyDown} role="listbox" aria-label="Saved scraps">
+            <ScrollArea
+                className="h-56 border rounded-md"
+                fixedWidth
+                parentContentWidth
+                viewportProps={{
+                    onPointerMove: (e) => move({ pointerId: e.pointerId, buttons: e.buttons, clientX: e.clientX, clientY: e.clientY, viewport: e.currentTarget }),
+                    onPointerUp: () => up(),
+                    onPointerCancel: () => cancel(),
+                }}
+            >
+                <div className="relative p-1 flex flex-col gap-0.5" data-scraps-list="" onKeyDown={onListKeyDown} role="listbox" aria-label="Saved scraps">
                     {!scraps.length
                         ? (
                             <p className="px-2 py-2 text-muted-foreground">
@@ -154,6 +169,8 @@ function LoadSection({ selectedName, setSelectedName, selectScrap }: { selectedN
                             )
                         )
                     }
+                    <ScrapsDropIndicator />
+                    <ScrapsDragGhost />
                 </div>
             </ScrollArea>
 
@@ -185,6 +202,8 @@ const LOAD_MODES = [
 
 function ScrapRow({ scrap, selected, onSelect, onLoad, onDelete, rowRef }: { scrap: Scrap; selected: boolean; onSelect: () => void; onLoad: () => void; onDelete: () => void; rowRef: (node: HTMLDivElement | null) => void; }) {
     const src = useMemo(() => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(scrap.svg)}`, [scrap.svg]);
+    const dragged = useAtomValue(isDraggedFamily(scrap.name));
+    const dragDown = useSetAtom(rowDragDownAtom);
 
     return (
         <div
@@ -192,7 +211,10 @@ function ScrapRow({ scrap, selected, onSelect, onLoad, onDelete, rowRef }: { scr
             className={classNames(
                 "group px-2 py-1 select-none outline-none focus-visible:ring-1 focus-visible:ring-ring rounded flex items-center gap-3 cursor-pointer",
                 selected ? "bg-accent text-accent-foreground" : "hover:bg-accent/50",
+                dragged && "opacity-40",
             )}
+            data-scrap-name={scrap.name}
+            onPointerDown={(e) => dragDown({ name: scrap.name, button: e.button, pointerId: e.pointerId, clientX: e.clientX, clientY: e.clientY, target: e.target as Element, row: e.currentTarget })}
             onClick={onSelect}
             onDoubleClick={onLoad}
             tabIndex={selected ? 0 : -1}
@@ -214,6 +236,7 @@ function ScrapRow({ scrap, selected, onSelect, onLoad, onDelete, rowRef }: { scr
                 className="size-6 opacity-0 group-hover:opacity-100 group-aria-selected:opacity-100"
                 variant="ghost"
                 size="icon"
+                data-row-control
                 onClick={(e) => { e.stopPropagation(); onDelete(); }}
                 onDoubleClick={(e) => e.stopPropagation()}
                 title="Delete scrap"

@@ -22,24 +22,32 @@ export type Scrap = {
     rootAttrs: Attrs;            // document root <svg> attributes at save time; restored when the scrap replaces the canvas
     count: number;               // number of top-level elements
     updatedAt: number;
+    order?: number;              // position in the list, 0 at the top; missing on scraps saved before dragging
 };
 
 const scrapsBaseAtom = atom<Scrap[]>(loadScraps());
 
-/** Saved scraps, newest first */
-export const scrapsAtom = atom(
-    (get) => [...get(scrapsBaseAtom)].sort((a, b) => b.updatedAt - a.updatedAt)
-);
+/** Saved scraps in list order. A new scrap is inserted at the top; dragging in the dialog stores the order. */
+export const scrapsAtom = atom((get) => get(scrapsBaseAtom));
 
 function loadScraps(): Scrap[] {
     try {
         const stored = localStorage.getItem(STORAGE_KEYS.scraps);
         const parsed: unknown = stored ? JSON.parse(stored) : [];
-        return Array.isArray(parsed) ? parsed.filter(isScrap) : [];
+        const scraps = Array.isArray(parsed) ? parsed.filter(isScrap) : [];
+        return sortLoadedScraps(scraps).map((scrap, order) => ({ ...scrap, order }));
     } catch (e) {
         console.error("Failed to load scraps", e);
         return [];
     }
+}
+
+/** Scraps that already carry a list position stay in that order; older saves sort newest first */
+function sortLoadedScraps(scraps: Scrap[]): Scrap[] {
+    if (scraps.every((scrap) => typeof scrap.order === 'number')) {
+        return [...scraps].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    }
+    return [...scraps].sort((a, b) => b.updatedAt - a.updatedAt);
 }
 
 function isScrap(v: unknown): v is Scrap {
@@ -49,13 +57,14 @@ function isScrap(v: unknown): v is Scrap {
 
 /** Stores the list first so a full localStorage leaves the in-memory list unchanged */
 function writeScraps(set: Setter, next: Scrap[]): boolean {
+    const ordered = next.map((scrap, order) => ({ ...scrap, order }));
     try {
-        localStorage.setItem(STORAGE_KEYS.scraps, JSON.stringify(next));
+        localStorage.setItem(STORAGE_KEYS.scraps, JSON.stringify(ordered));
     } catch (e) {
         toast.error(`Failed to save scraps: ${String(e)}`);
         return false;
     }
-    set(scrapsBaseAtom, next);
+    set(scrapsBaseAtom, ordered);
     return true;
 }
 
@@ -99,7 +108,15 @@ export const doSaveScrapAtom = atom(
             count: topmostIds(doc, ids).length,
             updatedAt: Date.now(),
         };
-        return writeScraps(set, [...get(scrapsBaseAtom).filter((s) => s.name !== name), scrap]);
+        const prev = get(scrapsBaseAtom);
+        const at = prev.findIndex((s) => s.name === name);
+        const next = prev.slice();
+        if (at >= 0) {
+            next[at] = scrap; // overwriting keeps the scrap where the list already has it
+        } else {
+            next.unshift(scrap);
+        }
+        return writeScraps(set, next);
     }
 );
 
@@ -138,5 +155,27 @@ export const doDeleteScrapAtom = atom(
     null,
     (get, set, name: string) => {
         writeScraps(set, get(scrapsBaseAtom).filter((s) => s.name !== name));
+    }
+);
+
+/** Moves a scrap to `index` (0 is the top) and stores that order */
+export const doReorderScrapAtom = atom(
+    null,
+    (get, set, { name, index }: { name: string; index: number }) => {
+        const scraps = get(scrapsBaseAtom);
+        const from = scraps.findIndex((s) => s.name === name);
+        if (from < 0) {
+            return;
+        }
+        const to = Math.max(0, Math.min(scraps.length - 1, index));
+        if (from === to) {
+            return;
+        }
+        const next = scraps.slice();
+        const [scrap] = next.splice(from, 1);
+        if (scrap) {
+            next.splice(to, 0, scrap);
+            writeScraps(set, next);
+        }
     }
 );
