@@ -4,10 +4,10 @@ import { atom } from "jotai";
 export const selectionAtom = atom<string[]>([]);
 
 /**
- * Isolated group (see SvgNode.id of a group), or null. Isolation logic lives in store/6-layers.
- * While set, a click selects the children of this group one by one, and everything outside it cannot be picked.
+ * Objects in isolation (see SvgNode.id), or empty. Isolation logic lives in store/6-layers.
+ * One group shows its children; any other object, or several objects, stay editable while the rest of the drawing is dimmed.
  */
-export const isolatedGroupIdAtom = atom<string | null>(null);
+export const isolatedGroupIdAtom = atom<readonly string[]>([]);
 
 /**
  * Selected anchors and shape handles in points mode.

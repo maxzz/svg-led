@@ -5,7 +5,7 @@ import { useSnapshot } from "valtio";
 import { ChevronRight } from "lucide-react";
 
 import { type GroupNode, type SvgNode } from "@/svg-core";
-import { enterIsolationAtom, isHidden, isLocked, isolatedIdAtom, layerName } from "@/store/6-layers";
+import { enterIsolationAtom, isHidden, isLocked, isolationScopeAtom, layerName } from "@/store/6-layers";
 import { LayerThumbnail } from "./1-2-layer-thumbnail";
 import { isDraggedFamily, rowDragDownAtom } from "./2-reorder";
 import { LayerName } from "./3-rename";
@@ -24,7 +24,7 @@ export const LayerRow = memo(
 
     function LayerRow({ node, depth, hiddenByParent, lockedByParent }: LayerRowProps) {
         const snap = useSnapshot(node) as SvgNode;
-        const isolatedId = useAtomValue(isolatedIdAtom);
+        const scope = useAtomValue(isolationScopeAtom);
         const expanded = useAtomValue(isExpandedFamily(snap.id));
         const selected = useAtomValue(isSelectedFamily(snap.id));
         const dragged = useAtomValue(isDraggedFamily(snap.id));
@@ -33,7 +33,7 @@ export const LayerRow = memo(
         const enterIsolation = useSetAtom(enterIsolationAtom);
 
         const isGroup = snap.kind === 'g';
-        const isRoot = snap.id === isolatedId;
+        const isRoot = scope.includes(snap.id);
         const open = isGroup && (expanded || isRoot);
         const hidden = isHidden(snap);
         const locked = isLocked(snap);
@@ -51,7 +51,7 @@ export const LayerRow = memo(
                 data-layer-open={open && snap.children.length > 0}
                 onPointerDown={(e) => dragDown({ id: snap.id, button: e.button, pointerId: e.pointerId, clientX: e.clientX, clientY: e.clientY, target: e.target as Element, row: e.currentTarget })}
                 onClick={(e) => rowClick({ id: snap.id, shift: e.shiftKey, ctrl: e.ctrlKey || e.metaKey })}
-                onDoubleClick={() => isGroup && !isRoot && enterIsolation(snap.id)}
+                onDoubleClick={() => !isRoot && enterIsolation(snap.id)}
             >
                 <VisibilityButton id={snap.id} hidden={hidden} inherited={hiddenByParent} />
                 <LockButton id={snap.id} locked={locked} inherited={lockedByParent} />

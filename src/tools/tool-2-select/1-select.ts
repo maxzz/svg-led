@@ -6,7 +6,7 @@ import { type ResizeHandle, type ToolDef, type ToolPointerEvent } from "../9-typ
 import { type Point, type Rect, type SvgDoc, applyMatrix, findNode, flattenSubpaths, nodeCtm, nodeOutline, rectContainsRect, rectFromCorners, rectsIntersect, scaleAround, walkNodes } from "@/svg-core";
 import { type NodeOriginals, applyDocMatrix, captureOriginals, commitHistory, docState, duplicateNodes, nodeDocBBox, nodesDocBBox } from "@/store/3-document";
 import { ToolId, hoverNodeIdAtom, lassoAtom, marqueeAtom, screenToDoc, selectionAtom, setSelectionAtom, viewportAtom } from "@/store/4-editor";
-import { enterIsolationAtom, exitIsolationLevelAtom, getIsolatedId, isHidden, isPickable, isolationRootChildren } from "@/store/6-layers";
+import { enterIsolationAtom, exitIsolationLevelAtom, getIsolationScope, isHidden, isPickable, isolationRootChildren } from "@/store/6-layers";
 import { appSettings, SelectionMode } from "@/store/1-ui-settings";
 import { MODIFIERS, isMod } from "./8-definition-of-modifiers";
 import { modifierHint } from "../0-shared/5-hint";
@@ -27,7 +27,7 @@ export const selectTool: ToolDef = {
     icon: MousePointer2,
     hint: ({ held, dragging }) => dragging
         ? '' //'Release to finish'
-        : modifierHint(held, 'Click to select, drag to move · Double-click a group to isolate it · [Shift] add · [Alt] copy or lasso · [Ctrl] deep select', {
+        : modifierHint(held, 'Click to select, drag to move · Double-click an object to isolate it · [Shift] add · [Alt] copy or lasso · [Ctrl] deep select', {
             shift: '[Shift] Click to add or remove · Drag along one axis',
             alt: '[Alt] Drag an element to copy · on empty canvas, [Alt] drag to lasso',
             ctrl: '[Ctrl] Click to select an element inside groups · Drag snaps to other elements',
@@ -61,9 +61,9 @@ export const selectTool: ToolDef = {
             return;
         }
 
-        const isolatedId = getIsolatedId(get);
+        const isolated = getIsolationScope(get);
         if (target.type === 'none') {
-            const hit = hitTestOutlines(e.doc, docTolerance(get, 4), isolatedId);
+            const hit = hitTestOutlines(e.doc, docTolerance(get, 4), isolated);
             if (hit) {
                 target = { type: 'node', ...hit };
             }
@@ -77,10 +77,9 @@ export const selectTool: ToolDef = {
         }
 
         if (target.type === 'node' && e.clickCount >= 2) {
-            // Double-click on a group isolates it and selects what is under the pointer inside it.
-            // Other elements get a plain click; the Direct selection tool is only activated from the toolbar, the keyboard or a menu
-            const unit = selectionUnitId(docState.doc, target.leafId, isolatedId);
-            if (findNode(docState.doc, unit)?.node.kind === 'g') {
+            // Double-click isolates the object (a group, or any other element) and selects what is under the pointer inside it.
+            const unit = selectionUnitId(docState.doc, target.leafId, isolated);
+            if (findNode(docState.doc, unit)) {
                 set(enterIsolationAtom, unit);
                 set(setSelectionAtom, [selectionUnitId(docState.doc, target.leafId, unit)]);
                 return;
@@ -94,7 +93,7 @@ export const selectTool: ToolDef = {
             } else if (isMod(e, M.deepSelect)) {
                 id = target.leafId; // Ctrl+click selects the element itself, however deep it is inside groups
             } else {
-                id = selectionUnitId(docState.doc, target.leafId, isolatedId); // a child of the isolated group, or a top-level element
+                id = selectionUnitId(docState.doc, target.leafId, isolated); // a child of an isolated group, an isolated object, or a top-level element
             }
 
             let ids = selection;
@@ -125,8 +124,8 @@ export const selectTool: ToolDef = {
         }
         const doc = snapshot(docState).doc as SvgDoc;
         const bboxes = new Map<string, Rect>();
-        for (const node of isolationRootChildren(doc, isolatedId)) {
-            const b = isPickable(doc, node.id, isolatedId) ? nodeDocBBox(doc, node.id) : null;
+        for (const node of isolationRootChildren(doc, isolated)) {
+            const b = isPickable(doc, node.id, isolated) ? nodeDocBBox(doc, node.id) : null;
             b && bboxes.set(node.id, b);
         }
         const origin = e.screen;

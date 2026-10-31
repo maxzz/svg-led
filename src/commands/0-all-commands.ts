@@ -12,8 +12,8 @@ import {
     zoomResetAtom, zoomToFitAtom, zoomToSelectionAtom,
 } from "@/store/4-editor";
 import {
-    exitIsolationToAtom, getIsolatedId, hasHidden, hasLocked, hideSelectionAtom, insertMarkupAtTop, isPickable, isolateSelectionAtom,
-    isolationRootChildren, lockSelectionAtom, selectedIsolationTarget, showAllAtom, unlockAllAtom,
+    exitIsolationToAtom, getIsolationScope, hasHidden, hasLocked, hideSelectionAtom, insertMarkupAtTop, isPickable, isolateSelectionAtom,
+    isolationRootChildren, lockSelectionAtom, selectionCanIsolate, showAllAtom, unlockAllAtom,
 } from "@/store/6-layers";
 import { TOOLS } from "@/tools";
 import { doAsyncExecuteConfirmDialogAtom } from "@/components/4-dialogs/8-1-confirmation/9-types-confirmation";
@@ -172,9 +172,9 @@ const EDIT: Command[] = [
         id: 'edit.selectAll', label: 'Select all', group: 'edit', shortcut: 'Ctrl+A',
         run: ({ get, set }) => {
             set(setActiveToolAtom, ToolId.select);
-            const isolatedId = getIsolatedId(get);
+            const isolated = getIsolationScope(get);
             const doc = docState.doc;
-            set(setSelectionAtom, isolationRootChildren(doc, isolatedId).map((n) => n.id).filter((id) => isPickable(doc, id, isolatedId)));
+            set(setSelectionAtom, isolationRootChildren(doc, isolated).map((n) => n.id).filter((id) => isPickable(doc, id, isolated)));
         },
     },
     { id: 'edit.deselect', label: 'Deselect', group: 'edit', enabled: hasSelection, run: ({ set }) => set(setSelectionAtom, []) },
@@ -225,13 +225,13 @@ const OBJECT: Command[] = [
         run: ({ set }) => set(setActiveToolAtom, ToolId.points),
     },
     {
-        id: 'object.isolate', label: 'Enter isolation mode', group: 'object', keywords: 'isolate group edit inside layers',
-        enabled: (get) => selectedIsolationTarget(get) !== null,
+        id: 'object.isolate', label: 'Enter isolation mode', group: 'object', keywords: 'isolate group object element edit inside layers',
+        enabled: (get) => selectionCanIsolate(get),
         run: ({ set }) => set(isolateSelectionAtom),
     },
     {
         id: 'object.exitIsolation', label: 'Exit isolation mode', group: 'object', keywords: 'isolate leave group layers',
-        enabled: (get) => getIsolatedId(get) !== null, run: ({ set }) => { set(exitIsolationToAtom, null); },
+        enabled: (get) => getIsolationScope(get).length > 0, run: ({ set }) => { set(exitIsolationToAtom, null); },
     },
     { id: 'object.hide', label: 'Hide selection', group: 'object', shortcut: 'Ctrl+Shift+H', keywords: 'visibility layers', enabled: hasSelection, run: ({ set }) => set(hideSelectionAtom) },
     { id: 'object.showAll', label: 'Show all', group: 'object', keywords: 'visibility unhide layers', enabled: () => hasHidden(docState.doc), run: ({ set }) => set(showAllAtom) },

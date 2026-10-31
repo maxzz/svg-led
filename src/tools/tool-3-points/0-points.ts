@@ -12,7 +12,7 @@ import {
 import { commitHistory, docPrecision, docState, getNodeProxy, replaceNode } from "@/store/3-document";
 import { ToolId, anchorsOfNode, lassoAtom, marqueeAtom, nodeAnchorKey, screenToDoc, selectedAnchorsAtom, selectionAtom, setActiveToolAtom, splitNodeAnchorKey, viewportAtom } from "@/store/4-editor";
 
-import { getIsolatedId, isPickable } from "@/store/6-layers";
+import { getIsolationScope, isPickable } from "@/store/6-layers";
 import { type ToolDef, type ToolPointerEvent } from "../9-types-tool-def";
 import { MODIFIERS, isMod } from "../tool-2-select/8-definition-of-modifiers";
 import { LASSO_STEP_PX, pointInPolygon, simplifyLasso } from "../tool-2-select/2-lasso";
@@ -103,7 +103,7 @@ export const pointsTool: ToolDef = {
         let target = e.target;
 
         if (target.type === 'none') {
-            const hit = hitTestOutlines(e.doc, docTolerance(get, 4), getIsolatedId(get));
+            const hit = hitTestOutlines(e.doc, docTolerance(get, 4), getIsolationScope(get));
             if (hit) {
                 target = { type: 'node', ...hit };
             }
@@ -195,7 +195,7 @@ export const pointsTool: ToolDef = {
         }
         // Shift with shapes selected: the rubber band or lasso picks only the points of those shapes
         const scope = additive && selection.length ? selection : null;
-        const candidates = collectAnchorCandidates(getIsolatedId(get)).filter((c) => !scope || scope.includes(c.nodeId));
+        const candidates = collectAnchorCandidates(getIsolationScope(get)).filter((c) => !scope || scope.includes(c.nodeId));
 
         gesture = {
             type: 'marquee',
@@ -514,14 +514,14 @@ function addPointNear(nodeIds: string[], p: Point, tolerance: number): { nodeId:
  * Every anchor and shape handle of editable elements, in document coordinates (for the rubber band).
  * With `isolatedId` given (null included), only elements that can be picked on the canvas contribute.
  */
-function collectAnchorCandidates(isolatedId?: string | null): { full: string; nodeId: string; doc: Point; }[] {
+function collectAnchorCandidates(isolated?: string | readonly string[] | null): { full: string; nodeId: string; doc: Point; }[] {
     const doc = snapshot(docState).doc as SvgDoc;
     const rv: { full: string; nodeId: string; doc: Point; }[] = [];
     walkNodes(
         doc.children,
         (node) => {
             const loc = findNode(doc, node.id);
-            if (!loc || (isolatedId !== undefined && node.kind !== 'g' && !isPickable(doc, node.id, isolatedId))) {
+            if (!loc || (isolated !== undefined && node.kind !== 'g' && !isPickable(doc, node.id, isolated))) {
                 return;
             }
             const ctm = nodeCtm(loc);

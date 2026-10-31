@@ -1,10 +1,10 @@
 import { atom } from "jotai";
 import { atomFamily } from "jotai-family";
-import { type SvgNode, findNode } from "@/svg-core";
+import { type SvgNode, findNode, walkNodes } from "@/svg-core";
 import { appSettings } from "@/store/1-ui-settings";
 import { docState } from "@/store/3-document";
 import { selectionAtom, setSelectionAtom } from "@/store/4-editor";
-import { getIsolatedId, isHiddenOrLocked } from "@/store/6-layers";
+import { getIsolationScope, isHiddenOrLocked } from "@/store/6-layers";
 
 //---------------------------------------------------------------------------
 // Row layout
@@ -40,29 +40,40 @@ export const isSelectedFamily = atomFamily(
 //---------------------------------------------------------------------------
 // Visible rows
 
-/** Rows of the tree: the isolated group, or the top-level elements, listed topmost first as in Adobe apps */
-export function treeRootNodes(isolatedId: string | null): SvgNode[] {
-    const isolated = isolatedId ? findNode(docState.doc, isolatedId)?.node : undefined;
-    return isolated ? [isolated] : [...docState.doc.children].reverse();
+/** Rows of the tree: the isolated objects, or the top-level elements, listed topmost first as in Adobe apps */
+export function treeRootNodes(scope: readonly string[]): SvgNode[] {
+    if (!scope.length) {
+        return [...docState.doc.children].reverse();
+    }
+    const ids = new Set(scope);
+    const found: SvgNode[] = [];
+    walkNodes(docState.doc.children, (node) => {
+        if (!ids.has(node.id)) {
+            return;
+        }
+        found.push(node);
+        return false; // a descendant of an isolated object is shown under it, not as another root
+    });
+    return found.reverse();
 }
 
-/** The isolated group is always shown open: it is the root of the tree */
-export function isOpenRow(id: string, expanded: ReadonlySet<string>, isolatedId: string | null): boolean {
-    return id === isolatedId || expanded.has(id);
+/** An isolated group is always shown open: it is a root of the tree */
+export function isOpenRow(id: string, expanded: ReadonlySet<string>, scope: readonly string[]): boolean {
+    return scope.includes(id) || expanded.has(id);
 }
 
 /** Ids of the rows as they are shown, top to bottom */
-function visibleRowIds(expanded: ReadonlySet<string>, isolatedId: string | null): string[] {
+function visibleRowIds(expanded: ReadonlySet<string>, scope: readonly string[]): string[] {
     const rv: string[] = [];
     const visit = (nodes: readonly SvgNode[]) => {
         for (const node of nodes) {
             rv.push(node.id);
-            if (node.kind === 'g' && isOpenRow(node.id, expanded, isolatedId)) {
+            if (node.kind === 'g' && isOpenRow(node.id, expanded, scope)) {
                 visit([...node.children].reverse());
             }
         }
     };
-    visit(treeRootNodes(isolatedId));
+    visit(treeRootNodes(scope));
     return rv;
 }
 
@@ -98,7 +109,7 @@ export const rowClickAtom = atom(
         }
 
         if (shift) {
-            const rows = visibleRowIds(get(expandedIdsAtom), getIsolatedId(get));
+            const rows = visibleRowIds(get(expandedIdsAtom), getIsolationScope(get));
             const anchor = [get(rangeAnchorAtom), ...rows.filter((r) => selection.includes(r))].find((a) => a && rows.includes(a));
             const from = anchor ? rows.indexOf(anchor) : -1;
             const to = rows.indexOf(id);

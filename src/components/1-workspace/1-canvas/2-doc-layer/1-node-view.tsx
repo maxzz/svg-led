@@ -1,16 +1,18 @@
 import { createElement, memo } from "react";
 import { useSnapshot } from "valtio";
 
-import { type GroupNode, type SvgNode } from "@/svg-core";
+import { type GroupNode, type SvgNode, inertPointerEvents } from "@/svg-core";
 import { attrsToProps } from "./2-attrs-to-props";
 
 type NodeViewProps = {
     node: SvgNode;
     /**
-     * Ids of the isolation chain joined by spaces (outermost group first, the isolated group last), given to nodes whose parent is on the chain.
-     * A node that is not on the chain is dimmed; the contents of the isolated group get no chain and render as usual.
+     * Ids that stay fully visible, joined by spaces: ancestors of an isolated object, and the object.
+     * A node that is not in the list is dimmed. Omitted outside isolation.
      */
     isolation?: string;
+    /** Isolated groups, joined by spaces. Their contents render as usual, with nothing dimmed inside. */
+    openGroups?: string;
     /** Rendered outside the canvas (layer thumbnails): no data-nid, so canvas hit testing and DOM bbox lookups ignore it */
     detached?: boolean;
 };
@@ -18,13 +20,17 @@ type NodeViewProps = {
 /** Renders one document node; subscribes to that node only, so editing one element re-renders just that element */
 export const NodeView = memo(
 
-    function NodeView({ node, isolation, detached }: NodeViewProps) {
+    function NodeView({ node, isolation, openGroups, detached }: NodeViewProps) {
         const snap = useSnapshot(node) as SvgNode;
         const chain = isolation?.split(' ');
         const onChain = !!chain?.includes(snap.id);
+        const opened = !!openGroups?.split(' ').includes(snap.id);
+        // A fully transparent shape (fill="#0000") would otherwise sit on top of a group and take the click
+        const pointerEvents = snap.kind !== 'g' && !detached ? inertPointerEvents(snap.attrs) : undefined;
         const props = {
             ...attrsToProps(snap.attrs),
             ...(!detached && { 'data-nid': snap.id }),
+            ...(pointerEvents && { pointerEvents }),
             ...(chain && !onChain && { 'data-isolation-dim': '' }),
         };
 
@@ -43,12 +49,13 @@ export const NodeView = memo(
             case 'polygon':
                 return createElement(snap.kind, { ...props, points: snap.points.map((p) => `${p.x},${p.y}`).join(' ') });
             case 'g': {
-                const childIsolation = onChain && chain!.at(-1) !== snap.id ? isolation : undefined;
+                // An isolated group shows every child. An ancestor of an isolated object keeps filtering. A dimmed group fades as a whole.
+                const pass = onChain && !opened;
                 return (
                     <g {...props}>
                         {snap.children.map((_, i) => {
                             const child = (node as GroupNode).children?.[i];
-                            return child ? <NodeView key={child.id} node={child} isolation={childIsolation} detached={detached} /> : null;
+                            return child ? <NodeView key={child.id} node={child} isolation={pass ? isolation : undefined} openGroups={pass ? openGroups : undefined} detached={detached} /> : null;
                         })}
                     </g>
                 );
