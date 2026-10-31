@@ -6,7 +6,7 @@ import { type ResizeHandle, type ToolDef, type ToolPointerEvent } from "../9-typ
 import { type Point, type Rect, type SvgDoc, applyMatrix, findNode, flattenSubpaths, nodeCtm, nodeOutline, rectContainsRect, rectFromCorners, rectsIntersect, scaleAround, walkNodes } from "@/svg-core";
 import { type NodeOriginals, applyDocMatrix, captureOriginals, commitHistory, docState, duplicateNodes, nodeDocBBox, nodesDocBBox } from "@/store/3-document";
 import { ToolId, hoverNodeIdAtom, lassoAtom, marqueeAtom, screenToDoc, selectionAtom, setSelectionAtom, viewportAtom } from "@/store/4-editor";
-import { enterIsolationAtom, exitIsolationLevelAtom, getIsolationScope, isHidden, isPickable, isolationRootChildren } from "@/store/6-layers";
+import { enterIsolationAtom, exitIsolationToAtom, getIsolationScope, isHidden, isPickable, isolationRootChildren } from "@/store/6-layers";
 import { appSettings, SelectionMode } from "@/store/1-ui-settings";
 import { MODIFIERS, isMod } from "./8-definition-of-modifiers";
 import { modifierHint } from "../0-shared/5-hint";
@@ -69,11 +69,10 @@ export const selectTool: ToolDef = {
             }
         }
 
-        if (e.clickCount >= 2 && target.type === 'none') {
-            // Double-click outside of any element leaves the isolated group for its parent
-            if (set(exitIsolationLevelAtom)) {
-                return;
-            }
+        if (e.clickCount >= 2 && target.type === 'none' && isolated.length) {
+            // Double-click outside the isolated objects leaves every isolation level
+            set(exitIsolationToAtom, null);
+            return;
         }
 
         if (target.type === 'node' && e.clickCount >= 2) {

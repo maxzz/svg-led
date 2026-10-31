@@ -9,7 +9,7 @@ import { Island } from "@/ui/local-ui/9-island";
 import { docState } from "@/store/3-document";
 import { exitIsolationLevelAtom, exitIsolationToAtom, isolationChainAtom } from "@/store/6-layers";
 
-/** Isolation path, as in Illustrator: back one level, the document, then every isolated group; a click goes back to that level */
+/** Isolation path: back one level, the document, then each nested isolation level. A click returns to that level. */
 export function Island_IsolationBreadcrumbs() {
     const chain = useAtomValue(isolationChainAtom);
 
@@ -38,11 +38,11 @@ function Breadcrumbs() {
 
     return (
         <Island className="max-w-[min(90vw,48rem)] overflow-x-auto">
-            <button className={crumbClasses} title="Back one level — Esc, or double-click outside of any element" onClick={() => back()} type="button">
+            <button className={crumbClasses} title="Back one level — Esc" onClick={() => back()} type="button">
                 <ArrowLeft className="size-3.5" />
             </button>
 
-            <button className={crumbClasses} title="Exit isolation mode" onClick={() => goTo(null)} type="button">
+            <button className={crumbClasses} title="Exit isolation mode — double-click outside the isolated objects" onClick={() => goTo(null)} type="button">
                 <Layers className="size-3.5" />
                 <span className="truncate">{fileName}</span>
             </button>
@@ -57,7 +57,7 @@ function Breadcrumbs() {
                                 className={classNames(crumbClasses, last ? "font-bold text-foreground" : "underline decoration-dotted underline-offset-2")}
                                 disabled={last}
                                 onClick={() => goTo(level.id)}
-                                title={last ? "Isolated" : "Isolate this group"}
+                                title={last ? "Isolated" : "Back to this level"}
                                 type="button"
                             >
                                 <span className="truncate">

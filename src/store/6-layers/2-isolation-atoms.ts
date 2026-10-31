@@ -1,9 +1,9 @@
 import { type Getter, atom } from "jotai";
 import { atomWithProxy } from "jotai-valtio";
-import { type SvgDoc, type SvgNode, findNode, isCompoundPath } from "@/svg-core";
+import { type SvgDoc, type SvgNode, findNode, groupPathIds, isCompoundPath } from "@/svg-core";
 import { isolationScopeOf } from "@/tools/0-shared/4-group-units";
 import { docState } from "../3-document";
-import { isolatedGroupIdAtom, setSelectionAtom } from "../4-editor";
+import { isolatedGroupIdAtom, isolationStackAtom, setSelectionAtom } from "../4-editor/2-selection-atoms";
 
 /** The Valtio document as a Jotai atom, so derived atoms update when the document changes */
 export const docProxyAtom = atomWithProxy(docState);
@@ -145,16 +145,137 @@ export function layerName(node: SvgNode): string {
 
 export type IsolationLevel = { id: string; label: string; };
 
-/** Groups from the outermost to the isolated object; one summary crumb when several objects are isolated */
+/** Crumb id for one stack frame. A single object uses its node id; several objects share one crumb. */
+export function isolationFrameId(frame: readonly string[], index: number): string {
+    return frame.length === 1 ? frame[0] : `__isolation__:${index}`;
+}
+
+/**
+ * Pushes `scope` onto the isolation stack.
+ * A first entry on a single object also records the groups around it, so the breadcrumb can return to each one.
+ * A later entry stays under the levels already open. Returns null when the active level is already `scope`.
+ */
+export function nestIsolationStack(doc: SvgDoc, stack: readonly (readonly string[])[], scope: readonly string[]): readonly (readonly string[])[] | null {
+    const frame = [...scope];
+    if (!frame.length || sameIsolationIds(stack.at(-1) ?? [], frame)) {
+        return null;
+    }
+    const current = stack.at(-1);
+    if (!current || !frame.every((id) => idInsideScope(doc, current, id))) {
+        return frame.length === 1 ? ancestorFrames(doc, frame[0]) : [frame];
+    }
+    if (frame.length > 1) {
+        return [...stack, frame];
+    }
+    return appendSingle(doc, stack, frame[0]);
+}
+
+/** Drops frames whose objects are gone, and every level nested inside a frame that is entirely gone */
+export function pruneIsolationStack(doc: SvgDoc, stack: readonly (readonly string[])[]): readonly (readonly string[])[] {
+    let changed = false;
+    const next: (readonly string[])[] = [];
+    for (const frame of stack) {
+        const ids = frame.filter((id) => findNode(doc, id));
+        if (!ids.length) {
+            changed = true;
+            break;
+        }
+        if (ids.length !== frame.length) {
+            changed = true;
+            next.push(ids);
+        } else {
+            next.push(frame);
+        }
+    }
+    return changed || next.length !== stack.length ? next : stack;
+}
+
+/** One step out of isolation. Selects the objects of the level that was left. */
+export function popIsolationStack(stack: readonly (readonly string[])[]): { stack: readonly (readonly string[])[]; select: readonly string[]; } | null {
+    if (!stack.length) {
+        return null;
+    }
+    return { stack: stack.slice(0, -1), select: stack[stack.length - 1] };
+}
+
+/**
+ * Breadcrumb jump. `target` null leaves isolation entirely.
+ * Otherwise the stack keeps that frame and selects the objects of the level directly inside it.
+ */
+export function jumpIsolationStack(stack: readonly (readonly string[])[], target: string | null): { stack: readonly (readonly string[])[]; select: readonly string[]; } | null {
+    if (!stack.length) {
+        return null;
+    }
+    if (target === null) {
+        return { stack: [], select: stack[0] };
+    }
+    const index = stack.findIndex((frame, i) => isolationFrameId(frame, i) === target);
+    if (index < 0 || index === stack.length - 1) {
+        return null;
+    }
+    return { stack: stack.slice(0, index + 1), select: stack[index + 1] };
+}
+
+/** One crumb per isolation level, outermost first. A missing object is left out; an empty level is skipped. */
+export function isolationLevels(doc: SvgDoc, stack: readonly (readonly string[])[]): IsolationLevel[] {
+    const levels: IsolationLevel[] = [];
+    for (let index = 0; index < stack.length; index++) {
+        const frame = stack[index];
+        const nodes = frame.flatMap((id) => {
+            const node = findNode(doc, id)?.node;
+            return node ? [node] : [];
+        });
+        if (!nodes.length) {
+            continue;
+        }
+        const only = frame.length === 1 ? nodes[0] : undefined;
+        levels.push({
+            id: only ? only.id : isolationFrameId(frame, index),
+            label: nodes.length === 1 ? layerName(nodes[0]) : `${nodes.length} objects`,
+        });
+    }
+    return levels;
+}
+
+function idInsideScope(doc: SvgDoc, scope: readonly string[], id: string): boolean {
+    if (scope.includes(id)) {
+        return true;
+    }
+    const parents = groupPathIds(doc, id);
+    return scope.some((parent) => parents.includes(parent));
+}
+
+/** The groups around `id`, then `id`, each as its own isolation level */
+function ancestorFrames(doc: SvgDoc, id: string): readonly (readonly string[])[] {
+    return [...groupPathIds(doc, id).map((parent) => [parent]), [id]];
+}
+
+/** Appends `id` under the active level, including groups that sit between that level and `id` */
+function appendSingle(doc: SvgDoc, stack: readonly (readonly string[])[], id: string): readonly (readonly string[])[] | null {
+    if (stack.some((frame) => frame.length === 1 && frame[0] === id)) {
+        return null;
+    }
+    const current = stack.at(-1)!;
+    if (current.includes(id)) {
+        return [...stack, [id]];
+    }
+    const parents = groupPathIds(doc, id);
+    let anchor = -1;
+    for (const scopeId of current) {
+        const index = parents.indexOf(scopeId);
+        if (index > anchor) {
+            anchor = index;
+        }
+    }
+    const between = parents.slice(anchor + 1).filter((parent) => !stack.some((frame) => frame.length === 1 && frame[0] === parent));
+    return [...stack, ...between.map((parent) => [parent]), [id]];
+}
+
+/** One crumb per open isolation level, outermost first */
 export const isolationChainAtom = atom(
     (get): IsolationLevel[] => {
         const doc = get(docProxyAtom).doc as unknown as SvgDoc;
-        const scope = validIsolationScope(doc, get(isolatedGroupIdAtom));
-        if (scope.length === 1) {
-            const loc = findNode(doc, scope[0]);
-            return loc ? [...loc.parents, loc.node].map((n) => ({ id: n.id, label: layerName(n) })) : [];
-        }
-        return scope.length > 1 ? [{ id: '__isolation__', label: `${scope.length} objects` }] : [];
+        return isolationLevels(doc, get(isolationStackAtom));
     }
 );
 
@@ -177,13 +298,14 @@ export const isolationCollapsedAtom = atom<ReadonlySet<string>>(new Set<string>(
 /** The Isolation Mode row is expanded when several objects are isolated; they are its children */
 export const isolationManyOpenAtom = atom(true);
 
-/** Isolates the given objects: everything else is dimmed and cannot be picked. Clears the selection. */
+/** Isolates the given objects: everything else is dimmed and cannot be picked. Clears the selection. A level already open gains another one. */
 export const enterIsolationAtom = atom(
     null,
-    (_get, set, ids: string | readonly string[]) => {
+    (get, set, ids: string | readonly string[]) => {
         const scope = validIsolationScope(docState.doc, typeof ids === 'string' ? [ids] : ids);
-        if (scope.length) {
-            set(isolatedGroupIdAtom, scope);
+        const next = nestIsolationStack(docState.doc, get(isolationStackAtom), scope);
+        if (next) {
+            set(isolationStackAtom, next);
             set(setSelectionAtom, []);
             set(isolationCollapsedAtom, new Set<string>());
             set(isolationManyOpenAtom, true);
@@ -191,52 +313,29 @@ export const enterIsolationAtom = atom(
     }
 );
 
-/** Leaves the current isolation for the parent group, or the top level. The object that was left becomes selected. Returns false when not isolated. */
+/** Leaves the current isolation for the parent level, or the top level. The objects that were left become selected. Returns false when not isolated. */
 export const exitIsolationLevelAtom = atom(
     null,
     (get, set): boolean => {
-        const scope = getIsolationScope(get);
-        if (!scope.length) {
-            set(isolatedGroupIdAtom, []);
+        const left = popIsolationStack(get(isolationStackAtom));
+        if (!left) {
             return false;
         }
-        if (scope.length > 1) {
-            set(isolatedGroupIdAtom, []);
-            set(setSelectionAtom, scope);
-            return true;
-        }
-        const id = scope[0];
-        const parent = findNode(docState.doc, id)?.parents.at(-1)?.id;
-        set(isolatedGroupIdAtom, parent ? [parent] : []);
-        set(setSelectionAtom, [id]);
+        set(isolationStackAtom, left.stack);
+        set(setSelectionAtom, [...left.select]);
         return true;
     }
 );
 
-/** Breadcrumbs: isolates one of the groups around the isolated object, or exits isolation when `target` is null */
+/** Breadcrumbs: returns to an earlier isolation level, or leaves isolation when `target` is null */
 export const exitIsolationToAtom = atom(
     null,
     (get, set, target: string | null) => {
-        const scope = getIsolationScope(get);
-        if (!scope.length || (scope.length === 1 && scope[0] === target)) {
+        const next = jumpIsolationStack(get(isolationStackAtom), target);
+        if (!next) {
             return;
         }
-        if (scope.length > 1) {
-            if (target) {
-                return;
-            }
-            set(isolatedGroupIdAtom, []);
-            set(setSelectionAtom, scope);
-            return;
-        }
-        const id = scope[0];
-        const loc = findNode(docState.doc, id);
-        const chain = loc ? [...loc.parents.map((p) => p.id), id] : [];
-        const index = target ? chain.indexOf(target) : -1;
-        if (target && index < 0) {
-            return;
-        }
-        set(isolatedGroupIdAtom, target ? [target] : []);
-        set(setSelectionAtom, chain[index + 1] ? [chain[index + 1]] : []);
+        set(isolationStackAtom, next.stack);
+        set(setSelectionAtom, [...next.select]);
     }
 );

@@ -3,11 +3,20 @@ import { atom } from "jotai";
 /** Selected node ids (internal ids, see SvgNode.id) */
 export const selectionAtom = atom<string[]>([]);
 
+const noIsolation: readonly string[] = [];
+
 /**
- * Objects in isolation (see SvgNode.id), or empty. Isolation logic lives in store/6-layers.
+ * Isolation levels, outermost first. Each frame is the objects isolated at that level.
+ * The last frame is the active scope. Entering isolation again pushes a frame; a breadcrumb
+ * click pops back to that frame instead of leaving every level.
+ */
+export const isolationStackAtom = atom<readonly (readonly string[])[]>([]);
+
+/**
+ * Objects in the active isolation level, or empty. Isolation logic lives in store/6-layers.
  * One group shows its children; any other object, or several objects, stay editable while the rest of the drawing is dimmed.
  */
-export const isolatedGroupIdAtom = atom<readonly string[]>([]);
+export const isolatedGroupIdAtom = atom((get): readonly string[] => get(isolationStackAtom).at(-1) ?? noIsolation);
 
 /**
  * Selected anchors and shape handles in points mode.
