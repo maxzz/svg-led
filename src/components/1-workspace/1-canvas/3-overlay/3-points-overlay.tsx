@@ -5,8 +5,8 @@ import { anchorsOfNode, hoverNodeIdAtom, selectedAnchorsAtom, selectionAtom, vie
 import { pointsOptionsAtom } from "@/tools/tool-3-points/1-options";
 import { nodeScreenMatrix, outlineScreenD, screenSubpaths } from "./0-overlay-geometry";
 
-const ANCHOR = 7;
-const KNOB = 3.5;
+const ANCHOR = 4; // same box as the selection-mode corner grips
+const KNOB = 2;    // direction-handle radius; the diameter matches the anchor box
 
 /** Points mode: outlines, anchors (squares), direction handles (lines with round knobs) and native shape handles */
 export function PointsOverlay() {
@@ -68,17 +68,16 @@ function NodePoints({ doc, id, m }: { doc: SvgDoc; id: string; m: Matrix; }) {
                 {getShapeHandles(node).map((h) => {
                     const p = applyMatrix(m, h);
                     const isSel = selected.has(`h:${h.key}`);
-                    const size = h.role === 'radius' ? 6 : ANCHOR;
                     return (
                         <rect
                             key={h.key}
                             data-hit="shape-handle"
                             data-nid={id}
                             data-key={h.key}
-                            x={p.x - size / 2}
-                            y={p.y - size / 2}
-                            width={size}
-                            height={size}
+                            x={p.x - ANCHOR / 2}
+                            y={p.y - ANCHOR / 2}
+                            width={ANCHOR}
+                            height={ANCHOR}
                             transform={h.role === 'radius' ? `rotate(45 ${p.x} ${p.y})` : undefined}
                             strokeWidth={1}
                             className={isSel ? "fill-(--editor-accent) stroke-(--editor-accent)" : "fill-background stroke-(--editor-accent)"}
