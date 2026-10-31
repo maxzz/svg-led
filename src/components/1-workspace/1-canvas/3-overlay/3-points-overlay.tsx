@@ -6,7 +6,7 @@ import { pointsOptionsAtom } from "@/tools/tool-3-points/1-options";
 import { nodeScreenMatrix, outlineScreenD, screenSubpaths } from "./0-overlay-geometry";
 
 const ANCHOR = 4; // same box as the selection-mode corner grips
-const KNOB = 2;    // direction-handle radius; the diameter matches the anchor box
+const KNOB = 3;    // direction-handle radius; a little larger than the anchor box
 
 /** Points mode: outlines, anchors (squares), direction handles (lines with round knobs) and native shape handles */
 export function PointsOverlay() {

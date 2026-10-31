@@ -5,7 +5,7 @@ import { penDraftAtom, pointerDocAtom, selectionAtom, viewportAtom } from "@/sto
 import { nodeScreenMatrix, pt, screenSubpaths, viewportMatrix } from "./0-overlay-geometry";
 
 const ANCHOR = 4; // same box as direct-selection path points
-const KNOB = 2;    // direction-handle radius; the diameter matches the anchor box
+const KNOB = 3;    // direction-handle radius; a little larger than the anchor box
 
 /** Pen tool: anchors of the path being drawn, its last handles and the rubber-band segment to the pointer */
 export function PenOverlay() {
