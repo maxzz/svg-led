@@ -19,6 +19,19 @@ import { LASSO_STEP_PX, type Polyline, lassoHits, simplifyLasso } from "./2-lass
 /** True while a move gesture drags the selection. The hover state is cleared on pointer down, so the cursor needs this to keep the move icon during the drag. */
 const movingSelectionAtom = atom(false);
 
+/**
+ * Tailwind cursor class for each resize handle. The selection grips use it, and the drag keeps it
+ * while pointer capture is on the canvas.
+ */
+const resizeCursorAtom = atom<string | null>(null);
+
+export const RESIZE_CURSOR: Record<ResizeHandle, string> = {
+    nw: 'cursor-resize-nw', se: 'cursor-resize-se',
+    ne: 'cursor-resize-ne', sw: 'cursor-resize-sw',
+    n: 'cursor-resize-ns', s: 'cursor-resize-ns',
+    e: 'cursor-resize-ew', w: 'cursor-resize-ew',
+};
+
 export const selectTool: ToolDef = {
     id: ToolId.select,
     label: 'Selection',
@@ -34,6 +47,10 @@ export const selectTool: ToolDef = {
         }),
     cursor: 'default', // fallback, the cursor classes below take precedence
     getCursor(get) {
+        const resizing = get(resizeCursorAtom);
+        if (resizing) {
+            return resizing;
+        }
         if (get(movingSelectionAtom)) {
             return 'cursor-solid-move'; // dragging the selection
         }
@@ -53,6 +70,7 @@ export const selectTool: ToolDef = {
         if (target.type === 'resize' && selection.length) {
             const bbox = nodesDocBBox(snapshot(docState).doc as SvgDoc, selection);
             if (bbox) {
+                set(resizeCursorAtom, RESIZE_CURSOR[target.handle]);
                 gesture = {
                     type: 'resize', originals: captureOriginals(selection), bbox, handle: target.handle, moved: false, startScreen: e.screen,
                     snapTargets: collectSnapTargets(docState.doc as SvgDoc, selection),
@@ -170,6 +188,7 @@ export const selectTool: ToolDef = {
     onPointerUp({ set }) {
         clearSnapGuides();
         set(movingSelectionAtom, false);
+        set(resizeCursorAtom, null);
         if (!gesture) {
             return;
         }

@@ -174,7 +174,12 @@ export const canvasCursorAtom = atom(
             return { cursor: 'grab' };
         }
         const tool = getTool(get(activeToolIdAtom));
-        return tool.getCursor ? { className: tool.getCursor(get) } : { cursor: tool.cursor };
+        if (!tool.getCursor) {
+            return { cursor: tool.cursor };
+        }
+        const value = tool.getCursor(get);
+        // Tailwind cursor utilities are class names; a raw CSS cursor (used while resizing) is a style.
+        return value.startsWith('cursor-') ? { className: value } : { cursor: value };
     }
 );
 
