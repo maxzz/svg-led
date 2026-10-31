@@ -3,20 +3,13 @@ import { type SvgDoc, type Rect, findNode } from "@/svg-core";
 import { nodesDocBBox, useDocSnapshot } from "@/store/3-document";
 import { hoverNodeIdAtom, rectToScreen, selectionAtom, viewportAtom } from "@/store/4-editor";
 import { type ResizeHandle } from "@/tools/9-types-tool-def";
+import { RESIZE_CURSOR } from "@/tools/tool-2-select";
 import { nodeScreenMatrix, outlineScreenD } from "./0-overlay-geometry";
 
 const HANDLE = 4; // every grip; the 1px stroke sits on the edge, so it paints about 5px
 
 const EDGES: [ResizeHandle, number, number][] = [['n', 0.5, 0], ['e', 1, 0.5], ['s', 0.5, 1], ['w', 0, 0.5]];
 const CORNERS: [ResizeHandle, number, number][] = [['nw', 0, 0], ['ne', 1, 0], ['se', 1, 1], ['sw', 0, 1]];
-
-/** Tailwind utilities from the cursors plugin */
-const CURSOR: Record<ResizeHandle, string> = {
-    nw: 'cursor-resize-nw', se: 'cursor-resize-se',
-    ne: 'cursor-resize-ne', sw: 'cursor-resize-sw',
-    n: 'cursor-resize-ns', s: 'cursor-resize-ns',
-    e: 'cursor-resize-ew', w: 'cursor-resize-ew',
-};
 
 /** Select tool: outlines of selected elements, the combined bbox, and a square grip on each corner and edge */
 export function SelectionOverlay() {
@@ -58,7 +51,7 @@ export function SelectionOverlay() {
 function Grip({ handle, box, fx, fy }: { handle: ResizeHandle; box: Rect; fx: number; fy: number; }) {
     return (
         <rect
-            className={`fill-background stroke-(--editor-accent) ${CURSOR[handle]}`}
+            className={`fill-background stroke-(--editor-accent) ${RESIZE_CURSOR[handle]}`}
             strokeWidth={1}
             x={box.x + fx * box.width - HANDLE / 2}
             y={box.y + fy * box.height - HANDLE / 2}

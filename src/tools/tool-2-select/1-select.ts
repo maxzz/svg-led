@@ -20,12 +20,12 @@ import { LASSO_STEP_PX, type Polyline, lassoHits, simplifyLasso } from "./2-lass
 const movingSelectionAtom = atom(false);
 
 /**
- * Cursor while a handle is dragged. Pointer capture is on the canvas, so the handle's own cursor does not follow the pointer.
- * Every handle uses a Tailwind cursor utility, so the glyph stays put while the pointer is captured by the canvas.
+ * Tailwind cursor class for each resize handle. The selection grips use it, and the drag keeps it
+ * while pointer capture is on the canvas.
  */
 const resizeCursorAtom = atom<string | null>(null);
 
-const RESIZE_CURSOR: Record<ResizeHandle, string> = {
+export const RESIZE_CURSOR: Record<ResizeHandle, string> = {
     nw: 'cursor-resize-nw', se: 'cursor-resize-se',
     ne: 'cursor-resize-ne', sw: 'cursor-resize-sw',
     n: 'cursor-resize-ns', s: 'cursor-resize-ns',
