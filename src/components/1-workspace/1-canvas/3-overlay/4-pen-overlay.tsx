@@ -4,7 +4,8 @@ import { useDocSnapshot } from "@/store/3-document";
 import { penDraftAtom, pointerDocAtom, selectionAtom, viewportAtom } from "@/store/4-editor";
 import { nodeScreenMatrix, pt, screenSubpaths, viewportMatrix } from "./0-overlay-geometry";
 
-const ANCHOR = 7;
+const ANCHOR = 4; // same box as direct-selection path points
+const KNOB = 2;    // direction-handle radius; the diameter matches the anchor box
 
 /** Pen tool: anchors of the path being drawn, its last handles and the rubber-band segment to the pointer */
 export function PenOverlay() {
@@ -46,7 +47,7 @@ export function PenOverlay() {
                 return h && (
                     <g key={side} className="pointer-events-none">
                         <line x1={last.x} y1={last.y} x2={h.x} y2={h.y} strokeWidth={1} className="stroke-(--editor-accent)/80" />
-                        <circle cx={h.x} cy={h.y} r={3.5} className="fill-(--editor-accent)" />
+                        <circle cx={h.x} cy={h.y} r={KNOB} strokeWidth={1} className="fill-(--editor-accent) stroke-background" />
                     </g>
                 );
             })}
