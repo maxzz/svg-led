@@ -6,7 +6,7 @@ import { type ResizeHandle } from "@/tools/9-types-tool-def";
 import { nodeScreenMatrix, outlineScreenD } from "./0-overlay-geometry";
 
 const PAD = 4;      // gap between the selection and its bounding box
-const HANDLE = 8;   // size of the corner and midpoint grips
+const HANDLE = 4;   // size of the corner grips
 const EDGE = 6;     // width of the invisible strip along each edge, the part of an edge that takes the pointer
 
 const CORNERS: [ResizeHandle, number, number][] = [['nw', 0, 0], ['ne', 1, 0], ['se', 1, 1], ['sw', 0, 1]];
@@ -74,7 +74,6 @@ function Grip({ handle, box, fx, fy }: { handle: ResizeHandle; box: Rect; fx: nu
         <rect
             className="fill-background stroke-(--editor-accent)"
             style={{ cursor: CURSOR[handle] }}
-            rx={2}
             strokeWidth={1}
             x={box.x + fx * box.width - HANDLE / 2}
             y={box.y + fy * box.height - HANDLE / 2}
