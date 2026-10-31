@@ -21,13 +21,13 @@ const movingSelectionAtom = atom(false);
 
 /**
  * Cursor while a handle is dragged. Pointer capture is on the canvas, so the handle's own cursor does not follow the pointer.
- * Edge handles use Tailwind cursor utilities; corners use the diagonal system cursors.
+ * Every handle uses a Tailwind cursor utility, so the glyph stays put while the pointer is captured by the canvas.
  */
 const resizeCursorAtom = atom<string | null>(null);
 
 const RESIZE_CURSOR: Record<ResizeHandle, string> = {
-    nw: 'nwse-resize', se: 'nwse-resize',
-    ne: 'nesw-resize', sw: 'nesw-resize',
+    nw: 'cursor-nw-resize', se: 'cursor-se-resize',
+    ne: 'cursor-ne-resize', sw: 'cursor-sw-resize',
     n: 'cursor-resize-ns', s: 'cursor-resize-ns',
     e: 'cursor-resize-ew', w: 'cursor-resize-ew',
 };

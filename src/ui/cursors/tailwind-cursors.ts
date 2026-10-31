@@ -117,6 +117,22 @@ const resizeVertical = `
     </svg>
 `;
 
+/** Northwest–southeast resize. The horizontal arrow rotated 45° around the center. Shared by the nw and se corners. */
+const resizeNwSe = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+        <polygon points="4.9,4.9 11.3,5.6 9.2,7.8 16.2,14.8 18.4,12.7 19.1,19.1 12.7,18.4 14.8,16.2 7.8,9.2 5.6,11.3" fill="#fff" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>
+        <polygon points="4.9,4.9 11.3,5.6 9.2,7.8 16.2,14.8 18.4,12.7 19.1,19.1 12.7,18.4 14.8,16.2 7.8,9.2 5.6,11.3" fill="#000"/>
+    </svg>
+`;
+
+/** Northeast–southwest resize. The horizontal arrow rotated the other way. Shared by the ne and sw corners. */
+const resizeNeSw = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+        <polygon points="4.9,19.1 5.6,12.7 7.8,14.8 14.8,7.8 12.7,5.6 19.1,4.9 18.4,11.3 16.2,9.2 9.2,16.2 11.3,18.4" fill="#fff" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>
+        <polygon points="4.9,19.1 5.6,12.7 7.8,14.8 14.8,7.8 12.7,5.6 19.1,4.9 18.4,11.3 16.2,9.2 9.2,16.2 11.3,18.4" fill="#000"/>
+    </svg>
+`;
+
 //---------------------------------------------------------------------------
 
 export function cursorsPlugin({ addUtilities }: PluginAPI): void {
@@ -126,6 +142,10 @@ export function cursorsPlugin({ addUtilities }: PluginAPI): void {
         '.cursor-solid-move': { cursor: cursorCss(selectionMove) },
         '.cursor-resize-ew': { cursor: cursorCss(resizeHorizontal, 12, 12) },
         '.cursor-resize-ns': { cursor: cursorCss(resizeVertical, 12, 12) },
+        '.cursor-nw-resize': { cursor: cursorCss(resizeNwSe, 12, 12) },
+        '.cursor-se-resize': { cursor: cursorCss(resizeNwSe, 12, 12) },
+        '.cursor-ne-resize': { cursor: cursorCss(resizeNeSw, 12, 12) },
+        '.cursor-sw-resize': { cursor: cursorCss(resizeNeSw, 12, 12) },
     });
 }
 
