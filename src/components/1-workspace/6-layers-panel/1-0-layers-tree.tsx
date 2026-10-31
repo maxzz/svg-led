@@ -1,11 +1,10 @@
 import { useAtomValue } from "jotai";
 import { useSnapshot } from "valtio";
-import { Group } from "lucide-react";
 
 import { type NodeLocation, findNode, walkNodes } from "@/svg-core";
 import { docState } from "@/store/3-document";
-import { isHidden, isLocked, isolationScopeAtom } from "@/store/6-layers";
-import { LayerRow } from "./1-1-layer-row";
+import { isolationScopeAtom } from "@/store/6-layers";
+import { IsolationRoot, LayerRow } from "./1-1-layer-row";
 
 /** The layers of the document, or only the isolated objects and their contents in isolation mode */
 export function LayersTree() {
@@ -37,23 +36,14 @@ function DocumentTree() {
 
 //---------------------------------------------------------------------------
 
-/** Illustrator shows an "Isolation Mode" row above the isolated objects */
+/** The isolated group is the root row, labeled Isolation Mode; its contents are indented under it */
 function IsolatedTree() {
     const scope = useAtomValue(isolationScopeAtom);
-    const roots = isolatedRoots(scope);
-    if (!roots.length) {
+    const nodes = isolatedRoots(scope).map((loc) => loc.node);
+    if (!nodes.length) {
         return null;
     }
-
-    return (<>
-        <div className="select-none px-2 h-7 text-muted-foreground border-b border-foreground/5 flex items-center gap-1.5">
-            <Group className="size-3.5" />
-            Isolation Mode
-        </div>
-        {roots.map((loc) => (
-            <LayerRow key={loc.node.id} node={loc.node} depth={1} hiddenByParent={loc.parents.some(isHidden)} lockedByParent={loc.parents.some(isLocked)} />
-        ))}
-    </>);
+    return <IsolationRoot nodes={nodes} />;
 }
 
 /** Isolated objects in layer order (topmost first). A child of an isolated object is listed under it, not again here. */
