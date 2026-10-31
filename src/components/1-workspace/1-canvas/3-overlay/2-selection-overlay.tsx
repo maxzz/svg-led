@@ -5,29 +5,24 @@ import { hoverNodeIdAtom, rectToScreen, selectionAtom, viewportAtom } from "@/st
 import { type ResizeHandle } from "@/tools/9-types-tool-def";
 import { nodeScreenMatrix, outlineScreenD } from "./0-overlay-geometry";
 
-const PAD = 4;      // gap between the selection and its bounding box
-const HANDLE = 4;   // size of the corner grips
-const EDGE = 6;     // width of the invisible strip along each edge, the part of an edge that takes the pointer
+/** Screen-pixel size of a corner resize handle. Sharp rectangle; the 1px stroke sits on its edge. */
+const HANDLE = 8;
 
 const CORNERS: [ResizeHandle, number, number][] = [['nw', 0, 0], ['ne', 1, 0], ['se', 1, 1], ['sw', 0, 1]];
-const EDGES: ResizeHandle[] = ['n', 'e', 's', 'w'];
 
-const CURSOR: Record<ResizeHandle, string> = {
+const CURSOR: Partial<Record<ResizeHandle, string>> = {
     nw: 'nwse-resize', se: 'nwse-resize',
     ne: 'nesw-resize', sw: 'nesw-resize',
-    n: 'ns-resize', s: 'ns-resize',
-    e: 'ew-resize', w: 'ew-resize',
 };
 
-/** Select tool: outlines of selected elements, the combined bbox with resize handles, and the hover outline */
+/** Select tool: outlines of selected elements, the combined bbox, and a resize handle on each corner */
 export function SelectionOverlay() {
     const doc = useDocSnapshot();
     const vp = useAtomValue(viewportAtom);
     const selection = useAtomValue(selectionAtom);
     const hover = useAtomValue(hoverNodeIdAtom);
     const bbox = selection.length ? nodesDocBBox(doc, selection) : null;
-    const r = bbox && rectToScreen(vp, bbox);
-    const box = r && { x: r.x - PAD, y: r.y - PAD, width: r.width + PAD * 2, height: r.height + PAD * 2 };
+    const box = bbox && rectToScreen(vp, bbox);
 
     // a selected group or several elements show a dashed box, a single element a solid one
     const dashed = selection.length > 1 || selection.some((id) => findNode(doc, id)?.node.kind === 'g');
@@ -43,26 +38,12 @@ export function SelectionOverlay() {
             )}
 
             {box && (<>
-                {/* Combined bbox dashed rectangle */}
                 <rect
                     className="stroke-(--editor-accent) pointer-events-none"
                     x={box.x} y={box.y} width={box.width} height={box.height}
                     fill="none" strokeWidth={1} strokeDasharray={dashed ? "4 3" : undefined}
                 />
 
-                {/* Edges: a thin invisible strip along each side (no visible grip), resizes only the axis perpendicular to it */}
-                {EDGES.map((handle) => (
-                    <rect
-                        key={handle}
-                        {...edgeStrip(handle, box)}
-                        fill="transparent"
-                        style={{ cursor: CURSOR[handle] }}
-                        data-hit="resize"
-                        data-handle={handle}
-                    />
-                ))}
-
-                {/* Corner grips: both axes */}
                 {CORNERS.map(([handle, fx, fy]) => <Grip key={handle} handle={handle} box={box} fx={fx} fy={fy} />)}
             </>)}
         </g>
@@ -83,19 +64,6 @@ function Grip({ handle, box, fx, fy }: { handle: ResizeHandle; box: Rect; fx: nu
             data-handle={handle}
         />
     );
-}
-
-/** The strip along one side of the box, between the corner grips */
-function edgeStrip(handle: ResizeHandle, box: Rect): Rect {
-    const innerW = Math.max(0, box.width - HANDLE);
-    const innerH = Math.max(0, box.height - HANDLE);
-    switch (handle) {
-        case 'n': return { x: box.x + HANDLE / 2, y: box.y - EDGE / 2, width: innerW, height: EDGE };
-        case 's': return { x: box.x + HANDLE / 2, y: box.y + box.height - EDGE / 2, width: innerW, height: EDGE };
-        case 'w': return { x: box.x - EDGE / 2, y: box.y + HANDLE / 2, width: EDGE, height: innerH };
-        case 'e': return { x: box.x + box.width - EDGE / 2, y: box.y + HANDLE / 2, width: EDGE, height: innerH };
-        default: return { x: 0, y: 0, width: 0, height: 0 };
-    }
 }
 
 function Outline({ doc, id, className }: { doc: SvgDoc; id: string; className: string; }) {

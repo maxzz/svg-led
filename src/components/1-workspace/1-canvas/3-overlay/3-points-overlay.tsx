@@ -5,7 +5,7 @@ import { anchorsOfNode, hoverNodeIdAtom, selectedAnchorsAtom, selectionAtom, vie
 import { pointsOptionsAtom } from "@/tools/tool-3-points/1-options";
 import { nodeScreenMatrix, outlineScreenD, screenSubpaths } from "./0-overlay-geometry";
 
-const ANCHOR = 4; // same box as the selection-mode corner grips
+const ANCHOR = 4; // sharp square; the stroke adds about a pixel
 const KNOB = 3;    // direction-handle radius; a little larger than the anchor box
 
 /** Points mode: outlines, anchors (squares), direction handles (lines with round knobs) and native shape handles */
