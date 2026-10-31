@@ -4,13 +4,14 @@ import { toast } from "sonner";
 import { appStore } from "@/store/0-app-store";
 import { appSettings } from "@/store/1-ui-settings";
 import { docState, loadSvgFile } from "@/store/3-document";
-import { filterTarget, getIsolationScope, insertMarkupAtTop } from "@/store/6-layers";
+import { exitIsolationLevelAtom, filterTarget, getIsolationScope, insertMarkupAtTop } from "@/store/6-layers";
 import {
     ToolId, activeToolIdAtom, canvasSizeAtom, hoverNodeIdAtom, isPanningAtom, panByAtom, pointerDocAtom, pruneSelectionAtom,
     heldKeysOf, screenToDoc, setHeldKeysAtom, setSelectionAtom, spaceHeldAtom, toolGestureActiveAtom, viewportAtom, zoomByAtom, zoomToFitAtom,
 } from "@/store/4-editor";
 import { type Point } from "@/svg-core";
 import { type ToolPointerEvent, getTool, resolveTarget, selectionUnitId } from "@/tools";
+import { docTolerance, hitTestOutlines } from "@/tools/0-shared/2-tool-helpers";
 import { PROPERTIES_POPUP_RIGHT_EDGE_PX } from "@/components/1-workspace/2-props-panel/9-atoms-properties-popup";
 
 type CanvasPointerEvent = ReactPointerEvent<SVGSVGElement>;
@@ -83,6 +84,18 @@ export const canvasPointerDownAtom = atom(
         set(hoverNodeIdAtom, null);
         const ev = toToolEvent(get, e);
         ev.clickCount = nextClickCount(ev.screen);
+        // Double-click outside the isolated objects leaves isolation, whichever tool is active.
+        // A thin stroke of an isolated object still counts as that object, so it does not leave.
+        if (ev.clickCount >= 2 && ev.target.type === 'none' && getIsolationScope(get).length) {
+            const hit = hitTestOutlines(ev.doc, docTolerance(get, 4), getIsolationScope(get));
+            if (hit) {
+                ev.target = { type: 'node', ...hit };
+            } else if (set(exitIsolationLevelAtom)) {
+                toolGesture = false;
+                set(toolGestureActiveAtom, false);
+                return;
+            }
+        }
         getTool(toolId).onPointerDown?.({ get, set }, ev);
     }
 );
