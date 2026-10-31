@@ -19,14 +19,17 @@ import { LASSO_STEP_PX, type Polyline, lassoHits, simplifyLasso } from "./2-lass
 /** True while a move gesture drags the selection. The hover state is cleared on pointer down, so the cursor needs this to keep the move icon during the drag. */
 const movingSelectionAtom = atom(false);
 
-/** CSS cursor while a corner is dragged. Pointer capture is on the canvas, so the handle's own cursor does not follow the pointer. */
+/**
+ * Cursor while a handle is dragged. Pointer capture is on the canvas, so the handle's own cursor does not follow the pointer.
+ * Edge handles use Tailwind cursor utilities; corners use the diagonal system cursors.
+ */
 const resizeCursorAtom = atom<string | null>(null);
 
 const RESIZE_CURSOR: Record<ResizeHandle, string> = {
     nw: 'nwse-resize', se: 'nwse-resize',
     ne: 'nesw-resize', sw: 'nesw-resize',
-    n: 'ns-resize', s: 'ns-resize',
-    e: 'ew-resize', w: 'ew-resize',
+    n: 'cursor-resize-ns', s: 'cursor-resize-ns',
+    e: 'cursor-resize-ew', w: 'cursor-resize-ew',
 };
 
 export const selectTool: ToolDef = {

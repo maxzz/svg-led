@@ -11,9 +11,9 @@ function svgToDataUri(svg: string): string {
     return `data:image/svg+xml,${encodeURIComponent(markup)}`;
 }
 
-/** The hotspot is the arrow tip at (1, 1) and at 0 0 is white border */
-function cursorCss(svg: string): string {
-    return `url("${svgToDataUri(svg)}") 1 1, default`;
+/** Hotspot defaults to the selection-arrow tip at (1, 1). Resize cursors pass the center of the glyph. */
+function cursorCss(svg: string, hotX = 1, hotY = 1): string {
+    return `url("${svgToDataUri(svg)}") ${hotX} ${hotY}, default`;
 }
 
 //---------------------------------------------------------------------------
@@ -98,11 +98,34 @@ const selectionMove = `
 
 //---------------------------------------------------------------------------
 
+/**
+ * Horizontal resize. Double arrow centered on the 24×24 grid; the hotspot is that center.
+ * White shape is the black arrow with a 2px stroke, so 1px of white shows around it.
+ */
+const resizeHorizontal = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+        <polygon points="2,12 7,8 7,11 17,11 17,8 22,12 17,16 17,13 7,13 7,16" fill="#fff" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>
+        <polygon points="2,12 7,8 7,11 17,11 17,8 22,12 17,16 17,13 7,13 7,16" fill="#000"/>
+    </svg>
+`;
+
+/** Vertical resize. Same arrow as the horizontal one, turned on its center. */
+const resizeVertical = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+        <polygon points="12,2 16,7 13,7 13,17 16,17 12,22 8,17 11,17 11,7 8,7" fill="#fff" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>
+        <polygon points="12,2 16,7 13,7 13,17 16,17 12,22 8,17 11,17 11,7 8,7" fill="#000"/>
+    </svg>
+`;
+
+//---------------------------------------------------------------------------
+
 export function cursorsPlugin({ addUtilities }: PluginAPI): void {
     addUtilities({
         '.cursor-solid-ptr': { cursor: cursorCss(selectionPointer) },
         '.cursor-solid-hover': { cursor: cursorCss(selectionPointerHover) },
         '.cursor-solid-move': { cursor: cursorCss(selectionMove) },
+        '.cursor-resize-ew': { cursor: cursorCss(resizeHorizontal, 12, 12) },
+        '.cursor-resize-ns': { cursor: cursorCss(resizeVertical, 12, 12) },
     });
 }
 
