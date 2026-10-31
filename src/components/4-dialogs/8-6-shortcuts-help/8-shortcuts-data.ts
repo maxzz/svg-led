@@ -40,7 +40,7 @@ export const CANVAS_ROWS: ShortcutRowData[] = [
     { label: 'Delete the selection (in Points: the selected anchors)', shortcuts: ['Delete', 'Backspace'] },
     { label: 'Pen: remove the last point while drawing', shortcuts: ['Backspace', 'Delete'] },
     { label: 'Pen: finish the path', shortcuts: ['Enter', 'Esc'] },
-    { label: 'Double-click a group to isolate it; double-click empty canvas to leave one level', shortcuts: ['Double-click'] },
+    { label: 'Double-click an object to isolate it; double-click outside the isolated objects to leave isolation', shortcuts: ['Double-click'] },
     { label: 'Scraps list: move between scraps', shortcuts: ['Arrows', 'Home', 'End'] },
     { label: 'Scraps list: load the selected scrap', shortcuts: ['Enter'] },
 ].map((row) => ({ ...row, id: row.label }));

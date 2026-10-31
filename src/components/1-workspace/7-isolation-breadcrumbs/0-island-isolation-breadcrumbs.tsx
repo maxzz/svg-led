@@ -38,11 +38,11 @@ function Breadcrumbs() {
 
     return (
         <Island className="max-w-[min(90vw,48rem)] overflow-x-auto">
-            <button className={crumbClasses} title="Back one level — Esc, or double-click outside of any element" onClick={() => back()} type="button">
+            <button className={crumbClasses} title="Back one level — Esc" onClick={() => back()} type="button">
                 <ArrowLeft className="size-3.5" />
             </button>
 
-            <button className={crumbClasses} title="Exit isolation mode" onClick={() => goTo(null)} type="button">
+            <button className={crumbClasses} title="Exit isolation mode — double-click outside the isolated objects" onClick={() => goTo(null)} type="button">
                 <Layers className="size-3.5" />
                 <span className="truncate">{fileName}</span>
             </button>
