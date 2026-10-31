@@ -1,8 +1,8 @@
 import { atom } from "jotai";
-import { findNode } from "@/svg-core";
 import { docState, redo, undo } from "../3-document";
 import { isHiddenOrLocked } from "../6-layers/1-layer-attrs";
-import { isolatedGroupIdAtom, selectedAnchorsAtom, selectionAtom } from "./2-selection-atoms";
+import { pruneIsolationStack } from "../6-layers/2-isolation-atoms";
+import { isolationStackAtom, selectedAnchorsAtom, selectionAtom } from "./2-selection-atoms";
 
 /** Keeps only the selected ids that still exist (and are neither hidden nor locked) after the document was replaced; drops isolated objects that are gone */
 export const pruneSelectionAtom = atom(
@@ -14,10 +14,10 @@ export const pruneSelectionAtom = atom(
         if (next.length !== sel.length) {
             set(selectionAtom, next);
         }
-        const isolated = get(isolatedGroupIdAtom);
-        const stillThere = isolated.filter((id) => findNode(doc, id));
-        if (stillThere.length !== isolated.length) {
-            set(isolatedGroupIdAtom, stillThere);
+        const stack = get(isolationStackAtom);
+        const pruned = pruneIsolationStack(doc, stack);
+        if (pruned !== stack) {
+            set(isolationStackAtom, pruned);
         }
         set(selectedAnchorsAtom, []);
     }
