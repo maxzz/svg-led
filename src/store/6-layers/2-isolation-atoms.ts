@@ -168,6 +168,15 @@ export const isolationScopeAtom = atom(
 
 //---------------------------------------------------------------------------
 
+/**
+ * Isolated objects the user collapsed in the layers tree.
+ * Entering isolation clears this, so the new root starts expanded.
+ */
+export const isolationCollapsedAtom = atom<ReadonlySet<string>>(new Set<string>());
+
+/** The Isolation Mode row is expanded when several objects are isolated; they are its children */
+export const isolationManyOpenAtom = atom(true);
+
 /** Isolates the given objects: everything else is dimmed and cannot be picked. Clears the selection. */
 export const enterIsolationAtom = atom(
     null,
@@ -176,6 +185,8 @@ export const enterIsolationAtom = atom(
         if (scope.length) {
             set(isolatedGroupIdAtom, scope);
             set(setSelectionAtom, []);
+            set(isolationCollapsedAtom, new Set<string>());
+            set(isolationManyOpenAtom, true);
         }
     }
 );

@@ -1,6 +1,7 @@
 import { type SvgNode, localBBox, nodeOwnMatrix, transformRect } from "@/svg-core";
 import { domBBoxFallback } from "@/store/3-document";
 import { NodeView } from "../1-canvas/2-doc-layer/1-node-view";
+import { LAYER_ICON_PX } from "./9-atoms-layers-panel";
 
 /**
  * Preview of one layer, fitted into a small square. The bbox is taken in the parent's coordinates (the node's own transform applied),
@@ -12,7 +13,10 @@ export function LayerThumbnail({ node, snap }: { node: SvgNode; snap: SvgNode; }
     const box = local && transformRect(nodeOwnMatrix(snap), local);
 
     return (
-        <div className="shrink-0 size-6 bg-white ring-1 ring-foreground/15 rounded-xs overflow-hidden flex items-center justify-center">
+        <div
+            className="shrink-0 bg-white ring-1 ring-foreground/15 rounded-xs overflow-hidden flex items-center justify-center"
+            style={{ width: LAYER_ICON_PX, height: LAYER_ICON_PX }}
+        >
             {box && (
                 <svg className="size-full **:[[display=none]]:inline" viewBox={thumbViewBox(box)} aria-hidden>
                     <NodeView node={node} detached />

@@ -4,13 +4,16 @@ import { type SvgNode, findNode, walkNodes } from "@/svg-core";
 import { appSettings } from "@/store/1-ui-settings";
 import { docState } from "@/store/3-document";
 import { selectionAtom, setSelectionAtom } from "@/store/4-editor";
-import { getIsolationScope, isHiddenOrLocked } from "@/store/6-layers";
+import { getIsolationScope, isHiddenOrLocked, isolationCollapsedAtom, isolationManyOpenAtom } from "@/store/6-layers";
 
 //---------------------------------------------------------------------------
 // Row layout
 
+/** Preview icon width; each tree level indents by one icon, so a child sits one preview to the right of its parent */
+export const LAYER_ICON_PX = 24;
+
 /** Indent per tree level */
-export const ROW_INDENT_PX = 12;
+export const ROW_INDENT_PX = LAYER_ICON_PX;
 
 /** Left edge of the name column at depth 0: the eye and padlock cells plus the padding before the expander */
 export const ROW_NAME_LEFT_PX = 2 * 28 + 4;
@@ -30,6 +33,28 @@ export const toggleExpandedAtom = atom(
         const next = new Set(get(expandedIdsAtom));
         next.has(id) ? next.delete(id) : next.add(id);
         set(expandedIdsAtom, next);
+    }
+);
+
+/** True when this isolated object was collapsed in the current isolation */
+export const isIsolationCollapsedFamily = atomFamily(
+    (id: string) => atom((get) => get(isolationCollapsedAtom).has(id))
+);
+
+export const toggleIsolationCollapsedAtom = atom(
+    null,
+    (get, set, id: string) => {
+        const next = new Set(get(isolationCollapsedAtom));
+        next.has(id) ? next.delete(id) : next.add(id);
+        set(isolationCollapsedAtom, next);
+    }
+);
+
+/** Collapse or expand the Isolation Mode row that holds several isolated objects */
+export const toggleIsolationManyAtom = atom(
+    null,
+    (get, set) => {
+        set(isolationManyOpenAtom, !get(isolationManyOpenAtom));
     }
 );
 
@@ -57,22 +82,34 @@ export function treeRootNodes(scope: readonly string[]): SvgNode[] {
     return found.reverse();
 }
 
-/** An isolated group is always shown open: it is a root of the tree */
-export function isOpenRow(id: string, expanded: ReadonlySet<string>, scope: readonly string[]): boolean {
-    return scope.includes(id) || expanded.has(id);
+/**
+ * Whether a group row shows its children.
+ * An isolated object starts open; collapsing it is stored until the next time isolation is entered.
+ * One isolated group is the Isolation Mode row, so its children follow this too.
+ */
+export function isOpenRow(id: string, expanded: ReadonlySet<string>, scope: readonly string[], collapsed: ReadonlySet<string>): boolean {
+    return scope.includes(id) ? !collapsed.has(id) : expanded.has(id);
 }
 
-/** Ids of the rows as they are shown, top to bottom */
-function visibleRowIds(expanded: ReadonlySet<string>, scope: readonly string[]): string[] {
+/** Ids of the rows as they are shown, top to bottom. Several isolated objects sit under a row that has no id of its own. */
+function visibleRowIds(expanded: ReadonlySet<string>, scope: readonly string[], collapsed: ReadonlySet<string>, manyOpen: boolean): string[] {
     const rv: string[] = [];
     const visit = (nodes: readonly SvgNode[]) => {
         for (const node of nodes) {
             rv.push(node.id);
-            if (node.kind === 'g' && isOpenRow(node.id, expanded, scope)) {
+            if (node.kind === 'g' && isOpenRow(node.id, expanded, scope, collapsed)) {
                 visit([...node.children].reverse());
             }
         }
     };
+    if (!scope.length) {
+        visit([...docState.doc.children].reverse());
+        return rv;
+    }
+    // Several isolated objects are hidden while their Isolation Mode row is collapsed
+    if (scope.length > 1 && !manyOpen) {
+        return rv;
+    }
     visit(treeRootNodes(scope));
     return rv;
 }
@@ -109,7 +146,7 @@ export const rowClickAtom = atom(
         }
 
         if (shift) {
-            const rows = visibleRowIds(get(expandedIdsAtom), getIsolationScope(get));
+            const rows = visibleRowIds(get(expandedIdsAtom), getIsolationScope(get), get(isolationCollapsedAtom), get(isolationManyOpenAtom));
             const anchor = [get(rangeAnchorAtom), ...rows.filter((r) => selection.includes(r))].find((a) => a && rows.includes(a));
             const from = anchor ? rows.indexOf(anchor) : -1;
             const to = rows.indexOf(id);
