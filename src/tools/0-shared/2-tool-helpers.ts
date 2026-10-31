@@ -5,6 +5,7 @@ import { type Matrix, type Point, type SvgNode, applyMatrix, distanceToOutline, 
 import { docState } from "@/store/3-document";
 import { viewportAtom } from "@/store/4-editor";
 import { isHidden, isLocked } from "@/store/6-layers";
+import { isolationScopeOf } from "./4-group-units";
 
 /** Pixels on screen expressed in document units at the current zoom */
 export function docTolerance(get: Getter, px: number): number {
@@ -40,9 +41,10 @@ export function docToLocal(id: string, p: Point): Point {
 /**
  * Geometry hit test for thin strokes that are hard to hit with the pointer:
  * returns the topmost element whose outline passes within `tolerance` (document units).
- * Hidden and locked elements are skipped, and so is everything outside the isolated group.
+ * Hidden and locked elements are skipped, and so is everything outside isolation.
  */
-export function hitTestOutlines(p: Point, tolerance: number, isolatedId: string | null): { topId: string; leafId: string; } | undefined {
+export function hitTestOutlines(p: Point, tolerance: number, isolated: string | readonly string[] | null): { topId: string; leafId: string; } | undefined {
+    const scope = isolationScopeOf(isolated);
     let rv: { topId: string; leafId: string; } | undefined;
     walkNodes(
         docState.doc.children,
@@ -50,7 +52,8 @@ export function hitTestOutlines(p: Point, tolerance: number, isolatedId: string 
             if (isHidden(node) || isLocked(node)) {
                 return false;
             }
-            if (isolatedId && node.kind !== 'g' && !parents.some((g) => g.id === isolatedId)) {
+            // Groups are still entered: an isolated object may sit inside one. Leaves outside isolation are skipped.
+            if (scope.length && !scope.includes(node.id) && !parents.some((g) => scope.includes(g.id)) && node.kind !== 'g') {
                 return;
             }
             const outline = nodeOutline(node);

@@ -4,7 +4,7 @@ import { motionValue } from "motion/react";
 import { findNode, topmostIds } from "@/svg-core";
 import { docState } from "@/store/3-document";
 import { selectionAtom } from "@/store/4-editor";
-import { getIsolatedId, layerName } from "@/store/6-layers";
+import { getIsolationScope, layerName } from "@/store/6-layers";
 import { type DropPlace, type LayerDrop, canDropLayers, moveLayers } from "@/store/7-layers-edit";
 import { ROW_INDENT_PX, ROW_NAME_LEFT_PX, expandedIdsAtom } from "../9-atoms-layers-panel";
 
@@ -49,7 +49,7 @@ export const rowDragDownAtom = atom(
     null,
     (get, _set, e: RowPointerDown) => {
         gesture = null;
-        if (e.button !== 0 || e.target.closest('[data-row-control]') || e.id === getIsolatedId(get)) {
+        if (e.button !== 0 || e.target.closest('[data-row-control]') || getIsolationScope(get).includes(e.id)) {
             return;
         }
         gesture = { id: e.id, row: e.row, pointerId: e.pointerId, startX: e.clientX, startY: e.clientY, ids: null, drop: null };
@@ -87,7 +87,7 @@ export const rowDragMoveAtom = atom(
         const container = gesture.row.closest<HTMLElement>('[data-layers-scroll]');
         container && autoScroll(container, e.clientY);
 
-        const hit = dropAt(e.clientX, e.clientY, container, getIsolatedId(get));
+        const hit = dropAt(e.clientX, e.clientY, container, getIsolationScope(get));
         const valid = hit && canDropLayers(docState.doc, gesture.ids, hit.drop);
         gesture.drop = valid ? hit.drop : null;
         set(dropIndicatorAtom, valid && container ? indicatorFor(hit.anchor, hit.drop.place, hit.depth, container) : null);
@@ -137,7 +137,7 @@ type DropHit = {
  * Below an open group means on top of its children, which are listed right under it. The isolated group only takes drops inside.
  * The empty space under the last row counts as below that row, so the end of the tree stays reachable.
  */
-function dropAt(x: number, y: number, container: HTMLElement | null, isolatedId: string | null): DropHit | undefined {
+function dropAt(x: number, y: number, container: HTMLElement | null, scope: readonly string[]): DropHit | undefined {
     if (!container) {
         return;
     }
@@ -157,7 +157,7 @@ function dropAt(x: number, y: number, container: HTMLElement | null, isolatedId:
     let place: DropPlace = isGroup
         ? f < 0.25 ? 'above' : f > 0.75 ? 'below' : 'inside'
         : f < 0.5 ? 'above' : 'below';
-    if (targetId === isolatedId || (place === 'below' && row.dataset.layerOpen === 'true')) {
+    if ((scope.includes(targetId) && isGroup) || (place === 'below' && row.dataset.layerOpen === 'true')) {
         place = 'inside';
     }
 
@@ -165,7 +165,7 @@ function dropAt(x: number, y: number, container: HTMLElement | null, isolatedId:
     // child of an expanded group lands inside that group when the pointer is over the children, but after the
     // group itself when the pointer moves left, toward that group's own indent.
     if (place === 'below') {
-        return dropBelow(rows, row, x, rowDepth, isolatedId);
+        return dropBelow(rows, row, x, rowDepth, scope);
     }
     return { anchor: row, drop: { targetId, place }, depth: rowDepth };
 }
@@ -180,11 +180,11 @@ function rowPastEnd(rows: HTMLElement[], container: HTMLElement, x: number, y: n
     return undefined;
 }
 
-function dropBelow(rows: HTMLElement[], row: HTMLElement, x: number, rowDepth: number, isolatedId: string | null): DropHit {
+function dropBelow(rows: HTMLElement[], row: HTMLElement, x: number, rowDepth: number, scope: readonly string[]): DropHit {
     const index = rows.indexOf(row);
     const next = rows[index + 1];
     const nextDepth = next ? Number(next.dataset.layerDepth ?? 0) : 0;
-    const minDepth = Math.max(nextDepth, isolationFloor(rows, isolatedId));
+    const minDepth = Math.max(nextDepth, isolationFloor(rows, scope));
 
     const rel = x - row.getBoundingClientRect().left - ROW_NAME_LEFT_PX;
     const depth = Math.min(rowDepth, Math.max(minDepth, Math.floor(rel / ROW_INDENT_PX)));
@@ -197,10 +197,16 @@ function dropBelow(rows: HTMLElement[], row: HTMLElement, x: number, rowDepth: n
     };
 }
 
-/** Levels shallower than this sit outside the isolated group, and drops may not leave it */
-function isolationFloor(rows: HTMLElement[], isolatedId: string | null): number {
-    const root = isolatedId ? rows.find((r) => r.dataset.layerId === isolatedId) : undefined;
-    return root ? Number(root.dataset.layerDepth ?? 0) + 1 : 0;
+/** Levels shallower than this sit outside the isolated objects, and drops may not leave them */
+function isolationFloor(rows: HTMLElement[], scope: readonly string[]): number {
+    let floor = Infinity;
+    for (const id of scope) {
+        const root = rows.find((r) => r.dataset.layerId === id);
+        if (root) {
+            floor = Math.min(floor, Number(root.dataset.layerDepth ?? 0) + 1);
+        }
+    }
+    return Number.isFinite(floor) ? floor : 0;
 }
 
 /** Line above or below the row at the insertion's indent, or a box around a group row for drops inside it */

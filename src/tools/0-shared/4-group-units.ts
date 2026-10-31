@@ -1,13 +1,27 @@
 import { type SvgDoc, groupPathIds } from "@/svg-core";
 
+/** One isolated id, several, or none. A string is the single-object form callers already pass. */
+export function isolationScopeOf(isolated: string | readonly string[] | null | undefined): readonly string[] {
+    if (!isolated) {
+        return [];
+    }
+    return typeof isolated === 'string' ? [isolated] : isolated;
+}
+
 /**
  * The node a click on `leafId` selects.
  * Outside isolation that is the outermost group around the element (or the element itself).
- * Inside the isolated group it is the child of that group on the path, or the element itself.
+ * Inside isolation it is the child of the deepest isolated group on the path, or the isolated element itself.
  */
-export function selectionUnitId(doc: SvgDoc, leafId: string, isolatedGroupId: string | null): string {
+export function selectionUnitId(doc: SvgDoc, leafId: string, isolated: string | readonly string[] | null): string {
     const chain = [...groupPathIds(doc, leafId), leafId];
-    const editingIndex = isolatedGroupId ? chain.indexOf(isolatedGroupId) : -1;
+    let editingIndex = -1;
+    for (const id of isolationScopeOf(isolated)) {
+        const index = chain.indexOf(id);
+        if (index > editingIndex) {
+            editingIndex = index;
+        }
+    }
     return chain[editingIndex + 1] ?? leafId;
 }
 

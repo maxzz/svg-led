@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { appStore } from "@/store/0-app-store";
 import { appSettings } from "@/store/1-ui-settings";
 import { docState, loadSvgFile } from "@/store/3-document";
-import { filterTarget, getIsolatedId, insertMarkupAtTop } from "@/store/6-layers";
+import { filterTarget, getIsolationScope, insertMarkupAtTop } from "@/store/6-layers";
 import {
     ToolId, activeToolIdAtom, canvasSizeAtom, hoverNodeIdAtom, isPanningAtom, panByAtom, pointerDocAtom, pruneSelectionAtom,
     heldKeysOf, screenToDoc, setHeldKeysAtom, setSelectionAtom, spaceHeldAtom, toolGestureActiveAtom, viewportAtom, zoomByAtom, zoomToFitAtom,
@@ -52,7 +52,7 @@ function toToolEvent(get: Getter, e: CanvasPointerEvent): ToolPointerEvent {
 
 /** What is under the pointer; hidden, locked and out-of-isolation elements count as empty canvas for every tool */
 function pickableTarget(get: Getter, el: Element | null) {
-    return filterTarget(docState.doc, resolveTarget(el), getIsolatedId(get));
+    return filterTarget(docState.doc, resolveTarget(el), getIsolationScope(get));
 }
 
 //---------------------------------------------------------------------------
@@ -90,7 +90,7 @@ export const canvasPointerDownAtom = atom(
 /** Sets the hovered element from what is under the pointer */
 function updateHover(get: Getter, set: Setter, t: ToolPointerEvent['target']) {
     const hover = t.type === 'node'
-        ? (get(activeToolIdAtom) === ToolId.points ? t.leafId : selectionUnitId(docState.doc, t.leafId, getIsolatedId(get)))
+        ? (get(activeToolIdAtom) === ToolId.points ? t.leafId : selectionUnitId(docState.doc, t.leafId, getIsolationScope(get)))
         : null;
     if (get(hoverNodeIdAtom) !== hover) {
         set(hoverNodeIdAtom, hover);

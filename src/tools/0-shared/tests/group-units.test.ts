@@ -33,6 +33,18 @@ describe("selectionUnitId", () => {
     it("ignores an edited group that is not on the path", () => {
         expect(selectionUnitId(doc, 'c', 'A')).toBe('c');
     });
+
+    it("selects an isolated element itself", () => {
+        expect(selectionUnitId(doc, 'c', 'c')).toBe('c');
+        expect(selectionUnitId(doc, 'a1', 'a1')).toBe('a1');
+        expect(selectionUnitId(doc, 'b1', 'b1')).toBe('b1');
+    });
+
+    it("selects each isolated element when several objects are isolated", () => {
+        expect(selectionUnitId(doc, 'b1', ['a1', 'b1'])).toBe('b1');
+        expect(selectionUnitId(doc, 'a1', ['a1', 'b1'])).toBe('a1');
+        expect(selectionUnitId(doc, 'c', ['c', 'a1'])).toBe('c');
+    });
 });
 
 describe("selectedGroupOnPath", () => {

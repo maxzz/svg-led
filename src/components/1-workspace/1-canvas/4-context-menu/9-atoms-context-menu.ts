@@ -2,7 +2,7 @@ import { type MouseEvent as ReactMouseEvent } from "react";
 import { atom } from "jotai";
 import { docState } from "@/store/3-document";
 import { ToolId, activeToolIdAtom, nodeAnchorKey, selectedAnchorsAtom, selectionAtom } from "@/store/4-editor";
-import { filterTarget, getIsolatedId } from "@/store/6-layers";
+import { filterTarget, getIsolationScope } from "@/store/6-layers";
 import { resolveTarget } from "@/tools";
 
 /** Which menu opens: the canvas itself, the selected elements, or the anchors of the path being edited */
@@ -19,7 +19,7 @@ export const openCanvasMenuAtom = atom(
     null,
     (get, set, e: ReactMouseEvent<SVGSVGElement>) => {
         if (get(activeToolIdAtom) === ToolId.points) {
-            const target = filterTarget(docState.doc, resolveTarget(e.target as Element), getIsolatedId(get));
+            const target = filterTarget(docState.doc, resolveTarget(e.target as Element), getIsolationScope(get));
             if (target.type === 'anchor' || target.type === 'shape-handle') {
                 const full = nodeAnchorKey(target.nodeId, target.type === 'anchor' ? target.key : `h:${target.key}`);
                 if (!get(selectedAnchorsAtom).includes(full)) {

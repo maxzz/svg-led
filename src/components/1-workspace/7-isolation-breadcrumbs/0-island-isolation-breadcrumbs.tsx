@@ -57,7 +57,7 @@ function Breadcrumbs() {
                                 className={classNames(crumbClasses, last ? "font-bold text-foreground" : "underline decoration-dotted underline-offset-2")}
                                 disabled={last}
                                 onClick={() => goTo(level.id)}
-                                title={last ? "Isolated group" : "Isolate this group"}
+                                title={last ? "Isolated" : "Isolate this group"}
                                 type="button"
                             >
                                 <span className="truncate">

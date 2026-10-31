@@ -1,9 +1,9 @@
 import { type Getter, atom } from "jotai";
 import { type GroupNode, type SvgDoc, findNode, newNodeId, topmostIds } from "@/svg-core";
 import { commitHistory, deleteNodes, docState, duplicateNodes, groupNodes } from "../3-document";
-import { isolatedGroupIdAtom, selectionAtom, setSelectionAtom } from "../4-editor";
+import { selectionAtom, setSelectionAtom } from "../4-editor";
 import { isHidden, isLocked, setNodesHidden, setNodesLocked, showAll, unlockAll } from "./1-layer-attrs";
-import { docProxyAtom, enterIsolationAtom, getIsolatedId, isolationRootChildren, isolationTargetOf, validIsolatedId } from "./2-isolation-atoms";
+import { docProxyAtom, enterIsolationAtom, getIsolationScope, isolationInsertSiblings, sameIsolationIds } from "./2-isolation-atoms";
 
 /** Selected ids that still exist, for enabled states (reactive to document changes) */
 const liveSelectionAtom = atom(
@@ -13,19 +13,18 @@ const liveSelectionAtom = atom(
     }
 );
 
+/** True when the selection can enter isolation: one or more objects, and not already exactly that isolation */
+export function selectionCanIsolate(get: Getter): boolean {
+    const ids = get(selectionAtom).filter((id) => findNode(docState.doc, id));
+    return ids.length > 0 && !sameIsolationIds(ids, getIsolationScope(get));
+}
+
 export const canIsolateSelectionAtom = atom(
     (get) => {
-        const doc = get(docProxyAtom).doc as unknown as SvgDoc;
-        const ids = get(liveSelectionAtom);
-        return ids.length === 1 && isolationTargetOf(doc, ids[0], validIsolatedId(doc, get(isolatedGroupIdAtom))) !== null;
+        get(docProxyAtom);
+        return selectionCanIsolate(get);
     }
 );
-
-/** The group that "Enter isolation mode" opens for the single selected element, or null */
-export function selectedIsolationTarget(get: Getter): string | null {
-    const ids = get(selectionAtom);
-    return ids.length === 1 ? isolationTargetOf(docState.doc, ids[0], getIsolatedId(get)) : null;
-}
 
 export const hasLiveSelectionAtom = atom(
     (get) => get(liveSelectionAtom).length > 0
@@ -47,7 +46,7 @@ export const newGroupAtom = atom(
         if (top) {
             top.siblings.splice(top.index + 1, 0, group);
         } else {
-            isolationRootChildren(doc, getIsolatedId(get)).push(group);
+            isolationInsertSiblings(doc, getIsolationScope(get)).push(group);
         }
         commitHistory();
         set(setSelectionAtom, [group.id]);
@@ -62,17 +61,13 @@ export const groupSelectionAtom = atom(
     }
 );
 
-/** Enters isolation for the selected group, or for the group of the selected element. The selected element stays selected inside it. */
+/** Enters isolation for every selected object. A group shows its contents; anything else stays as itself. */
 export const isolateSelectionAtom = atom(
     null,
     (get, set) => {
-        const target = selectedIsolationTarget(get);
-        if (!target) {
-            return;
+        if (selectionCanIsolate(get)) {
+            set(enterIsolationAtom, get(selectionAtom));
         }
-        const [id] = get(selectionAtom);
-        set(enterIsolationAtom, target);
-        id !== target && set(setSelectionAtom, [id]);
     }
 );
 
