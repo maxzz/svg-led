@@ -12,8 +12,8 @@ const CORNERS: [ResizeHandle, number, number][] = [['nw', 0, 0], ['ne', 1, 0], [
 
 /** Tailwind utilities from the cursors plugin */
 const CURSOR: Record<ResizeHandle, string> = {
-    nw: 'cursor-nw-resize', se: 'cursor-se-resize',
-    ne: 'cursor-ne-resize', sw: 'cursor-sw-resize',
+    nw: 'cursor-resize-nw', se: 'cursor-resize-se',
+    ne: 'cursor-resize-ne', sw: 'cursor-resize-sw',
     n: 'cursor-resize-ns', s: 'cursor-resize-ns',
     e: 'cursor-resize-ew', w: 'cursor-resize-ew',
 };

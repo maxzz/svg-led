@@ -26,8 +26,8 @@ const movingSelectionAtom = atom(false);
 const resizeCursorAtom = atom<string | null>(null);
 
 const RESIZE_CURSOR: Record<ResizeHandle, string> = {
-    nw: 'cursor-nw-resize', se: 'cursor-se-resize',
-    ne: 'cursor-ne-resize', sw: 'cursor-sw-resize',
+    nw: 'cursor-resize-nw', se: 'cursor-resize-se',
+    ne: 'cursor-resize-ne', sw: 'cursor-resize-sw',
     n: 'cursor-resize-ns', s: 'cursor-resize-ns',
     e: 'cursor-resize-ew', w: 'cursor-resize-ew',
 };

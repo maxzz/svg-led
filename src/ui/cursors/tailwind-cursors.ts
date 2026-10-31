@@ -142,10 +142,10 @@ export function cursorsPlugin({ addUtilities }: PluginAPI): void {
         '.cursor-solid-move': { cursor: cursorCss(selectionMove) },
         '.cursor-resize-ew': { cursor: cursorCss(resizeHorizontal, 12, 12) },
         '.cursor-resize-ns': { cursor: cursorCss(resizeVertical, 12, 12) },
-        '.cursor-nw-resize': { cursor: cursorCss(resizeNwSe, 12, 12) },
-        '.cursor-se-resize': { cursor: cursorCss(resizeNwSe, 12, 12) },
-        '.cursor-ne-resize': { cursor: cursorCss(resizeNeSw, 12, 12) },
-        '.cursor-sw-resize': { cursor: cursorCss(resizeNeSw, 12, 12) },
+        '.cursor-resize-nw': { cursor: cursorCss(resizeNwSe, 12, 12) },
+        '.cursor-resize-se': { cursor: cursorCss(resizeNwSe, 12, 12) },
+        '.cursor-resize-ne': { cursor: cursorCss(resizeNeSw, 12, 12) },
+        '.cursor-resize-sw': { cursor: cursorCss(resizeNeSw, 12, 12) },
     });
 }
 
