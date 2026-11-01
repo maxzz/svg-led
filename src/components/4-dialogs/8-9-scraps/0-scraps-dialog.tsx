@@ -1,5 +1,6 @@
-import { type KeyboardEvent as ReactKeyboardEvent, type RefObject, type SyntheticEvent, useEffect, useId, useMemo, useRef, useState } from "react";
+import { type KeyboardEvent as ReactKeyboardEvent, type RefObject, type SyntheticEvent, lazy, Suspense, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useSnapshot } from "valtio";
 import { CodeXml, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/ui/shadcn/dialog";
@@ -17,6 +18,8 @@ import { doAsyncExecuteConfirmDialogAtom } from "../8-1-confirmation/9-types-con
 import { getConfirmOverwriteScrapMessages } from "../8-1-confirmation/8-confirmation-ui-messages";
 import { ScrapsDragGhost, ScrapsDropIndicator, isDraggedFamily, rowDragCancelAtom, rowDragDownAtom, rowDragMoveAtom, rowDragUpAtom } from "./1-reorder";
 import { type Scrap, type ScrapLoadMode, type ScrapSaveScope, doDeleteScrapAtom, doLoadScrapAtom, doRenameScrapAtom, doSaveScrapAtom, isOpenScrapsDialogAtom, scrapsAtom, scrapsOptionsAtom } from "./9-types-scraps";
+
+const ScrapSourceEditor = lazy(() => import("./2-scrap-source-editor"));
 
 export function ScrapsDialog() {
     const [isOpen, setIsOpen] = useAtom(isOpenScrapsDialogAtom);
@@ -336,8 +339,11 @@ function ScrapRow({ scrap, selected, editing, onSelect, onLoad, onDelete, onPrev
     );
 }
 
-/** SVG markup of one scrap. A long source scrolls inside the popup. */
+/** SVG markup of one scrap, highlighted like the source panel. A long source scrolls inside the editor. */
 function ScrapSourceDialog({ scrap, onClose }: { scrap: Scrap; onClose: () => void; }) {
+    const fontSize = useSnapshot(appSettings).monaco.fontSize;
+    const lines = scrap.svg.split("\n").length;
+
     return (
         <Dialog open onOpenChange={(open) => { !open && onClose(); }}>
             <DialogContent className="p-0! w-[min(40rem,calc(100vw-2rem))]! max-w-none! text-xs gap-0!">
@@ -350,16 +356,11 @@ function ScrapSourceDialog({ scrap, onClose }: { scrap: Scrap; onClose: () => vo
                     </DialogDescription>
                 </DialogHeader>
 
-                <ScrollArea
-                    className="max-h-[min(24rem,calc(100dvh-10rem))]"
-                    viewportClassName="max-h-[min(24rem,calc(100dvh-10rem))]"
-                    fixedWidth
-                    horizontal
-                >
-                    <pre className="select-text whitespace-pre px-4 py-3 text-[11px] font-mono">
-                        {scrap.svg}
-                    </pre>
-                </ScrollArea>
+                <div style={{ height: `min(${lines * Math.round(fontSize * 1.6) + 20}px, 24rem, calc(100dvh - 10rem))` }}>
+                    <Suspense fallback={<div className="p-3 text-xs text-muted-foreground">Loading source...</div>}>
+                        <ScrapSourceEditor svg={scrap.svg} />
+                    </Suspense>
+                </div>
             </DialogContent>
         </Dialog>
     );
