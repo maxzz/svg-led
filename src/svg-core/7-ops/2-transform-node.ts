@@ -1,5 +1,6 @@
 import { type Matrix, type SvgNode } from "../1-model/1-types";
 import { nodeOwnMatrix } from "../1-model/3-tree";
+import { parseTransform } from "../2-parse/3-parse-transform";
 import { applyMatrix, invert, isAxisAligned, isIdentity, isSimilarity, matrixToString, multiply } from "../4-geometry/1-matrix";
 import { makeFmt } from "../3-serialize/1-format";
 import { transformPathData } from "./1-transform-path";
@@ -11,10 +12,11 @@ import { transformPathData } from "./1-transform-path";
  * The change is baked into the geometry when the shape kind can represent it exactly
  * (paths, lines and polygons always; rects and ellipses when axis-aligned; circles under similarity).
  * Otherwise the matrix is prepended to the node's transform attribute.
+ * A result that rounds to a no-op, such as matrix(1 0 0 1 0 0) or translate(0 0), is left off.
  */
 export function transformNode(node: SvgNode, m: Matrix, precision: number): SvgNode {
     if (isIdentity(m)) {
-        return structuredClone(node);
+        return omitNoOpTransform(structuredClone(node));
     }
 
     const own = nodeOwnMatrix(node);
@@ -22,11 +24,33 @@ export function transformNode(node: SvgNode, m: Matrix, precision: number): SvgN
 
     const baked = bakeGeometry(node, local, precision);
     if (baked) {
-        return baked;
+        return omitNoOpTransform(baked);
     }
 
     const rv = structuredClone(node);
-    rv.attrs.transform = matrixToString(multiply(m, own), makeFmt(Math.max(precision, 6)));
+    const text = matrixToString(multiply(m, own), makeFmt(Math.max(precision, 6)));
+    if (isNoOpTransform(text)) {
+        delete rv.attrs.transform;
+    } else {
+        rv.attrs.transform = text;
+    }
+    return rv;
+}
+
+/** matrix(1 0 0 1 0 0), translate(0, 0), scale(1), rotate(0), and the same written with commas or extra spaces. */
+const TRANSFORM_FNS = /^(?:(?:matrix|translate|scale|rotate|skewX|skewY)\s*\([^)]*\)\s*)+$/;
+
+function isNoOpTransform(text: string): boolean {
+    const body = text.trim();
+    return TRANSFORM_FNS.test(body) && isIdentity(parseTransform(body));
+}
+
+function omitNoOpTransform(node: SvgNode): SvgNode {
+    if (!node.attrs.transform || !isNoOpTransform(node.attrs.transform)) {
+        return node;
+    }
+    const rv = structuredClone(node);
+    delete rv.attrs.transform;
     return rv;
 }
 

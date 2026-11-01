@@ -118,6 +118,29 @@ describe("ops", () => {
         expect(rotated.attrs.transform).toMatch(/^matrix\(/);
     });
 
+    it("omits a transform attribute that rounds to a no-op", () => {
+        const group = { id: 'g', kind: 'g' as const, attrs: {}, children: [] as SvgNode[] };
+        const rect = { id: 'r', kind: 'rect' as const, x: 0, y: 0, width: 10, height: 10, rx: 0, ry: 0, attrs: { transform: 'translate(0, 0)' } };
+
+        expect(transformNode(group, [1, 0, 0, 1, 1e-8, -1e-8], 3).attrs.transform).toBeUndefined();
+        expect(transformNode(group, rotateMatrix(360, 12, 8), 3).attrs.transform).toBeUndefined();
+        expect(transformNode(group, rotateMatrix(1e-6, 10, 10), 3).attrs.transform).toBeUndefined();
+        expect(transformNode(group, [1 + 1e-9, 0, 0, 1, -1e-7, 1e-7], 3).attrs.transform).toBeUndefined();
+
+        const cancelled = transformNode({ ...group, attrs: { transform: 'translate(10 0)' } }, [1, 0, 0, 1, -10 + 1e-8, 0], 3);
+        expect(cancelled.attrs.transform).toBeUndefined();
+
+        const turned = transformNode(group, rotateMatrix(15, 10, 10), 3);
+        expect(turned.attrs.transform).toMatch(/^matrix\(/);
+
+        const scaled = transformNode(rect, [2, 0, 0, 2, 0, 0], 3);
+        expect(scaled.attrs.transform).toBeUndefined();
+        expect(scaled).toMatchObject({ x: 0, y: 0, width: 20, height: 20 });
+
+        const kept = transformNode({ ...group, attrs: { transform: 'translate(10 0)' } }, [1, 0, 0, 1, 5, 0], 3);
+        expect(kept.attrs.transform).toBe('translate(15 0)');
+    });
+
     it("fits a rect into a padded box keeping aspect", () => {
         const m = fitRectMatrix({ x: 0, y: 0, width: 10, height: 5 }, { x: 0, y: 0, width: 100, height: 100 }, { padding: uniformPadding(10), keepAspect: true, center: true });
         const tl = applyMatrix(m, { x: 0, y: 0 });
