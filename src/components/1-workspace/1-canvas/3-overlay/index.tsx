@@ -7,6 +7,7 @@ import { PenOverlay } from "./4-pen-overlay";
 import { Marquee } from "./5-marquee";
 import { Lasso } from "./6-lasso";
 import { SnapGuidesOverlay } from "@/tools/core-snapping";
+import { PointSnapOverlay } from "@/tools/core-point-snapping";
 
 /** Editor decorations drawn in screen space so they keep their size at any zoom */
 export function OverlayLayer() {
@@ -24,6 +25,7 @@ export function OverlayLayer() {
             <Marquee />
             <Lasso />
             <SnapGuidesOverlay />
+            <PointSnapOverlay />
         </g>
     );
 }

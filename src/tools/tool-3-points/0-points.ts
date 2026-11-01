@@ -4,7 +4,7 @@ import { type Getter, type Setter } from "jotai";
 import { toast } from "sonner";
 
 import {
-    type Matrix, type Point, type Rect, type ShapeNode, type SubPath, type SvgDoc, type SvgNode, applyMatrix, applyShapeHandle, applyToVector,
+    type Matrix, type Point, type ShapeNode, type SubPath, type SvgDoc, type SvgNode, applyMatrix, applyShapeHandle, applyToVector,
     constrain45, deleteAnchors, findNode, getAnchor, getShapeHandles, insertAnchor, isShapeNode, matrixScale, moveAnchor, nearestSegment,
     nodeCtm, parseAnchorKey, pathDataToSubpaths, pullHandles, rectContainsPoint, rectFromCorners, setHandle, subpathsToPathData,
     toggleAnchorKind, walkNodes,
@@ -19,17 +19,21 @@ import { LASSO_STEP_PX, pointInPolygon, simplifyLasso } from "../tool-2-select/2
 import { docTolerance, hitTestOutlines, nodeMatrices, snapValue } from "../0-shared/2-tool-helpers";
 import { modifierHint } from "../0-shared/5-hint";
 import { type MoveGesture, beginMove, endMove, pastThreshold, updateMove } from "../0-shared/3-move-gesture";
-import { type SnapAxis, clearSnapGuides, collectSnapTargets, setSnapGuides, snapActive, snapBox, snapThreshold } from "@/tools/core-snapping";
+import { type SnapAxis, clearSnapGuides } from "@/tools/core-snapping";
+import { type PointSnapSession, beginPointSnap, endPointSnap, handleTargetKey, updatePointSnap } from "@/tools/core-point-snapping";
 
 const M = MODIFIERS.points;
 
 type PathOriginal = { kind: 'path'; subs: SubPath[]; inv: Matrix; };
 type ShapeOriginal = { kind: 'shape'; node: ShapeNode; inv: Matrix; ctm: Matrix; };
 
+/** The point under the pointer when an anchor drag starts; it is the one that snaps */
+type GrabbedPoint = { start: Point; snap: PointSnapSession; };
+
 type Gesture =
-    | { type: 'anchors'; startDoc: Point; startScreen: Point; moved: boolean; originals: Map<string, PathOriginal | ShapeOriginal>; keys: string[]; startBox: Rect | null; snapTargets: Rect[]; }
-    | { type: 'handle'; nodeId: string; key: string; side: 'in' | 'out'; subs: SubPath[]; inv: Matrix; moved: boolean; }
-    | { type: 'alt-anchor'; nodeId: string; key: string; subs: SubPath[]; inv: Matrix; startScreen: Point; moved: boolean; }
+    | { type: 'anchors'; startDoc: Point; startScreen: Point; moved: boolean; originals: Map<string, PathOriginal | ShapeOriginal>; keys: string[]; grabbed: GrabbedPoint | null; }
+    | { type: 'handle'; nodeId: string; key: string; side: 'in' | 'out'; subs: SubPath[]; inv: Matrix; moved: boolean; snap: PointSnapSession; }
+    | { type: 'alt-anchor'; nodeId: string; key: string; subs: SubPath[]; inv: Matrix; startScreen: Point; moved: boolean; snap: PointSnapSession; }
     | { type: 'node-move'; move: MoveGesture; }
     | { type: 'marquee'; origin: Point; startScreen: Point; baseAnchors: string[]; baseNodes: string[]; candidates: Candidate[]; picks: Candidate[]; trail: Point[] | null; };
 
@@ -136,7 +140,7 @@ export const pointsTool: ToolDef = {
             const m = nodeMatrices(target.nodeId);
             const subs = pathSubpaths(target.nodeId);
             if (m && subs) {
-                gesture = { type: 'handle', nodeId: target.nodeId, key: target.key, side: target.side, subs, inv: m.inv, moved: false };
+                gesture = { type: 'handle', nodeId: target.nodeId, key: target.key, side: target.side, subs, inv: m.inv, moved: false, snap: beginHandleSnap(get, target.nodeId, target.key) };
             }
             return;
         }
@@ -145,7 +149,7 @@ export const pointsTool: ToolDef = {
             const m = nodeMatrices(target.nodeId);
             const subs = pathSubpaths(target.nodeId);
             if (m && subs) {
-                gesture = { type: 'alt-anchor', nodeId: target.nodeId, key: target.key, subs, inv: m.inv, startScreen: e.screen, moved: false };
+                gesture = { type: 'alt-anchor', nodeId: target.nodeId, key: target.key, subs, inv: m.inv, startScreen: e.screen, moved: false, snap: beginHandleSnap(get, target.nodeId, target.key) };
             }
             return;
         }
@@ -163,7 +167,7 @@ export const pointsTool: ToolDef = {
                 keys = [full];
             }
             set(selectedAnchorsAtom, keys);
-            gesture = beginAnchorsGesture(keys, e);
+            gesture = beginAnchorsGesture(keys, e, { get, full });
             return;
         }
 
@@ -215,7 +219,7 @@ export const pointsTool: ToolDef = {
         }
         switch (gesture.type) {
             case 'anchors':
-                moveAnchorsGesture(gesture, e);
+                moveAnchorsGesture(set, gesture, e);
                 break;
 
             case 'handle': {
@@ -223,7 +227,7 @@ export const pointsTool: ToolDef = {
                 const subs = structuredClone(gesture.subs);
                 const a = getAnchor(subs, gesture.key);
                 if (a) {
-                    let p = applyMatrix(gesture.inv, e.doc);
+                    let p = applyMatrix(gesture.inv, snapHandle(set, gesture.snap, e));
                     if (isMod(e, M.constrainAngle)) {
                         p = constrain45(a, p);
                     }
@@ -241,7 +245,7 @@ export const pointsTool: ToolDef = {
                 const subs = structuredClone(gesture.subs);
                 const a = getAnchor(subs, gesture.key);
                 if (a) {
-                    let p = applyMatrix(gesture.inv, e.doc);
+                    let p = applyMatrix(gesture.inv, snapHandle(set, gesture.snap, e));
                     if (isMod(e, M.constrainAngle)) {
                         p = constrain45(a, p);
                     }
@@ -263,6 +267,7 @@ export const pointsTool: ToolDef = {
 
     onPointerUp({ set }) {
         clearSnapGuides();
+        endPointSnap(set);
         if (!gesture) {
             return;
         }
@@ -322,7 +327,8 @@ export const pointsTool: ToolDef = {
 
 // Anchor drag
 
-function beginAnchorsGesture(keys: string[], e: ToolPointerEvent): Extract<Gesture, { type: 'anchors'; }> {
+/** `grab` is the anchor or shape handle under the pointer; the drag snaps it to other points (keyboard nudges pass none) */
+function beginAnchorsGesture(keys: string[], e: ToolPointerEvent, grab?: { get: Getter; full: string; }): Extract<Gesture, { type: 'anchors'; }> {
     const originals = new Map<string, PathOriginal | ShapeOriginal>();
     for (const full of keys) {
         const [nodeId] = splitNodeAnchorKey(full);
@@ -340,17 +346,34 @@ function beginAnchorsGesture(keys: string[], e: ToolPointerEvent): Extract<Gestu
             originals.set(nodeId, { kind: 'shape', node, inv: m.inv, ctm: m.ctm });
         }
     }
-    // snapping works on the box around the selected anchors; the anchored elements are not snap targets
-    const keySet = new Set(keys);
-    const anchorPoints = collectAnchorCandidates().filter((c) => keySet.has(c.full)).map((c) => c.doc);
-    return {
-        type: 'anchors', startDoc: e.doc, startScreen: e.screen, moved: false, originals, keys,
-        startBox: pointsBox(anchorPoints),
-        snapTargets: collectSnapTargets(docState.doc as SvgDoc, [...originals.keys()]),
-    };
+    return { type: 'anchors', startDoc: e.doc, startScreen: e.screen, moved: false, originals, keys, grabbed: grab ? grabbedPoint(grab.get, grab.full, keys, originals) : null };
 }
 
-function moveAnchorsGesture(g: Extract<Gesture, { type: 'anchors'; }>, e: ToolPointerEvent): void {
+/** Moving anchors and every handle of a reshaped shape move with the drag, so they are not snap targets */
+function grabbedPoint(get: Getter, full: string, keys: string[], originals: Map<string, PathOriginal | ShapeOriginal>): GrabbedPoint | null {
+    const start = collectAnchorCandidates().find((c) => c.full === full)?.doc;
+    if (!start) {
+        return null;
+    }
+    const moving = new Set(keys);
+    for (const [nodeId, orig] of originals) {
+        orig.kind === 'shape' && getShapeHandles(orig.node).forEach((h) => moving.add(nodeAnchorKey(nodeId, `h:${h.key}`)));
+    }
+    return { start, snap: beginPointSnap(get, { nodeIds: [...originals.keys()], anchors: moving }) };
+}
+
+/** A dragged handle snaps to anything but the handles of its own anchor (a smooth anchor turns both) */
+function beginHandleSnap(get: Getter, nodeId: string, key: string): PointSnapSession {
+    const full = nodeAnchorKey(nodeId, key);
+    return beginPointSnap(get, { nodeIds: [nodeId], handles: new Set([handleTargetKey(full, 'in'), handleTargetKey(full, 'out')]) });
+}
+
+/** Where a dragged handle goes, in document coordinates; the 45° constraint turns snapping off */
+function snapHandle(set: Setter, snap: PointSnapSession, e: ToolPointerEvent): Point {
+    return updatePointSnap(set, snap, e.doc, { snapKeyHeld: isMod(e, M.snapToObjects), axes: isMod(e, M.constrainAngle) ? [] : undefined });
+}
+
+function moveAnchorsGesture(set: Setter, g: Extract<Gesture, { type: 'anchors'; }>, e: ToolPointerEvent): void {
     if (!g.moved && !pastThreshold(g.startScreen, e.screen)) {
         return;
     }
@@ -368,28 +391,13 @@ function moveAnchorsGesture(g: Extract<Gesture, { type: 'anchors'; }>, e: ToolPo
         }
     }
 
-    if (g.startBox && snapActive(isMod(e, M.snapToObjects))) {
-        const box = { ...g.startBox, x: g.startBox.x + dx, y: g.startBox.y + dy };
-        const off = snapBox(box, g.snapTargets, { threshold: snapThreshold(), spacing: true, axes });
-        dx += off.dx;
-        dy += off.dy;
-        setSnapGuides(off.guides);
-    } else {
-        clearSnapGuides();
+    if (g.grabbed) {
+        const p = { x: g.grabbed.start.x + dx, y: g.grabbed.start.y + dy };
+        const snapped = updatePointSnap(set, g.grabbed.snap, p, { snapKeyHeld: isMod(e, M.snapToObjects), axes });
+        dx += snapped.x - p.x;
+        dy += snapped.y - p.y;
     }
     applyAnchorsDelta(g, { x: dx, y: dy }, e.shift);
-}
-
-/** Bounding box of a set of points in document coordinates; a single point gives a zero-size box */
-function pointsBox(points: Point[]): Rect | null {
-    if (!points.length) {
-        return null;
-    }
-    const xs = points.map((p) => p.x);
-    const ys = points.map((p) => p.y);
-    const x = Math.min(...xs);
-    const y = Math.min(...ys);
-    return { x, y, width: Math.max(...xs) - x, height: Math.max(...ys) - y };
 }
 
 function applyAnchorsDelta(g: Extract<Gesture, { type: 'anchors'; }>, delta: Point, constrain: boolean): void {
