@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ROTATE_CURSOR_DEGREES, ROTATE_GLYPH, rotateGlyphPoints } from "@/ui/cursors/rotate-glyph";
+import { rotateCursorStyle } from "@/ui/cursors/tailwind-cursors";
 import {
     formatRotation, inRotateBand, rotateCursorClass, snapRotation, unwrapAngle,
 } from "../3-rotate";
@@ -81,6 +82,16 @@ describe("rotateCursorClass", () => {
         for (const deg of [0, 15, 90, 180, 270, 345]) {
             expect(ROTATE_CURSOR_DEGREES).toContain(Number(at(deg).slice("cursor-rotate-".length)));
         }
+    });
+});
+
+describe("rotateCursorStyle", () => {
+    it("has a bitmap at every 15° step, so the corners are not stuck with the edge cursors", () => {
+        for (const deg of ROTATE_CURSOR_DEGREES) {
+            expect(rotateCursorStyle(`cursor-rotate-${deg}`), String(deg)).toMatch(/^url\(/);
+        }
+        expect(rotateCursorStyle("cursor-rotate-45")).not.toBe(rotateCursorStyle("cursor-rotate-0"));
+        expect(rotateCursorStyle("cursor-rotate-135")).not.toBe(rotateCursorStyle("cursor-rotate-90"));
     });
 });
 

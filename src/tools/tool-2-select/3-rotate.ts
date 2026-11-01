@@ -17,7 +17,10 @@ export const ROTATE_TOOLTIP_GAP = 16;
 
 export type RotateReadout = { x: number; y: number; label: string };
 
-/** Class from the cursors plugin while the pointer is over the rotate band, and for the whole drag. */
+/**
+ * Which rotate bitmap to show (`cursor-rotate-0` … `cursor-rotate-345`) over the band and for the whole drag.
+ * Resolved to an image when the canvas paints it; every 15° step exists, including the corners.
+ */
 export const rotateCursorAtom = atom<string | null>(null);
 
 /** Degree label that follows the pointer while a rotation drag is active. */

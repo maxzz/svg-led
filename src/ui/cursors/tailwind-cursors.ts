@@ -136,6 +136,20 @@ const resizeNeSw = `
 
 //---------------------------------------------------------------------------
 
+/**
+ * Bitmap for a rotate-cursor class (`cursor-rotate-45`, …).
+ * The angle is chosen while the pointer moves, so this is a CSS cursor value rather than a Tailwind
+ * class: Tailwind only emits class names written out in source, and the corner angles never were.
+ */
+const rotateCursorStyles = new Map(ROTATE_CURSOR_DEGREES.map((deg) => [
+    `cursor-rotate-${deg}`,
+    cursorCss(rotateCursorMarkup(deg), ROTATE_GLYPH.hotX, ROTATE_GLYPH.hotY),
+]));
+
+export function rotateCursorStyle(className: string): string {
+    return rotateCursorStyles.get(className) ?? 'default';
+}
+
 export function cursorsPlugin({ addUtilities }: PluginAPI): void {
     addUtilities({
         '.cursor-solid-ptr': { cursor: cursorCss(selectionPointer) },
@@ -147,10 +161,6 @@ export function cursorsPlugin({ addUtilities }: PluginAPI): void {
         '.cursor-resize-se': { cursor: cursorCss(resizeNwSe, 12, 12) },
         '.cursor-resize-ne': { cursor: cursorCss(resizeNeSw, 12, 12) },
         '.cursor-resize-sw': { cursor: cursorCss(resizeNeSw, 12, 12) },
-        ...Object.fromEntries(ROTATE_CURSOR_DEGREES.map((deg) => [
-            `.cursor-rotate-${deg}`,
-            { cursor: cursorCss(rotateCursorMarkup(deg), ROTATE_GLYPH.hotX, ROTATE_GLYPH.hotY) },
-        ])),
     });
 }
 
