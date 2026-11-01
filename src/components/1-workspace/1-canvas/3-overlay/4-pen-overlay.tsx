@@ -16,7 +16,7 @@ export function PenOverlay() {
     const selection = useAtomValue(selectionAtom);
 
     if (!draft) {
-        return <OpenEndpoints doc={doc} ids={selection} />;
+        return <SelectedPathAnchors doc={doc} ids={selection} />;
     }
 
     const m = nodeScreenMatrix(doc, vp, draft.nodeId);
@@ -72,8 +72,8 @@ export function PenOverlay() {
     );
 }
 
-/** Before drawing: end points of selected open paths, clickable to continue them */
-function OpenEndpoints({ doc, ids }: { doc: SvgDoc; ids: string[]; }) {
+/** Before drawing: anchors of the selected paths; a click on an open end continues the path, on any other anchor deletes it */
+function SelectedPathAnchors({ doc, ids }: { doc: SvgDoc; ids: string[]; }) {
     const vp = useAtomValue(viewportAtom);
     return (<>
         {ids.map(
@@ -86,10 +86,9 @@ function OpenEndpoints({ doc, ids }: { doc: SvgDoc; ids: string[]; }) {
 
                 const subs = screenSubpaths(pathDataToSubpaths(loc.node.d), m);
                 return subs.map(
-                    (s, si) => s.closed ? null : [0, s.anchors.length - 1].map(
-                        (ai) => {
-                            const a = s.anchors[ai];
-                            return a && (
+                    (s, si) => s.anchors.map(
+                        (a, ai) => {
+                            return (
                                 <rect
                                     data-hit="anchor"
                                     className="fill-background stroke-(--editor-accent)"
