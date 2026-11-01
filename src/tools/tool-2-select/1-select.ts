@@ -3,9 +3,12 @@ import { type Getter, type Setter, atom } from "jotai";
 import { MousePointer2 } from "lucide-react";
 
 import { type ResizeHandle, type ToolDef, type ToolPointerEvent } from "../9-types-tool-def";
-import { type Point, type Rect, type SvgDoc, applyMatrix, findNode, flattenSubpaths, nodeCtm, nodeOutline, rectContainsRect, rectFromCorners, rectsIntersect, scaleAround, walkNodes } from "@/svg-core";
+import { type Point, type Rect, type SvgDoc, applyMatrix, findNode, flattenSubpaths, nodeCtm, nodeOutline, rectContainsRect, rectFromCorners, rectsIntersect, rotateMatrix, scaleAround, walkNodes } from "@/svg-core";
 import { type NodeOriginals, applyDocMatrix, captureOriginals, commitHistory, docState, duplicateNodes, nodeDocBBox, nodesDocBBox } from "@/store/3-document";
-import { ToolId, hoverNodeIdAtom, lassoAtom, marqueeAtom, screenToDoc, selectionAtom, setSelectionAtom, viewportAtom } from "@/store/4-editor";
+import { ToolId, docToScreen, hoverNodeIdAtom, lassoAtom, marqueeAtom, rectToScreen, screenToDoc, selectionAtom, setSelectionAtom, toolGestureActiveAtom, viewportAtom } from "@/store/4-editor";
+import {
+    formatRotation, inRotateBand, rotateCursorAtom, rotateCursorClass, rotateReadoutAtom, selectionGripsHiddenAtom, snapRotation, unwrapAngle,
+} from "./3-rotate";
 import { enterIsolationAtom, exitIsolationToAtom, getIsolationScope, isHidden, isPickable, isolationRootChildren } from "@/store/6-layers";
 import { appSettings, SelectionMode } from "@/store/1-ui-settings";
 import { MODIFIERS, isMod } from "./8-definition-of-modifiers";
@@ -40,8 +43,8 @@ export const selectTool: ToolDef = {
     icon: MousePointer2,
     hint: ({ held, dragging }) => dragging
         ? '' //'Release to finish'
-        : modifierHint(held, 'Click to select, drag to move · Double-click an object to isolate it · [Shift] add · [Alt] copy or lasso · [Ctrl] deep select', {
-            shift: '[Shift] Click to add or remove · Drag along one axis',
+        : modifierHint(held, 'Click to select, drag to move · Drag just outside the frame to rotate · Double-click an object to isolate it · [Shift] add · [Alt] copy or lasso · [Ctrl] deep select', {
+            shift: '[Shift] Click to add or remove · Drag along one axis · Rotate in 15° steps',
             alt: '[Alt] Drag an element to copy · on empty canvas, [Alt] drag to lasso',
             ctrl: '[Ctrl] Click to select an element inside groups · Drag snaps to other elements',
         }),
@@ -50,6 +53,10 @@ export const selectTool: ToolDef = {
         const resizing = get(resizeCursorAtom);
         if (resizing) {
             return resizing;
+        }
+        const rotating = get(rotateCursorAtom);
+        if (rotating) {
+            return rotating;
         }
         if (get(movingSelectionAtom)) {
             return 'cursor-solid-move'; // dragging the selection
@@ -71,12 +78,33 @@ export const selectTool: ToolDef = {
             const bbox = nodesDocBBox(snapshot(docState).doc as SvgDoc, selection);
             if (bbox) {
                 set(resizeCursorAtom, RESIZE_CURSOR[target.handle]);
+                set(rotateCursorAtom, null);
+                set(selectionGripsHiddenAtom, true);
                 gesture = {
                     type: 'resize', originals: captureOriginals(selection), bbox, handle: target.handle, moved: false, startScreen: e.screen,
                     snapTargets: collectSnapTargets(docState.doc as SvgDoc, selection),
                 };
             }
             return;
+        }
+
+        if (target.type === 'rotate' && selection.length) {
+            const bbox = nodesDocBBox(snapshot(docState).doc as SvgDoc, selection);
+            if (bbox) {
+                const center = { x: bbox.x + bbox.width / 2, y: bbox.y + bbox.height / 2 };
+                gesture = {
+                    type: 'rotate', originals: captureOriginals(selection), center,
+                    startAngle: Math.atan2(e.doc.y - center.y, e.doc.x - center.x),
+                    radians: 0, appliedDeg: 0, moved: false, startScreen: e.screen, lastScreen: e.screen,
+                };
+                set(selectionGripsHiddenAtom, true);
+                syncRotateCursor(get, set, e.screen, center);
+            }
+            return;
+        }
+
+        if (get(rotateCursorAtom)) {
+            set(rotateCursorAtom, null);
         }
 
         const isolated = getIsolationScope(get);
@@ -182,29 +210,73 @@ export const selectTool: ToolDef = {
                 }
                 applyDocMatrix(gesture.originals, resizeMatrix(gesture.bbox, gesture.handle, { ...e, doc: point }));
                 break;
+            case 'rotate':
+                gesture.lastScreen = e.screen;
+                syncRotateCursor(get, set, e.screen, gesture.center);
+                if (!gesture.moved && !pastThreshold(gesture.startScreen, e.screen)) {
+                    return;
+                }
+                gesture.moved = true;
+                // Measured from the pointer-down angle, so the object follows the pointer around the box center
+                gesture.radians = unwrapAngle(gesture.startAngle, Math.atan2(e.doc.y - gesture.center.y, e.doc.x - gesture.center.x), gesture.radians);
+                applyRotation(gesture, isMod(e, M.rotateSnap), set);
+                break;
         }
     },
 
-    onPointerUp({ set }) {
+    onPointerHover({ get, set }, e) {
+        syncRotateCursor(get, set, e.screen, null);
+    },
+
+    onPointerLeave({ get, set }) {
+        if (!get(toolGestureActiveAtom)) {
+            set(rotateCursorAtom, null);
+        }
+    },
+
+    onPointerUp({ get, set }, e) {
         clearSnapGuides();
         set(movingSelectionAtom, false);
         set(resizeCursorAtom, null);
-        if (!gesture) {
-            return;
-        }
-        switch (gesture.type) {
-            case 'move':
-                endMove(gesture.move);
-                break;
-            case 'marquee':
-                set(marqueeAtom, null);
-                set(lassoAtom, null);
-                break;
-            case 'resize':
-                gesture.moved && commitHistory();
-                break;
+        set(selectionGripsHiddenAtom, false);
+        set(rotateReadoutAtom, null);
+        if (gesture?.type === 'rotate') {
+            gesture.moved && Math.abs(gesture.appliedDeg) > 1e-4 && commitHistory();
+        } else if (gesture?.type === 'move') {
+            endMove(gesture.move);
+        } else if (gesture?.type === 'marquee') {
+            set(marqueeAtom, null);
+            set(lassoAtom, null);
+        } else if (gesture?.type === 'resize') {
+            gesture.moved && commitHistory();
         }
         gesture = null;
+        syncRotateCursor(get, set, e.screen, null);
+    },
+
+    onKeyDown({ set }, e) {
+        return onRotateShift(set, e, true);
+    },
+
+    onKeyUp({ set }, e) {
+        return onRotateShift(set, e, false);
+    },
+
+    onDeactivate({ set }) {
+        const g = gesture;
+        if (g && (g.type === 'rotate' || g.type === 'resize')) {
+            clearSnapGuides();
+            gesture = null;
+            if (g.type === 'resize') {
+                g.moved && commitHistory();
+            } else if (g.moved && Math.abs(g.appliedDeg) > 1e-4) {
+                commitHistory();
+            }
+        }
+        set(selectionGripsHiddenAtom, false);
+        set(rotateReadoutAtom, null);
+        set(rotateCursorAtom, null);
+        set(resizeCursorAtom, null);
     },
 };
 
@@ -215,7 +287,67 @@ const M = MODIFIERS.select;
 type Gesture =
     | { type: 'move'; move: MoveGesture; }
     | AreaGesture
-    | { type: 'resize'; originals: NodeOriginals; bbox: Rect; handle: ResizeHandle; moved: boolean; startScreen: Point; snapTargets: Rect[]; };
+    | { type: 'resize'; originals: NodeOriginals; bbox: Rect; handle: ResizeHandle; moved: boolean; startScreen: Point; snapTargets: Rect[]; }
+    | {
+        type: 'rotate';
+        originals: NodeOriginals;
+        center: Point;       // document-space center of the box at pointer down; the drag rotates around it
+        startAngle: number; // radians, pointer at pointer down
+        radians: number;     // unwrapped delta from startAngle
+        appliedDeg: number;  // last angle written to the document (snapped while Shift is held)
+        moved: boolean;
+        startScreen: Point;
+        lastScreen: Point;
+    };
+
+type RotateGesture = Extract<Gesture, { type: 'rotate' }>;
+
+/** `center` is the original box center during a drag; otherwise the band is tested against the live selection. */
+function rotateCursorForPointer(get: Getter, screen: Point, center: Point | null): string | null {
+    const vp = get(viewportAtom);
+    if (center) {
+        return rotateCursorClass(docToScreen(vp, center), screen);
+    }
+    const ids = get(selectionAtom);
+    if (!ids.length) {
+        return null;
+    }
+    const bbox = nodesDocBBox(docState.doc as SvgDoc, ids);
+    if (!bbox) {
+        return null;
+    }
+    const box = rectToScreen(vp, bbox);
+    if (!inRotateBand(box, screen)) {
+        return null;
+    }
+    return rotateCursorClass({ x: box.x + box.width / 2, y: box.y + box.height / 2 }, screen);
+}
+
+function syncRotateCursor(get: Getter, set: Setter, screen: Point, center: Point | null) {
+    const cls = rotateCursorForPointer(get, screen, center);
+    if (get(rotateCursorAtom) !== cls) {
+        set(rotateCursorAtom, cls);
+    }
+}
+
+/** Writes the whole drag angle from the captured originals. Shift quantizes it; releasing Shift follows the pointer again. */
+function applyRotation(g: RotateGesture, snap: boolean, set: Setter) {
+    const degrees = snapRotation(g.radians * 180 / Math.PI, snap);
+    g.appliedDeg = degrees;
+    applyDocMatrix(g.originals, rotateMatrix(degrees, g.center.x, g.center.y));
+    set(rotateReadoutAtom, { x: g.lastScreen.x, y: g.lastScreen.y, label: formatRotation(degrees, snap) });
+}
+
+/** Shift during a rotation drag snaps immediately, without waiting for the next pointer move. */
+function onRotateShift(set: Setter, e: KeyboardEvent, snap: boolean): boolean {
+    if (e.key !== 'Shift' || !gesture || gesture.type !== 'rotate') {
+        return false;
+    }
+    if (!e.repeat && gesture.moved) {
+        applyRotation(gesture, snap, set);
+    }
+    return true;
+}
 
 /**
  * Drag on empty canvas: a rubber band, or a lasso while `trail` is set. Both start from `origin`.

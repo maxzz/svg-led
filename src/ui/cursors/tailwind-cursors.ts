@@ -1,4 +1,5 @@
 import type { PluginAPI } from 'tailwindcss/plugin';
+import { ROTATE_CURSOR_DEGREES, ROTATE_GLYPH, rotateCursorMarkup } from './rotate-glyph';
 
 // Cursor artwork is plain SVG markup, kept literal so it can be edited in an external editor and pasted back.
 // Drawn on a 24x24 grid (one unit = one CSS pixel).
@@ -146,6 +147,10 @@ export function cursorsPlugin({ addUtilities }: PluginAPI): void {
         '.cursor-resize-se': { cursor: cursorCss(resizeNwSe, 12, 12) },
         '.cursor-resize-ne': { cursor: cursorCss(resizeNeSw, 12, 12) },
         '.cursor-resize-sw': { cursor: cursorCss(resizeNeSw, 12, 12) },
+        ...Object.fromEntries(ROTATE_CURSOR_DEGREES.map((deg) => [
+            `.cursor-rotate-${deg}`,
+            { cursor: cursorCss(rotateCursorMarkup(deg), ROTATE_GLYPH.hotX, ROTATE_GLYPH.hotY) },
+        ])),
     });
 }
 

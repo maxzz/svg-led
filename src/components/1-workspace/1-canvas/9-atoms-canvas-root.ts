@@ -124,12 +124,14 @@ export const canvasPointerMoveAtom = atom(
         const ev = toToolEvent(get, e);
         set(pointerDocAtom, ev.doc);
 
+        const tool = getTool(get(activeToolIdAtom));
         if (toolGesture) {
-            getTool(get(activeToolIdAtom)).onPointerMove?.({ get, set }, ev);
+            tool.onPointerMove?.({ get, set }, ev);
             return;
         }
 
         updateHover(get, set, ev.target);
+        tool.onPointerHover?.({ get, set }, ev);
     }
 );
 
@@ -156,9 +158,10 @@ export const canvasPointerUpAtom = atom(
 
 export const canvasPointerLeaveAtom = atom(
     null,
-    (_get, set) => {
+    (get, set) => {
         set(hoverNodeIdAtom, null);
         set(pointerDocAtom, null);
+        getTool(get(activeToolIdAtom)).onPointerLeave?.({ get, set });
     }
 );
 

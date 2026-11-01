@@ -69,6 +69,12 @@ export function installKeyboard(store: AppStore): () => void {
         if (e.key === ' ') {
             store.set(spaceHeldAtom, false);
         }
+        if (isEditableTarget(e.target)) {
+            return;
+        }
+        if (getTool(store.get(activeToolIdAtom)).onKeyUp?.(ctx, e)) {
+            e.preventDefault();
+        }
     }
 
     function onBlur() {

@@ -12,12 +12,15 @@ import { type HeldKeys, type ToolId } from "@/store/4-editor";
  * @param icon - The tool icon component.
  * @param hint - The tool hint function, one short line under the toolbar while the tool is active. Keys are written in brackets, e.g. "[Shift] add", and drawn as keycaps. While a modifier is held, the line shows what that modifier does (see modifierHint).
  * @param cursor - The tool cursor type.
- * @param getCursor - Optional cursor that depends on app state (hover, selection, an active resize); takes precedence over `cursor`. A Tailwind cursor utility (from the cursors plugin) starts with "cursor-"; any other value is a CSS cursor, such as "nwse-resize".
+ * @param getCursor - Optional cursor that depends on app state (hover, selection, an active resize or rotation); takes precedence over `cursor`. A Tailwind cursor utility (from the cursors plugin) starts with "cursor-"; any other value is a CSS cursor, such as "nwse-resize".
  * @param newShapeKind - The tool new shape kind, kind of element this tool creates; the properties panel then edits the new-shape style.
  * @param onPointerDown - The tool pointer down event handler.
  * @param onPointerMove - The tool pointer move event handler.
+ * @param onPointerHover - The tool pointer move handler while no gesture is active (hover).
+ * @param onPointerLeave - The tool pointer leave handler, when the pointer leaves the canvas.
  * @param onPointerUp - The tool pointer up event handler.
  * @param onKeyDown - The tool key down event handler, return true when the key was handled.
+ * @param onKeyUp - The tool key up event handler, return true when the key was handled.
  * @param onDeactivate - The tool deactivate event handler, called before another tool becomes active.
  */
 export type ToolDef = {
@@ -32,8 +35,11 @@ export type ToolDef = {
     newShapeKind?: NewShapeKind; // Kind of element this tool creates; the properties panel then edits the new-shape style
     onPointerDown?: (ctx: ToolContext, e: ToolPointerEvent) => void;
     onPointerMove?: (ctx: ToolContext, e: ToolPointerEvent) => void;
+    onPointerHover?: (ctx: ToolContext, e: ToolPointerEvent) => void; // Pointer move while no button is down
+    onPointerLeave?: (ctx: ToolContext) => void;
     onPointerUp?: (ctx: ToolContext, e: ToolPointerEvent) => void;
     onKeyDown?: (ctx: ToolContext, e: KeyboardEvent) => boolean; // Return true when the key was handled
+    onKeyUp?: (ctx: ToolContext, e: KeyboardEvent) => boolean;
     onDeactivate?: (ctx: ToolContext) => void; // Called before another tool becomes active
 };
 
@@ -77,7 +83,8 @@ export type CanvasTarget =
     | { type: 'anchor'; nodeId: string; key: string; }                         // key "si:ai"
     | { type: 'handle'; nodeId: string; key: string; side: 'in' | 'out'; }
     | { type: 'shape-handle'; nodeId: string; key: string; }
-    | { type: 'resize'; handle: ResizeHandle; };
+    | { type: 'resize'; handle: ResizeHandle; }
+    | { type: 'rotate'; }; // just outside the selection frame, past the resize grips
 
 /** Resize handles of the selection box: corners scale both axes, edge handles only the axis perpendicular to their edge */
 export type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
