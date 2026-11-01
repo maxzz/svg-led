@@ -1,6 +1,6 @@
 import { type KeyboardEvent as ReactKeyboardEvent, type RefObject, type SyntheticEvent, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { Trash2 } from "lucide-react";
+import { CodeXml, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/ui/shadcn/dialog";
 import { Button } from "@/ui/shadcn/button";
@@ -98,7 +98,9 @@ function LoadSection({ selectedName, setSelectedName, selectScrap, noteRename, p
     const cancel = useSetAtom(rowDragCancelAtom);
     const rowRefs = useRef(new Map<string, HTMLDivElement>());
     const [renaming, setRenaming] = useState<string | null>(null);
+    const [previewName, setPreviewName] = useState<string | null>(null);
     const returnFocus = useRef<string | null>(null);
+    const preview = scraps.find((s) => s.name === previewName) ?? null;
 
     const loadMode: ScrapLoadMode = options.loadMode === 'replace' ? 'replace' : 'add';
     const selectedIndex = scraps.findIndex((s) => s.name === selectedName);
@@ -217,6 +219,7 @@ function LoadSection({ selectedName, setSelectedName, selectScrap, noteRename, p
                                     onSelect={() => selectScrap(scrap.name)}
                                     onLoad={() => load(scrap.name)}
                                     onDelete={() => doDelete(scrap.name)}
+                                    onPreview={() => { selectScrap(scrap.name); setPreviewName(scrap.name); }}
                                     onStartRename={() => startRename(scrap.name)}
                                     onRenamed={(to, focus) => { noteRename(scrap.name, to); endRename(focus ? to : null); }}
                                     onCancelRename={(focus) => endRename(focus ? scrap.name : null)}
@@ -230,6 +233,8 @@ function LoadSection({ selectedName, setSelectedName, selectScrap, noteRename, p
                     <ScrapsDragGhost />
                 </div>
             </ScrollArea>
+
+            {preview && <ScrapSourceDialog scrap={preview} onClose={() => setPreviewName(null)} />}
 
             <div className="flex items-center gap-2">
                 <span className="text-muted-foreground">
@@ -257,7 +262,7 @@ const LOAD_MODES = [
     { value: 'replace', label: 'Replace canvas' },
 ] as const;
 
-function ScrapRow({ scrap, selected, editing, onSelect, onLoad, onDelete, onStartRename, onRenamed, onCancelRename, rowRef }: { scrap: Scrap; selected: boolean; editing: boolean; onSelect: () => void; onLoad: () => void; onDelete: () => void; onStartRename: () => void; onRenamed: (name: string, focus: boolean) => void; onCancelRename: (focus: boolean) => void; rowRef: (node: HTMLDivElement | null) => void; }) {
+function ScrapRow({ scrap, selected, editing, onSelect, onLoad, onDelete, onPreview, onStartRename, onRenamed, onCancelRename, rowRef }: { scrap: Scrap; selected: boolean; editing: boolean; onSelect: () => void; onLoad: () => void; onDelete: () => void; onPreview: () => void; onStartRename: () => void; onRenamed: (name: string, focus: boolean) => void; onCancelRename: (focus: boolean) => void; rowRef: (node: HTMLDivElement | null) => void; }) {
     const src = useMemo(() => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(scrap.svg)}`, [scrap.svg]);
     const dragged = useAtomValue(isDraggedFamily(scrap.name));
     const dragDown = useSetAtom(rowDragDownAtom);
@@ -299,20 +304,64 @@ function ScrapRow({ scrap, selected, editing, onSelect, onLoad, onDelete, onStar
                 </p>
             </div>
 
-            <Button
-                className="size-6 opacity-0 group-hover:opacity-100 group-aria-selected:opacity-100"
-                variant="ghost"
-                size="icon"
-                data-row-control
-                onClick={(e) => { e.stopPropagation(); onDelete(); }}
-                onDoubleClick={(e) => e.stopPropagation()}
-                title="Delete scrap"
-                aria-label="Delete scrap"
-                tabIndex={-1}
-            >
-                <Trash2 className="size-3.5" />
-            </Button>
+            <div className="shrink-0 flex items-center">
+                <Button
+                    className="size-6 opacity-0 group-hover:opacity-100 group-aria-selected:opacity-100"
+                    variant="ghost"
+                    size="icon"
+                    data-row-control
+                    onClick={(e) => { e.stopPropagation(); onPreview(); }}
+                    onDoubleClick={(e) => e.stopPropagation()}
+                    title="Preview source"
+                    aria-label="Preview source"
+                    tabIndex={-1}
+                >
+                    <CodeXml className="size-3.5" />
+                </Button>
+                <Button
+                    className="size-6 opacity-0 group-hover:opacity-100 group-aria-selected:opacity-100"
+                    variant="ghost"
+                    size="icon"
+                    data-row-control
+                    onClick={(e) => { e.stopPropagation(); onDelete(); }}
+                    onDoubleClick={(e) => e.stopPropagation()}
+                    title="Delete scrap"
+                    aria-label="Delete scrap"
+                    tabIndex={-1}
+                >
+                    <Trash2 className="size-3.5" />
+                </Button>
+            </div>
         </div>
+    );
+}
+
+/** SVG markup of one scrap. A long source scrolls inside the popup. */
+function ScrapSourceDialog({ scrap, onClose }: { scrap: Scrap; onClose: () => void; }) {
+    return (
+        <Dialog open onOpenChange={(open) => { !open && onClose(); }}>
+            <DialogContent className="p-0! w-[min(40rem,calc(100vw-2rem))]! max-w-none! text-xs gap-0!">
+                <DialogHeader className="px-4 py-3 text-left border-b gap-1">
+                    <DialogTitle className="text-sm">
+                        {scrap.name}
+                    </DialogTitle>
+                    <DialogDescription className="text-xs">
+                        Scrap source
+                    </DialogDescription>
+                </DialogHeader>
+
+                <ScrollArea
+                    className="max-h-[min(24rem,calc(100dvh-10rem))]"
+                    viewportClassName="max-h-[min(24rem,calc(100dvh-10rem))]"
+                    fixedWidth
+                    horizontal
+                >
+                    <pre className="select-text whitespace-pre px-4 py-3 text-[11px] font-mono">
+                        {scrap.svg}
+                    </pre>
+                </ScrollArea>
+            </DialogContent>
+        </Dialog>
     );
 }
 
