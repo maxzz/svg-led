@@ -1,5 +1,5 @@
 import type { PluginAPI } from 'tailwindcss/plugin';
-import { ROTATE_CURSOR_DEGREES, ROTATE_GLYPH, rotateCursorMarkup } from './rotate-glyph';
+import { ROTATE_CURSOR_DEGREES, ROTATE_GLYPH } from './rotate-glyph';
 
 // Cursor artwork is plain SVG markup, kept literal so it can be edited in an external editor and pasted back.
 // Drawn on a 24x24 grid (one unit = one CSS pixel).
@@ -137,13 +137,48 @@ const resizeNeSw = `
 //---------------------------------------------------------------------------
 
 /**
+ * Rotate cursor at 0°: a quarter-circle bulging right, with an arrowhead at each end.
+ * The other angles are this same drawing turned around the hotspot (16.5, 16.5).
+ * Edit the points here. Each arrow is three corners — outer tip, inner corner on the
+ * vertical back, and the corner that meets the arc. The white shape is the black one
+ * with a stroke, so 1px of white shows around it.
+ */
+const rotateCursor = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+        <!-- arc. 3px white stroke, then a 1px black stroke, so 1px of white shows on each side -->
+        <path d="M14.2 10.8A8 8 0 0 1 14.2 22.2" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+        <!-- upper arrow: outer tip, inner corner, arc end -->
+        <polygon points="8.5,5.9 8.5,10.8 14.2,10.8" fill="#fff" stroke="#fff" stroke-width="2" stroke-linejoin="miter"/>
+        <!-- lower arrow, mirrored through the hotspot -->
+        <polygon points="8.5,27.1 8.5,22.2 14.2,22.2" fill="#fff" stroke="#fff" stroke-width="2" stroke-linejoin="miter"/>
+        <path d="M14.2 10.8A8 8 0 0 1 14.2 22.2" fill="none" stroke="#000" stroke-width="1" stroke-linecap="round"/>
+        <polygon points="8.5,5.9 8.5,10.8 14.2,10.8" fill="#000"/>
+        <polygon points="8.5,27.1 8.5,22.2 14.2,22.2" fill="#000"/>
+    </svg>
+`;
+
+/** Same drawing, turned clockwise around the hotspot. Angle 0 is the constant above. */
+function rotateCursorAt(deg: number): string {
+    if (!deg) {
+        return rotateCursor;
+    }
+    const { hotX, hotY } = ROTATE_GLYPH;
+    const withGroup = rotateCursor.replace(
+        /<svg\b([^>]*)>/,
+        `<svg$1><g transform="rotate(${deg} ${hotX} ${hotY})">`,
+    );
+    const end = withGroup.lastIndexOf('</svg>');
+    return `${withGroup.slice(0, end)}</g></svg>`;
+}
+
+/**
  * Bitmap for a rotate-cursor class (`cursor-rotate-45`, …).
  * The angle is chosen while the pointer moves, so this is a CSS cursor value rather than a Tailwind
  * class: Tailwind only emits class names written out in source, and the corner angles never were.
  */
 const rotateCursorStyles = new Map(ROTATE_CURSOR_DEGREES.map((deg) => [
     `cursor-rotate-${deg}`,
-    cursorCss(rotateCursorMarkup(deg), ROTATE_GLYPH.hotX, ROTATE_GLYPH.hotY),
+    cursorCss(rotateCursorAt(deg), ROTATE_GLYPH.hotX, ROTATE_GLYPH.hotY),
 ]));
 
 export function rotateCursorStyle(className: string): string {

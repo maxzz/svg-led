@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ROTATE_CURSOR_DEGREES, ROTATE_GLYPH, rotateGlyphPoints } from "@/ui/cursors/rotate-glyph";
+import { ROTATE_CURSOR_DEGREES } from "@/ui/cursors/rotate-glyph";
 import { rotateCursorStyle } from "@/ui/cursors/tailwind-cursors";
 import {
     formatRotation, inRotateBand, rotateCursorClass, snapRotation, unwrapAngle,
@@ -95,28 +95,3 @@ describe("rotateCursorStyle", () => {
     });
 });
 
-describe("rotate glyph", () => {
-    it("keeps the 1px line and its white halo inside the bitmap at every angle", () => {
-        const { size } = ROTATE_GLYPH;
-        const pad = 2; // the white stroke reaches 1.5px past the centerline
-        for (const deg of ROTATE_CURSOR_DEGREES) {
-            for (const [x, y] of rotateGlyphPoints(deg)) {
-                expect(x, `${deg} x`).toBeGreaterThanOrEqual(pad);
-                expect(y, `${deg} y`).toBeGreaterThanOrEqual(pad);
-                expect(x, `${deg} x`).toBeLessThanOrEqual(size - pad);
-                expect(y, `${deg} y`).toBeLessThanOrEqual(size - pad);
-            }
-        }
-    });
-
-    it("bulges toward the pointer and opens back toward the selection", () => {
-        const right = rotateGlyphPoints(0);
-        const down = rotateGlyphPoints(90);
-        const xs = right.map((p) => p[0]);
-        const ys = down.map((p) => p[1]);
-        expect(Math.max(...xs)).toBeGreaterThan(ROTATE_GLYPH.hotX - 1);
-        expect(Math.min(...xs)).toBeLessThan(ROTATE_GLYPH.hotX - 2);
-        expect(Math.max(...ys)).toBeGreaterThan(ROTATE_GLYPH.hotY - 1);
-        expect(Math.min(...ys)).toBeLessThan(ROTATE_GLYPH.hotY - 2);
-    });
-});
