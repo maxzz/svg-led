@@ -144,17 +144,14 @@ const resizeNeSw = `
  * with a stroke, so 1px of white shows around it.
  */
 const rotateCursor = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-        <!-- arc. 3px white stroke, then a 1px black stroke, so 1px of white shows on each side -->
-        <path d="M14.2 10.8A8 8 0 0 1 14.2 22.2" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
-        <!-- upper arrow: outer tip, inner corner, arc end -->
-        <polygon points="8.5,5.9 8.5,10.8 14.2,10.8" fill="#fff" stroke="#fff" stroke-width="2" stroke-linejoin="miter"/>
-        <!-- lower arrow, mirrored through the hotspot -->
-        <polygon points="8.5,27.1 8.5,22.2 14.2,22.2" fill="#fff" stroke="#fff" stroke-width="2" stroke-linejoin="miter"/>
-        <path d="M14.2 10.8A8 8 0 0 1 14.2 22.2" fill="none" stroke="#000" stroke-width="1" stroke-linecap="round"/>
-        <polygon points="8.5,5.9 8.5,10.8 14.2,10.8" fill="#000"/>
-        <polygon points="8.5,27.1 8.5,22.2 14.2,22.2" fill="#000"/>
-    </svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+    <path fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" d="M10.2 6.8 C15.938 9.558 16.587 14.357 16.587 16.5 C16.587 18.643 15.957 23.986 10.2 26.2"/>
+    <polygon points="13.8,27.5 8.9,27.5 8.9,21.8" fill="#fff" stroke="#fff" stroke-width="2" stroke-linejoin="miter"/>
+    <polygon points="13.8,27.5 8.9,27.5 8.9,21.8" fill="#000"/>
+    <polygon points="13.8,5.5 8.9,5.5 8.9,11.2" fill="#fff" stroke="#fff" stroke-width="2" stroke-linejoin="miter"/>
+    <polygon points="13.8,5.5 8.9,5.5 8.9,11.2" fill="#000"/>
+    <path fill="none" stroke="#000" stroke-width="1" stroke-linecap="round" d="M10.2 6.8 C15.938 9.558 16.587 14.357 16.587 16.5 C16.587 18.643 15.957 23.986 10.2 26.2"/>
+</svg>
 `;
 
 /** Same drawing, turned clockwise around the hotspot. Angle 0 is the constant above. */
