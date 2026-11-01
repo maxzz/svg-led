@@ -158,6 +158,28 @@ export const doDeleteScrapAtom = atom(
     }
 );
 
+/** Renames a scrap in place. The same name is a no-op; an empty or taken name is refused. */
+export const doRenameScrapAtom = atom(
+    null,
+    (get, set, { from, to }: { from: string; to: string; }): { ok: true; name: string; } | { ok: false; error: string; } => {
+        const name = to.trim();
+        if (!name) {
+            return { ok: false, error: 'Enter a name' };
+        }
+        const scraps = get(scrapsBaseAtom);
+        if (!scraps.some((s) => s.name === from)) {
+            return { ok: false, error: 'That scrap is no longer in the list' };
+        }
+        if (name !== from && scraps.some((s) => s.name === name)) {
+            return { ok: false, error: 'A scrap with this name already exists' };
+        }
+        if (name !== from && !writeScraps(set, scraps.map((s) => s.name === from ? { ...s, name } : s))) {
+            return { ok: false, error: '' }; // writeScraps already reported the storage failure
+        }
+        return { ok: true, name };
+    }
+);
+
 /** Moves a scrap to `index` (0 is the top) and stores that order */
 export const doReorderScrapAtom = atom(
     null,

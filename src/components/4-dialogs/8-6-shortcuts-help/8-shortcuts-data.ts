@@ -43,6 +43,7 @@ export const CANVAS_ROWS: ShortcutRowData[] = [
     { label: 'Double-click an object to isolate it; double-click outside the isolated objects to leave isolation', shortcuts: ['Double-click'] },
     { label: 'Scraps list: move between scraps', shortcuts: ['Arrows', 'Home', 'End'] },
     { label: 'Scraps list: load the selected scrap', shortcuts: ['Enter'] },
+    { label: 'Scraps list: rename the selected scrap', shortcuts: ['F2'] },
 ].map((row) => ({ ...row, id: row.label }));
 
 const MODIFIER_GROUP_LABELS: Record<keyof typeof MODIFIERS, string> = {
