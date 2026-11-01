@@ -22,6 +22,8 @@ export function resolveTarget(el: Element | null): CanvasTarget {
                 return { type: 'shape-handle', nodeId: d.nid!, key: d.key! };
             case 'resize':
                 return { type: 'resize', handle: d.handle as ResizeHandle };
+            case 'rotate':
+                return { type: 'rotate' };
         }
     }
 

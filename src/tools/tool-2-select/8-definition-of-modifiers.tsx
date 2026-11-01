@@ -13,6 +13,7 @@ export const MODIFIERS = {
         snapToObjects: 'ctrl',           // Ctrl held while dragging snaps to other elements (also on in Preferences)
         resizeKeepAspect: 'shift',
         resizeFromCenter: 'alt',
+        rotateSnap: 'shift',             // drag outside the frame rotates in 15° steps
         invertSelectionMode: 'ctrl',     // Ctrl while dragging a marquee flips Inclusive/Exclusive
         lassoSelect: 'alt',              // Alt on empty canvas drags a lasso; pressing or releasing Alt mid-drag switches
     },
@@ -47,6 +48,7 @@ export const MODIFIER_DESCRIPTIONS: ModifierDescriptions = {
         snapToObjects: 'drag to snap to other elements (even when snapping is off in Preferences)',
         resizeKeepAspect: 'resize a corner keeping the aspect ratio (edges change one side only)',
         resizeFromCenter: 'resize from the center (edges stretch from the middle of the box)',
+        rotateSnap: 'drag just outside the selection to rotate in steps of 15°',
         invertSelectionMode: 'drag a selection marquee to use the opposite of the Inclusive/Exclusive option',
         lassoSelect: 'drag on empty canvas to select with a lasso; press or release mid-drag to switch to and from the marquee',
     },

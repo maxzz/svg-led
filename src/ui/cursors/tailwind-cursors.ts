@@ -1,4 +1,5 @@
 import type { PluginAPI } from 'tailwindcss/plugin';
+import { ROTATE_CURSOR_DEGREES, ROTATE_GLYPH, rotateCursorMarkup } from './rotate-glyph';
 
 // Cursor artwork is plain SVG markup, kept literal so it can be edited in an external editor and pasted back.
 // Drawn on a 24x24 grid (one unit = one CSS pixel).
@@ -134,6 +135,20 @@ const resizeNeSw = `
 `;
 
 //---------------------------------------------------------------------------
+
+/**
+ * Bitmap for a rotate-cursor class (`cursor-rotate-45`, …).
+ * The angle is chosen while the pointer moves, so this is a CSS cursor value rather than a Tailwind
+ * class: Tailwind only emits class names written out in source, and the corner angles never were.
+ */
+const rotateCursorStyles = new Map(ROTATE_CURSOR_DEGREES.map((deg) => [
+    `cursor-rotate-${deg}`,
+    cursorCss(rotateCursorMarkup(deg), ROTATE_GLYPH.hotX, ROTATE_GLYPH.hotY),
+]));
+
+export function rotateCursorStyle(className: string): string {
+    return rotateCursorStyles.get(className) ?? 'default';
+}
 
 export function cursorsPlugin({ addUtilities }: PluginAPI): void {
     addUtilities({
