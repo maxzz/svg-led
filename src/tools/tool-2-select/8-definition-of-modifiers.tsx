@@ -20,7 +20,7 @@ export const MODIFIERS = {
     points: {
         toggleAnchor: 'shift',           // Shift+click adds or removes an anchor
         constrainAngle: 'shift',         // handles snap to 45 degrees
-        snapToObjects: 'ctrl',           // Ctrl held while dragging an anchor snaps to other elements
+        snapToObjects: 'ctrl',           // Ctrl held while dragging an anchor or handle snaps it to points, handles and elements
         breakHandle: 'alt',              // Alt+drag on a handle moves it alone (smooth -> cusp)
         convertAnchor: 'alt',            // Alt+click toggles corner/smooth, Alt+drag pulls out handles
         addDeletePoint: 'ctrl',          // Ctrl+click on a segment adds, on an anchor deletes
@@ -55,7 +55,7 @@ export const MODIFIER_DESCRIPTIONS: ModifierDescriptions = {
     points: {
         toggleAnchor: 'click to add or remove an anchor from the selection',
         constrainAngle: 'drag a handle to snap its angle to 45°',
-        snapToObjects: 'drag an anchor to snap to other elements (even when snapping is off in Preferences)',
+        snapToObjects: 'drag an anchor or handle to snap it to points, handles, then element edges and centers (even when snapping is off in Preferences)',
         breakHandle: 'drag a handle to move it alone (smooth becomes cusp)',
         convertAnchor: 'click an anchor to toggle corner and smooth, drag to pull out handles',
         addDeletePoint: 'click a segment to add an anchor, click an anchor to delete it',
