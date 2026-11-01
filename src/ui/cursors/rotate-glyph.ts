@@ -11,8 +11,12 @@ export const ROTATE_CURSOR_DEGREES = Array.from({ length: 360 / ROTATE_CURSOR_ST
 const HOT = ROTATE_GLYPH.hotX;
 const R = 8;
 const HALF = 45;
-const HEAD = 3.2;
-const SPREAD = 1.6;
+/** Tip-to-base length of each arrowhead, along the arc's tangent. */
+const HEAD = 3.8;
+/** Half the width of the arrowhead base. Wide enough to read at cursor size, still smaller than the arc. */
+const SPREAD = 2;
+/** How far the tip sits past the end of the arc. */
+const TIP_PAST = 1.8;
 
 /** Centerline of the arc and both arrowheads at `turnDeg` clockwise. The stroke extends 1.5px past these points. */
 export function rotateGlyphPoints(turnDeg: number): [number, number][] {
@@ -26,43 +30,45 @@ export function rotateGlyphPoints(turnDeg: number): [number, number][] {
     return turnDeg ? pts.map((p) => turn(p, turnDeg)) : pts;
 }
 
-/** Unrotated centerline: the arc, then an open arrowhead at each end. */
-function rotateGlyphPath(): string {
+/** Unrotated pieces: the 1px arc, and a filled triangle at each end. */
+function glyphParts(): { arc: string; heads: string } {
     const cx = HOT - R;
     const cy = HOT;
     const start = polar(-HALF, R, cx, cy);
     const end = polar(HALF, R, cx, cy);
     const arc = `M${n(start[0])} ${n(start[1])}A${R} ${R} 0 0 1 ${n(end[0])} ${n(end[1])}`;
     const heads = [arrow(-HALF, -1, cx, cy), arrow(HALF, 1, cx, cy)]
-        .map((pts) => `M${pts.map((p) => `${n(p[0])} ${n(p[1])}`).join('L')}`)
+        .map((pts) => `M${pts.map((p) => `${n(p[0])} ${n(p[1])}`).join('L')}Z`)
         .join('');
-    return arc + heads;
+    return { arc, heads };
 }
 
 /**
- * White halo, then the black line. The halo is a 3px stroke, so 1px of white shows around the 1px black stroke.
+ * White halo, then the black line and the arrowheads.
+ * The arc is a 1px stroke (3px white underneath). Each head is a filled triangle with a 1px white edge.
  */
 export function rotateCursorMarkup(turnDeg: number): string {
     const { size, hotX, hotY } = ROTATE_GLYPH;
-    const d = rotateGlyphPath();
+    const { arc, heads } = glyphParts();
     const spin = turnDeg ? ` transform="rotate(${turnDeg} ${hotX} ${hotY})"` : '';
-    const stroke = `fill="none" stroke-linecap="round" stroke-linejoin="round"${spin}`;
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><path d="${d}" ${stroke} stroke="#fff" stroke-width="3"/><path d="${d}" ${stroke} stroke="#000" stroke-width="1"/></svg>`;
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><path d="${arc}" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"${spin}/><path d="${heads}" fill="#fff" stroke="#fff" stroke-width="2" stroke-linejoin="miter"${spin}/><path d="${arc}" fill="none" stroke="#000" stroke-width="1" stroke-linecap="round"${spin}/><path d="${heads}" fill="#000"${spin}/></svg>`;
 }
 
-/** `dir` +1 points clockwise along the arc, -1 the other way. The tip sits on the arc. */
+/** `dir` +1 points clockwise along the arc, -1 the other way. Returns tip, then the two base corners. */
 function arrow(deg: number, dir: 1 | -1, cx: number, cy: number): [number, number][] {
-    const tip = polar(deg, R, cx, cy);
+    const end = polar(deg, R, cx, cy);
     const a = (deg * Math.PI) / 180;
     const tx = -Math.sin(a) * dir;
     const ty = Math.cos(a) * dir;
     const px = -ty;
     const py = tx;
-    const bx = tip[0] - tx * HEAD;
-    const by = tip[1] - ty * HEAD;
+    const tip: [number, number] = [end[0] + tx * TIP_PAST, end[1] + ty * TIP_PAST];
+    const back = HEAD - TIP_PAST;
+    const bx = end[0] - tx * back;
+    const by = end[1] - ty * back;
     return [
-        [bx + px * SPREAD, by + py * SPREAD],
         tip,
+        [bx + px * SPREAD, by + py * SPREAD],
         [bx - px * SPREAD, by - py * SPREAD],
     ];
 }
