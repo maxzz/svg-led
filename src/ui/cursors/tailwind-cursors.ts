@@ -138,19 +138,19 @@ const resizeNeSw = `
 
 /**
  * Rotate cursor at 0°: a quarter-circle bulging right, with an arrowhead at each end.
- * The other angles are this same drawing turned around the hotspot (16.5, 16.5).
+ * The other angles are this same drawing turned around the hotspot (12, 12), the center of the 24×24 grid.
  * Edit the points here. Each arrow is three corners — outer tip, inner corner on the
  * vertical back, and the corner that meets the arc. The white shape is the black one
  * with a stroke, so 1px of white shows around it.
  */
 const rotateCursor = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-    <path fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" d="M10.2 6.8 C15.938 9.558 16.587 14.357 16.587 16.5 C16.587 18.643 15.957 23.986 10.2 26.2"/>
-    <polygon points="13.8,27.5 8.9,27.5 8.9,21.8" fill="#fff" stroke="#fff" stroke-width="2" stroke-linejoin="miter"/>
-    <polygon points="13.8,27.5 8.9,27.5 8.9,21.8" fill="#000"/>
-    <polygon points="13.8,5.5 8.9,5.5 8.9,11.2" fill="#fff" stroke="#fff" stroke-width="2" stroke-linejoin="miter"/>
-    <polygon points="13.8,5.5 8.9,5.5 8.9,11.2" fill="#000"/>
-    <path fill="none" stroke="#000" stroke-width="1" stroke-linecap="round" d="M10.2 6.8 C15.938 9.558 16.587 14.357 16.587 16.5 C16.587 18.643 15.957 23.986 10.2 26.2"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+    <path fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" d="M7.275 4.725 C11.5785 6.7935 12.06525 10.39275 12.06525 12 C12.06525 13.60725 11.59275 17.6145 7.275 19.275"/>
+    <polygon points="9.975,20.25 6.3,20.25 6.3,15.975" fill="#fff" stroke="#fff" stroke-width="2" stroke-linejoin="miter"/>
+    <polygon points="9.975,20.25 6.3,20.25 6.3,15.975" fill="#000"/>
+    <polygon points="9.975,3.75 6.3,3.75 6.3,8.025" fill="#fff" stroke="#fff" stroke-width="2" stroke-linejoin="miter"/>
+    <polygon points="9.975,3.75 6.3,3.75 6.3,8.025" fill="#000"/>
+    <path fill="none" stroke="#000" stroke-width="1" stroke-linecap="round" d="M7.275 4.725 C11.5785 6.7935 12.06525 10.39275 12.06525 12 C12.06525 13.60725 11.59275 17.6145 7.275 19.275"/>
 </svg>
 `;
 

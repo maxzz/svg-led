@@ -2,7 +2,7 @@
 // The drawing is the `rotateCursor` SVG in tailwind-cursors.ts.
 // Angle 0 bulges to the right; positive angles turn that bulge clockwise around the hotspot.
 
-export const ROTATE_GLYPH = { size: 32, hotX: 16.5, hotY: 16.5 };
+export const ROTATE_GLYPH = { size: 24, hotX: 12, hotY: 12 };
 
 export const ROTATE_CURSOR_STEP = 15;
 
