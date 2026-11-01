@@ -2,6 +2,7 @@ import { useSnapshot } from "valtio";
 import { appSettings } from "@/store/1-ui-settings";
 import { type SectionProps } from "./9-registry";
 import { NumberField } from "../2-props-panel-controls/3-0-number-field";
+import { MatrixRow } from "../6-matrix-input/4-matrix-row";
 
 import { nodesDocBBox, setNodesBBox, useDocSnapshot } from "@/store/3-document";
 import { CollapsibleSection } from "../2-props-panel-controls/2-section";
@@ -31,6 +32,7 @@ export function Section_BBox({ ids }: SectionProps) {
                 <NumberField className={fieldClasses} labelClassName={fieldLabelClasses} label="Y" value={bbox.y} onChange={(y) => setNodesBBox(ids, { y })} />
                 <NumberField className={fieldClasses} labelClassName={fieldLabelClasses} label="W" value={bbox.width} min={0.01} onChange={(width) => setNodesBBox(ids, { width })} />
                 <NumberField className={fieldClasses} labelClassName={fieldLabelClasses} label="H" value={bbox.height} min={0.01} onChange={(height) => setNodesBBox(ids, { height })} />
+                <MatrixRow />
             </div>
         </CollapsibleSection>
     );
