@@ -23,7 +23,7 @@ export function ScrapSourceDialog({ scrap, onClose }: { scrap: Scrap; onClose: (
                     </DialogDescription>
                 </DialogHeader>
 
-                <div style={{ height: `min(${lines * Math.round(fontSize * 1.6) + 20}px, 24rem, calc(100dvh - 10rem))` }}>
+                <div style={{ height: `min(${lines * Math.round(fontSize * 1.6) + 120}px, 24rem, calc(100dvh - 10rem))` }}>
                     <Suspense fallback={<div className="p-3 text-xs text-muted-foreground">Loading source...</div>}>
                         <ScrapSourceEditor svg={scrap.svg} />
                     </Suspense>
