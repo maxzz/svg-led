@@ -49,16 +49,16 @@ describe("offset path", () => {
         expect(shrunk).toBe('M1 1 L9 1 L9 9 L1 9 Z');
     });
 
-    it("turns a straight line into a longer rectangle", () => {
+    it("grows a straight line on one side only, and longer along the line", () => {
         const grown = offsetPathData('M0 0 L10 0', options({ offset: 2 }), 3);
-        expect(grown).toBe('M-2 -2 L12 -2 L12 2 L-2 2 Z');
+        expect(grown).toBe('M-2 0 L12 0 L12 -2 L-2 -2 Z');
         const box = boxOf(grown);
         expect(box.width).toBe(14);
-        expect(box.height).toBe(4);
+        expect(box.height).toBe(2);
+        expect(box.y).toBe(-2);
 
-        const other = boxOf(offsetPathData('M0 0 L10 0', options({ offset: -2 }), 3));
-        expect(other.width).toBe(14);
-        expect(other.height).toBe(4);
+        const shrunk = offsetPathData('M0 0 L10 0', options({ offset: -2 }), 3);
+        expect(shrunk).toBe('M2 0 L8 0 L8 2 L2 2 Z');
     });
 
     it("keeps a polyline's point count and only moves those points", () => {
@@ -92,11 +92,15 @@ describe("offset path", () => {
         expect(reach(offsetPathData(sharp, options({ offset: 1, miterLimit: 100 }), 3))).toBeGreaterThan(5);
     });
 
-    it("moves a curve's anchors and handles together and does not add points", () => {
+    it("scales a curve with the offset and does not add points", () => {
         const src = 'M0 0 C0 10 10 10 10 0';
-        const out = offsetPathData(src, options({ offset: 1 }), 3);
-        expect(anchorCount(out)).toBe(anchorCount(src));
-        expect(out).toBe('M1 0 C1 10 9 10 9 0');
+        const inward = offsetPathData(src, options({ offset: 1 }), 3);
+        const outward = offsetPathData(src, options({ offset: -1 }), 3);
+        expect(anchorCount(inward)).toBe(anchorCount(src));
+        expect(anchorCount(outward)).toBe(anchorCount(src));
+        // Positive offset here runs toward the bend, so the handles shorten. The other way lengthens them.
+        expect(inward).toBe('M1 0 C1 9.333 9 9.333 9 0');
+        expect(outward).toBe('M-1 0 C-1 10.667 11 10.667 11 0');
     });
 
     it("keeps every corner when a large inward offset crosses the middle", () => {

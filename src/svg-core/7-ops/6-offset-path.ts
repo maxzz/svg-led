@@ -12,8 +12,9 @@ import { getPresentation } from "../8-style/1-presentation";
  * on the offset circle instead. A miter longer than the miter limit stays one point, pulled in
  * along the same direction.
  *
- * An open straight line is a rectangle of no thickness. Offsetting it grows a real rectangle:
- * longer along the line, and thick across it.
+ * A curve's handles are scaled with the offset, so the bend grows or shrinks instead of only sliding.
+ * An open straight line is a rectangle of no thickness. Offsetting it grows a rectangle on the
+ * offset side only: longer along the line, and thick toward that one side.
  */
 
 export type OffsetJoin = 'miter' | 'round';
@@ -65,8 +66,8 @@ function isStraightLine(sub: SubPath): boolean {
 }
 
 /**
- * A line has no thickness, so it is offset as a rectangle: each end grows by the distance
- * along the line, and both sides grow by the distance across it.
+ * A line has no thickness, so it is offset as a rectangle on one side of the line.
+ * The ends move out along the line by the distance, and the thickness lies only on the offset side.
  */
 function lineAsRectangle(a: Anchor, b: Anchor, offset: number): SubPath {
     const dx = b.x - a.x;
@@ -76,7 +77,6 @@ function lineAsRectangle(a: Anchor, b: Anchor, offset: number): SubPath {
     const uy = dy / len;
     const nx = dy / len;
     const ny = -dx / len;
-    const d = Math.abs(offset);
     const corner = (base: Anchor, along: number, across: number): Anchor => ({
         x: base.x + ux * along + nx * across,
         y: base.y + uy * along + ny * across,
@@ -85,10 +85,10 @@ function lineAsRectangle(a: Anchor, b: Anchor, offset: number): SubPath {
     return {
         closed: true,
         anchors: [
-            corner(a, -d, d),
-            corner(b, d, d),
-            corner(b, d, -d),
-            corner(a, -d, -d),
+            corner(a, -offset, 0),
+            corner(b, offset, 0),
+            corner(b, offset, offset),
+            corner(a, -offset, offset),
         ],
     };
 }
@@ -104,7 +104,7 @@ function place(sub: SubPath, index: number, anchor: Anchor, distance: number, jo
             ? roundAt(anchor, nIn, nOut, distance)
             : miterAt(anchor, nIn, nOut, distance, miterLimit)
         : shift(anchor, nOut ?? nIn, distance);
-    return moveAnchor(anchor, { x: at.x - anchor.x, y: at.y - anchor.y });
+    return moveAnchor(sub, index, anchor, at, distance);
 }
 
 /** Direction of travel arriving at `anchor` */
@@ -183,15 +183,68 @@ function shift(p: Point, normal: Point | null, distance: number): Point {
     return { x: p.x + normal.x * distance, y: p.y + normal.y * distance };
 }
 
-function moveAnchor(anchor: Anchor, delta: Point): Anchor {
-    const next: Anchor = { x: anchor.x + delta.x, y: anchor.y + delta.y, kind: anchor.kind };
-    if (anchor.in) {
-        next.in = { x: anchor.in.x + delta.x, y: anchor.in.y + delta.y };
+/**
+ * The anchor moves onto the offset. Each handle is scaled about that anchor so the curve
+ * grows when the offset runs away from its center of curvature and shrinks when it runs toward it.
+ */
+function moveAnchor(sub: SubPath, index: number, anchor: Anchor, at: Point, distance: number): Anchor {
+    const n = sub.anchors.length;
+    const prev = sub.closed || index > 0 ? sub.anchors[(index - 1 + n) % n] : null;
+    const next = sub.closed || index < n - 1 ? sub.anchors[(index + 1) % n] : null;
+    const moved: Anchor = { x: at.x, y: at.y, kind: anchor.kind };
+    if (anchor.out && next) {
+        const scale = curveScale(anchor, next, distance, false);
+        const handle = scaledHandle(at, anchor, anchor.out, scale);
+        if (handle) {
+            moved.out = handle;
+        }
     }
-    if (anchor.out) {
-        next.out = { x: anchor.out.x + delta.x, y: anchor.out.y + delta.y };
+    if (anchor.in && prev) {
+        const scale = curveScale(prev, anchor, distance, true);
+        const handle = scaledHandle(at, anchor, anchor.in, scale);
+        if (handle) {
+            moved.in = handle;
+        }
     }
-    return next;
+    return moved;
+}
+
+function scaledHandle(at: Point, anchor: Anchor, handle: Point, scale: number): Point | undefined {
+    const x = at.x + (handle.x - anchor.x) * scale;
+    const y = at.y + (handle.y - anchor.y) * scale;
+    return samePoint({ x, y }, at) ? undefined : { x, y };
+}
+
+/** How much a cubic's handles grow. 1 is a straight segment. */
+function curveScale(a: Anchor, b: Anchor, distance: number, atEnd: boolean): number {
+    const p0 = a;
+    const p1 = a.out ?? a;
+    const p2 = b.in ?? b;
+    const p3 = b;
+    if (samePoint(p1, p0) && samePoint(p2, p3)) {
+        return 1;
+    }
+    const d1 = atEnd
+        ? { x: 3 * (p3.x - p2.x), y: 3 * (p3.y - p2.y) }
+        : { x: 3 * (p1.x - p0.x), y: 3 * (p1.y - p0.y) };
+    const d2 = atEnd
+        ? { x: 6 * (p3.x - 2 * p2.x + p1.x), y: 6 * (p3.y - 2 * p2.y + p1.y) }
+        : { x: 6 * (p2.x - 2 * p1.x + p0.x), y: 6 * (p2.y - 2 * p1.y + p0.y) };
+    const speed = Math.hypot(d1.x, d1.y);
+    if (speed < 1e-8) {
+        return 1;
+    }
+    const cross = d1.x * d2.y - d1.y * d2.x;
+    const kappa = cross / (speed * speed * speed);
+    if (Math.abs(kappa) < 1e-8) {
+        return 1;
+    }
+    const radius = 1 / Math.abs(kappa);
+    const grown = radius + distance * Math.sign(cross);
+    if (grown <= 1e-6) {
+        return 0;
+    }
+    return grown / radius;
 }
 
 function lineHit(origin: Point, dir: Point, origin2: Point, dir2: Point): Point | null {
