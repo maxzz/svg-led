@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { type Point, offsetPathData, parsePathData, pathDataToSubpaths, type OffsetPathOptions } from "../index";
+import { type Point, type RectNode, offsetPathData, parsePathData, pathDataToSubpaths, shapeToPath, type OffsetPathOptions } from "../index";
 
 function options(over: Partial<OffsetPathOptions> = {}): OffsetPathOptions {
     return { offset: 1, joins: 'miter', miterLimit: 4, ...over };
@@ -101,6 +101,50 @@ describe("offset path", () => {
         // Positive offset here runs toward the bend, so the handles shorten. The other way lengthens them.
         expect(inward).toBe('M1 0 C1 9.333 9 9.333 9 0');
         expect(outward).toBe('M-1 0 C-1 10.667 11 10.667 11 0');
+    });
+
+    it("shrinks a rounded rectangle without distorting the corners", () => {
+        const rect: RectNode = { id: 'r', kind: 'rect', x: 0, y: 0, width: 40, height: 60, rx: 10, ry: 10, attrs: {} };
+        const src = shapeToPath(rect, 3).d;
+        const out = offsetPathData(src, options({ offset: -4 }), 3);
+        const expected = shapeToPath({ ...rect, x: 4, y: 4, width: 32, height: 52, rx: 6, ry: 6 }, 3).d;
+        expect(anchorCount(out)).toBe(anchorCount(src));
+        expect(out).toBe(expected);
+    });
+
+    it("grows a rounded rectangle and keeps round corners", () => {
+        const rect: RectNode = { id: 'r', kind: 'rect', x: 0, y: 0, width: 40, height: 60, rx: 10, ry: 10, attrs: {} };
+        const src = shapeToPath(rect, 3).d;
+        const out = offsetPathData(src, options({ offset: 4 }), 3);
+        const expected = shapeToPath({ ...rect, x: -4, y: -4, width: 48, height: 68, rx: 14, ry: 14 }, 3).d;
+        expect(anchorCount(out)).toBe(anchorCount(src));
+        expect(out).toBe(expected);
+    });
+
+    it("sharpens a rounded corner instead of crossing it once the radius is used up", () => {
+        const rect: RectNode = { id: 'r', kind: 'rect', x: 0, y: 0, width: 40, height: 60, rx: 10, ry: 10, attrs: {} };
+        const src = shapeToPath(rect, 3).d;
+        const out = offsetPathData(src, options({ offset: -12 }), 3);
+        // The fillets are gone, so the outline is the inset rectangle and does not fold back on itself.
+        expect(out.includes('C')).toBe(false);
+        expect(boxOf(out)).toEqual({ x: 12, y: 12, width: 16, height: 36 });
+        const anchors = pathDataToSubpaths(out)[0].anchors;
+        let turn = 0;
+        for (let i = 0; i < anchors.length; i++) {
+            const p = anchors[i];
+            const q = anchors[(i + 1) % anchors.length];
+            const r = anchors[(i + 2) % anchors.length];
+            const cross = (q.x - p.x) * (r.y - q.y) - (q.y - p.y) * (r.x - q.x);
+            if (Math.hypot(q.x - p.x, q.y - p.y) < 0.01) {
+                continue;
+            }
+            if (Math.abs(cross) < 0.01) {
+                continue;
+            }
+            const sign = Math.sign(cross);
+            expect(turn === 0 || turn === sign).toBe(true);
+            turn = sign;
+        }
     });
 
     it("keeps every corner when a large inward offset crosses the middle", () => {

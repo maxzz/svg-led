@@ -47,10 +47,11 @@ function offsetSubpath(sub: SubPath, options: OffsetPathOptions): SubPath {
         return lineAsRectangle(sub.anchors[0], sub.anchors[1], options.offset);
     }
     const limit = clampMiter(options.miterLimit);
-    return {
-        closed: sub.closed,
-        anchors: sub.anchors.map((anchor, i) => place(sub, i, anchor, options.offset, options.joins, limit)),
-    };
+    const anchors = sub.anchors.map((anchor, i) => place(sub, i, anchor, options.offset, options.joins, limit));
+    // Rounded corners are circular fillets. Rebuild those from the offset radius so a
+    // negative offset stays round, and becomes one sharp corner once the radius is used up.
+    applyFillets(sub.anchors, anchors, options.offset, sub.closed);
+    return { closed: sub.closed, anchors };
 }
 
 /** Two corners and nothing else: a single straight segment */
@@ -245,6 +246,142 @@ function curveScale(a: Anchor, b: Anchor, distance: number, atEnd: boolean): num
         return 0;
     }
     return grown / radius;
+}
+
+/**
+ * A circular fillet (a rounded corner between two edges) keeps its shape when inset or outset.
+ * The radius grows or shrinks by the offset. At zero it collapses to the sharp corner instead of crossing.
+ */
+function applyFillets(original: readonly Anchor[], placed: Anchor[], distance: number, closed: boolean): void {
+    const n = original.length;
+    const segments = closed ? n : Math.max(0, n - 1);
+    for (let i = 0; i < segments; i++) {
+        const j = (i + 1) % n;
+        const a = original[i];
+        const b = original[j];
+        if ((!a.out || samePoint(a.out, a)) && (!b.in || samePoint(b.in, b))) {
+            continue;
+        }
+        const fillet = filletOf(a, b);
+        if (!fillet) {
+            continue;
+        }
+        const align = fillet.nA.x * fillet.outA.x + fillet.nA.y * fillet.outA.y;
+        const newR = fillet.radius + distance * align;
+        if (newR <= 1e-4) {
+            const corner = lineHit(shift(a, fillet.nA, distance), fillet.tA, shift(b, fillet.nB, distance), fillet.tB);
+            if (!corner) {
+                continue;
+            }
+            placed[i].x = corner.x;
+            placed[i].y = corner.y;
+            placed[j].x = corner.x;
+            placed[j].y = corner.y;
+            delete placed[i].out;
+            delete placed[j].in;
+            continue;
+        }
+        const scale = newR / fillet.radius;
+        const posA = {
+            x: fillet.center.x + fillet.outA.x * newR,
+            y: fillet.center.y + fillet.outA.y * newR,
+        };
+        const posB = {
+            x: fillet.center.x + fillet.outB.x * newR,
+            y: fillet.center.y + fillet.outB.y * newR,
+        };
+        placed[i].x = posA.x;
+        placed[i].y = posA.y;
+        placed[j].x = posB.x;
+        placed[j].y = posB.y;
+        if (a.out) {
+            const handle = scaledHandle(posA, a, a.out, scale);
+            if (handle) {
+                placed[i].out = handle;
+            } else {
+                delete placed[i].out;
+            }
+        }
+        if (b.in) {
+            const handle = scaledHandle(posB, b, b.in, scale);
+            if (handle) {
+                placed[j].in = handle;
+            } else {
+                delete placed[j].in;
+            }
+        }
+    }
+}
+
+type Fillet = {
+    center: Point;
+    radius: number;
+    outA: Point;
+    outB: Point;
+    nA: Point;
+    nB: Point;
+    tA: Point;
+    tB: Point;
+};
+
+/** Circular corner: both ends sit on one center, and the handles stay tangent to that circle */
+function filletOf(a: Anchor, b: Anchor): Fillet | null {
+    const tA = outgoingDir(a, b);
+    const tB = incomingDir(a, b);
+    const nA = leftOf(tA);
+    const nB = leftOf(tB);
+    if (!tA || !tB || !nA || !nB) {
+        return null;
+    }
+    const towardA = centerDir(a, nA, b.in ?? b);
+    const towardB = centerDir(b, nB, a.out ?? a);
+    const center = lineHit(a, towardA, b, towardB);
+    if (!center) {
+        return null;
+    }
+    const ra = Math.hypot(a.x - center.x, a.y - center.y);
+    const rb = Math.hypot(b.x - center.x, b.y - center.y);
+    const radius = (ra + rb) / 2;
+    if (!(radius > 1e-4) || radius > 1e6 || Math.abs(ra - rb) > radius * 0.08) {
+        return null;
+    }
+    if (!tangentHandle(a, a.out, center) || !tangentHandle(b, b.in, center)) {
+        return null;
+    }
+    return {
+        center,
+        radius,
+        outA: { x: (a.x - center.x) / ra, y: (a.y - center.y) / ra },
+        outB: { x: (b.x - center.x) / rb, y: (b.y - center.y) / rb },
+        nA,
+        nB,
+        tA,
+        tB,
+    };
+}
+
+/** Unit normal that points from the anchor toward the center of the bend */
+function centerDir(anchor: Point, leftNormal: Point, toward: Point): Point {
+    const vx = toward.x - anchor.x;
+    const vy = toward.y - anchor.y;
+    const dot = vx * leftNormal.x + vy * leftNormal.y;
+    return dot >= 0 ? leftNormal : { x: -leftNormal.x, y: -leftNormal.y };
+}
+
+function tangentHandle(anchor: Anchor, handle: Point | undefined, center: Point): boolean {
+    if (!handle || samePoint(handle, anchor)) {
+        return false;
+    }
+    const hx = handle.x - anchor.x;
+    const hy = handle.y - anchor.y;
+    const hlen = Math.hypot(hx, hy);
+    const rx = anchor.x - center.x;
+    const ry = anchor.y - center.y;
+    const rlen = Math.hypot(rx, ry);
+    if (hlen < 1e-8 || rlen < 1e-8) {
+        return false;
+    }
+    return Math.abs((hx * rx + hy * ry) / (hlen * rlen)) < 0.2;
 }
 
 function lineHit(origin: Point, dir: Point, origin2: Point, dir2: Point): Point | null {
