@@ -1,16 +1,19 @@
 import { PenTool } from "lucide-react";
 import { type Getter, type Setter } from "jotai";
-import { type Anchor, type Point, type SubPath, applyMatrix, constrain45, distance, findNode, newNodeId, parseAnchorKey, pathDataToSubpaths, pullHandles, subpathsToPathData } from "@/svg-core";
+import { type Anchor, type Point, type SubPath, applyMatrix, constrain45, findNode, newNodeId, parseAnchorKey, pathDataToSubpaths, pullHandles, subpathsToPathData } from "@/svg-core";
 import { commitHistory, docPrecision, docState, getNodeProxy } from "@/store/3-document";
-import { type PenDraft, ToolId, penDraftAtom, selectionAtom, setSelectionAtom } from "@/store/4-editor";
+import { ToolId, penDraftAtom, selectionAtom, setSelectionAtom } from "@/store/4-editor";
 import { newShapeStyleAtom } from "@/store/2-persist";
 import { insertNodeAtTop, newElementMatrix } from "@/store/6-layers";
 import { type ToolDef } from "../9-types-tool-def";
 import { MODIFIERS, isMod } from "../tool-2-select/8-definition-of-modifiers";
-import { docTolerance, nodeMatrices, snapDoc } from "../0-shared/2-tool-helpers";
+import { nodeMatrices, snapDoc } from "../0-shared/2-tool-helpers";
 import { pastThreshold } from "../0-shared/3-move-gesture";
 import { styleAttrs } from "../0-shared/4-style-attrs";
 import { modifierHint } from "../0-shared/5-hint";
+import { type PenAction, editDraftPoints, editPathPoints, penAnchorAt, resolvePenAction, writeDraft } from "./1-pen-edit-points";
+import { autoAddDeleteOff, penCursorAtom, setPenHoverAtom } from "./2-pen-cursor";
+import { beginConvertAnchor, endConvertAnchor, moveConvertAnchor } from "./3-pen-convert-anchor";
 
 const M = MODIFIERS.pen;
 
@@ -28,28 +31,51 @@ export const penTool: ToolDef = {
             return 'Release to finish · [Shift] 45° · [Alt] break handle';
         }
         const legend = get(penDraftAtom)
-            ? 'Click to add points · Click the first point to close · [Enter] or [Esc] to finish'
-            : 'Click for corner points, drag for smooth · [Shift] 45° · [Alt] break handle';
+            ? 'Click to add points · Click the first point to close · Click a segment to add a point, a point to delete it · [Enter] or [Esc] to finish · [Ctrl] move points'
+            : 'Click for corner points, drag for smooth · On a selected path, click a segment to add a point, a point to delete it · [Ctrl] move points';
         return modifierHint(held, legend, {
-            shift: '[Shift] Drag a handle to snap to 45°',
-            alt: '[Alt] Drag to move only the outgoing handle',
+            shift: '[Shift] Drag a handle to snap to 45° · Place a new point over the selected path instead of adding or deleting',
+            alt: '[Alt] Click a point to toggle corner or smooth, drag it to pull out handles · While placing a point, drag to move only the outgoing handle',
         });
     },
     cursor: 'crosshair',
+    getCursor: (get) => get(penCursorAtom),
     newShapeKind: 'path',
 
+    onPointerHover({ get, set }, e) {
+        set(setPenHoverAtom, { action: resolvePenAction(get, e), overAnchor: !!penAnchorAt(get, e.doc) });
+    },
+
+    onPointerLeave({ set }) {
+        set(setPenHoverAtom, null);
+    },
+
     onPointerDown({ get, set }, e) {
+        if (beginConvertAnchor(get, set, e)) {
+            set(setPenHoverAtom, null);
+            return;
+        }
         const draft = get(penDraftAtom);
+        let action = resolvePenAction(get, e);
+        if ((action?.type === 'add' || action?.type === 'delete') && autoAddDeleteOff(e)) {
+            action = null;
+        }
+
+        if (action?.type === 'add' || action?.type === 'delete') {
+            editPoints(get, set, action);
+            set(setPenHoverAtom, null);
+            return;
+        }
 
         if (!draft) {
             // continue an open path from one of its end points
-            if (e.target.type === 'anchor') {
-                const node = getNodeProxy(e.target.nodeId);
+            if (action?.type === 'continue') {
+                const node = getNodeProxy(action.nodeId);
                 if (node?.kind === 'path') {
                     const subs = pathDataToSubpaths(node.d);
-                    const [si, ai] = parseAnchorKey(e.target.key);
+                    const [si, ai] = parseAnchorKey(action.key);
                     const sub = subs[si];
-                    if (sub && !sub.closed && (ai === 0 || ai === sub.anchors.length - 1)) {
+                    if (sub) {
                         if (ai === 0) {
                             reverseSubpath(sub);
                         }
@@ -77,12 +103,8 @@ export const penTool: ToolDef = {
             return;
         }
         const sub = draft.subpaths[draft.si];
-        const first = sub.anchors[0];
 
-        const onFirst = (e.target.type === 'anchor' && e.target.nodeId === draft.nodeId && e.target.key === `${draft.si}:0`)
-            || distance(applyMatrix(m.ctm, first), e.doc) < docTolerance(get, 6);
-
-        if (onFirst && sub.anchors.length >= 2) {
+        if (action?.type === 'close') {
             sub.closed = true;
             writeDraft(set, draft);
             gesture = { ai: 0, startScreen: e.screen, moved: false, closing: true };
@@ -96,6 +118,9 @@ export const penTool: ToolDef = {
     },
 
     onPointerMove({ get, set }, e) {
+        if (moveConvertAnchor(get, set, e)) {
+            return;
+        }
         const draft = get(penDraftAtom);
         if (!gesture || !draft) {
             return;
@@ -124,6 +149,9 @@ export const penTool: ToolDef = {
     },
 
     onPointerUp(ctx) {
+        if (endConvertAnchor(ctx.get, ctx.set)) {
+            return;
+        }
         const closing = gesture?.closing;
         gesture = null;
         if (closing) {
@@ -153,15 +181,22 @@ export const penTool: ToolDef = {
 
     onDeactivate({ get, set }) {
         finishDraft(get, set);
+        set(setPenHoverAtom, null);
     },
 };
 
-function writeDraft(set: Setter, draft: PenDraft): void {
-    const loc = findNode(docState.doc, draft.nodeId);
-    if (loc?.node.kind === 'path') {
-        loc.node.d = subpathsToPathData(draft.subpaths, docPrecision());
+/** Adds or deletes a point: on the path being drawn the draft goes on, on a selected path it is one undo step */
+function editPoints(get: Getter, set: Setter, action: Extract<PenAction, { type: 'add' | 'delete'; }>): void {
+    const draft = get(penDraftAtom);
+    if (draft) {
+        editDraftPoints(draft, action);
+        writeDraft(set, draft);
+        return;
     }
-    set(penDraftAtom, { ...draft });
+    if (!editPathPoints(action)) {
+        set(selectionAtom, get(selectionAtom).filter((id) => id !== action.nodeId));
+    }
+    commitHistory();
 }
 
 export function finishDraft(get: Getter, set: Setter): void {
@@ -179,7 +214,7 @@ export function finishDraft(get: Getter, set: Setter): void {
         set(selectionAtom, []);
         return;
     }
-    if (sub.anchors.length !== draft.startCount || sub.closed || draft.isNew) {
+    if (sub.anchors.length !== draft.startCount || sub.closed || draft.isNew || draft.edited) {
         commitHistory();
     }
 }

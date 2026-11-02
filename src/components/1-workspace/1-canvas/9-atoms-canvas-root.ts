@@ -12,6 +12,7 @@ import {
 import { type Point } from "@/svg-core";
 import { type ToolPointerEvent, getTool, resolveTarget, selectionUnitId } from "@/tools";
 import { docTolerance, hitTestOutlines } from "@/tools/0-shared/2-tool-helpers";
+import { toolSpringActiveAtom } from "@/tools/core-tool-spring";
 import { PROPERTIES_POPUP_RIGHT_EDGE_PX } from "@/components/1-workspace/2-props-panel/9-atoms-properties-popup";
 
 type CanvasPointerEvent = ReactPointerEvent<SVGSVGElement>;
@@ -45,7 +46,7 @@ function toToolEvent(get: Getter, e: CanvasPointerEvent): ToolPointerEvent {
         button: e.button,
         shift: e.shiftKey,
         alt: e.altKey,
-        ctrl: e.ctrlKey || e.metaKey,
+        ctrl: (e.ctrlKey || e.metaKey) && !get(toolSpringActiveAtom), // Ctrl held for the spring-loaded tool is not a modifier
         clickCount: 1,                  // set on pointer down, see nextClickCount
         target: pickableTarget(get, e.target as Element),
     };

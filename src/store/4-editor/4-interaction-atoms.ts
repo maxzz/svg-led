@@ -51,6 +51,7 @@ export type PenDraft = {
     si: number;                  // subpath that is being extended at its end
     isNew: boolean;              // the path was created by this draft (removed if it ends with a single anchor)
     startCount: number;          // anchors in the subpath when the draft started
+    edited?: boolean;            // points were added or deleted along the subpath, so finishing commits even with startCount anchors
 };
 
 export const penDraftAtom = atom<PenDraft | null>(null);
