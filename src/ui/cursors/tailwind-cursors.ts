@@ -222,6 +222,11 @@ const PEN_BADGES = {
         <path d="M16 23L23 16" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
         <path d="M16 23L23 16" stroke="#000" stroke-width="1" stroke-linecap="round"/>
     `,
+    // convert the anchor: toggle corner and smooth, or pull out handles (Illustrator's caret)
+    convert: `
+        <path d="M16 22.5L19.5 16.5L23 22.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M16 22.5L19.5 16.5L23 22.5" fill="none" stroke="#000" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+    `,
     // close the path on its first point
     close: `
         <circle cx="19.5" cy="19.5" r="2.5" fill="none" stroke="#fff" stroke-width="3"/>
@@ -251,6 +256,7 @@ export function cursorsPlugin({ addUtilities }: PluginAPI): void {
         '.cursor-pen-delete': { cursor: penCursorCss('delete') },
         '.cursor-pen-continue': { cursor: penCursorCss('continue') },
         '.cursor-pen-close': { cursor: penCursorCss('close') },
+        '.cursor-pen-convert': { cursor: penCursorCss('convert') },
     });
 }
 

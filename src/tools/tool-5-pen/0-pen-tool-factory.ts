@@ -2,7 +2,7 @@ import { PenTool } from "lucide-react";
 import { type Getter, type Setter } from "jotai";
 import { type Anchor, type Point, type SubPath, applyMatrix, constrain45, findNode, newNodeId, parseAnchorKey, pathDataToSubpaths, pullHandles, subpathsToPathData } from "@/svg-core";
 import { commitHistory, docPrecision, docState, getNodeProxy } from "@/store/3-document";
-import { type PenDraft, ToolId, penDraftAtom, selectionAtom, setSelectionAtom } from "@/store/4-editor";
+import { ToolId, penDraftAtom, selectionAtom, setSelectionAtom } from "@/store/4-editor";
 import { newShapeStyleAtom } from "@/store/2-persist";
 import { insertNodeAtTop, newElementMatrix } from "@/store/6-layers";
 import { type ToolDef } from "../9-types-tool-def";
@@ -11,8 +11,9 @@ import { nodeMatrices, snapDoc } from "../0-shared/2-tool-helpers";
 import { pastThreshold } from "../0-shared/3-move-gesture";
 import { styleAttrs } from "../0-shared/4-style-attrs";
 import { modifierHint } from "../0-shared/5-hint";
-import { type PenAction, editDraftPoints, editPathPoints, resolvePenAction } from "./1-pen-edit-points";
-import { autoAddDeleteOff, penCursorAtom, setPenHoverActionAtom } from "./2-pen-cursor";
+import { type PenAction, editDraftPoints, editPathPoints, penAnchorAt, resolvePenAction, writeDraft } from "./1-pen-edit-points";
+import { autoAddDeleteOff, penCursorAtom, setPenHoverAtom } from "./2-pen-cursor";
+import { beginConvertAnchor, endConvertAnchor, moveConvertAnchor } from "./3-pen-convert-anchor";
 
 const M = MODIFIERS.pen;
 
@@ -34,7 +35,7 @@ export const penTool: ToolDef = {
             : 'Click for corner points, drag for smooth · On a selected path, click a segment to add a point, a point to delete it · [Ctrl] move points';
         return modifierHint(held, legend, {
             shift: '[Shift] Drag a handle to snap to 45° · Place a new point over the selected path instead of adding or deleting',
-            alt: '[Alt] Drag to move only the outgoing handle',
+            alt: '[Alt] Click a point to toggle corner or smooth, drag it to pull out handles · While placing a point, drag to move only the outgoing handle',
         });
     },
     cursor: 'crosshair',
@@ -42,14 +43,18 @@ export const penTool: ToolDef = {
     newShapeKind: 'path',
 
     onPointerHover({ get, set }, e) {
-        set(setPenHoverActionAtom, resolvePenAction(get, e));
+        set(setPenHoverAtom, { action: resolvePenAction(get, e), overAnchor: !!penAnchorAt(get, e.doc) });
     },
 
     onPointerLeave({ set }) {
-        set(setPenHoverActionAtom, null);
+        set(setPenHoverAtom, null);
     },
 
     onPointerDown({ get, set }, e) {
+        if (beginConvertAnchor(get, set, e)) {
+            set(setPenHoverAtom, null);
+            return;
+        }
         const draft = get(penDraftAtom);
         let action = resolvePenAction(get, e);
         if ((action?.type === 'add' || action?.type === 'delete') && autoAddDeleteOff(e)) {
@@ -58,7 +63,7 @@ export const penTool: ToolDef = {
 
         if (action?.type === 'add' || action?.type === 'delete') {
             editPoints(get, set, action);
-            set(setPenHoverActionAtom, null);
+            set(setPenHoverAtom, null);
             return;
         }
 
@@ -113,6 +118,9 @@ export const penTool: ToolDef = {
     },
 
     onPointerMove({ get, set }, e) {
+        if (moveConvertAnchor(get, set, e)) {
+            return;
+        }
         const draft = get(penDraftAtom);
         if (!gesture || !draft) {
             return;
@@ -141,6 +149,9 @@ export const penTool: ToolDef = {
     },
 
     onPointerUp(ctx) {
+        if (endConvertAnchor(ctx.get, ctx.set)) {
+            return;
+        }
         const closing = gesture?.closing;
         gesture = null;
         if (closing) {
@@ -170,7 +181,7 @@ export const penTool: ToolDef = {
 
     onDeactivate({ get, set }) {
         finishDraft(get, set);
-        set(setPenHoverActionAtom, null);
+        set(setPenHoverAtom, null);
     },
 };
 
@@ -186,14 +197,6 @@ function editPoints(get: Getter, set: Setter, action: Extract<PenAction, { type:
         set(selectionAtom, get(selectionAtom).filter((id) => id !== action.nodeId));
     }
     commitHistory();
-}
-
-function writeDraft(set: Setter, draft: PenDraft): void {
-    const loc = findNode(docState.doc, draft.nodeId);
-    if (loc?.node.kind === 'path') {
-        loc.node.d = subpathsToPathData(draft.subpaths, docPrecision());
-    }
-    set(penDraftAtom, { ...draft });
 }
 
 export function finishDraft(get: Getter, set: Setter): void {

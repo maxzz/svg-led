@@ -32,6 +32,7 @@ export const MODIFIERS = {
     pen: {
         breakHandle: 'alt',              // Alt while dragging moves only the outgoing handle
         constrainAngle: 'shift',
+        convertAnchor: 'alt',            // Alt+click on an anchor toggles corner/smooth, Alt+drag pulls out handles
         noAutoAddDelete: 'shift',        // over a selected path, place a plain point instead of adding or deleting one
         selectionTool: 'ctrl',           // held: the Direct selection tool, until released
     },
@@ -68,6 +69,7 @@ export const MODIFIER_DESCRIPTIONS: ModifierDescriptions = {
     pen: {
         breakHandle: 'while dragging, move only the outgoing handle',
         constrainAngle: 'snap handles to 45°',
+        convertAnchor: 'click an anchor to toggle corner and smooth, drag it to pull out handles',
         noAutoAddDelete: 'click a segment or anchor of the selected path to place a new point instead of adding or deleting one',
         selectionTool: 'hold to switch to the Direct selection tool to move points or drag a marquee; release to return to the Pen',
     },

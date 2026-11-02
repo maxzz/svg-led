@@ -1,4 +1,4 @@
-import { type Getter } from "jotai";
+import { type Getter, type Setter } from "jotai";
 import { type Matrix, type Point, type SubPath, applyMatrix, deleteAnchors, distance, findNode, insertAnchor, matrixScale, nearestSegment, pathDataToSubpaths, subpathsToPathData } from "@/svg-core";
 import { docPrecision, docState, getNodeProxy } from "@/store/3-document";
 import { type PenDraft, penDraftAtom, selectionAtom } from "@/store/4-editor";
@@ -81,6 +81,34 @@ function selectionAction(get: Getter, e: Pick<ToolPointerEvent, 'doc'>): PenActi
     return anchor?.action ?? segment?.action ?? null;
 }
 
+/** Anchor under the pointer that the Pen can convert: any anchor of the subpath being drawn, or of a selected path */
+export function penAnchorAt(get: Getter, p: Point): { nodeId: string; key: string; } | undefined {
+    const tolerance = docTolerance(get, ANCHOR_PX);
+    const draft = get(penDraftAtom);
+    if (draft) {
+        const m = nodeMatrices(draft.nodeId);
+        const sub = draft.subpaths[draft.si];
+        const ai = m && sub ? nearestAnchor(sub, m.ctm, p, tolerance) : undefined;
+        return ai !== undefined ? { nodeId: draft.nodeId, key: `${draft.si}:${ai}` } : undefined;
+    }
+
+    let best: { nodeId: string; key: string; dist: number; } | undefined;
+    for (const nodeId of get(selectionAtom)) {
+        const node = getNodeProxy(nodeId);
+        const m = nodeMatrices(nodeId);
+        if (node?.kind !== 'path' || !m) {
+            continue;
+        }
+        pathDataToSubpaths(node.d).forEach((sub, si) => sub.anchors.forEach((a, ai) => {
+            const dist = distance(applyMatrix(m.ctm, a), p);
+            if (dist <= tolerance && (!best || dist < best.dist)) {
+                best = { nodeId, key: `${si}:${ai}`, dist };
+            }
+        }));
+    }
+    return best && { nodeId: best.nodeId, key: best.key };
+}
+
 function nearestAnchor(sub: SubPath, ctm: Matrix, p: Point, tolerance: number): number | undefined {
     let best: { ai: number; dist: number; } | undefined;
     sub.anchors.forEach((a, ai) => {
@@ -93,6 +121,15 @@ function nearestAnchor(sub: SubPath, ctm: Matrix, p: Point, tolerance: number): 
 }
 
 //---------------------------------------------------------------------------
+
+/** Writes the geometry of the path being drawn to its element and publishes the draft */
+export function writeDraft(set: Setter, draft: PenDraft): void {
+    const loc = findNode(docState.doc, draft.nodeId);
+    if (loc?.node.kind === 'path') {
+        loc.node.d = subpathsToPathData(draft.subpaths, docPrecision());
+    }
+    set(penDraftAtom, { ...draft });
+}
 
 /** Adds or deletes a point of the path being drawn; the subpath keeps at least one anchor */
 export function editDraftPoints(draft: PenDraft, action: Extract<PenAction, { type: 'add' | 'delete'; }>): void {

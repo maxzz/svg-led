@@ -1,7 +1,8 @@
 import { useAtomValue } from "jotai";
-import { type SvgDoc, applyMatrix, findNode, pathDataToSubpaths } from "@/svg-core";
+import { type Anchor, type SvgDoc, applyMatrix, findNode, getAnchor, pathDataToSubpaths } from "@/svg-core";
 import { useDocSnapshot } from "@/store/3-document";
 import { penDraftAtom, pointerDocAtom, selectionAtom, viewportAtom } from "@/store/4-editor";
+import { penConvertingAnchorAtom } from "@/tools/tool-5-pen/3-pen-convert-anchor";
 import { nodeScreenMatrix, outlineScreenD, pt, screenSubpaths, viewportMatrix } from "./0-overlay-geometry";
 
 const ANCHOR = 4; // same box as direct-selection path points
@@ -16,7 +17,12 @@ export function PenOverlay() {
     const selection = useAtomValue(selectionAtom);
 
     if (!draft) {
-        return <SelectedPathAnchors doc={doc} ids={selection} />;
+        return (
+            <g>
+                <SelectedPathAnchors doc={doc} ids={selection} />
+                <ConvertingHandles doc={doc} />
+            </g>
+        );
     }
 
     const m = nodeScreenMatrix(doc, vp, draft.nodeId);
@@ -43,15 +49,8 @@ export function PenOverlay() {
                 />
             )}
 
-            {last && (["in", "out"] as const).map((side) => {
-                const h = last[side];
-                return h && (
-                    <g key={side} className="pointer-events-none">
-                        <line x1={last.x} y1={last.y} x2={h.x} y2={h.y} strokeWidth={1} className="stroke-(--editor-accent)/80" />
-                        <circle cx={h.x} cy={h.y} r={KNOB} strokeWidth={1} className="fill-(--editor-accent) stroke-background" />
-                    </g>
-                );
-            })}
+            {last && <AnchorHandles anchor={last} />}
+            <ConvertingHandles doc={doc} />
 
             {sub?.anchors.map(
                 (a, ai) => (
@@ -113,6 +112,34 @@ function SelectedPathAnchors({ doc, ids }: { doc: SvgDoc; ids: string[]; }) {
                 );
             }
         )}
+    </>);
+}
+
+/** Handles of the anchor that Alt+drag is pulling out (Convert Anchor Point) */
+function ConvertingHandles({ doc }: { doc: SvgDoc; }) {
+    const vp = useAtomValue(viewportAtom);
+    const converting = useAtomValue(penConvertingAnchorAtom);
+    const loc = converting && findNode(doc, converting.nodeId);
+    const m = converting && nodeScreenMatrix(doc, vp, converting.nodeId);
+    if (!converting || loc?.node.kind !== 'path' || !m) {
+        return null;
+    }
+    const anchor = getAnchor(screenSubpaths(pathDataToSubpaths(loc.node.d), m), converting.key);
+    return anchor ? <AnchorHandles anchor={anchor} /> : null;
+}
+
+/** Direction handles of one anchor, in screen coordinates */
+function AnchorHandles({ anchor }: { anchor: Anchor; }) {
+    return (<>
+        {(["in", "out"] as const).map((side) => {
+            const h = anchor[side];
+            return h && (
+                <g key={side} className="pointer-events-none">
+                    <line x1={anchor.x} y1={anchor.y} x2={h.x} y2={h.y} strokeWidth={1} className="stroke-(--editor-accent)/80" />
+                    <circle cx={h.x} cy={h.y} r={KNOB} strokeWidth={1} className="fill-(--editor-accent) stroke-background" />
+                </g>
+            );
+        })}
     </>);
 }
 

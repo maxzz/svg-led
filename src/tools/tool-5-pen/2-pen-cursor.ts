@@ -5,14 +5,20 @@ import { type PenAction, type PenActionType } from "./1-pen-edit-points";
 
 const M = MODIFIERS.pen;
 
-/** What a click would do where the pointer hovers; set by the Pen tool on hover, cleared when the pointer leaves */
-const penHoverActionAtom = atom<PenActionType | null>(null);
+type PenHover = {
+    action: PenActionType | null;  // what a plain click would do
+    overAnchor: boolean;           // an anchor the convert modifier can toggle or pull handles from
+};
 
-export const setPenHoverActionAtom = atom(
+/** What a click would do where the pointer hovers; set by the Pen tool on hover, cleared when the pointer leaves */
+const penHoverAtom = atom<PenHover>({ action: null, overAnchor: false });
+
+export const setPenHoverAtom = atom(
     null,
-    (get, set, action: PenAction | null) => {
-        const type = action?.type ?? null;
-        get(penHoverActionAtom) !== type && set(penHoverActionAtom, type);
+    (get, set, hover: { action: PenAction | null; overAnchor: boolean; } | null) => {
+        const next = { action: hover?.action?.type ?? null, overAnchor: !!hover?.overAnchor };
+        const cur = get(penHoverAtom);
+        (cur.action !== next.action || cur.overAnchor !== next.overAnchor) && set(penHoverAtom, next);
     }
 );
 
@@ -27,8 +33,12 @@ export const penCursorAtom = atom(
         if (get(toolGestureActiveAtom)) {
             return 'cursor-pen';
         }
-        const action = get(penHoverActionAtom);
-        const plainOnly = autoAddDeleteOff(get(heldKeysAtom));
+        const { action, overAnchor } = get(penHoverAtom);
+        const held = get(heldKeysAtom);
+        if (overAnchor && isMod(held, M.convertAnchor)) {
+            return 'cursor-pen-convert';
+        }
+        const plainOnly = autoAddDeleteOff(held);
         switch (action) {
             case 'add': return plainOnly ? 'cursor-pen' : 'cursor-pen-add';
             case 'delete': return plainOnly ? 'cursor-pen' : 'cursor-pen-delete';
