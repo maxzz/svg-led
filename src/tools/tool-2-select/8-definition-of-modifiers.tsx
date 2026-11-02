@@ -34,7 +34,7 @@ export const MODIFIERS = {
         breakHandle: 'alt',              // Alt while dragging moves only the outgoing handle
         constrainAngle: 'shift',
         noAutoAddDelete: 'shift',        // over a selected path, place a plain point instead of adding or deleting one
-        selectionTool: 'ctrl',           // held: the Selection or Direct selection tool used last, until released
+        selectionTool: 'ctrl',           // held: the Direct selection tool, until released
     },
 } as const satisfies Record<string, Record<string, Modifier>>;
 
@@ -71,7 +71,7 @@ export const MODIFIER_DESCRIPTIONS: ModifierDescriptions = {
         breakHandle: 'while dragging, move only the outgoing handle',
         constrainAngle: 'snap handles to 45°',
         noAutoAddDelete: 'click a segment or anchor of the selected path to place a new point instead of adding or deleting one',
-        selectionTool: 'hold to switch to the Selection or Direct selection tool used last; release to return to the Pen',
+        selectionTool: 'hold to switch to the Direct selection tool to move points or drag a marquee; release to return to the Pen',
     },
 };
 

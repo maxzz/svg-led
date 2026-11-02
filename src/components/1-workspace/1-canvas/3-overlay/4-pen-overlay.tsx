@@ -2,7 +2,7 @@ import { useAtomValue } from "jotai";
 import { type SvgDoc, applyMatrix, findNode, pathDataToSubpaths } from "@/svg-core";
 import { useDocSnapshot } from "@/store/3-document";
 import { penDraftAtom, pointerDocAtom, selectionAtom, viewportAtom } from "@/store/4-editor";
-import { nodeScreenMatrix, pt, screenSubpaths, viewportMatrix } from "./0-overlay-geometry";
+import { nodeScreenMatrix, outlineScreenD, pt, screenSubpaths, viewportMatrix } from "./0-overlay-geometry";
 
 const ANCHOR = 4; // same box as direct-selection path points
 const KNOB = 3;    // direction-handle radius; a little larger than the anchor box
@@ -32,6 +32,7 @@ export function PenOverlay() {
 
     return (
         <g>
+            <Outline d={outlineScreenD(loc.node, m)} />
             {last && p && !sub.closed && (
                 <path
                     d={`M${pt(last)} C${pt(last.out ?? last)} ${pt(p)} ${pt(p)}`}
@@ -72,7 +73,10 @@ export function PenOverlay() {
     );
 }
 
-/** Before drawing: anchors of the selected paths; a click on an open end continues the path, on any other anchor deletes it */
+/**
+ * Before drawing: outlines of the selected elements and anchors of the selected paths;
+ * a click on an open end continues the path, on any other anchor deletes it
+ */
 function SelectedPathAnchors({ doc, ids }: { doc: SvgDoc; ids: string[]; }) {
     const vp = useAtomValue(viewportAtom);
     return (<>
@@ -80,32 +84,38 @@ function SelectedPathAnchors({ doc, ids }: { doc: SvgDoc; ids: string[]; }) {
             (id) => {
                 const loc = findNode(doc, id);
                 const m = nodeScreenMatrix(doc, vp, id);
-                if (loc?.node.kind !== 'path' || !m) {
+                if (!loc || !m) {
                     return null;
                 }
-
-                const subs = screenSubpaths(pathDataToSubpaths(loc.node.d), m);
-                return subs.map(
-                    (s, si) => s.anchors.map(
-                        (a, ai) => {
-                            return (
-                                <rect
-                                    data-hit="anchor"
-                                    className="fill-background stroke-(--editor-accent)"
-                                    x={a.x - ANCHOR / 2}
-                                    y={a.y - ANCHOR / 2}
-                                    width={ANCHOR}
-                                    height={ANCHOR}
-                                    strokeWidth={1}
-                                    data-nid={id}
-                                    data-key={`${si}:${ai}`}
-                                    key={`${id}-${si}-${ai}`}
-                                />
-                            );
-                        }
-                    )
+                const subs = loc.node.kind === 'path' ? screenSubpaths(pathDataToSubpaths(loc.node.d), m) : [];
+                return (
+                    <g key={id}>
+                        <Outline d={outlineScreenD(loc.node, m)} />
+                        {subs.map(
+                            (s, si) => s.anchors.map(
+                                (a, ai) => (
+                                    <rect
+                                        data-hit="anchor"
+                                        className="fill-background stroke-(--editor-accent)"
+                                        x={a.x - ANCHOR / 2}
+                                        y={a.y - ANCHOR / 2}
+                                        width={ANCHOR}
+                                        height={ANCHOR}
+                                        strokeWidth={1}
+                                        data-nid={id}
+                                        data-key={`${si}:${ai}`}
+                                        key={`${si}-${ai}`}
+                                    />
+                                )
+                            )
+                        )}
+                    </g>
                 );
             }
         )}
     </>);
+}
+
+function Outline({ d }: { d: string; }) {
+    return <path d={d} fill="none" strokeWidth={1} className="stroke-(--editor-accent) pointer-events-none" />;
 }

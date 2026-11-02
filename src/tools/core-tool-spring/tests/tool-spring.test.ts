@@ -4,7 +4,7 @@ import { createStore } from "jotai";
 vi.mock("@/utils/theme-apply", () => ({ themeApplyMode: () => {} }));
 
 import { ToolId, activeToolIdAtom, setActiveToolAtom, toolGestureActiveAtom } from "@/store/4-editor";
-import { pressSpringKeyAtom, releaseSpringKeyAtom, springGestureEndedAtom, springToolChangedAtom } from "../1-tool-spring-atoms";
+import { pressSpringKeyAtom, releaseSpringKeyAtom, springGestureEndedAtom, springToolChangedAtom, withoutSpringKey } from "../1-tool-spring-atoms";
 
 function setup() {
     const store = createStore();
@@ -13,9 +13,9 @@ function setup() {
 }
 
 describe("Ctrl tool spring", () => {
-    it("switches from the Pen to the selection tool used last and back", () => {
+    it("switches from the Pen to Direct selection and back, even when Selection was used last", () => {
         const store = setup();
-        store.set(setActiveToolAtom, ToolId.points);
+        store.set(setActiveToolAtom, ToolId.select);
         store.set(setActiveToolAtom, ToolId.pen);
 
         store.set(pressSpringKeyAtom);
@@ -23,6 +23,16 @@ describe("Ctrl tool spring", () => {
 
         store.set(releaseSpringKeyAtom);
         expect(store.get(activeToolIdAtom)).toBe(ToolId.pen);
+    });
+
+    it("hides Ctrl from the tool while the spring holds it", () => {
+        const store = setup();
+        const keys = { shift: true, alt: false, ctrl: true };
+        store.set(setActiveToolAtom, ToolId.pen);
+        expect(withoutSpringKey(store.get, keys).ctrl).toBe(true);
+
+        store.set(pressSpringKeyAtom);
+        expect(withoutSpringKey(store.get, keys)).toEqual({ shift: true, alt: false, ctrl: false });
     });
 
     it("does nothing when the Pen is not active", () => {
@@ -40,7 +50,7 @@ describe("Ctrl tool spring", () => {
 
         store.set(toolGestureActiveAtom, true);
         store.set(releaseSpringKeyAtom);
-        expect(store.get(activeToolIdAtom)).toBe(ToolId.select);
+        expect(store.get(activeToolIdAtom)).toBe(ToolId.points);
 
         store.set(toolGestureActiveAtom, false);
         store.set(springGestureEndedAtom);

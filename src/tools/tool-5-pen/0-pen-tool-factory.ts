@@ -30,8 +30,8 @@ export const penTool: ToolDef = {
             return 'Release to finish · [Shift] 45° · [Alt] break handle';
         }
         const legend = get(penDraftAtom)
-            ? 'Click to add points · Click the first point to close · Click a segment to add a point, a point to delete it · [Enter] or [Esc] to finish · [Ctrl] select'
-            : 'Click for corner points, drag for smooth · On a selected path, click a segment to add a point, a point to delete it · [Ctrl] select';
+            ? 'Click to add points · Click the first point to close · Click a segment to add a point, a point to delete it · [Enter] or [Esc] to finish · [Ctrl] move points'
+            : 'Click for corner points, drag for smooth · On a selected path, click a segment to add a point, a point to delete it · [Ctrl] move points';
         return modifierHint(held, legend, {
             shift: '[Shift] Drag a handle to snap to 45° · Place a new point over the selected path instead of adding or deleting',
             alt: '[Alt] Drag to move only the outgoing handle',

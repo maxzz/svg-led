@@ -1,33 +1,30 @@
-import { atom } from "jotai";
-import { ToolId, activeToolIdAtom, setActiveToolAtom, toolGestureActiveAtom } from "@/store/4-editor";
+import { atom, type Getter } from "jotai";
+import { type HeldKeys, ToolId, activeToolIdAtom, setActiveToolAtom, toolGestureActiveAtom } from "@/store/4-editor";
 
 /**
- * Spring-loaded selection tool, like Illustrator: while the Pen is active, holding Ctrl (Cmd on macOS) switches
- * to the Selection or Direct selection tool, whichever was used last, and releasing it returns to the Pen.
+ * Spring-loaded Direct selection, like Illustrator: while the Pen is active, holding Ctrl (Cmd on macOS) switches
+ * to the Direct selection tool, and releasing it returns to the Pen. The spring consumes Ctrl, so the Direct selection
+ * tool sees plain clicks and drags: anchors move and empty canvas drags a marquee instead of adding or deleting points.
  */
 
-type SelectionToolId = typeof ToolId.select | typeof ToolId.points;
-
-/** Tools that hand Ctrl to a selection tool while held */
+/** Tools that hand Ctrl to the Direct selection tool while held */
 const SPRING_FROM: readonly ToolId[] = [ToolId.pen];
-
-function isSelectionTool(id: ToolId): id is SelectionToolId {
-    return id === ToolId.select || id === ToolId.points;
-}
-
-/** The selection tool that was active last; the spring switches to it */
-const lastSelectionToolAtom = atom<SelectionToolId>(ToolId.select);
+const SPRING_TO = ToolId.points;
 
 type Spring = {
     from: ToolId;                // tool to return to on release
-    to: SelectionToolId;         // tool shown while Ctrl is held
     releasePending: boolean;     // Ctrl was released mid-drag; return once the drag ends
 };
 
 const springAtom = atom<Spring | null>(null);
 
-/** True while Ctrl holds a selection tool in place of the Pen */
+/** True while Ctrl holds the Direct selection tool in place of the Pen */
 export const toolSpringActiveAtom = atom((get) => get(springAtom) !== null);
+
+/** Held keys as the active tool sees them: Ctrl is not reported while the spring holds it */
+export function withoutSpringKey(get: Getter, keys: HeldKeys): HeldKeys {
+    return keys.ctrl && get(toolSpringActiveAtom) ? { ...keys, ctrl: false } : keys;
+}
 
 export const pressSpringKeyAtom = atom(
     null,
@@ -36,9 +33,8 @@ export const pressSpringKeyAtom = atom(
         if (get(springAtom) || !SPRING_FROM.includes(from) || get(toolGestureActiveAtom)) {
             return;
         }
-        const to = get(lastSelectionToolAtom);
-        set(springAtom, { from, to, releasePending: false });
-        set(setActiveToolAtom, to);
+        set(springAtom, { from, releasePending: false });
+        set(setActiveToolAtom, SPRING_TO);
     }
 );
 
@@ -55,7 +51,7 @@ export const releaseSpringKeyAtom = atom(
             return;
         }
         set(springAtom, null);
-        get(activeToolIdAtom) === spring.to && set(setActiveToolAtom, spring.from);
+        get(activeToolIdAtom) === SPRING_TO && set(setActiveToolAtom, spring.from);
     }
 );
 
@@ -67,14 +63,10 @@ export const springGestureEndedAtom = atom(
     }
 );
 
-/** Called when the active tool changes: remembers the selection tool, and drops the spring if another tool was picked */
+/** Called when the active tool changes: another tool picked while Ctrl is held stays active */
 export const springToolChangedAtom = atom(
     null,
     (get, set) => {
-        const id = get(activeToolIdAtom);
-        isSelectionTool(id) && get(lastSelectionToolAtom) !== id && set(lastSelectionToolAtom, id);
-
-        const spring = get(springAtom);
-        spring && id !== spring.to && set(springAtom, null);
+        get(springAtom) && get(activeToolIdAtom) !== SPRING_TO && set(springAtom, null);
     }
 );

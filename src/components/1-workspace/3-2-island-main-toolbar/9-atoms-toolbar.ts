@@ -1,12 +1,13 @@
 import { atom } from "jotai";
 import { activeToolIdAtom, heldKeysAtom, toolGestureActiveAtom, toolLockedAtom } from "@/store/4-editor";
 import { getTool } from "@/tools";
+import { withoutSpringKey } from "@/tools/core-tool-spring";
 
 /** Hint line under the toolbar for the active tool; it follows the held modifier keys and the pointer gesture */
 export const toolHintAtom = atom(
     (get) => getTool(get(activeToolIdAtom)).hint({
         get,
-        held: get(heldKeysAtom),
+        held: withoutSpringKey(get, get(heldKeysAtom)),
         dragging: get(toolGestureActiveAtom),
     })
 );
