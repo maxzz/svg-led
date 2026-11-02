@@ -46,4 +46,11 @@ describe("selection action rules", () => {
         expect(visibleIds([group])).not.toContain('object.convertToPath');
         expect(visibleIds([path])).not.toContain('object.convertToPath');
     });
+
+    it("shows expand only when a path is selected", () => {
+        expect(visibleIds([path])).toContain('object.expand');
+        expect(visibleIds([rect, path])).toContain('object.expand');
+        expect(visibleIds([rect])).not.toContain('object.expand');
+        expect(visibleIds([group])).not.toContain('object.expand');
+    });
 });
