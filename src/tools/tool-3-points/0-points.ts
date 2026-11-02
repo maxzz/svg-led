@@ -256,7 +256,7 @@ export const pointsTool: ToolDef = {
             }
 
             case 'node-move':
-                updateMove(gesture.move, e, e.shift, isMod(e, M.snapToObjects));
+                updateMove(gesture.move, e, e.shift, false);
                 break;
 
             case 'marquee':
@@ -370,7 +370,7 @@ function beginHandleSnap(get: Getter, nodeId: string, key: string): PointSnapSes
 
 /** Where a dragged handle goes, in document coordinates; the 45° constraint turns snapping off */
 function snapHandle(set: Setter, snap: PointSnapSession, e: ToolPointerEvent): Point {
-    return updatePointSnap(set, snap, e.doc, { snapKeyHeld: isMod(e, M.snapToObjects), axes: isMod(e, M.constrainAngle) ? [] : undefined });
+    return updatePointSnap(set, snap, e.doc, { axes: isMod(e, M.constrainAngle) ? [] : undefined });
 }
 
 function moveAnchorsGesture(set: Setter, g: Extract<Gesture, { type: 'anchors'; }>, e: ToolPointerEvent): void {
@@ -393,7 +393,7 @@ function moveAnchorsGesture(set: Setter, g: Extract<Gesture, { type: 'anchors'; 
 
     if (g.grabbed) {
         const p = { x: g.grabbed.start.x + dx, y: g.grabbed.start.y + dy };
-        const snapped = updatePointSnap(set, g.grabbed.snap, p, { snapKeyHeld: isMod(e, M.snapToObjects), axes });
+        const snapped = updatePointSnap(set, g.grabbed.snap, p, { axes });
         dx += snapped.x - p.x;
         dy += snapped.y - p.y;
     }

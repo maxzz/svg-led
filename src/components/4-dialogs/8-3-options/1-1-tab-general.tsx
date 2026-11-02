@@ -25,6 +25,9 @@ export function Tab_General() {
             <PinPropertiesSwitch />
             <HintPlacementSelect />
             <SelectionModeSelect />
+
+            <SubHeader>Snapping</SubHeader>
+            <SmartGuidesSwitch />
         </div>
     );
 }
@@ -221,6 +224,29 @@ const SELECTION_MODE_ITEMS: readonly (readonly [label: string, value: SelectionM
     ["Inclusive", SelectionMode.inclusive],
     ["Exclusive", SelectionMode.exclusive],
 ];
+
+//---------------------------------------------------------------------------
+
+function SmartGuidesSwitch() {
+    const { prefs } = useSnapshot(appSettings);
+    const id = useId();
+
+    return (
+        <div className="flex items-center justify-between gap-4">
+            <OptionLabel
+                htmlFor={id}
+                tip={<>
+                    <div>With the Direct selection tool, a dragged point or handle snaps to other points and handles, then to the edges and centers of elements.</div>
+                    <div>Guide lines show what it lines up with, and a small cross marks the snap point.</div>
+                </>}
+            >
+                Smart guides
+            </OptionLabel>
+
+            <Switch id={id} checked={prefs.smartGuides} onCheckedChange={(v) => { appSettings.prefs.smartGuides = v; }} />
+        </div>
+    );
+}
 
 //---------------------------------------------------------------------------
 
