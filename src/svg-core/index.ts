@@ -20,4 +20,5 @@ export * from "./7-ops/1-transform-path";
 export * from "./7-ops/2-transform-node";
 export * from "./7-ops/3-fit-viewbox";
 export * from "./7-ops/4-compound-path";
+export * from "./7-ops/5-expand-stroke";
 export * from "./8-style/1-presentation";

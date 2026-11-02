@@ -2,6 +2,7 @@ import { snapshot } from "valtio";
 import {
     type Attrs, type GroupNode, type Matrix, type Padding, type FitOptions, type SvgDoc, type SvgNode, type ViewBox, type PathNode, type NodeLocation,
     docToParentMatrix, findNode, fitRectMatrix, isShapeNode, newNodeId, nodeOwnMatrix, parentsMatrix, parseSvg,
+    canExpandPath, classRulesOf, expandPathNode,
     parseSvgFragment, serializeNodes, serializeSvg, setPresentation, shapeToPath, topmostIds, transformNode, translateMatrix,
     viewBoxAround, walkNodes, makeFmt, isIdentity, multiply, scaleMatrix, reuseNodeIds, type Rect, scaleAround, getPresentation,
     combinePaths, isCompoundPath, releaseCompoundPath, IDENTITY, invert,
@@ -417,6 +418,59 @@ export function convertToPath(ids: readonly string[]): void {
         }
     }
     changed && commitHistory();
+}
+
+/** A selected path whose stroke can be turned into geometry */
+export function canExpandPaths(ids: readonly string[]): boolean {
+    const doc = docState.doc;
+    const rules = classRulesOf(doc.children);
+    return ids.some((id) => {
+        const loc = findNode(doc, id);
+        return !!loc && loc.node.kind === 'path' && canExpandPath(loc.node, loc.parents, doc.rootAttrs, rules);
+    });
+}
+
+/**
+ * Expands every selected path that has a stroke. Paths without a stroke, and anything that is not a path, stay as they are.
+ * Returns the selection with expanded paths replaced by their results, or undefined when nothing changed.
+ */
+export function expandPaths(ids: readonly string[]): string[] | undefined {
+    const doc = docState.doc;
+    const precision = docPrecision();
+    const rules = classRulesOf(doc.children);
+    const seen = new Set<string>();
+    const plans: { siblings: SvgNode[]; index: number; next: PathNode[]; id: string; }[] = [];
+
+    for (const id of ids) {
+        if (seen.has(id)) {
+            continue;
+        }
+        seen.add(id);
+        const loc = findNode(doc, id);
+        if (!loc || loc.node.kind !== 'path') {
+            continue;
+        }
+        const node = structuredClone(snapshot(loc.node) as PathNode);
+        const next = expandPathNode(node, loc.parents, precision, doc.rootAttrs, rules);
+        if (!next?.length) {
+            continue;
+        }
+        plans.push({ siblings: loc.siblings, index: loc.index, next, id });
+    }
+
+    if (!plans.length) {
+        return undefined;
+    }
+
+    // Higher indexes first, so inserting a node does not shift an index still waiting in the same parent.
+    plans.sort((a, b) => b.index - a.index);
+    const replaced = new Map<string, string[]>();
+    for (const plan of plans) {
+        plan.siblings.splice(plan.index, 1, ...plan.next);
+        replaced.set(plan.id, plan.next.map((n) => n.id));
+    }
+    commitHistory();
+    return ids.flatMap((id) => replaced.get(id) ?? [id]);
 }
 
 //---------------------------------------------------------------------------

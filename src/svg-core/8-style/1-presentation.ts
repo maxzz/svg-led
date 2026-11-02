@@ -103,6 +103,11 @@ function opacityFactor(value: string | undefined): number {
     return Number.isFinite(n) ? n : 1;
 }
 
+/** True when the paint shows. An omitted fill is black; an omitted stroke is none. Unknown colors count as paint. */
+export function isPaintVisible(color: string | undefined, kind: 'fill' | 'stroke'): boolean {
+    return paintVisible(color, kind === 'fill');
+}
+
 /** `omittedIsPaint` is true for fill (defaults to black) and false for stroke (defaults to none). Unknown colors count as paint. */
 function paintVisible(color: string | undefined, omittedIsPaint: boolean): boolean {
     if (color === undefined) {
