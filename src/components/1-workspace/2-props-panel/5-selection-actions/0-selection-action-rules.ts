@@ -1,4 +1,4 @@
-import { type LucideIcon, Combine, Copy, Expand, Frame, Group, Spline, Split, Trash, Ungroup } from "lucide-react";
+import { type LucideIcon, Combine, Copy, Expand, Frame, Group, Radius, Spline, Split, Trash, Ungroup } from "lucide-react";
 import { type SvgNode, isCompoundPath, isShapeNode } from "@/svg-core";
 
 //---------------------------------------------------------------------------
@@ -31,5 +31,6 @@ export const SELECTION_ACTION_RULES: readonly SelectionActionRule[] = [
     { commandId: 'object.releaseCompound', Icon: Split,  isVisible: (nodes) => nodes.some((n) => isCompoundPath(n)) },
     { commandId: 'object.convertToPath', Icon: Spline,  isVisible: (nodes) => nodes.some((n) => isShapeNode(n)) },
     { commandId: 'object.expand',        Icon: Expand,  isVisible: (nodes) => nodes.some((n) => n.kind === 'path') },
+    { commandId: 'object.offsetPath',    Icon: Radius,  isVisible: (nodes) => nodes.some((n) => n.kind === 'path') },
     { commandId: 'viewbox.fitSelection', Icon: Frame,   isVisible: (_nodes, ctx) => ctx.showViewBox },
 ];

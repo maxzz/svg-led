@@ -3,7 +3,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { snapshot, useSnapshot } from "valtio";
 import {
     ArrowDown, ArrowDownToLine, ArrowUp, ArrowUpToLine, ClipboardPaste, Combine, Copy, CopyPlus, Expand, FileCode, FlipHorizontal, FlipVertical, Group, ImageDown,
-    Layers, Moon, MousePointer2, PaintBucket, Pipette, Scan, Scissors, Spline, SquareDashedMousePointer, Split, Trash, Ungroup, Waypoints,
+    Layers, Moon, MousePointer2, PaintBucket, Pipette, Radius, Scan, Scissors, Spline, SquareDashedMousePointer, Split, Trash, Ungroup, Waypoints,
 } from "lucide-react";
 import { appSettings } from "@/store/1-ui-settings";
 import { type SvgDoc, type SvgNode, findNode, isCompoundPath, isShapeNode } from "@/svg-core";
@@ -110,6 +110,7 @@ function ElementsEntries() {
         hasCompound && <CommandItem id="object.releaseCompound" icon={<Split className={ic} />} />,
         hasShape && <CommandItem id="object.convertToPath" icon={<Spline className={ic} />} />,
         hasPath && <CommandItem id="object.expand" icon={<Expand className={ic} />} />,
+        hasPath && <CommandItem id="object.offsetPath" icon={<Radius className={ic} />} />,
         canEditPoints && <CommandItem id="object.editPoints" icon={<Waypoints className={ic} />} />,
         canIsolate && <CommandItem id="object.isolate" icon={<Scan className={ic} />} />,
         SEP,

@@ -5,6 +5,7 @@ import { docState } from "@/store/3-document";
 import { viewportAtom } from "@/store/4-editor";
 import { isolationPaint, isolationScopeAtom } from "@/store/6-layers";
 import { NodeView } from "./1-node-view";
+import { OffsetPathPreview } from "@/components/4-dialogs/8-10-offset-path/3-offset-preview";
 
 /** Document content in document coordinates, placed by the viewport transform */
 export function DocLayer() {
@@ -25,6 +26,7 @@ export function DocLayer() {
                     return node ? <NodeView key={node.id} node={node} isolation={paint.keep} openGroups={paint.open} /> : null;
                 }
             )}
+            <OffsetPathPreview />
         </g>
     );
 }

@@ -82,6 +82,14 @@ export interface MonacoSettings {
     minimap: boolean;            // Show the minimap in the code panel
 }
 
+/** Remembered fields of the Offset Path dialog */
+export interface OffsetPathDialogSettings {
+    offset: number;              // Distance in the path's own units. Positive expands a closed path and offsets an open path to its left
+    joins: 'miter' | 'round';    // How corners are joined
+    miterLimit: number;          // Miter joins longer than this, as a multiple of the offset, are cut flat
+    preview: boolean;            // Draw the offset on the canvas while the dialog is open
+}
+
 export interface AppSettings {
     theme: ThemeMode;            // Theme mode
     showWelcome: boolean;        // Show the Welcome page at startup
@@ -93,6 +101,7 @@ export interface AppSettings {
     prefs: EditorPreferences;
     monaco: MonacoSettings;      // Monaco code editor options
     dashHistory: string[];       // Recently used custom dash arrays, newest first (shared by all dash inputs)
+    dlgOffsetPath: OffsetPathDialogSettings; // Offset Path dialog: offset, joins, miter limit, and preview
 }
 
 /** How many custom dash arrays the history keeps */
@@ -146,9 +155,25 @@ const DEFAULT_SETTINGS: AppSettings = {
         minimap: false,
     },
     dashHistory: [],
+    dlgOffsetPath: {
+        offset: 10,
+        joins: 'miter',
+        miterLimit: 4,
+        preview: true,
+    },
 };
 
 //---------------------------------------------------------------------------
+
+function offsetDialogFrom(value: Partial<OffsetPathDialogSettings> | undefined): OffsetPathDialogSettings {
+    const d = DEFAULT_SETTINGS.dlgOffsetPath;
+    return {
+        offset: typeof value?.offset === 'number' && Number.isFinite(value.offset) ? value.offset : d.offset,
+        joins: value?.joins === 'round' || value?.joins === 'miter' ? value.joins : d.joins,
+        miterLimit: typeof value?.miterLimit === 'number' && Number.isFinite(value.miterLimit) ? Math.max(1, value.miterLimit) : d.miterLimit,
+        preview: typeof value?.preview === 'boolean' ? value.preview : d.preview,
+    };
+}
 
 function loadSettings(): AppSettings {
     try {
@@ -174,6 +199,7 @@ function loadSettings(): AppSettings {
                 dashHistory: Array.isArray(parsed.dashHistory)
                     ? parsed.dashHistory.filter((d): d is string => typeof d === 'string' && d !== '').slice(0, DASH_HISTORY_LIMIT)
                     : [],
+                dlgOffsetPath: offsetDialogFrom(parsed.dlgOffsetPath),
             };
         }
     } catch (e) {

@@ -685,6 +685,11 @@ function polylinesOf(d: string, tol: number): Polyline[] {
     return rv.filter((poly) => poly.pts.every((p) => Number.isFinite(p.x) && Number.isFinite(p.y)));
 }
 
+/** Polylines of a path, flattened to `tol`. A closed subpath does not repeat its first point. */
+export function flattenPathData(d: string, tol: number): { pts: Point[]; closed: boolean; }[] {
+    return polylinesOf(d, tol);
+}
+
 function flattenCubic(p0: Point, c1: Point, c2: Point, p3: Point, tol: number, out: Point[], depth: number): void {
     const flat = depth >= 16 || out.length > 8000 || (lineDist(c1, p0, p3) <= tol && lineDist(c2, p0, p3) <= tol);
     if (flat) {
