@@ -1,20 +1,20 @@
-import { EndType, FillRule, JoinType, inflatePathsD, unionD, type PathD } from "clipper2-ts";
-import { type Attrs, type Point } from "../1-model/1-types";
-import { makeFmt } from "../3-serialize/1-format";
-import { flattenPathData } from "./5-expand-stroke";
+import { type Anchor, type Attrs, type Point, type SubPath } from "../1-model/1-types";
+import { pathDataToSubpaths, samePoint, subpathsToPathData } from "../5-anchors/1-path-anchors";
 import { getPresentation } from "../8-style/1-presentation";
 
 /**
- * Offset Path builds a parallel curve.
+ * Offset Path moves each existing anchor so it sits off the original path.
+ * The anchor count does not change, and each anchor keeps its handles, shifted by the same amount.
  *
- * The distance is in the path's own units (the same space as `d` and stroke widths).
- * A positive distance expands a closed path and shifts an open path to its left
- * (left of the direction of travel, with y pointing down). A negative distance does the opposite.
- * Corners are mitered or rounded. A miter longer than `miterLimit` times the distance is cut flat.
- * Curves are flattened, the same way Expand turns a stroke into a filled outline.
+ * The distance is in the path's own units. A positive distance is to the left of the direction
+ * of travel (y pointing down), which is outward for the usual clockwise shape. A negative distance
+ * is the other way. A corner is placed where the offset edges meet. Round puts that same corner
+ * on the offset circle instead. A miter longer than the miter limit stays one point, pulled in
+ * along the same direction.
+ *
+ * An open straight line is a rectangle of no thickness. Offsetting it grows a real rectangle:
+ * longer along the line, and thick across it.
  */
-
-const CLIP_PREC = 4;
 
 export type OffsetJoin = 'miter' | 'round';
 
@@ -29,7 +29,7 @@ export function pathFillRule(attrs: Attrs): 'nonzero' | 'evenodd' {
     return getPresentation(attrs, 'fill-rule')?.trim().toLowerCase() === 'evenodd' ? 'evenodd' : 'nonzero';
 }
 
-/** Offset geometry as path data, or '' when the offset removes the path. A zero distance returns `d` unchanged. */
+/** Offset geometry as path data. A zero distance returns `d` unchanged. */
 export function offsetPathData(d: string, options: OffsetPathOptions, precision: number): string {
     if (!d.trim() || !Number.isFinite(options.offset)) {
         return '';
@@ -37,183 +37,161 @@ export function offsetPathData(d: string, options: OffsetPathOptions, precision:
     if (Math.abs(options.offset) < 1e-9) {
         return d;
     }
-
-    const tol = Math.min(0.5, Math.max(Math.abs(options.offset) * 0.05, 0.05));
-    const polys = flattenPathData(d, tol).filter((p) => p.pts.length >= 2 && p.pts.every((pt) => Number.isFinite(pt.x) && Number.isFinite(pt.y)));
-    const closed = polys.filter((p) => p.closed && p.pts.length >= 3);
-    const open = polys.filter((p) => !p.closed && p.pts.length >= 2);
-    const fmt = makeFmt(precision);
-    const parts: string[] = [];
-
-    for (const ring of offsetClosed(closed.map((p) => p.pts), options)) {
-        const text = ringToD(ring, fmt);
-        if (text) {
-            parts.push(text);
-        }
-    }
-    for (const poly of open) {
-        const text = lineToD(offsetOpen(poly.pts, options), fmt);
-        if (text) {
-            parts.push(text);
-        }
-    }
-    return parts.join(' ');
+    const subs = pathDataToSubpaths(d).map((sub) => offsetSubpath(sub, options));
+    return subpathsToPathData(subs, precision);
 }
 
-//---------------------------------------------------------------------------
-// Closed subpaths. Clipper expands the outer contour and shrinks holes.
-
-function offsetClosed(paths: Point[][], options: OffsetPathOptions): Point[][] {
-    if (!paths.length) {
-        return [];
+function offsetSubpath(sub: SubPath, options: OffsetPathOptions): SubPath {
+    if (isStraightLine(sub)) {
+        return lineAsRectangle(sub.anchors[0], sub.anchors[1], options.offset);
     }
-    const rule = options.fillRule === 'evenodd' ? FillRule.EvenOdd : FillRule.NonZero;
-    const base = paths.length === 1 ? paths : unionD(paths, [], rule, CLIP_PREC);
-    if (!base.length) {
-        return [];
-    }
-    const distance = options.offset;
-    const join = options.joins === 'round' ? JoinType.Round : JoinType.Miter;
     const limit = clampMiter(options.miterLimit);
-    const inflated = inflatePathsD(base, distance, join, EndType.Polygon, limit, CLIP_PREC, arcTol(Math.abs(distance)));
-    return inflated.map(cleanRing).filter((ring) => ring.length >= 3 && Math.abs(ringArea(ring)) > 1e-8);
+    return {
+        closed: sub.closed,
+        anchors: sub.anchors.map((anchor, i) => place(sub, i, anchor, options.offset, options.joins, limit)),
+    };
 }
 
-function arcTol(radius: number): number {
-    return Math.min(Math.max(radius * 0.02, 1e-4), 0.25);
+/** Two corners and nothing else: a single straight segment */
+function isStraightLine(sub: SubPath): boolean {
+    if (sub.closed || sub.anchors.length !== 2) {
+        return false;
+    }
+    const [a, b] = sub.anchors;
+    if (a.in || a.out || b.in || b.out) {
+        return false;
+    }
+    return Math.hypot(b.x - a.x, b.y - a.y) > 1e-9;
 }
 
-function clampMiter(value: number): number {
-    return Number.isFinite(value) ? Math.max(1, value) : 4;
-}
-
-function cleanRing(path: PathD): Point[] {
-    const pts = dedupe(path.map((p) => ({ x: p.x, y: p.y })));
-    if (pts.length > 1 && Math.hypot(pts[0].x - pts[pts.length - 1].x, pts[0].y - pts[pts.length - 1].y) <= 1e-6) {
-        pts.pop();
-    }
-    return pts;
-}
-
-function ringArea(pts: readonly Point[]): number {
-    let sum = 0;
-    for (let i = 0; i < pts.length; i++) {
-        const a = pts[i];
-        const b = pts[(i + 1) % pts.length];
-        sum += a.x * b.y - b.x * a.y;
-    }
-    return sum / 2;
-}
-
-function ringToD(pts: readonly Point[], fmt: (n: number) => string): string {
-    if (pts.length < 3) {
-        return '';
-    }
-    let text = `M${fmt(pts[0].x)} ${fmt(pts[0].y)}`;
-    for (let i = 1; i < pts.length; i++) {
-        text += ` L${fmt(pts[i].x)} ${fmt(pts[i].y)}`;
-    }
-    return `${text} Z`;
-}
-
-function lineToD(pts: readonly Point[], fmt: (n: number) => string): string {
-    if (pts.length < 2) {
-        return '';
-    }
-    let text = `M${fmt(pts[0].x)} ${fmt(pts[0].y)}`;
-    for (let i = 1; i < pts.length; i++) {
-        text += ` L${fmt(pts[i].x)} ${fmt(pts[i].y)}`;
-    }
-    return text;
-}
-
-//---------------------------------------------------------------------------
-// Open subpaths: one parallel curve, not a closed outline.
-
-function offsetOpen(pts: readonly Point[], options: OffsetPathOptions): Point[] {
-    const src = dedupe(pts);
-    if (src.length < 2) {
-        return [];
-    }
-    const normals: Point[] = [];
-    for (let i = 0; i < src.length - 1; i++) {
-        const n = leftNormal(src[i], src[i + 1]);
-        if (!n) {
-            return [];
-        }
-        normals.push(n);
-    }
-
-    const distance = options.offset;
-    const out: Point[] = [shift(src[0], normals[0], distance)];
-    for (let i = 1; i < src.length - 1; i++) {
-        joinAt(out, src[i], normals[i - 1], normals[i], distance, options.joins, clampMiter(options.miterLimit));
-    }
-    out.push(shift(src[src.length - 1], normals[normals.length - 1], distance));
-    return dedupe(out).filter((p) => Number.isFinite(p.x) && Number.isFinite(p.y));
-}
-
-/** Left of the segment in screen space (y down): positive offsets use this side */
-function leftNormal(a: Point, b: Point): Point | null {
+/**
+ * A line has no thickness, so it is offset as a rectangle: each end grows by the distance
+ * along the line, and both sides grow by the distance across it.
+ */
+function lineAsRectangle(a: Anchor, b: Anchor, offset: number): SubPath {
     const dx = b.x - a.x;
     const dy = b.y - a.y;
     const len = Math.hypot(dx, dy);
+    const ux = dx / len;
+    const uy = dy / len;
+    const nx = dy / len;
+    const ny = -dx / len;
+    const d = Math.abs(offset);
+    const corner = (base: Anchor, along: number, across: number): Anchor => ({
+        x: base.x + ux * along + nx * across,
+        y: base.y + uy * along + ny * across,
+        kind: 'corner',
+    });
+    return {
+        closed: true,
+        anchors: [
+            corner(a, -d, d),
+            corner(b, d, d),
+            corner(b, d, -d),
+            corner(a, -d, -d),
+        ],
+    };
+}
+
+function place(sub: SubPath, index: number, anchor: Anchor, distance: number, join: OffsetJoin, miterLimit: number): Anchor {
+    const n = sub.anchors.length;
+    const prev = sub.closed || index > 0 ? sub.anchors[(index - 1 + n) % n] : null;
+    const next = sub.closed || index < n - 1 ? sub.anchors[(index + 1) % n] : null;
+    const nIn = prev ? leftOf(incomingDir(prev, anchor)) : null;
+    const nOut = next ? leftOf(outgoingDir(anchor, next)) : null;
+    const at = nIn && nOut
+        ? join === 'round'
+            ? roundAt(anchor, nIn, nOut, distance)
+            : miterAt(anchor, nIn, nOut, distance, miterLimit)
+        : shift(anchor, nOut ?? nIn, distance);
+    return moveAnchor(anchor, { x: at.x - anchor.x, y: at.y - anchor.y });
+}
+
+/** Direction of travel arriving at `anchor` */
+function incomingDir(prev: Anchor, anchor: Anchor): Point | null {
+    if (anchor.in && !samePoint(anchor.in, anchor)) {
+        return { x: anchor.x - anchor.in.x, y: anchor.y - anchor.in.y };
+    }
+    if (!samePoint(prev, anchor)) {
+        return { x: anchor.x - prev.x, y: anchor.y - prev.y };
+    }
+    return null;
+}
+
+/** Direction of travel leaving `anchor` */
+function outgoingDir(anchor: Anchor, next: Anchor): Point | null {
+    if (anchor.out && !samePoint(anchor.out, anchor)) {
+        return { x: anchor.out.x - anchor.x, y: anchor.out.y - anchor.y };
+    }
+    if (!samePoint(next, anchor)) {
+        return { x: next.x - anchor.x, y: next.y - anchor.y };
+    }
+    return null;
+}
+
+function leftOf(dir: Point | null): Point | null {
+    if (!dir) {
+        return null;
+    }
+    const len = Math.hypot(dir.x, dir.y);
     if (len < 1e-9) {
         return null;
     }
-    return { x: dy / len, y: -dx / len };
+    return { x: dir.y / len, y: -dir.x / len };
 }
 
-function shift(p: Point, normal: Point, distance: number): Point {
+/** Where the two offset edges meet. A long miter is shortened but stays a single point. */
+function miterAt(vertex: Point, nIn: Point, nOut: Point, distance: number, miterLimit: number): Point {
+    if (nIn.x * nOut.x + nIn.y * nOut.y > 0.999) {
+        return shift(vertex, nIn, distance);
+    }
+    const from = shift(vertex, nIn, distance);
+    const to = shift(vertex, nOut, distance);
+    const hit = lineHit(from, { x: -nIn.y, y: nIn.x }, to, { x: -nOut.y, y: nOut.x });
+    if (!hit) {
+        return from;
+    }
+    const reach = Math.abs(distance) * miterLimit;
+    const dx = hit.x - vertex.x;
+    const dy = hit.y - vertex.y;
+    const dist = Math.hypot(dx, dy);
+    if (dist > reach + 1e-6 && dist > 1e-9) {
+        const scale = reach / dist;
+        return { x: vertex.x + dx * scale, y: vertex.y + dy * scale };
+    }
+    return hit;
+}
+
+/** The one corner point that lies on the offset circle, halfway through the turn */
+function roundAt(vertex: Point, nIn: Point, nOut: Point, distance: number): Point {
+    let x = nIn.x + nOut.x;
+    let y = nIn.y + nOut.y;
+    const len = Math.hypot(x, y);
+    if (len < 1e-9) {
+        return shift(vertex, nIn, distance);
+    }
+    x /= len;
+    y /= len;
+    const sign = distance >= 0 ? 1 : -1;
+    return { x: vertex.x + x * Math.abs(distance) * sign, y: vertex.y + y * Math.abs(distance) * sign };
+}
+
+function shift(p: Point, normal: Point | null, distance: number): Point {
+    if (!normal) {
+        return { x: p.x, y: p.y };
+    }
     return { x: p.x + normal.x * distance, y: p.y + normal.y * distance };
 }
 
-function joinAt(out: Point[], vertex: Point, nIn: Point, nOut: Point, distance: number, join: OffsetJoin, miterLimit: number): void {
-    const from = shift(vertex, nIn, distance);
-    const to = shift(vertex, nOut, distance);
-    if (nIn.x * nOut.x + nIn.y * nOut.y > 0.999) {
-        out.push(from);
-        return;
+function moveAnchor(anchor: Anchor, delta: Point): Anchor {
+    const next: Anchor = { x: anchor.x + delta.x, y: anchor.y + delta.y, kind: anchor.kind };
+    if (anchor.in) {
+        next.in = { x: anchor.in.x + delta.x, y: anchor.in.y + delta.y };
     }
-    if (join === 'round') {
-        out.push(from);
-        pushArc(out, vertex, from, to);
-        out.push(to);
-        return;
+    if (anchor.out) {
+        next.out = { x: anchor.out.x + delta.x, y: anchor.out.y + delta.y };
     }
-
-    const dirIn = { x: -nIn.y, y: nIn.x };
-    const dirOut = { x: -nOut.y, y: nOut.x };
-    const hit = lineHit(from, dirIn, to, dirOut);
-    const reach = Math.abs(distance) * miterLimit;
-    if (!hit || Math.hypot(hit.x - vertex.x, hit.y - vertex.y) > reach + 1e-6) {
-        out.push(from, to);
-        return;
-    }
-    out.push(hit);
-}
-
-/** Short arc from `from` to `to` around `center`. Both points sit on the circle. */
-function pushArc(out: Point[], center: Point, from: Point, to: Point): void {
-    const radius = Math.hypot(from.x - center.x, from.y - center.y);
-    if (radius < 1e-9) {
-        return;
-    }
-    const a0 = Math.atan2(from.y - center.y, from.x - center.x);
-    const a1 = Math.atan2(to.y - center.y, to.x - center.x);
-    let sweep = a1 - a0;
-    if (sweep > Math.PI) {
-        sweep -= Math.PI * 2;
-    } else if (sweep < -Math.PI) {
-        sweep += Math.PI * 2;
-    }
-    const tol = arcTol(radius);
-    const step = 2 * Math.acos(Math.min(1, Math.max(-1, 1 - tol / radius)));
-    const count = Math.max(1, Math.ceil(Math.abs(sweep) / Math.max(step, 1e-3)));
-    for (let i = 1; i < count; i++) {
-        const a = a0 + sweep * (i / count);
-        out.push({ x: center.x + Math.cos(a) * radius, y: center.y + Math.sin(a) * radius });
-    }
+    return next;
 }
 
 function lineHit(origin: Point, dir: Point, origin2: Point, dir2: Point): Point | null {
@@ -227,13 +205,6 @@ function lineHit(origin: Point, dir: Point, origin2: Point, dir2: Point): Point 
     return { x: origin.x + dir.x * t, y: origin.y + dir.y * t };
 }
 
-function dedupe(pts: readonly Point[]): Point[] {
-    const out: Point[] = [];
-    for (const p of pts) {
-        const prev = out[out.length - 1];
-        if (!prev || Math.hypot(prev.x - p.x, prev.y - p.y) > 1e-6) {
-            out.push({ x: p.x, y: p.y });
-        }
-    }
-    return out;
+function clampMiter(value: number): number {
+    return Number.isFinite(value) ? Math.max(1, value) : 4;
 }

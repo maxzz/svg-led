@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { type Point, offsetPathData, parsePathData, type OffsetPathOptions } from "../index";
+import { type Point, offsetPathData, parsePathData, pathDataToSubpaths, type OffsetPathOptions } from "../index";
 
 function options(over: Partial<OffsetPathOptions> = {}): OffsetPathOptions {
     return { offset: 1, joins: 'miter', miterLimit: 4, ...over };
@@ -13,6 +13,10 @@ function pointsOf(d: string): Point[] {
         }
     }
     return pts;
+}
+
+function anchorCount(d: string): number {
+    return pathDataToSubpaths(d).reduce((sum, sub) => sum + sub.anchors.length, 0);
 }
 
 function boxOf(d: string) {
@@ -35,48 +39,69 @@ describe("offset path", () => {
         expect(offsetPathData('M0 0 L10 0', options({ offset: 0 }), 3)).toBe('M0 0 L10 0');
     });
 
-    it("expands a closed square and shrinks it the other way", () => {
-        const grown = boxOf(offsetPathData(SQUARE, options({ offset: 1 }), 3));
-        expect(grown.x).toBeCloseTo(-1, 1);
-        expect(grown.y).toBeCloseTo(-1, 1);
-        expect(grown.width).toBeCloseTo(12, 1);
-        expect(grown.height).toBeCloseTo(12, 1);
+    it("moves each corner of a closed square and keeps the corner count", () => {
+        const grown = offsetPathData(SQUARE, options({ offset: 1 }), 3);
+        expect(anchorCount(grown)).toBe(anchorCount(SQUARE));
+        expect(grown).toBe('M-1 -1 L11 -1 L11 11 L-1 11 Z');
 
-        const shrunk = boxOf(offsetPathData(SQUARE, options({ offset: -1 }), 3));
-        expect(shrunk.x).toBeCloseTo(1, 1);
-        expect(shrunk.y).toBeCloseTo(1, 1);
-        expect(shrunk.width).toBeCloseTo(8, 1);
-        expect(shrunk.height).toBeCloseTo(8, 1);
+        const shrunk = offsetPathData(SQUARE, options({ offset: -1 }), 3);
+        expect(anchorCount(shrunk)).toBe(4);
+        expect(shrunk).toBe('M1 1 L9 1 L9 9 L1 9 Z');
     });
 
-    it("offsets an open path to the left, and the other way when the distance is negative", () => {
-        expect(offsetPathData('M0 0 L10 0', options({ offset: 2 }), 3)).toBe('M0 -2 L10 -2');
-        expect(offsetPathData('M0 0 L10 0', options({ offset: -2 }), 3)).toBe('M0 2 L10 2');
+    it("turns a straight line into a longer rectangle", () => {
+        const grown = offsetPathData('M0 0 L10 0', options({ offset: 2 }), 3);
+        expect(grown).toBe('M-2 -2 L12 -2 L12 2 L-2 2 Z');
+        const box = boxOf(grown);
+        expect(box.width).toBe(14);
+        expect(box.height).toBe(4);
+
+        const other = boxOf(offsetPathData('M0 0 L10 0', options({ offset: -2 }), 3));
+        expect(other.width).toBe(14);
+        expect(other.height).toBe(4);
     });
 
-    it("miters a right angle and cuts it flat when the miter limit is too small", () => {
-        expect(offsetPathData('M0 0 L10 0 L10 10', options({ offset: 1, miterLimit: 4 }), 3)).toBe('M0 -1 L11 -1 L11 10');
-        expect(offsetPathData('M0 0 L10 0 L10 10', options({ offset: 1, miterLimit: 1 }), 3)).toBe('M0 -1 L10 -1 L11 0 L11 10');
+    it("keeps a polyline's point count and only moves those points", () => {
+        const src = 'M0 0 L10 0 L10 10';
+        const mitred = offsetPathData(src, options({ offset: 1, miterLimit: 4 }), 3);
+        expect(anchorCount(mitred)).toBe(anchorCount(src));
+        expect(mitred).toBe('M0 -1 L11 -1 L11 10');
+
+        const limited = offsetPathData(src, options({ offset: 1, miterLimit: 1 }), 3);
+        expect(anchorCount(limited)).toBe(3);
+        expect(limited).toBe('M0 -1 L10.707 -0.707 L11 10');
     });
 
-    it("rounds a right angle onto the offset circle", () => {
-        const pts = pointsOf(offsetPathData('M0 0 L10 0 L10 10', options({ offset: 1, joins: 'round' }), 3));
-        expect(pts.some((p) => Math.hypot(p.x - 11, p.y + 1) < 0.05)).toBe(false);
-        expect(pts.some((p) => Math.abs(Math.hypot(p.x - 10, p.y) - 1) < 0.05 && p.x > 10.2 && p.y < -0.2)).toBe(true);
+    it("puts a round corner on the offset circle without adding points", () => {
+        const src = 'M0 0 L10 0 L10 10';
+        const out = offsetPathData(src, options({ offset: 1, joins: 'round' }), 3);
+        expect(anchorCount(out)).toBe(3);
+        const corner = pointsOf(out)[1];
+        expect(Math.abs(Math.hypot(corner.x - 10, corner.y) - 1)).toBeLessThan(0.01);
+        expect(Math.hypot(corner.x - 11, corner.y + 1)).toBeGreaterThan(0.2);
     });
 
     it("keeps a sharp miter inside the miter limit and lets a high limit run out", () => {
         const sharp = 'M0 0 L10 0 L0 1';
-        // Join points sit between the offset ends. A low limit cuts the spike; a high limit lets it run out.
         const reach = (d: string) => {
-            const mid = pointsOf(d).slice(1, -1);
-            return Math.max(...mid.map((p) => Math.hypot(p.x - 10, p.y)));
+            const mid = pathDataToSubpaths(d)[0].anchors[1];
+            return Math.hypot(mid.x - 10, mid.y);
         };
+        expect(anchorCount(offsetPathData(sharp, options({ offset: 1, miterLimit: 2 }), 3))).toBe(3);
         expect(reach(offsetPathData(sharp, options({ offset: 1, miterLimit: 2 }), 3))).toBeLessThan(2.5);
         expect(reach(offsetPathData(sharp, options({ offset: 1, miterLimit: 100 }), 3))).toBeGreaterThan(5);
     });
 
-    it("returns nothing when a closed path is offset away completely", () => {
-        expect(offsetPathData(SQUARE, options({ offset: -20 }), 3)).toBe('');
+    it("moves a curve's anchors and handles together and does not add points", () => {
+        const src = 'M0 0 C0 10 10 10 10 0';
+        const out = offsetPathData(src, options({ offset: 1 }), 3);
+        expect(anchorCount(out)).toBe(anchorCount(src));
+        expect(out).toBe('M1 0 C1 10 9 10 9 0');
+    });
+
+    it("keeps every corner when a large inward offset crosses the middle", () => {
+        const out = offsetPathData(SQUARE, options({ offset: -20 }), 3);
+        expect(anchorCount(out)).toBe(4);
+        expect(out).not.toBe('');
     });
 });
