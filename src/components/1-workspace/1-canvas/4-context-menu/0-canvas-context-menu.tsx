@@ -2,7 +2,7 @@ import { type ReactNode } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { snapshot, useSnapshot } from "valtio";
 import {
-    ArrowDown, ArrowDownToLine, ArrowUp, ArrowUpToLine, ClipboardPaste, Combine, Copy, CopyPlus, FileCode, FlipHorizontal, FlipVertical, Group, ImageDown,
+    ArrowDown, ArrowDownToLine, ArrowUp, ArrowUpToLine, ClipboardPaste, Combine, Copy, CopyPlus, Expand, FileCode, FlipHorizontal, FlipVertical, Group, ImageDown,
     Layers, Moon, MousePointer2, PaintBucket, Pipette, Scan, Scissors, Spline, SquareDashedMousePointer, Split, Trash, Ungroup, Waypoints,
 } from "lucide-react";
 import { appSettings } from "@/store/1-ui-settings";
@@ -87,6 +87,7 @@ function ElementsEntries() {
     const nodes = selection.flatMap((id): SvgNode[] => { const n = findNode(doc, id)?.node; return n ? [n] : []; });
     const hasGroup = nodes.some((n) => n.kind === 'g');
     const hasShape = nodes.some((n) => isShapeNode(n));
+    const hasPath = nodes.some((n) => n.kind === 'path');
     const hasCompound = nodes.some((n) => isCompoundPath(n));
     const canEditPoints = selection.length === 1 && isPointEditable(selection[0]);
     const canIsolate = useAtomValue(canIsolateSelectionAtom);
@@ -108,6 +109,7 @@ function ElementsEntries() {
         selection.length > 1 && <CommandItem id="object.makeCompound" icon={<Combine className={ic} />} />,
         hasCompound && <CommandItem id="object.releaseCompound" icon={<Split className={ic} />} />,
         hasShape && <CommandItem id="object.convertToPath" icon={<Spline className={ic} />} />,
+        hasPath && <CommandItem id="object.expand" icon={<Expand className={ic} />} />,
         canEditPoints && <CommandItem id="object.editPoints" icon={<Waypoints className={ic} />} />,
         canIsolate && <CommandItem id="object.isolate" icon={<Scan className={ic} />} />,
         SEP,

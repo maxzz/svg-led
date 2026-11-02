@@ -5,6 +5,7 @@ import {
     type FileResult, commitHistory, convertToPath, copyPngToClipboard, copySvgToClipboard, createEmptyDoc, deleteNodes, docState, docToText, duplicateNodes,
     exportPng, exportSvgDownload, flipNodes, getNodeProxy, groupNodes, historyState, isPointEditable, moveNodes,
     nodesToText, openSvgFile, readNodeStyle, reorderNodes, saveSvgFile, saveSvgFileAs, ungroupNodes, writeNodesStyle,
+    canExpandPaths, expandPaths,
     canMakeCompoundPath, makeCompoundPath, canReleaseCompoundPath, releaseCompoundPaths,
 } from "@/store/3-document";
 import {
@@ -212,6 +213,17 @@ const OBJECT: Command[] = [
         id: 'object.convertToPath', label: 'Convert to path', group: 'object', shortcut: 'Ctrl+Shift+P', keywords: 'outline',
         enabled: (get) => get(selectionAtom).some((id) => { const n = getNodeProxy(id); return !!n && isShapeNode(n); }),
         run: ({ get }) => convertToPath(get(selectionAtom)),
+    },
+    {
+        id: 'object.expand', label: 'Expand', group: 'object', keywords: 'stroke outline fill appearance',
+        enabled: (get) => canExpandPaths(get(selectionAtom)),
+        run: ({ get, set }) => {
+            const prev = get(selectionAtom);
+            const next = expandPaths(prev);
+            if (next && (next.length !== prev.length || next.some((id, i) => id !== prev[i]))) {
+                set(setSelectionAtom, next);
+            }
+        },
     },
     { id: 'object.front', label: 'Bring to front', group: 'object', shortcut: 'Ctrl+Shift+]', enabled: hasSelection, run: ({ get }) => reorderNodes(get(selectionAtom), 'front') },
     { id: 'object.forward', label: 'Bring forward', group: 'object', shortcut: 'Ctrl+]', enabled: hasSelection, run: ({ get }) => reorderNodes(get(selectionAtom), 'forward') },
