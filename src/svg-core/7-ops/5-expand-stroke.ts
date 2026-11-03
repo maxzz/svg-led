@@ -1,10 +1,12 @@
-import { EndType, FillRule, JoinType, ellipseD, inflatePathsD, unionD, type PathD } from "clipper2-ts";
-import { type Attrs, type PathNode, type Point, type SvgNode } from "../1-model/1-types";
+﻿import { EndType, FillRule, JoinType, ellipseD, inflatePathsD, unionD, type PathD } from "clipper2-ts";
+import { type Attrs, type PathNode, type Point, type SubPath, type SvgNode } from "../1-model/1-types";
 import { newNodeId } from "../1-model/2-node-ids";
 import { walkNodes } from "../1-model/3-tree";
 import { parsePathData } from "../2-parse/2-parse-path-data";
-import { fmtNum, makeFmt } from "../3-serialize/1-format";
+import { fmtNum } from "../3-serialize/1-format";
 import { arcToCubics, quadToCubic, splitCubic } from "../4-geometry/2-bezier";
+import { fitClosedPolyline } from "../4-geometry/5-fit-curve";
+import { subpathsToPathData } from "../5-anchors/1-path-anchors";
 import { getPresentation, isPaintVisible, parseStyle, setPresentation } from "../8-style/1-presentation";
 
 /**
@@ -104,31 +106,74 @@ export function expandPathNode(node: PathNode, parents: readonly Ancestor[] = []
         return undefined;
     }
 
-    const polys = polylinesOf(node.d, flatness(stroke.width));
-    const pieces = polys.flatMap((poly) => strokePieces(poly, stroke));
-    const outlined = unite(pieces, FillRule.NonZero);
+    const res = resolutionFor(node.d, stroke.width / 2);
+    const polys = polylinesOf(node.d, res.flat);
+    const pieces = polys.flatMap((poly) => strokePieces(poly, stroke, res));
+    const outlined = unite(pieces, FillRule.NonZero, res.clipPrec);
     if (!outlined.length) {
         return undefined;
     }
 
     const fill = readFill(chain, rules);
-    const fillContours = fill ? unite(polys.filter((p) => p.pts.length >= 3).map((p) => p.pts), fill.rule) : [];
+    const fillContours = fill ? unite(polys.filter((p) => p.pts.length >= 3).map((p) => p.pts), fill.rule, res.clipPrec) : [];
 
     // Opaque paint of one color composites to the union. A second color, or a translucent one, has to stay its own path.
     if (fill && fillContours.length && fill.opacity >= 1 && stroke.opacity >= 1 && samePaint(fill.color, stroke.color)) {
-        const merged = unite([...fillContours, ...outlined], FillRule.NonZero);
+        const merged = unite([...fillContours, ...outlined], FillRule.NonZero, res.clipPrec);
         if (!merged.length) {
             return undefined;
         }
-        return [filledPath(node, merged, fill.color, 1, precision, true, chain, rules)];
+        return [filledPath(node, merged, fill.color, 1, precision, true, chain, rules, res)];
     }
 
     const result: PathNode[] = [];
     if (fill && fillContours.length) {
         result.push(unstroked(node, fill, precision, chain, rules));
     }
-    result.push(filledPath(node, outlined, stroke.color, stroke.opacity, precision, result.length === 0, chain, rules));
+    result.push(filledPath(node, outlined, stroke.color, stroke.opacity, precision, result.length === 0, chain, rules, res));
     return result;
+}
+
+/**
+ * How finely curves are flattened before outlining, and how the outline is refitted with curves.
+ * Curved parts are split into short, slightly turning steps, so the far side of a wide stroke stays
+ * smooth and any longer edge in the outline can be taken as a straight line.
+ */
+type Resolution = {
+    flat: Flatness;
+    fitTol: number;
+    minLine: number;
+    arcTol: number;
+    clipPrec: number;
+};
+
+function resolutionFor(d: string, radius: number): Resolution {
+    const size = extentOf(d);
+    const tol = Math.max(Math.min(size * 2e-4, radius * 0.1, 0.05), size * 1e-5, 1e-5);
+    const maxTurn = Math.min(0.15, Math.sqrt((8 * tol) / radius));
+    const maxStep = Math.max(size, radius) / 24;
+    return {
+        flat: { tol, maxTurn, maxStep },
+        fitTol: Math.max(tol * 2, Math.min(size * 6e-4, radius * 0.25, 0.15)),
+        minLine: 1.5 * (maxStep + radius * maxTurn) + tol * 4,
+        arcTol: Math.min(tol, radius * 0.005),
+        clipPrec: Math.min(8, Math.max(CLIP_PREC, Math.ceil(Math.log10(100 / tol)))),
+    };
+}
+
+function extentOf(d: string): number {
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const seg of parsePathData(d)) {
+        const pts = seg.c === 'C' ? [seg.c1, seg.c2, seg.p] : seg.c === 'Q' ? [seg.q, seg.p] : seg.c === 'Z' ? [] : [seg.p];
+        for (const p of pts) {
+            minX = Math.min(minX, p.x);
+            minY = Math.min(minY, p.y);
+            maxX = Math.max(maxX, p.x);
+            maxY = Math.max(maxY, p.y);
+        }
+    }
+    const size = Math.max(maxX - minX, maxY - minY);
+    return Number.isFinite(size) ? size : 0;
 }
 
 function paintChain(node: PathNode, parents: readonly Ancestor[], rootAttrs: Attrs | undefined): Styled[] {
@@ -325,12 +370,12 @@ function unstroked(node: PathNode, fill: FillStyle, precision: number, chain: re
     return { id: node.id, kind: 'path', d: node.d, attrs };
 }
 
-function filledPath(node: PathNode, polys: PathD[], fill: string, fillOpacity: number, precision: number, keepId: boolean, chain: readonly Styled[], rules: readonly ClassRule[]): PathNode {
+function filledPath(node: PathNode, polys: PathD[], fill: string, fillOpacity: number, precision: number, keepId: boolean, chain: readonly Styled[], rules: readonly ClassRule[], res: Resolution): PathNode {
     const attrs = { ...node.attrs };
     stripStroke(attrs, true);
     setPresentation(attrs, 'fill', fill);
     setPresentation(attrs, 'fill-opacity', fillOpacity >= 1 ? undefined : fmtNum(fillOpacity, Math.max(precision, 3)));
-    const d = polysToD(polys, precision);
+    const d = polysToD(polys, precision, res);
     setPresentation(attrs, 'fill-rule', d.split('M').length > 2 ? 'nonzero' : undefined);
     dropClass(attrs, chain, rules);
     if (!keepId) {
@@ -363,54 +408,37 @@ function stripStroke(attrs: Attrs, markers: boolean): void {
     setPresentation(attrs, 'stroke', 'none');
 }
 
-function polysToD(polys: readonly PathD[], precision: number): string {
-    const f = makeFmt(precision);
-    const parts: string[] = [];
-    for (const poly of polys) {
-        const pts = dedupe(poly.map((p) => ({ x: p.x, y: p.y })), true);
-        if (pts.length < 3) {
-            continue;
-        }
-        parts.push(`M${f(pts[0].x)} ${f(pts[0].y)}`);
-        for (let i = 1; i < pts.length; i++) {
-            parts.push(`L${f(pts[i].x)} ${f(pts[i].y)}`);
-        }
-        parts.push('Z');
-    }
-    return parts.join(' ');
+/** Each ring is refitted with curves: straight edges stay lines, flattened curves become cubics again */
+function polysToD(polys: readonly PathD[], precision: number, res: Resolution): string {
+    const subs = polys
+        .map((poly) => fitClosedPolyline(dedupe(poly.map((p) => ({ x: p.x, y: p.y })), true), res.fitTol, res.minLine))
+        .filter((sub): sub is SubPath => !!sub);
+    return subpathsToPathData(subs, precision);
 }
 
 //---------------------------------------------------------------------------
 // Stroke outline
 
-function flatness(width: number): number {
-    return Math.min(0.5, Math.max(width * 0.03, 1e-3));
-}
-
-function arcTol(radius: number): number {
-    return Math.min(Math.max(radius * 0.02, 1e-4), 0.25);
-}
-
-function strokePieces(poly: Polyline, stroke: StrokeStyle): PathD[] {
+function strokePieces(poly: Polyline, stroke: StrokeStyle, res: Resolution): PathD[] {
     const closed = poly.closed && poly.pts.length >= 3;
     if (stroke.dash) {
-        return dashPieces(poly.pts, closed, stroke);
+        return dashPieces(poly.pts, closed, stroke, res);
     }
-    return solidPieces(poly.pts, closed, stroke);
+    return solidPieces(poly.pts, closed, stroke, res);
 }
 
-function solidPieces(pts: Point[], closed: boolean, stroke: StrokeStyle): PathD[] {
+function solidPieces(pts: Point[], closed: boolean, stroke: StrokeStyle, res: Resolution): PathD[] {
     const radius = stroke.width / 2;
     const length = polyLength(pts, closed);
     if (pts.length === 0 || length <= 1e-9) {
-        return pointMark(pts[0], radius, stroke.cap);
+        return pointMark(pts[0], radius, stroke.cap, res);
     }
     const end = closed ? EndType.Joined : stroke.cap === 'round' ? EndType.Round : stroke.cap === 'square' ? EndType.Square : EndType.Butt;
     const join = stroke.join === 'round' ? JoinType.Round : stroke.join === 'bevel' ? JoinType.Bevel : JoinType.Miter;
-    return inflatePathsD([pts], radius, join, end, stroke.miterLimit, CLIP_PREC, arcTol(radius)).map(cleanRing);
+    return inflatePathsD([pts], radius, join, end, stroke.miterLimit, res.clipPrec, res.arcTol).map(cleanRing);
 }
 
-function pointMark(p: Point | undefined, radius: number, cap: Cap): PathD[] {
+function pointMark(p: Point | undefined, radius: number, cap: Cap, res: Resolution): PathD[] {
     if (!p || cap === 'butt' || !(radius > 0)) {
         return [];
     }
@@ -422,11 +450,11 @@ function pointMark(p: Point | undefined, radius: number, cap: Cap): PathD[] {
             { x: p.x + radius, y: p.y - radius },
         ]];
     }
-    const steps = Math.max(12, Math.ceil(Math.PI / Math.acos(Math.min(1, Math.max(-1, 1 - arcTol(radius) / radius)))));
+    const steps = Math.max(24, Math.ceil(Math.PI / Math.acos(Math.min(1, Math.max(-1, 1 - res.arcTol / radius)))));
     return [ellipseD({ x: p.x, y: p.y }, radius, radius, steps)];
 }
 
-function unite(paths: PathD[], rule: FillRule): PathD[] {
+function unite(paths: PathD[], rule: FillRule, clipPrec: number): PathD[] {
     const clean = paths.filter((p) => p.length >= 3);
     if (clean.length === 0) {
         return [];
@@ -434,7 +462,7 @@ function unite(paths: PathD[], rule: FillRule): PathD[] {
     if (clean.length === 1) {
         return clean;
     }
-    return unionD(clean, [], rule, CLIP_PREC).map(cleanRing);
+    return unionD(clean, [], rule, clipPrec).map(cleanRing);
 }
 
 function cleanRing(path: PathD): PathD {
@@ -445,31 +473,31 @@ function cleanRing(path: PathD): PathD {
 // Dashes. Each subpath restarts the pattern. A dash that crosses the close of a
 // closed path is one piece, so the join is not capped in the middle.
 
-function dashPieces(pts: Point[], closed: boolean, stroke: StrokeStyle): PathD[] {
+function dashPieces(pts: Point[], closed: boolean, stroke: StrokeStyle, res: Resolution): PathD[] {
     const lens = segLens(pts, closed);
     const total = lens.reduce((sum, n) => sum + n, 0);
     if (total <= 1e-9) {
-        return pointMark(pts[0], stroke.width / 2, stroke.cap);
+        return pointMark(pts[0], stroke.width / 2, stroke.cap, res);
     }
 
     const solid = { ...stroke, dash: null };
     const out: PathD[] = [];
     for (const span of dashSpans(total, stroke.dash!, stroke.dashOffset, closed)) {
         if (span.b - span.a <= 1e-9) {
-            out.push(...pointMark(pointAlong(pts, lens, span.a), stroke.width / 2, stroke.cap));
+            out.push(...pointMark(pointAlong(pts, lens, span.a), stroke.width / 2, stroke.cap, res));
             continue;
         }
         if (closed && span.b - span.a >= total - 1e-6) {
-            out.push(...solidPieces(pts, true, solid));
+            out.push(...solidPieces(pts, true, solid, res));
             continue;
         }
         const piece = span.b > total + 1e-8
             ? concatSlices(pts, lens, span.a, total, span.b - total)
             : slicePoly(pts, lens, span.a, Math.min(span.b, total));
         if (piece.length >= 2) {
-            out.push(...solidPieces(piece, false, solid));
+            out.push(...solidPieces(piece, false, solid, res));
         } else if (piece.length === 1) {
-            out.push(...pointMark(piece[0], stroke.width / 2, stroke.cap));
+            out.push(...pointMark(piece[0], stroke.width / 2, stroke.cap, res));
         }
     }
     return out;
@@ -624,7 +652,7 @@ function pointAlong(pts: readonly Point[], lens: readonly number[], dist: number
 //---------------------------------------------------------------------------
 // Flatten
 
-function polylinesOf(d: string, tol: number): Polyline[] {
+function polylinesOf(d: string, flat: Flatness): Polyline[] {
     const rv: Polyline[] = [];
     let cur: Point[] | null = null;
     let closed = false;
@@ -657,20 +685,20 @@ function polylinesOf(d: string, tol: number): Polyline[] {
                 break;
             case 'C':
                 cur = cur ?? [{ ...at }];
-                flattenCubic(at, seg.c1, seg.c2, seg.p, tol, cur, 0);
+                flattenCubic(at, seg.c1, seg.c2, seg.p, flat, cur, 0);
                 at = seg.p;
                 break;
             case 'Q': {
                 const cubic = quadToCubic(at, seg.q, seg.p);
                 cur = cur ?? [{ ...at }];
-                flattenCubic(at, cubic[1], cubic[2], seg.p, tol, cur, 0);
+                flattenCubic(at, cubic[1], cubic[2], seg.p, flat, cur, 0);
                 at = seg.p;
                 break;
             }
             case 'A':
                 cur = cur ?? [{ ...at }];
                 for (const [p0, c1, c2, p1] of arcToCubics(at, seg.rx, seg.ry, seg.rot, seg.large, seg.sweep, seg.p)) {
-                    flattenCubic(p0, c1, c2, p1, tol, cur, 0);
+                    flattenCubic(p0, c1, c2, p1, flat, cur, 0);
                 }
                 at = seg.p;
                 break;
@@ -687,18 +715,43 @@ function polylinesOf(d: string, tol: number): Polyline[] {
 
 /** Polylines of a path, flattened to `tol`. A closed subpath does not repeat its first point. */
 export function flattenPathData(d: string, tol: number): { pts: Point[]; closed: boolean; }[] {
-    return polylinesOf(d, tol);
+    return polylinesOf(d, { tol, maxTurn: Infinity, maxStep: Infinity });
 }
 
-function flattenCubic(p0: Point, c1: Point, c2: Point, p3: Point, tol: number, out: Point[], depth: number): void {
-    const flat = depth >= 16 || out.length > 8000 || (lineDist(c1, p0, p3) <= tol && lineDist(c2, p0, p3) <= tol);
+/** A curve is split until it is within `tol` of its chord, turns less than `maxTurn`, and is no longer than `maxStep` */
+type Flatness = { tol: number; maxTurn: number; maxStep: number; };
+
+function flattenCubic(p0: Point, c1: Point, c2: Point, p3: Point, f: Flatness, out: Point[], depth: number): void {
+    const flat = depth >= 18 || out.length > 20000 || (
+        lineDist(c1, p0, p3) <= f.tol
+        && lineDist(c2, p0, p3) <= f.tol
+        && controlTurn(p0, c1, c2, p3) <= f.maxTurn
+        && Math.hypot(c1.x - p0.x, c1.y - p0.y) + Math.hypot(c2.x - c1.x, c2.y - c1.y) + Math.hypot(p3.x - c2.x, p3.y - c2.y) <= f.maxStep
+    );
     if (flat) {
         pushPt(out, p3);
         return;
     }
     const [a, b] = splitCubic([p0, c1, c2, p3], 0.5);
-    flattenCubic(a[0], a[1], a[2], a[3], tol, out, depth + 1);
-    flattenCubic(b[0], b[1], b[2], b[3], tol, out, depth + 1);
+    flattenCubic(a[0], a[1], a[2], a[3], f, out, depth + 1);
+    flattenCubic(b[0], b[1], b[2], b[3], f, out, depth + 1);
+}
+
+/** How far the control polygon turns, which bounds how far the curve turns */
+function controlTurn(...pts: Point[]): number {
+    let total = 0;
+    let prev: Point | null = null;
+    for (let i = 1; i < pts.length; i++) {
+        const v = { x: pts[i].x - pts[i - 1].x, y: pts[i].y - pts[i - 1].y };
+        if (Math.hypot(v.x, v.y) < 1e-12) {
+            continue;
+        }
+        if (prev) {
+            total += Math.abs(Math.atan2(prev.x * v.y - prev.y * v.x, prev.x * v.x + prev.y * v.y));
+        }
+        prev = v;
+    }
+    return total;
 }
 
 function lineDist(p: Point, a: Point, b: Point): number {

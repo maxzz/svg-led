@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { type PathNode, type PathSeg, type SvgNode, classRulesOf, expandPathNode, parsePathData, subpathCount } from "../index";
+import { type PathNode, type PathSeg, type SvgNode, classRulesOf, expandPathNode, parsePathData, shapeToPath, subpathCount } from "../index";
 
 function path(d: string, attrs: Record<string, string> = {}): PathNode {
     return { id: 'p', kind: 'path', d, attrs };
@@ -190,6 +190,19 @@ describe("expand stroke", () => {
         expect(bounds(out.d)).toEqual({ minX: 0, minY: -2, maxX: 10, maxY: 2 });
 
         expect(expandPathNode(path(LINE, { fill: 'none', stroke: 'none' }), [parent], 3)).toBeUndefined();
+    });
+
+    it("keeps the corners of a rounded rectangle as curves, not as many short lines", () => {
+        const rect = shapeToPath({ id: 'r', kind: 'rect', x: 0, y: 0, width: 160, height: 100, rx: 25, ry: 25, attrs: {} }, 3).d;
+        const [out] = expandPathNode(path(rect, { fill: 'none', stroke: '#000', 'stroke-width': '10' }), [], 3)!;
+        const segs = parsePathData(out.d);
+        expect(subpathCount(out.d)).toBe(2);
+        expect(segs.filter((s) => s.c === 'L')).toHaveLength(8);
+        expect(segs.filter((s) => s.c === 'C')).toHaveLength(8);
+        expect(subBoxes(out.d.replace(/C[^LZ]*/g, ''))).toEqual(expect.arrayContaining([
+            { minX: -5, minY: -5, maxX: 165, maxY: 105 },
+            { minX: 5, minY: 5, maxX: 155, maxY: 95 },
+        ]));
     });
 
     it("outlines a curve", () => {
