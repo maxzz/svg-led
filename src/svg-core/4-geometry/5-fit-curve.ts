@@ -143,8 +143,57 @@ function toAnchors(segs: readonly Seg[]): Anchor[] {
 
 type Piece = { first: number; last: number; t1: Point; t2: Point; seg: Seg; };
 
-/** Each cubic reaches as far along the points as the tolerance allows (found by bisection) */
+/**
+ * As few cubics as the tolerance allows. The count comes from a greedy pass; the same count of
+ * equally long pieces is preferred when it fits, so a symmetric curve gets symmetric anchors.
+ */
 function fitCubic(pts: readonly Point[], first: number, last: number, t1: Point, t2: Point, tol: number, out: Piece[]): void {
+    const greedy: Piece[] = [];
+    fitGreedy(pts, first, last, t1, t2, tol, greedy);
+    out.push(...(greedy.length > 1 ? fitEqual(pts, first, last, t1, t2, tol, greedy.length) ?? greedy : greedy));
+}
+
+function fitEqual(pts: readonly Point[], first: number, last: number, t1: Point, t2: Point, tol: number, count: number): Piece[] | null {
+    const along = [0];
+    for (let i = first + 1; i <= last; i++) {
+        along.push(along[along.length - 1] + dist(pts[i], pts[i - 1]));
+    }
+    const total = along[along.length - 1];
+    const cuts = [first];
+    for (let k = 1; k < count; k++) {
+        const target = (total * k) / count;
+        let i = cuts[cuts.length - 1] + 1;
+        while (i < last && along[i - first] < target) {
+            i++;
+        }
+        if (i > first + 1 && target - along[i - 1 - first] < along[i - first] - target) {
+            i--;
+        }
+        if (i <= cuts[cuts.length - 1] || i >= last) {
+            return null;
+        }
+        cuts.push(i);
+    }
+    cuts.push(last);
+
+    const pieces: Piece[] = [];
+    let tStart = t1;
+    for (let k = 0; k + 1 < cuts.length; k++) {
+        const a = cuts[k];
+        const b = cuts[k + 1];
+        const tEnd = b === last ? t2 : neg(centerTangent(pts, b));
+        const { seg } = fitOne(pts, a, b, tStart, tEnd, tol);
+        if (!seg) {
+            return null;
+        }
+        pieces.push({ first: a, last: b, t1: tStart, t2: tEnd, seg });
+        tStart = neg(tEnd);
+    }
+    return pieces;
+}
+
+/** Each cubic reaches as far along the points as the tolerance allows (found by bisection) */
+function fitGreedy(pts: readonly Point[], first: number, last: number, t1: Point, t2: Point, tol: number, out: Piece[]): void {
     let start = first;
     let tStart = t1;
     while (start < last) {
