@@ -6,7 +6,7 @@ import { GridLayer } from "./1-grid-layer";
 import { DocLayer } from "./2-doc-layer/0-doc-layer";
 import { OverlayLayer } from "./3-overlay";
 import { CanvasContextMenu } from "./4-context-menu/0-canvas-context-menu";
-import { openCanvasMenuAtom } from "./4-context-menu/9-atoms-context-menu";
+import { openCanvasMenuAtom } from "./4-context-menu/9-context-menu-atoms";
 import {
     canvasCursorAtom, canvasDragOver, canvasDropAtom, canvasPointerDownAtom, canvasPointerLeaveAtom, canvasPointerMoveAtom,
     canvasPointerUpAtom, canvasReadyAtom, canvasRef,

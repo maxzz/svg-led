@@ -2,10 +2,7 @@ import { Fragment, type ReactElement, type ReactNode } from "react";
 import { useAtomValue, useSetAtom, useStore } from "jotai";
 import { displayShortcut, getCommand, runCommandAtom } from "@/commands";
 import { selectionAtom } from "@/store/4-editor";
-import {
-    ContextMenuCheckboxItem, ContextMenuItem, ContextMenuSeparator, ContextMenuShortcut, ContextMenuSub, ContextMenuSubContent,
-    ContextMenuSubTrigger,
-} from "@/ui/shadcn/context-menu";
+import { ContextMenuCheckboxItem, ContextMenuItem, ContextMenuSeparator, ContextMenuShortcut, ContextMenuSub, ContextMenuSubContent, ContextMenuSubTrigger } from "@/ui/shadcn/context-menu";
 
 /** Separator marker in an entry list */
 export const SEP = { separator: true } as const;
@@ -24,6 +21,7 @@ function isSeparator(entry: MenuEntry): entry is typeof SEP {
 export function renderEntries(entries: MenuEntry[]): ReactNode[] {
     const rv: ReactNode[] = [];
     let pendingSeparator = false;
+    
     for (const entry of entries) {
         if (isSeparator(entry)) {
             pendingSeparator = rv.length > 0;

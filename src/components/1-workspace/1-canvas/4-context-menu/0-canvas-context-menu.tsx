@@ -12,8 +12,8 @@ import { ToolId, copiedStyleAtom, selectedAnchorsAtom, selectionAtom, setActiveT
 import { canIsolateSelectionAtom } from "@/store/6-layers";
 import { deleteSelectedAnchors, toggleSelectedAnchors } from "@/tools/tool-3-points";
 import { ContextMenu, ContextMenuContent, ContextMenuTrigger } from "@/ui/shadcn/context-menu";
-import { canvasMenuKindAtom } from "./9-atoms-context-menu";
-import { ActionItem, CommandCheckItem, CommandItem, SEP, SubMenu, renderEntries } from "./1-context-menu-items";
+import { canvasMenuKindAtom } from "./9-context-menu-atoms";
+import { ActionItem, CommandCheckItem, CommandItem, SEP, SubMenu, renderEntries } from "./8-context-menu-ui";
 
 const ic = "size-4";
 
