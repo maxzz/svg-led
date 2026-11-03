@@ -15,8 +15,6 @@ import { ContextMenu, ContextMenuContent, ContextMenuTrigger } from "@/ui/shadcn
 import { canvasMenuKindAtom } from "./9-context-menu-atoms";
 import { ActionItem, CommandCheckItem, CommandItem, SEP, SubMenu, renderEntries } from "./8-context-menu-ui";
 
-const ic = "size-4";
-
 /**
  * Wraps the canvas. Right-click is handled by openCanvasMenuAtom on the canvas (it picks the menu kind);
  * Radix then opens the content, which renders the entries for that kind.
@@ -27,6 +25,7 @@ export function CanvasContextMenu({ children }: { children: ReactNode; }) {
             <ContextMenuTrigger className="absolute inset-0">
                 {children}
             </ContextMenuTrigger>
+
             <CanvasMenuContent />
         </ContextMenu>
     );
@@ -36,9 +35,9 @@ function CanvasMenuContent() {
     const kind = useAtomValue(canvasMenuKindAtom);
     return (
         <ContextMenuContent className="w-64">
-            {kind === 'points' && <PointsEntries />}
-            {kind === 'elements' && <ElementsEntries />}
-            {kind === 'canvas' && <CanvasEntries />}
+            {kind === 'canvas' && <Entries_Canvas />}
+            {kind === 'elements' && <Entries_ToolSelection />}
+            {kind === 'points' && <Entries_ToolPoints />}
         </ContextMenuContent>
     );
 }
@@ -46,7 +45,7 @@ function CanvasMenuContent() {
 //---------------------------------------------------------------------------
 // Empty canvas
 
-function CanvasEntries() {
+function Entries_Canvas() {
     const selection = useAtomValue(selectionAtom);
     const { prefs } = useSnapshot(appSettings);
 
@@ -54,19 +53,19 @@ function CanvasEntries() {
         selection.length > 0 && <CommandItem id="edit.deselect" />,
         selection.length > 0 && SEP,
 
-        <CommandItem id="file.pasteSvg" label="Paste" icon={<ClipboardPaste className={ic} />} />,
-        <CommandItem id="edit.copyDrawingPng" icon={<ImageDown className={ic} />} />,
-        <CommandItem id="edit.copySvg" icon={<FileCode className={ic} />} />,
-        <CommandItem id="file.copySource" label="Copy SVG source" icon={<Copy className={ic} />} />,
+        <CommandItem id="file.pasteSvg" label="Paste" icon={<ClipboardPaste className={iconClasses} />} />,
+        <CommandItem id="edit.copyDrawingPng" icon={<ImageDown className={iconClasses} />} />,
+        <CommandItem id="edit.copySvg" icon={<FileCode className={iconClasses} />} />,
+        <CommandItem id="file.copySource" label="Copy SVG source" icon={<Copy className={iconClasses} />} />,
         SEP,
 
-        <CommandItem id="edit.selectAll" icon={<SquareDashedMousePointer className={ic} />} />,
+        <CommandItem id="edit.selectAll" icon={<SquareDashedMousePointer className={iconClasses} />} />,
         SEP,
 
         <CommandCheckItem id="view.grid" label="Show grid" checked={prefs.showGrid} />,
         <CommandCheckItem id="view.snap" label="Snap to grid" checked={prefs.snapToGrid} />,
         <CommandCheckItem id="viewbox.toggle" label="Show viewBox" checked={prefs.showViewBox} />,
-        <CommandItem id="view.theme" icon={<Moon className={ic} />} />,
+        <CommandItem id="view.theme" icon={<Moon className={iconClasses} />} />,
         SEP,
 
         <CommandItem id="view.zoomFit" />,
@@ -78,7 +77,7 @@ function CanvasEntries() {
 //---------------------------------------------------------------------------
 // Right-click on an element, or inside the bbox of the selection
 
-function ElementsEntries() {
+function Entries_ToolSelection() {
     const selection = useAtomValue(selectionAtom);
     const copiedStyle = useAtomValue(copiedStyleAtom);
     const { prefs } = useSnapshot(appSettings);
@@ -93,55 +92,55 @@ function ElementsEntries() {
     const canIsolate = useAtomValue(canIsolateSelectionAtom);
 
     return renderEntries([
-        <CommandItem id="edit.cut" icon={<Scissors className={ic} />} />,
-        <CommandItem id="edit.copy" icon={<Copy className={ic} />} />,
-        <CommandItem id="file.pasteSvg" label="Paste" icon={<ClipboardPaste className={ic} />} />,
-        <CommandItem id="edit.copyPng" icon={<ImageDown className={ic} />} />,
-        <CommandItem id="edit.copySvg" icon={<FileCode className={ic} />} />,
+        <CommandItem id="edit.cut" icon={<Scissors className={iconClasses} />} />,
+        <CommandItem id="edit.copy" icon={<Copy className={iconClasses} />} />,
+        <CommandItem id="file.pasteSvg" label="Paste" icon={<ClipboardPaste className={iconClasses} />} />,
+        <CommandItem id="edit.copyPng" icon={<ImageDown className={iconClasses} />} />,
+        <CommandItem id="edit.copySvg" icon={<FileCode className={iconClasses} />} />,
         SEP,
 
-        <CommandItem id="edit.copyStyle" icon={<Pipette className={ic} />} />,
-        copiedStyle && <CommandItem id="edit.pasteStyle" icon={<PaintBucket className={ic} />} />,
+        <CommandItem id="edit.copyStyle" icon={<Pipette className={iconClasses} />} />,
+        copiedStyle && <CommandItem id="edit.pasteStyle" icon={<PaintBucket className={iconClasses} />} />,
         SEP,
 
-        selection.length > 1 && <CommandItem id="object.group" icon={<Group className={ic} />} />,
-        hasGroup && <CommandItem id="object.ungroup" icon={<Ungroup className={ic} />} />,
-        selection.length > 1 && <CommandItem id="object.makeCompound" icon={<Combine className={ic} />} />,
-        hasCompound && <CommandItem id="object.releaseCompound" icon={<Split className={ic} />} />,
-        hasShape && <CommandItem id="object.convertToPath" icon={<Spline className={ic} />} />,
-        hasPath && <CommandItem id="object.expand" icon={<Expand className={ic} />} />,
-        hasPath && <CommandItem id="object.offsetPath" icon={<Radius className={ic} />} />,
-        canEditPoints && <CommandItem id="object.editPoints" icon={<Waypoints className={ic} />} />,
-        canIsolate && <CommandItem id="object.isolate" icon={<Scan className={ic} />} />,
+        selection.length > 1 && <CommandItem id="object.group" icon={<Group className={iconClasses} />} />,
+        hasGroup && <CommandItem id="object.ungroup" icon={<Ungroup className={iconClasses} />} />,
+        selection.length > 1 && <CommandItem id="object.makeCompound" icon={<Combine className={iconClasses} />} />,
+        hasCompound && <CommandItem id="object.releaseCompound" icon={<Split className={iconClasses} />} />,
+        hasShape && <CommandItem id="object.convertToPath" icon={<Spline className={iconClasses} />} />,
+        hasPath && <CommandItem id="object.expand" icon={<Expand className={iconClasses} />} />,
+        hasPath && <CommandItem id="object.offsetPath" icon={<Radius className={iconClasses} />} />,
+        canEditPoints && <CommandItem id="object.editPoints" icon={<Waypoints className={iconClasses} />} />,
+        canIsolate && <CommandItem id="object.isolate" icon={<Scan className={iconClasses} />} />,
         SEP,
 
         <SubMenu
-            icon={<Layers className={ic} />}
+            icon={<Layers className={iconClasses} />}
             label="Arrange"
             items={[
-                <CommandItem id="object.front" icon={<ArrowUpToLine className={ic} />} />,
-                <CommandItem id="object.forward" icon={<ArrowUp className={ic} />} />,
-                <CommandItem id="object.backward" icon={<ArrowDown className={ic} />} />,
-                <CommandItem id="object.back" icon={<ArrowDownToLine className={ic} />} />,
+                <CommandItem id="object.front" icon={<ArrowUpToLine className={iconClasses} />} />,
+                <CommandItem id="object.forward" icon={<ArrowUp className={iconClasses} />} />,
+                <CommandItem id="object.backward" icon={<ArrowDown className={iconClasses} />} />,
+                <CommandItem id="object.back" icon={<ArrowDownToLine className={iconClasses} />} />,
             ]}
         />,
-        <CommandItem id="object.flipH" icon={<FlipHorizontal className={ic} />} />,
-        <CommandItem id="object.flipV" icon={<FlipVertical className={ic} />} />,
+        <CommandItem id="object.flipH" icon={<FlipHorizontal className={iconClasses} />} />,
+        <CommandItem id="object.flipV" icon={<FlipVertical className={iconClasses} />} />,
         SEP,
 
         prefs.showViewBox && <CommandItem id="viewbox.fitSelection" />,
         <CommandItem id="view.zoomSelection" />,
         SEP,
 
-        <CommandItem id="edit.duplicate" icon={<CopyPlus className={ic} />} />,
-        <CommandItem id="edit.delete" variant="destructive" icon={<Trash className={ic} />} />,
+        <CommandItem id="edit.duplicate" icon={<CopyPlus className={iconClasses} />} />,
+        <CommandItem id="edit.delete" variant="destructive" icon={<Trash className={iconClasses} />} />,
     ]);
 }
 
 //---------------------------------------------------------------------------
 // Points mode: the anchors of the selected paths
 
-function PointsEntries() {
+function Entries_ToolPoints() {
     const selection = useAtomValue(selectionAtom);
     const anchors = useAtomValue(selectedAnchorsAtom);
     const setAnchors = useSetAtom(selectedAnchorsAtom);
@@ -154,7 +153,7 @@ function PointsEntries() {
     return renderEntries([
         hasAnchors && (
             <ActionItem
-                icon={<Trash className={ic} />}
+                icon={<Trash className={iconClasses} />}
                 label="Delete points"
                 shortcut="Del"
                 variant="destructive"
@@ -163,22 +162,24 @@ function PointsEntries() {
         ),
         hasAnchors && (
             <ActionItem
-                icon={<Spline className={ic} />}
+                icon={<Spline className={iconClasses} />}
                 label="Smooth / corner"
                 onSelect={() => toggleSelectedAnchors(anchors)}
             />
         ),
         hasAnchors && SEP,
 
-        hasPath && <CommandItem id="object.expand" icon={<Expand className={ic} />} />,
-        hasPath && <CommandItem id="object.offsetPath" icon={<Radius className={ic} />} />,
+        hasPath && <CommandItem id="object.expand" icon={<Expand className={iconClasses} />} />,
+        hasPath && <CommandItem id="object.offsetPath" icon={<Radius className={iconClasses} />} />,
         hasPath && SEP,
 
         <ActionItem
-            icon={<MousePointer2 className={ic} />}
+            icon={<MousePointer2 className={iconClasses} />}
             label="Back to selection"
             shortcut="Esc"
             onSelect={() => setTool(ToolId.select)}
         />,
     ]);
 }
+
+const iconClasses = "size-4";
