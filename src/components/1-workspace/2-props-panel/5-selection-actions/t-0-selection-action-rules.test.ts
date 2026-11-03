@@ -53,4 +53,11 @@ describe("selection action rules", () => {
         expect(visibleIds([rect])).not.toContain('object.expand');
         expect(visibleIds([group])).not.toContain('object.expand');
     });
+
+    it("shows offset path only when a path is selected", () => {
+        expect(visibleIds([path])).toContain('object.offsetPath');
+        expect(visibleIds([rect, path])).toContain('object.offsetPath');
+        expect(visibleIds([rect])).not.toContain('object.offsetPath');
+        expect(visibleIds([group])).not.toContain('object.offsetPath');
+    });
 });

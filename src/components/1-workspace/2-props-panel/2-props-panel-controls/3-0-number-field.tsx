@@ -8,6 +8,7 @@ type NumberFieldProps = {
     onChange: (value: number) => void;
     /** Optional live notification on every valid edit (typing, arrows, Escape), before commit */
     onInput?: (value: number) => void;
+    onFocus?: () => void;
     min?: number;
     step?: number;
     precision?: number;
@@ -20,7 +21,7 @@ type NumberFieldProps = {
  * Uncontrolled input re-keyed by the value, so outside changes (undo, dragging on the canvas)
  * replace the text. Commits on Enter or blur; ArrowUp/ArrowDown step the text (Shift x10).
  */
-export function NumberField({ label, value, onChange, onInput, min, step = 1, precision = 2, disabled, className, labelClassName }: NumberFieldProps) {
+export function NumberField({ label, value, onChange, onInput, onFocus, min, step = 1, precision = 2, disabled, className, labelClassName }: NumberFieldProps) {
     const text = value === MIXED || value === undefined ? '' : String(+value.toFixed(precision));
 
     function clamp(n: number) {
@@ -78,6 +79,7 @@ export function NumberField({ label, value, onChange, onInput, min, step = 1, pr
                 inputMode="decimal"
                 disabled={disabled}
                 onChange={(e) => onTyped(e.currentTarget.value)}
+                onFocus={onFocus}
                 onBlur={(e) => commit(e.currentTarget.value)}
                 onKeyDown={onKeyDown}
                 key={text}

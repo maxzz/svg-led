@@ -25,6 +25,7 @@ import { isOpenCommandPaletteAtom } from "@/components/4-dialogs/8-7-command-pal
 import { isOpenFindOnCanvasAtom } from "@/components/4-dialogs/8-8-find-on-canvas/9-types-find-on-canvas";
 import { isOpenOptionsDialogAtom } from "@/components/4-dialogs/8-3-options/9-types-options";
 import { isOpenScrapsDialogAtom } from "@/components/4-dialogs/8-9-scraps/9-types-scraps";
+import { openOffsetPathDialogAtom } from "@/components/4-dialogs/8-10-offset-path/9-atoms-offset-path";
 import { PROPERTIES_POPUP_RIGHT_EDGE_PX } from "@/components/1-workspace/2-props-panel/9-atoms-properties-popup";
 import { renameSelectionAtom } from "@/components/1-workspace/6-layers-panel/3-rename/9-atoms-rename";
 import { type Command } from "./9-command-types";
@@ -224,6 +225,11 @@ const OBJECT: Command[] = [
                 set(setSelectionAtom, next);
             }
         },
+    },
+    {
+        id: 'object.offsetPath', label: 'Offset path...', group: 'object', keywords: 'outset inset parallel miter round',
+        enabled: (get) => get(selectionAtom).some((id) => getNodeProxy(id)?.kind === 'path'),
+        run: ({ set }) => set(openOffsetPathDialogAtom),
     },
     { id: 'object.front', label: 'Bring to front', group: 'object', shortcut: 'Ctrl+Shift+]', enabled: hasSelection, run: ({ get }) => reorderNodes(get(selectionAtom), 'front') },
     { id: 'object.forward', label: 'Bring forward', group: 'object', shortcut: 'Ctrl+]', enabled: hasSelection, run: ({ get }) => reorderNodes(get(selectionAtom), 'forward') },
