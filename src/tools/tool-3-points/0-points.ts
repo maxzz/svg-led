@@ -18,7 +18,7 @@ import { MODIFIERS, isMod } from "../tool-2-select/8-definition-of-modifiers";
 import { LASSO_STEP_PX, pointInPolygon, simplifyLasso } from "../tool-2-select/2-lasso";
 import { docTolerance, hitTestOutlines, nodeMatrices, snapValue } from "../0-shared/2-tool-helpers";
 import { modifierHint } from "../0-shared/5-hint";
-import { type MoveGesture, beginMove, endMove, pastThreshold, updateMove } from "../0-shared/3-move-gesture";
+import { type MoveGesture, beginMove, endMove, moveAltKey, pastThreshold, updateMove } from "../0-shared/3-move-gesture";
 import { type SnapAxis, clearSnapGuides } from "@/tools/core-snapping";
 import { type PointSnapSession, beginPointSnap, endPointSnap, handleTargetKey, updatePointSnap } from "@/tools/core-point-snapping";
 
@@ -94,9 +94,9 @@ export const pointsTool: ToolDef = {
     icon: MousePointer,
     hint: ({ held, dragging }) => dragging
         ? 'Release to finish'
-        : modifierHint(held, 'Drag points and handles · [Shift] add · [Alt] break handle · [Ctrl] add/delete point', {
+        : modifierHint(held, 'Drag points and handles · [Shift] add · [Alt] break handle or suspend snap · [Ctrl] add/delete point', {
             shift: '[Shift] Click to add or remove · Drag a handle to snap to 45°',
-            alt: '[Alt] Drag a handle to move it alone · Click a point to toggle corner or smooth · on empty canvas, [Alt] drag to lasso',
+            alt: '[Alt] Drag a handle to move it alone · Click a point to toggle corner or smooth · While moving an element, turn snapping off · on empty canvas, drag to lasso',
             ctrl: '[Ctrl] Click a segment to add a point · Click a point to delete it',
         }),
     cursor: 'default',
@@ -298,6 +298,9 @@ export const pointsTool: ToolDef = {
     },
 
     onKeyDown({ get, set }, e) {
+        if (gesture?.type === 'node-move' && moveAltKey(gesture.move, e, true, false)) {
+            return true;
+        }
         const selectedAnchors = get(selectedAnchorsAtom);
 
         if (e.key === 'Escape') {
@@ -322,6 +325,10 @@ export const pointsTool: ToolDef = {
             return true;
         }
         return false;
+    },
+
+    onKeyUp(_ctx, e) {
+        return !!gesture && gesture.type === 'node-move' && moveAltKey(gesture.move, e, false, false);
     },
 };
 
