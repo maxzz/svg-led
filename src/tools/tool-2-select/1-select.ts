@@ -13,7 +13,7 @@ import { enterIsolationAtom, exitIsolationToAtom, getIsolationScope, isHidden, i
 import { appSettings, SelectionMode } from "@/store/1-ui-settings";
 import { MODIFIERS, isMod } from "./8-definition-of-modifiers";
 import { modifierHint } from "../0-shared/5-hint";
-import { type MoveGesture, beginMove, endMove, pastThreshold, updateMove } from "../0-shared/3-move-gesture";
+import { type MoveGesture, beginMove, endMove, moveAltKey, pastThreshold, updateMove } from "../0-shared/3-move-gesture";
 import { hitTestOutlines, docTolerance } from "../0-shared/2-tool-helpers";
 import { selectionUnitId } from "../0-shared/4-group-units";
 import { clearSnapGuides, collectSnapTargets, setSnapGuides, snapActive, snapBox, snapThreshold } from "../core-snapping";
@@ -44,9 +44,9 @@ export const selectTool: ToolDef = {
     icon: MousePointer2,
     hint: ({ held, dragging }) => dragging
         ? '' //'Release to finish'
-        : modifierHint(held, 'Click to select, drag to move · Drag just outside the frame to rotate · Double-click an object to isolate it · [Shift] add · [Alt] copy or lasso · [Ctrl] deep select', {
+        : modifierHint(held, 'Click to select, drag to move · Drag just outside the frame to rotate · Double-click an object to isolate it · [Shift] add · [Alt] copy, suspend snap, or lasso · [Ctrl] deep select', {
             shift: '[Shift] Click to add or remove · Drag along one axis · Rotate in 15° steps',
-            alt: '[Alt] Drag an element to copy · on empty canvas, [Alt] drag to lasso',
+            alt: '[Alt] Drag an element to copy · While moving, turn snapping off (after a copy, release Alt and press it again) · on empty canvas, drag to lasso',
             ctrl: '[Ctrl] Click to select an element inside groups · Drag snaps to other elements',
         }),
     cursor: 'default', // fallback, the cursor classes below take precedence
@@ -256,10 +256,16 @@ export const selectTool: ToolDef = {
     },
 
     onKeyDown({ set }, e) {
+        if (gesture?.type === 'move' && moveAltKey(gesture.move, e, true, e.ctrlKey || e.metaKey)) {
+            return true;
+        }
         return onRotateShift(set, e, true);
     },
 
     onKeyUp({ set }, e) {
+        if (gesture?.type === 'move' && moveAltKey(gesture.move, e, false, e.ctrlKey || e.metaKey)) {
+            return true;
+        }
         return onRotateShift(set, e, false);
     },
 

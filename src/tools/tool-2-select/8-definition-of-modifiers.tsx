@@ -9,6 +9,7 @@ export const MODIFIERS = {
         toggleSelection: 'shift',        // Shift+click adds or removes an element
         constrainAxis: 'shift',          // move only horizontally or vertically
         duplicateDrag: 'alt',            // Alt+drag moves a copy
+        suspendSnap: 'alt',              // Alt while moving turns snapping off; after a copy, release Alt and press it again
         deepSelect: 'ctrl',              // Ctrl+click selects an element inside a group
         snapToObjects: 'ctrl',           // Ctrl held while dragging snaps to other elements (also on in Preferences)
         resizeKeepAspect: 'shift',
@@ -21,6 +22,7 @@ export const MODIFIERS = {
         toggleAnchor: 'shift',           // Shift+click adds or removes an anchor
         constrainAngle: 'shift',         // handles snap to 45 degrees
         breakHandle: 'alt',              // Alt+drag on a handle moves it alone (smooth -> cusp)
+        suspendSnap: 'alt',              // Alt while moving an element turns snapping off until released
         convertAnchor: 'alt',            // Alt+click toggles corner/smooth, Alt+drag pulls out handles
         addDeletePoint: 'ctrl',          // Ctrl+click on a segment adds, on an anchor deletes
         lassoSelect: 'alt',              // Alt on empty canvas drags a lasso; pressing or releasing Alt mid-drag switches
@@ -46,6 +48,7 @@ export const MODIFIER_DESCRIPTIONS: ModifierDescriptions = {
         toggleSelection: 'click to add or remove an element from the selection',
         constrainAxis: 'drag to move only horizontally or vertically',
         duplicateDrag: 'drag to move a copy',
+        suspendSnap: 'while dragging an element, turn snapping off until Alt is released; after a copy, release Alt and press it again',
         deepSelect: 'click to select an element inside a group',
         snapToObjects: 'drag to snap to other elements (even when snapping is off in Preferences)',
         resizeKeepAspect: 'resize a corner keeping the aspect ratio (edges change one side only)',
@@ -58,6 +61,7 @@ export const MODIFIER_DESCRIPTIONS: ModifierDescriptions = {
         toggleAnchor: 'click to add or remove an anchor from the selection',
         constrainAngle: 'drag a handle to snap its angle to 45°',
         breakHandle: 'drag a handle to move it alone (smooth becomes cusp)',
+        suspendSnap: 'while dragging an element, turn snapping off until Alt is released',
         convertAnchor: 'click an anchor to toggle corner and smooth, drag to pull out handles',
         addDeletePoint: 'click a segment to add an anchor, click an anchor to delete it',
         lassoSelect: 'drag on empty canvas to select points with a lasso; press or release mid-drag to switch to and from the rubber band',
