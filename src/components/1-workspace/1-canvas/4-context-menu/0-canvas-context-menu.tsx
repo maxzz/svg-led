@@ -5,15 +5,17 @@ import {
     ArrowDown, ArrowDownToLine, ArrowUp, ArrowUpToLine, ClipboardPaste, Combine, Copy, CopyPlus, Expand, FileCode, FlipHorizontal, FlipVertical, Group, ImageDown,
     Layers, Moon, MousePointer2, PaintBucket, Pipette, Radius, Scan, Scissors, Spline, SquareDashedMousePointer, Split, Trash, Ungroup, Waypoints,
 } from "lucide-react";
+import { ContextMenu, ContextMenuContent, ContextMenuTrigger } from "@/ui/shadcn/context-menu";
 import { appSettings } from "@/store/1-ui-settings";
+
+import { ActionItem, CommandCheckItem, CommandItem, SEP, SubMenu, renderEntries } from "./8-context-menu-ui";
+import { canvasMenuKindAtom } from "./9-context-menu-atoms";
+
 import { type SvgDoc, type SvgNode, findNode, isCompoundPath, isShapeNode } from "@/svg-core";
 import { docState, isPointEditable } from "@/store/3-document";
 import { ToolId, copiedStyleAtom, selectedAnchorsAtom, selectionAtom, setActiveToolAtom } from "@/store/4-editor";
 import { canIsolateSelectionAtom } from "@/store/6-layers";
 import { deleteSelectedAnchors, toggleSelectedAnchors } from "@/tools/tool-3-points";
-import { ContextMenu, ContextMenuContent, ContextMenuTrigger } from "@/ui/shadcn/context-menu";
-import { canvasMenuKindAtom } from "./9-context-menu-atoms";
-import { ActionItem, CommandCheckItem, CommandItem, SEP, SubMenu, renderEntries } from "./8-context-menu-ui";
 
 /**
  * Wraps the canvas. Right-click is handled by openCanvasMenuAtom on the canvas (it picks the menu kind);

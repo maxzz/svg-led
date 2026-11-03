@@ -1,8 +1,9 @@
 import { Fragment, type ReactElement, type ReactNode } from "react";
 import { useAtomValue, useSetAtom, useStore } from "jotai";
+import { ContextMenuCheckboxItem, ContextMenuItem, ContextMenuSeparator, ContextMenuShortcut, ContextMenuSub, ContextMenuSubContent, ContextMenuSubTrigger } from "@/ui/shadcn/context-menu";
+
 import { displayShortcut, getCommand, runCommandAtom } from "@/commands";
 import { selectionAtom } from "@/store/4-editor";
-import { ContextMenuCheckboxItem, ContextMenuItem, ContextMenuSeparator, ContextMenuShortcut, ContextMenuSub, ContextMenuSubContent, ContextMenuSubTrigger } from "@/ui/shadcn/context-menu";
 
 /** Separator marker in an entry list */
 export const SEP = { separator: true } as const;
@@ -10,9 +11,7 @@ export const SEP = { separator: true } as const;
 /** One entry of a menu. Falsy values are hidden entries, so `cond && <Item />` works. */
 export type MenuEntry = typeof SEP | ReactElement | false | null | undefined;
 
-function isSeparator(entry: MenuEntry): entry is typeof SEP {
-    return entry === SEP;
-}
+//---------------------------------------------------------------------------
 
 /**
  * Renders the visible entries. Separators that would start, end or double up a list are dropped,
@@ -34,6 +33,10 @@ export function renderEntries(entries: MenuEntry[]): ReactNode[] {
         }
     }
     return rv;
+}
+
+function isSeparator(entry: MenuEntry): entry is typeof SEP {
+    return entry === SEP;
 }
 
 /** Plain item with an action, icon and optional shortcut text */
@@ -87,6 +90,8 @@ export function CommandCheckItem({ id, label, checked }: { id: string; label: st
         </ContextMenuCheckboxItem>
     );
 }
+
+//---------------------------------------------------------------------------
 
 export function SubMenu({ icon, label, items }: { icon: ReactNode; label: string; items: MenuEntry[]; }) {
     return (
