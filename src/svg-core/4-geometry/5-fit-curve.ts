@@ -4,8 +4,8 @@ import { inferAnchorKind } from "../5-anchors/1-path-anchors";
 /**
  * Fits Bezier curves to a dense closed polyline, such as an offset or a boolean result.
  *
- * Sharp turns stay corners. An edge much longer than its neighbors stays a straight line, and
- * a curve that meets it smoothly keeps the line's direction. Everything else is fitted with as
+ * Sharp turns stay corners. A long edge stays a straight line, and a curve that meets it
+ * smoothly keeps the line's direction. Everything else is fitted with as
  * few cubics as the tolerance allows (Schneider, "An Algorithm for Automatically Fitting
  * Digitized Curves", Graphics Gems, 1990).
  */
@@ -43,9 +43,6 @@ export function fitClosedPolyline(input: readonly Point[], tol: number, minLine:
         }
     }
 
-    if ((globalThis as any).DBG_FIT) {
-        console.log('n', n, 'tol', tol, 'minLine', minLine, 'breaks', breaks.map((i) => `${i}:${corner[i] ? 'C' : ''}${long[i] ? 'L' : ''}${long[(i - 1 + n) % n] ? 'l' : ''} ${pts[i].x.toFixed(1)},${pts[i].y.toFixed(1)} turn=${turnAngle(pts[(i - 1 + n) % n], pts[i], pts[(i + 1) % n]).toFixed(3)} h=${lineDist(pts[i], pts[(i - 1 + n) % n], pts[(i + 1) % n]).toFixed(3)} len=${lens[(i - 1 + n) % n].toFixed(2)}/${lens[i].toFixed(2)}`).join('\n'));
-    }
     const segs: Seg[] = [];
     if (!breaks.length) {
         fitLoop(pts, tol, segs);

@@ -46,11 +46,10 @@ describe("apply offset paths", () => {
         expect(findNode(docState.doc, 'c')!.node.kind).toBe('rect');
     });
 
-    it("still copies a path when a large inward offset crosses the middle", () => {
+    it("adds nothing when an inward offset closes the shape up", () => {
         load(path('a', 'M0 0 L2 0 L2 2 L0 2 Z'));
         const created = applyOffsetPaths(['a'], { ...OPTS, offset: -20 });
-        expect(created).toHaveLength(1);
-        expect(docState.doc.children).toHaveLength(2);
-        expect((findNode(docState.doc, created[0])!.node as PathNode).d).not.toBe('M0 0 L2 0 L2 2 L0 2 Z');
+        expect(created).toHaveLength(0);
+        expect(docState.doc.children).toHaveLength(1);
     });
 });

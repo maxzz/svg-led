@@ -84,9 +84,9 @@ export interface MonacoSettings {
 
 /** Remembered fields of the Offset Path dialog */
 export interface OffsetPathDialogSettings {
-    offset: number;              // Distance in the path's own units. Positive expands a closed path and offsets an open path to its left
-    joins: 'miter' | 'round';    // How corners are joined
-    miterLimit: number;          // Miter joins longer than this, as a multiple of the offset, are cut flat
+    offset: number;              // Distance in the path's own units. Positive grows a closed shape, negative insets it; an open path is outlined on both sides
+    joins: 'miter' | 'round' | 'bevel'; // How corners are joined
+    miterLimit: number;          // Miter joins longer than this, as a multiple of the offset, are squared off
     preview: boolean;            // Draw the offset on the canvas while the dialog is open
 }
 
@@ -169,7 +169,7 @@ function offsetDialogFrom(value: Partial<OffsetPathDialogSettings> | undefined):
     const d = DEFAULT_SETTINGS.dlgOffsetPath;
     return {
         offset: typeof value?.offset === 'number' && Number.isFinite(value.offset) ? value.offset : d.offset,
-        joins: value?.joins === 'round' || value?.joins === 'miter' ? value.joins : d.joins,
+        joins: value?.joins === 'round' || value?.joins === 'miter' || value?.joins === 'bevel' ? value.joins : d.joins,
         miterLimit: typeof value?.miterLimit === 'number' && Number.isFinite(value.miterLimit) ? Math.max(1, value.miterLimit) : d.miterLimit,
         preview: typeof value?.preview === 'boolean' ? value.preview : d.preview,
     };

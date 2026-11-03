@@ -47,7 +47,7 @@ function OffsetPathPanel({ onClose }: { onClose: (ok: boolean) => void; }) {
     const { dlgOffsetPath } = useSnapshot(appSettings);
     const joinsId = useId();
     const previewId = useId();
-    const round = dlgOffsetPath.joins === 'round';
+    const noMiter = dlgOffsetPath.joins !== 'miter';
     const xLimit = Math.max(80, window.innerWidth / 2 - 80);
     const yLimit = Math.max(60, window.innerHeight / 2 - 60);
 
@@ -91,16 +91,17 @@ function OffsetPathPanel({ onClose }: { onClose: (ok: boolean) => void; }) {
                         <SelectContent position="popper" align="start">
                             <SelectItem value="miter">Miter</SelectItem>
                             <SelectItem value="round">Round</SelectItem>
+                            <SelectItem value="bevel">Bevel</SelectItem>
                         </SelectContent>
                     </Select>
 
-                    <Label className={round ? "whitespace-nowrap text-xs text-muted-foreground/50" : labelClasses}>Miter limit</Label>
+                    <Label className={noMiter ? "whitespace-nowrap text-xs text-muted-foreground/50" : labelClasses}>Miter limit</Label>
                     <NumberField
                         value={dlgOffsetPath.miterLimit}
                         min={1}
                         step={0.5}
                         precision={2}
-                        disabled={round}
+                        disabled={noMiter}
                         onChange={(value) => { appSettings.dlgOffsetPath.miterLimit = Math.max(1, value); }}
                     />
                 </div>
