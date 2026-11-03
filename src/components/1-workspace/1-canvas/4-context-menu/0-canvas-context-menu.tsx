@@ -142,10 +142,14 @@ function ElementsEntries() {
 // Points mode: the anchors of the selected paths
 
 function PointsEntries() {
+    const selection = useAtomValue(selectionAtom);
     const anchors = useAtomValue(selectedAnchorsAtom);
     const setAnchors = useSetAtom(selectedAnchorsAtom);
     const setTool = useSetAtom(setActiveToolAtom);
     const hasAnchors = anchors.length > 0;
+
+    const doc = snapshot(docState).doc as SvgDoc;
+    const hasPath = selection.some((id) => findNode(doc, id)?.node.kind === 'path');
 
     return renderEntries([
         hasAnchors && (
@@ -165,6 +169,10 @@ function PointsEntries() {
             />
         ),
         hasAnchors && SEP,
+
+        hasPath && <CommandItem id="object.expand" icon={<Expand className={ic} />} />,
+        hasPath && <CommandItem id="object.offsetPath" icon={<Radius className={ic} />} />,
+        hasPath && SEP,
 
         <ActionItem
             icon={<MousePointer2 className={ic} />}
