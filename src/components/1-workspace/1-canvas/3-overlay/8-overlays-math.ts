@@ -1,7 +1,4 @@
-import {
-    type Matrix, type Point, type Rect, type SubPath, type SvgDoc, type SvgNode, applyMatrix, findNode, localBBox, multiply,
-    nodeCtm, nodeOutline, subpathsToPathData, transformSubpaths,
-} from "@/svg-core";
+import { type Matrix, type Point, type Rect, type SubPath, type SvgDoc, type SvgNode, applyMatrix, findNode, localBBox, multiply, nodeCtm, nodeOutline, subpathsToPathData, transformSubpaths } from "@/svg-core";
 import { domBBoxFallback } from "@/store/3-document";
 import { type Viewport } from "@/store/4-editor";
 

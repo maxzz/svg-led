@@ -4,7 +4,7 @@ import { nodesDocBBox, useDocSnapshot } from "@/store/3-document";
 import { canvasSizeAtom, hoverNodeIdAtom, rectToScreen, selectionAtom, viewportAtom } from "@/store/4-editor";
 import { type ResizeHandle } from "@/tools/9-types-tool-def";
 import { RESIZE_CURSOR, ROTATE_TOOLTIP_GAP, rotateBandD, rotateReadoutAtom, selectionGripsHiddenAtom } from "@/tools/tool-2-select";
-import { nodeScreenMatrix, outlineScreenD } from "./0-overlay-geometry";
+import { nodeScreenMatrix, outlineScreenD } from "./8-overlays-math";
 
 const HANDLE = 4; // every grip; rotation starts just outside this square (see ROTATE_INNER_PX)
 

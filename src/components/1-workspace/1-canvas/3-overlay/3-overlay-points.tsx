@@ -3,7 +3,7 @@ import { type Anchor, type Matrix, type SubPath, type SvgDoc, applyMatrix, findN
 import { useDocSnapshot } from "@/store/3-document";
 import { anchorsOfNode, hoverNodeIdAtom, selectedAnchorsAtom, selectionAtom, viewportAtom } from "@/store/4-editor";
 import { pointsOptionsAtom } from "@/tools/tool-3-points/1-options";
-import { nodeScreenMatrix, outlineScreenD, screenSubpaths } from "./0-overlay-geometry";
+import { nodeScreenMatrix, outlineScreenD, screenSubpaths } from "./8-overlays-math";
 
 const ANCHOR = 4; // same box as the selection-mode corner grips
 const KNOB = 3;    // direction-handle radius; a little larger than the anchor box

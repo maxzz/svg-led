@@ -5,7 +5,7 @@ import { docState } from "@/store/3-document";
 import { canvasSizeAtom, rectToScreen, viewportAtom } from "@/store/4-editor";
 
 /** Dims everything outside the viewBox and frames it, like an artboard */
-export function ViewBoxFrame() {
+export function Overlay_ViewBoxFrame() {
     const { showViewBox } = useSnapshot(appSettings.prefs);
     const { viewBox } = useSnapshot(docState.doc);
 

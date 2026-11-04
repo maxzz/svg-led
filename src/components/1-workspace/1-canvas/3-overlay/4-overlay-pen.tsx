@@ -3,7 +3,7 @@ import { type Anchor, type SvgDoc, applyMatrix, findNode, getAnchor, pathDataToS
 import { useDocSnapshot } from "@/store/3-document";
 import { penDraftAtom, pointerDocAtom, selectionAtom, viewportAtom } from "@/store/4-editor";
 import { penConvertingAnchorAtom } from "@/tools/tool-5-pen/3-pen-convert-anchor";
-import { nodeScreenMatrix, outlineScreenD, pt, screenSubpaths, viewportMatrix } from "./0-overlay-geometry";
+import { nodeScreenMatrix, outlineScreenD, pt, screenSubpaths, viewportMatrix } from "./8-overlays-math";
 
 const ANCHOR = 4; // same box as direct-selection path points
 const KNOB = 3;    // direction-handle radius; a little larger than the anchor box
