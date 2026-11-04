@@ -1,4 +1,5 @@
 import { useAtomValue } from "jotai";
+
 import { type SvgDoc, type Rect, findNode } from "@/svg-core";
 import { nodesDocBBox, useDocSnapshot } from "@/store/3-document";
 import { canvasSizeAtom, hoverNodeIdAtom, rectToScreen, selectionAtom, viewportAtom } from "@/store/4-editor";
@@ -7,9 +8,6 @@ import { RESIZE_CURSOR, ROTATE_TOOLTIP_GAP, rotateBandD, rotateReadoutAtom, sele
 import { nodeScreenMatrix, outlineScreenD } from "./8-overlays-math";
 
 const HANDLE = 4; // every grip; rotation starts just outside this square (see ROTATE_INNER_PX)
-
-const EDGES: [ResizeHandle, number, number][] = [['n', 0.5, 0], ['e', 1, 0.5], ['s', 0.5, 1], ['w', 0, 0.5]];
-const CORNERS: [ResizeHandle, number, number][] = [['nw', 0, 0], ['ne', 1, 0], ['se', 1, 1], ['sw', 0, 1]];
 
 /** Select tool: outlines of selected elements, the combined bbox, and a square grip on each corner and edge */
 export function Overlay_Selection() {
@@ -50,6 +48,11 @@ export function Overlay_Selection() {
         </g>
     );
 }
+
+const EDGES: [ResizeHandle, number, number][] = [['n', 0.5, 0], ['e', 1, 0.5], ['s', 0.5, 1], ['w', 0, 0.5]];
+const CORNERS: [ResizeHandle, number, number][] = [['nw', 0, 0], ['ne', 1, 0], ['se', 1, 1], ['sw', 0, 1]];
+
+//---------------------------------------------------------------------------
 
 /** Degrees follow the pointer while a rotation drag is active. The label is 8px and sits 16px from the cursor. */
 function RotateTooltip() {
@@ -109,6 +112,8 @@ function measureCtx(): CanvasRenderingContext2D | null {
     return measure;
 }
 
+//---------------------------------------------------------------------------
+
 /** A square centered on a corner or on the middle of an edge. Only this square resizes; the rest of the edge does not. */
 function Grip({ handle, box, fx, fy }: { handle: ResizeHandle; box: Rect; fx: number; fy: number; }) {
     return (
@@ -124,6 +129,8 @@ function Grip({ handle, box, fx, fy }: { handle: ResizeHandle; box: Rect; fx: nu
         />
     );
 }
+
+//---------------------------------------------------------------------------
 
 function Outline({ doc, id, className }: { doc: SvgDoc; id: string; className: string; }) {
     const vp = useAtomValue(viewportAtom);

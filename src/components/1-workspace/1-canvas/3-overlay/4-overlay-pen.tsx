@@ -39,6 +39,7 @@ export function Overlay_Pen() {
     return (
         <g>
             <Outline d={outlineScreenD(loc.node, m)} />
+
             {last && p && !sub.closed && (
                 <path
                     d={`M${pt(last)} C${pt(last.out ?? last)} ${pt(p)} ${pt(p)}`}
@@ -50,6 +51,7 @@ export function Overlay_Pen() {
             )}
 
             {last && <AnchorHandles anchor={last} />}
+            
             <ConvertingHandles doc={doc} />
 
             {sub?.anchors.map(
@@ -71,6 +73,8 @@ export function Overlay_Pen() {
         </g>
     );
 }
+
+//---------------------------------------------------------------------------
 
 /**
  * Before drawing: outlines of the selected elements and anchors of the selected paths;
@@ -115,6 +119,8 @@ function SelectedPathAnchors({ doc, ids }: { doc: SvgDoc; ids: string[]; }) {
     </>);
 }
 
+//---------------------------------------------------------------------------
+
 /** Handles of the anchor that Alt+drag is pulling out (Convert Anchor Point) */
 function ConvertingHandles({ doc }: { doc: SvgDoc; }) {
     const vp = useAtomValue(viewportAtom);
@@ -124,9 +130,12 @@ function ConvertingHandles({ doc }: { doc: SvgDoc; }) {
     if (!converting || loc?.node.kind !== 'path' || !m) {
         return null;
     }
+
     const anchor = getAnchor(screenSubpaths(pathDataToSubpaths(loc.node.d), m), converting.key);
     return anchor ? <AnchorHandles anchor={anchor} /> : null;
 }
+
+//---------------------------------------------------------------------------
 
 /** Direction handles of one anchor, in screen coordinates */
 function AnchorHandles({ anchor }: { anchor: Anchor; }) {
@@ -142,6 +151,8 @@ function AnchorHandles({ anchor }: { anchor: Anchor; }) {
         })}
     </>);
 }
+
+//---------------------------------------------------------------------------
 
 function Outline({ d }: { d: string; }) {
     return <path d={d} fill="none" strokeWidth={1} className="stroke-(--editor-accent) pointer-events-none" />;

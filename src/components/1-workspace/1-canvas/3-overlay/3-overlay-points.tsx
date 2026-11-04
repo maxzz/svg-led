@@ -17,7 +17,9 @@ export function Overlay_Points() {
 
     return (
         <g>
-            {hover && !selection.includes(hover) && <HoverOutline doc={doc} id={hover} />}
+            {hover && !selection.includes(hover) && (
+                <HoverOutline doc={doc} id={hover} />
+            )}
             {selection.map(
                 (id) => {
                     const m = nodeScreenMatrix(doc, vp, id);
@@ -27,6 +29,8 @@ export function Overlay_Points() {
         </g>
     );
 }
+
+//---------------------------------------------------------------------------
 
 function HoverOutline({ doc, id }: { doc: SvgDoc; id: string; }) {
     const vp = useAtomValue(viewportAtom);
@@ -38,6 +42,8 @@ function HoverOutline({ doc, id }: { doc: SvgDoc; id: string; }) {
     return <path d={outlineScreenD(loc.node, m)} fill="none" strokeWidth={1} className="stroke-(--editor-accent)/60 pointer-events-none" />;
 }
 
+//---------------------------------------------------------------------------
+
 function NodePoints({ doc, id, m }: { doc: SvgDoc; id: string; m: Matrix; }) {
     const selectedAnchors = useAtomValue(selectedAnchorsAtom);
     const { showAllHandles } = useAtomValue(pointsOptionsAtom);
@@ -45,6 +51,7 @@ function NodePoints({ doc, id, m }: { doc: SvgDoc; id: string; m: Matrix; }) {
     if (!loc) {
         return null;
     }
+
     const node = loc.node;
     const selected = anchorsOfNode(selectedAnchors, id);
 
@@ -65,25 +72,27 @@ function NodePoints({ doc, id, m }: { doc: SvgDoc; id: string; m: Matrix; }) {
         return (
             <g>
                 {outline}
-                {getShapeHandles(node).map((h) => {
-                    const p = applyMatrix(m, h);
-                    const isSel = selected.has(`h:${h.key}`);
-                    return (
-                        <rect
-                            key={h.key}
-                            data-hit="shape-handle"
-                            data-nid={id}
-                            data-key={h.key}
-                            x={p.x - ANCHOR / 2}
-                            y={p.y - ANCHOR / 2}
-                            width={ANCHOR}
-                            height={ANCHOR}
-                            transform={h.role === 'radius' ? `rotate(45 ${p.x} ${p.y})` : undefined}
-                            strokeWidth={1}
-                            className={isSel ? "fill-(--editor-accent) stroke-(--editor-accent)" : "fill-background stroke-(--editor-accent)"}
-                        />
-                    );
-                })}
+                {getShapeHandles(node).map(
+                    (h) => {
+                        const p = applyMatrix(m, h);
+                        const isSel = selected.has(`h:${h.key}`);
+                        return (
+                            <rect
+                                key={h.key}
+                                data-hit="shape-handle"
+                                data-nid={id}
+                                data-key={h.key}
+                                x={p.x - ANCHOR / 2}
+                                y={p.y - ANCHOR / 2}
+                                width={ANCHOR}
+                                height={ANCHOR}
+                                transform={h.role === 'radius' ? `rotate(45 ${p.x} ${p.y})` : undefined}
+                                strokeWidth={1}
+                                className={isSel ? "fill-(--editor-accent) stroke-(--editor-accent)" : "fill-background stroke-(--editor-accent)"}
+                            />
+                        );
+                    }
+                )}
             </g>
         );
     }
@@ -94,25 +103,27 @@ function NodePoints({ doc, id, m }: { doc: SvgDoc; id: string; m: Matrix; }) {
 function PathAnchors({ subs, nodeId, selected }: { subs: SubPath[]; nodeId: string; selected: Set<string>; }) {
     return (<>
         {subs.map(
-            (s, si) => s.anchors.map((a, ai) => {
-                const key = `${si}:${ai}`;
-                const isSel = selected.has(key);
-                const isFirst = ai === 0 && !s.closed;
-                return (
-                    <rect
-                        key={key}
-                        data-hit="anchor"
-                        data-nid={nodeId}
-                        data-key={key}
-                        x={a.x - ANCHOR / 2}
-                        y={a.y - ANCHOR / 2}
-                        width={ANCHOR}
-                        height={ANCHOR}
-                        strokeWidth={isFirst ? 1.5 : 1}
-                        className={isSel ? "fill-(--editor-accent) stroke-(--editor-accent)" : "fill-background stroke-(--editor-accent)"}
-                    />
-                );
-            })
+            (s, si) => s.anchors.map(
+                (a, ai) => {
+                    const key = `${si}:${ai}`;
+                    const isSel = selected.has(key);
+                    const isFirst = ai === 0 && !s.closed;
+                    return (
+                        <rect
+                            key={key}
+                            data-hit="anchor"
+                            data-nid={nodeId}
+                            data-key={key}
+                            x={a.x - ANCHOR / 2}
+                            y={a.y - ANCHOR / 2}
+                            width={ANCHOR}
+                            height={ANCHOR}
+                            strokeWidth={isFirst ? 1.5 : 1}
+                            className={isSel ? "fill-(--editor-accent) stroke-(--editor-accent)" : "fill-background stroke-(--editor-accent)"}
+                        />
+                    );
+                }
+            )
         )}
     </>);
 }
@@ -168,3 +179,5 @@ function PathHandles({ subs, nodeId, selected, showAll }: { subs: SubPath[]; nod
         )}
     </>);
 }
+
+//---------------------------------------------------------------------------
