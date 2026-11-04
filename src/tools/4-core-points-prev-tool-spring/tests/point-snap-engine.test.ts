@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { type PointTarget, TIER_OBJECT, TIER_POINT, boxTargets, snapPoint } from "../../core-snapping-points/1-point-snap-engine";
+import { type PointTarget, TIER_OBJECT, TIER_POINT, boxTargets, snapPoint } from "../../2-2-core-snapping-points/1-point-snap-engine";
 
 const opts = { threshold: 5, axes: ['x', 'y'] as const };
 const pt = (x: number, y: number): PointTarget => ({ x, y, tier: TIER_POINT });
