@@ -21,6 +21,7 @@ import { modifierHint } from "../0-shared/5-hint";
 import { type MoveGesture, beginMove, endMove, moveAltKey, pastThreshold, updateMove } from "../0-shared/3-move-gesture";
 import { type SnapAxis, clearSnapGuides } from "@/tools/core-snapping";
 import { type PointSnapSession, beginPointSnap, endPointSnap, handleTargetKey, updatePointSnap } from "@/tools/core-point-snapping";
+import { pointsCursorAtom, pointsDraggingAtom, resolvePointsHover, setPointsHoverAtom } from "./2-points-cursor";
 
 const M = MODIFIERS.points;
 
@@ -99,9 +100,20 @@ export const pointsTool: ToolDef = {
             alt: '[Alt] Drag a handle to move it alone · Click a point to toggle corner or smooth · While moving an element, turn snapping off · on empty canvas, drag to lasso',
             ctrl: '[Ctrl] Click a segment to add a point · Click a point to delete it',
         }),
-    cursor: 'default',
+    cursor: 'default', // fallback, the cursor classes below take precedence
+    getCursor: (get) => get(pointsCursorAtom),
+
+    onPointerHover({ get, set }, e) {
+        set(setPointsHoverAtom, resolvePointsHover(get, e));
+    },
+
+    onPointerLeave({ set }) {
+        set(setPointsHoverAtom, null);
+    },
 
     onPointerDown({ get, set }, e) {
+        set(pointsDraggingAtom, false);
+        set(setPointsHoverAtom, null);
         const selection = get(selectionAtom);
         const selectedAnchors = get(selectedAnchorsAtom);
         let target = e.target;
@@ -141,6 +153,7 @@ export const pointsTool: ToolDef = {
             const subs = pathSubpaths(target.nodeId);
             if (m && subs) {
                 gesture = { type: 'handle', nodeId: target.nodeId, key: target.key, side: target.side, subs, inv: m.inv, moved: false, snap: beginHandleSnap(get, target.nodeId, target.key) };
+                set(pointsDraggingAtom, true);
             }
             return;
         }
@@ -150,6 +163,7 @@ export const pointsTool: ToolDef = {
             const subs = pathSubpaths(target.nodeId);
             if (m && subs) {
                 gesture = { type: 'alt-anchor', nodeId: target.nodeId, key: target.key, subs, inv: m.inv, startScreen: e.screen, moved: false, snap: beginHandleSnap(get, target.nodeId, target.key) };
+                set(pointsDraggingAtom, true);
             }
             return;
         }
@@ -168,6 +182,7 @@ export const pointsTool: ToolDef = {
             }
             set(selectedAnchorsAtom, keys);
             gesture = beginAnchorsGesture(keys, e, { get, full });
+            set(pointsDraggingAtom, true);
             return;
         }
 
@@ -185,6 +200,7 @@ export const pointsTool: ToolDef = {
                 set(selectedAnchorsAtom, []);
             }
             gesture = { type: 'node-move', move: beginMove(ids, e) };
+            set(pointsDraggingAtom, true);
             return;
         }
 
@@ -265,36 +281,42 @@ export const pointsTool: ToolDef = {
         }
     },
 
-    onPointerUp({ set }) {
+    onPointerUp({ get, set }, e) {
+        set(pointsDraggingAtom, false);
         clearSnapGuides();
         endPointSnap(set);
-        if (!gesture) {
-            return;
-        }
-        switch (gesture.type) {
-            case 'anchors':
-            case 'handle':
-                gesture.moved && commitHistory();
-                break;
-            case 'alt-anchor': {
-                if (!gesture.moved) {
-                    const subs = structuredClone(gesture.subs);
-                    const [si, ai] = parseAnchorKey(gesture.key);
-                    subs[si] && toggleAnchorKind(subs[si], ai);
-                    writePath(gesture.nodeId, subs);
+        if (gesture) {
+            switch (gesture.type) {
+                case 'anchors':
+                case 'handle':
+                    gesture.moved && commitHistory();
+                    break;
+                case 'alt-anchor': {
+                    if (!gesture.moved) {
+                        const subs = structuredClone(gesture.subs);
+                        const [si, ai] = parseAnchorKey(gesture.key);
+                        subs[si] && toggleAnchorKind(subs[si], ai);
+                        writePath(gesture.nodeId, subs);
+                    }
+                    commitHistory();
+                    break;
                 }
-                commitHistory();
-                break;
+                case 'node-move':
+                    endMove(gesture.move);
+                    break;
+                case 'marquee':
+                    set(marqueeAtom, null);
+                    set(lassoAtom, null);
+                    break;
             }
-            case 'node-move':
-                endMove(gesture.move);
-                break;
-            case 'marquee':
-                set(marqueeAtom, null);
-                set(lassoAtom, null);
-                break;
+            gesture = null;
         }
-        gesture = null;
+        set(setPointsHoverAtom, resolvePointsHover(get, e));
+    },
+
+    onDeactivate({ set }) {
+        set(pointsDraggingAtom, false);
+        set(setPointsHoverAtom, null);
     },
 
     onKeyDown({ get, set }, e) {

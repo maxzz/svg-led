@@ -240,6 +240,45 @@ function penCursorCss(badge?: keyof typeof PEN_BADGES): string {
 
 //---------------------------------------------------------------------------
 
+/**
+ * Direct selection: the same arrow as the Selection tool, filled white with a 1px black edge,
+ * so the two tools stay distinct. `{extra}` is the mark at the lower right (or nothing).
+ */
+const directCursor = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+        <!-- white 1px outside the black edge: a 3px white stroke, then a 1px black stroke over a white fill -->
+        <path d="M1 1V14.65L1.84 14.58L5.49 10.57L10.4 10.59L10.24 10.09L1.42 1.16Z" fill="#fff" stroke="#fff" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M1 1V14.65L1.84 14.58L5.49 10.57L10.4 10.59L10.24 10.09L1.42 1.16Z" fill="#fff" stroke="#000" stroke-width="1" stroke-linejoin="round"/>
+        {extra}
+    </svg>
+`;
+
+/** Over an object that is not selected yet: the white arrow plus a small square */
+const directHoverMark = `
+    <rect x="12" y="14" width="8" height="8" fill="#fff"/>
+    <rect x="13" y="15" width="6" height="6" fill="#000"/>
+`;
+
+/** Over a selected object, point, or handle: the white arrow plus the four-way move icon */
+const directMoveMark = `
+    <polygon points="16.5 10.5 14 13 19 13 16.5 10.5" fill="#fff" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>
+    <polygon points="16.5 22.5 14 20 19 20 16.5 22.5" fill="#fff" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>
+    <polygon points="10.5 16.5 12.99 14 12.99 19 10.5 16.5" fill="#fff" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>
+    <polygon points="22.5 16.5 20 14 20 19 22.5 16.5" fill="#fff" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M16.5 14V19M14 16.5H19" fill="none" stroke="#fff" stroke-width="3"/>
+    <polygon points="16.5 10.5 14 13 19 13 16.5 10.5" fill="#000"/>
+    <polygon points="16.5 22.5 14 20 19 20 16.5 22.5" fill="#000"/>
+    <polygon points="10.5 16.5 12.99 14 12.99 19 10.5 16.5" fill="#000"/>
+    <polygon points="22.5 16.5 20 14 20 19 22.5 16.5" fill="#000"/>
+    <path d="M16.5 12V21M12 16.5H21" fill="none" stroke="#000" stroke-width="1"/>
+`;
+
+function directCursorCss(extra = ''): string {
+    return cursorCss(directCursor.replace('{extra}', extra));
+}
+
+//---------------------------------------------------------------------------
+
 export function cursorsPlugin({ addUtilities }: PluginAPI): void {
     addUtilities({
         '.cursor-solid-ptr': { cursor: cursorCss(selectionPointer) },
@@ -257,6 +296,12 @@ export function cursorsPlugin({ addUtilities }: PluginAPI): void {
         '.cursor-pen-continue': { cursor: penCursorCss('continue') },
         '.cursor-pen-close': { cursor: penCursorCss('close') },
         '.cursor-pen-convert': { cursor: penCursorCss('convert') },
+        '.cursor-direct-ptr': { cursor: directCursorCss() },
+        '.cursor-direct-hover': { cursor: directCursorCss(directHoverMark) },
+        '.cursor-direct-move': { cursor: directCursorCss(directMoveMark) },
+        '.cursor-direct-add': { cursor: directCursorCss(PEN_BADGES.add) },
+        '.cursor-direct-delete': { cursor: directCursorCss(PEN_BADGES.delete) },
+        '.cursor-direct-convert': { cursor: directCursorCss(PEN_BADGES.convert) },
     });
 }
 

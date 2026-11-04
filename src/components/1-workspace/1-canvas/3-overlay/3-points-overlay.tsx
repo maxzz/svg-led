@@ -81,7 +81,6 @@ function NodePoints({ doc, id, m }: { doc: SvgDoc; id: string; m: Matrix; }) {
                             transform={h.role === 'radius' ? `rotate(45 ${p.x} ${p.y})` : undefined}
                             strokeWidth={1}
                             className={isSel ? "fill-(--editor-accent) stroke-(--editor-accent)" : "fill-background stroke-(--editor-accent)"}
-                            style={{ cursor: 'move' }}
                         />
                     );
                 })}
@@ -111,7 +110,6 @@ function PathAnchors({ subs, nodeId, selected }: { subs: SubPath[]; nodeId: stri
                         height={ANCHOR}
                         strokeWidth={isFirst ? 1.5 : 1}
                         className={isSel ? "fill-(--editor-accent) stroke-(--editor-accent)" : "fill-background stroke-(--editor-accent)"}
-                        style={{ cursor: 'move' }}
                     />
                 );
             })
@@ -163,7 +161,6 @@ function PathHandles({ subs, nodeId, selected, showAll }: { subs: SubPath[]; nod
                             r={KNOB}
                             strokeWidth={1}
                             className="fill-(--editor-accent) stroke-background"
-                            style={{ cursor: 'pointer' }}
                         />
                     </g>
                 );
