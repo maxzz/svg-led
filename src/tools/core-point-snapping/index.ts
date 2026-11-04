@@ -2,4 +2,4 @@ export { type PointSnapResult, type PointTarget, type SnapTier, TIER_OBJECT, TIE
 export { type PointSnapExclude, collectPointTargets, handleTargetKey } from "./2-point-snap-targets";
 export { clearPointSnapAtom, pointSnapScreenAtom, setPointSnapAtom } from "./3-point-snap-atoms";
 export { type PointSnapSession, beginPointSnap, endPointSnap, updatePointSnap } from "./4-point-snap-session";
-export { PointSnapOverlay } from "./5-point-snap-overlay";
+export { Overlay_PointSnap } from "./5-overlay-point-snap";
