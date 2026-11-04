@@ -12,7 +12,7 @@ import {
 import { type Point } from "@/svg-core";
 import { type ToolPointerEvent, getTool, resolveTarget, selectionUnitId } from "@/tools";
 import { docTolerance, hitTestOutlines } from "@/tools/0-shared/2-tool-helpers";
-import { toolSpringActiveAtom } from "@/tools/4-core-points-prev-tool-spring";
+import { toolSpringActiveAtom } from "@/tools/3-core-points-prev-tool-spring";
 import { PROPERTIES_POPUP_RIGHT_EDGE_PX } from "@/components/1-workspace/2-props-panel/9-atoms-properties-popup";
 
 type CanvasPointerEvent = ReactPointerEvent<SVGSVGElement>;

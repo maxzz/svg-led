@@ -5,7 +5,7 @@ import { heldKeysAtom, selectionAtom } from "@/store/4-editor";
 import { getIsolationScope } from "@/store/6-layers";
 import { type ToolPointerEvent } from "../9-types-tool-def";
 import { docTolerance, hitTestOutlines, nodeMatrices } from "../0-shared/2-tool-helpers";
-import { withoutSpringKey } from "../4-core-points-prev-tool-spring/a-tool-spring-atoms";
+import { withoutSpringKey } from "../3-core-points-prev-tool-spring/a-tool-spring-atoms";
 import { type PointsHover, pointsCursorClass } from "./2-points-cursor-class";
 
 export type { PointsHover };
