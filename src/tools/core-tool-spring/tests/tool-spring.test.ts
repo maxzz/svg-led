@@ -4,7 +4,7 @@ import { createStore } from "jotai";
 vi.mock("@/utils/theme-apply", () => ({ themeApplyMode: () => {} }));
 
 import { ToolId, activeToolIdAtom, setActiveToolAtom, toolGestureActiveAtom } from "@/store/4-editor";
-import { pressSpringKeyAtom, releaseSpringKeyAtom, springGestureEndedAtom, springToolChangedAtom, withoutSpringKey } from "../1-tool-spring-atoms";
+import { pressSpringKeyAtom, releaseSpringKeyAtom, springGestureEndedAtom, springToolChangedAtom, withoutSpringKey } from "../a-tool-spring-atoms";
 
 function setup() {
     const store = createStore();

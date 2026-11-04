@@ -7,9 +7,7 @@ import { type HeldKeys, ToolId, activeToolIdAtom, setActiveToolAtom, toolGesture
  * tool sees plain clicks and drags: anchors move and empty canvas drags a marquee instead of adding or deleting points.
  */
 
-/** Tools that hand Ctrl to the Direct selection tool while held */
-const SPRING_FROM: readonly ToolId[] = [ToolId.pen];
-const SPRING_TO = ToolId.points;
+//---------------------------------------------------------------------------
 
 type Spring = {
     from: ToolId;                // tool to return to on release
@@ -21,10 +19,14 @@ const springAtom = atom<Spring | null>(null);
 /** True while Ctrl holds the Direct selection tool in place of the Pen */
 export const toolSpringActiveAtom = atom((get) => get(springAtom) !== null);
 
+//---------------------------------------------------------------------------
+
 /** Held keys as the active tool sees them: Ctrl is not reported while the spring holds it */
 export function withoutSpringKey(get: Getter, keys: HeldKeys): HeldKeys {
     return keys.ctrl && get(toolSpringActiveAtom) ? { ...keys, ctrl: false } : keys;
 }
+
+//---------------------------------------------------------------------------
 
 export const pressSpringKeyAtom = atom(
     null,
@@ -55,6 +57,8 @@ export const releaseSpringKeyAtom = atom(
     }
 );
 
+//---------------------------------------------------------------------------
+
 /** Called when a canvas drag ends: completes a release that came during the drag */
 export const springGestureEndedAtom = atom(
     null,
@@ -70,3 +74,9 @@ export const springToolChangedAtom = atom(
         get(springAtom) && get(activeToolIdAtom) !== SPRING_TO && set(springAtom, null);
     }
 );
+
+//---------------------------------------------------------------------------
+
+/** Tools that hand Ctrl to the Direct selection tool while held */
+const SPRING_FROM: readonly ToolId[] = [ToolId.pen];
+const SPRING_TO = ToolId.points;
