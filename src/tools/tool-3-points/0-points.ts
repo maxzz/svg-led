@@ -20,7 +20,7 @@ import { docTolerance, hitTestOutlines, nodeMatrices, snapValue } from "../0-sha
 import { modifierHint } from "../0-shared/5-hint";
 import { type MoveGesture, beginMove, endMove, moveAltKey, pastThreshold, updateMove } from "../0-shared/3-move-gesture";
 import { type SnapAxis, clearSnapGuides } from "@/tools/core-snapping";
-import { type PointSnapSession, beginPointSnap, endPointSnap, handleTargetKey, updatePointSnap } from "@/tools/core-point-snapping";
+import { type PointSnapSession, beginPointSnap, endPointSnap, handleTargetKey, updatePointSnap } from "@/tools/core-snapping-points";
 import { pointsCursorAtom, pointsDraggingAtom, resolvePointsHover, setPointsHoverAtom } from "./2-points-cursor";
 
 const M = MODIFIERS.points;
