@@ -3,7 +3,7 @@ import { type NodeOriginals, applyDocMatrix, captureOriginals, commitHistory, do
 import { type ToolPointerEvent } from "../9-types-tool-def";
 import { altDisablesSnap } from "./3-move-alt-snap";
 import { snapValue } from "./2-tool-helpers";
-import { type SnapAxis, clearSnapGuides, collectSnapTargets, setSnapGuides, snapActive, snapBox, snapThreshold } from "@/tools/core-snapping";
+import { type SnapAxis, clearSnapGuides, collectSnapTargets, setSnapGuides, snapActive, snapBox, snapThreshold } from "@/tools/2-1-core-snapping";
 
 /** Dragging whole elements; used by the select tool and by points mode when an element body is dragged */
 export type MoveGesture = {

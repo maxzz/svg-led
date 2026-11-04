@@ -2,7 +2,7 @@ import { type Getter, type Setter } from "jotai";
 import { appSettings } from "@/store/1-ui-settings";
 
 import { type Point } from "@/svg-core";
-import { type SnapAxis, snapThreshold } from "@/tools/core-snapping";
+import { type SnapAxis, snapThreshold } from "@/tools/2-1-core-snapping";
 import { type PointTarget, snapPoint } from "./1-point-snap-engine";
 import { type PointSnapExclude, collectPointTargets } from "./2-point-snap-targets";
 import { clearPointSnapAtom, setPointSnapAtom } from "./a-point-snap-atoms";

@@ -19,7 +19,7 @@ import { LASSO_STEP_PX, pointInPolygon, simplifyLasso } from "../tool-2-select/2
 import { docTolerance, hitTestOutlines, nodeMatrices, snapValue } from "../0-shared/2-tool-helpers";
 import { modifierHint } from "../0-shared/5-hint";
 import { type MoveGesture, beginMove, endMove, moveAltKey, pastThreshold, updateMove } from "../0-shared/3-move-gesture";
-import { type SnapAxis, clearSnapGuides } from "@/tools/core-snapping";
+import { type SnapAxis, clearSnapGuides } from "@/tools/2-1-core-snapping";
 import { type PointSnapSession, beginPointSnap, endPointSnap, handleTargetKey, updatePointSnap } from "@/tools/core-snapping-points";
 import { pointsCursorAtom, pointsDraggingAtom, resolvePointsHover, setPointsHoverAtom } from "./2-points-cursor";
 

@@ -5,7 +5,7 @@ import { Overlay_Selection } from "./2-overlay-selection";
 import { Overlay_Points } from "./3-overlay-points";
 import { Overlay_Pen } from "./4-overlay-pen";
 import { Overlay_Marquee, Overlay_Lasso } from "./5-overlay-marquees";
-import { Overlay_SnapGuides } from "@/tools/core-snapping";
+import { Overlay_SnapGuides } from "@/tools/2-1-core-snapping";
 import { Overlay_PointSnap } from "@/tools/core-snapping-points";
 
 /** Editor decorations drawn in screen space so they keep their size at any zoom */

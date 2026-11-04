@@ -1,5 +1,5 @@
 import type { Point, Rect } from "@/svg-core";
-import type { SnapAxis } from "@/tools/core-snapping/1-snap-engine";
+import type { SnapAxis } from "@/tools/2-1-core-snapping/1-snap-engine";
 
 /**
  * Pure geometry for Illustrator-like smart guides on a single dragged point (document units, no React, no state).
