@@ -16,6 +16,7 @@ export function collectSnapTargets(doc: SvgDoc, draggedIds: readonly string[]): 
         if (node.kind === 'g') {
             return;
         }
+        
         const box = nodeDocBBox(doc, node.id);
         box && rv.push(box);
     });

@@ -1,6 +1,7 @@
 import { atom } from "jotai";
 import { appSettings } from "@/store/1-ui-settings";
 import { appStore } from "@/store/0-app-store";
+
 import { viewportAtom } from "@/store/4-editor";
 import { type SnapGuide } from "./1-snap-engine";
 

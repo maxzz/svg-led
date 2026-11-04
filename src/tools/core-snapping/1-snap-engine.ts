@@ -23,6 +23,8 @@ const EPS = 1e-6;
 
 type Candidate = { delta: number; guides: SnapGuide[]; };
 
+//---------------------------------------------------------------------------
+
 /** Snaps `box` to `others`; returns the offset to add to the box position */
 export function snapBox(box: Rect, others: readonly Rect[], opts: SnapOptions): SnapOffset {
     const offset = { dx: 0, dy: 0 };
@@ -74,31 +76,35 @@ function spacingCandidates(box: Rect, others: readonly Rect[], axis: SnapAxis): 
 
     // boxes that share the moving box's row (or column), sorted along the axis
     const row = others
-        .filter((o) => {
-            const c = crossRange(o, axis);
-            return Math.min(c.hi, cross.hi) - Math.max(c.lo, cross.lo) > EPS;
-        })
+        .filter((o) => { const c = crossRange(o, axis); return Math.min(c.hi, cross.hi) - Math.max(c.lo, cross.lo) > EPS; })
         .map((o) => ({ lo: range(o, axis).lo, hi: range(o, axis).hi }))
         .sort((a, b) => a.lo - b.lo);
 
     const size = range(box, axis).hi - range(box, axis).lo;
     const rv: Candidate[] = [];
 
-    const seg = (from: number, to: number): SnapGuide => (
-        axis === 'x'
-            ? { x1: from, y1: cross2, x2: to, y2: cross2, gap: to - from }
-            : { x1: cross2, y1: from, x2: cross2, y2: to, gap: to - from }
-    );
-    const pairSeg = (a: { lo: number; hi: number; }, b: { lo: number; hi: number; }) => seg(a.hi, b.lo);
+    function seg(from: number, to: number): SnapGuide {
+        return (
+            axis === 'x'
+                ? { x1: from, y1: cross2, x2: to, y2: cross2, gap: to - from }
+                : { x1: cross2, y1: from, x2: cross2, y2: to, gap: to - from }
+        );
+    }
+
+    function pairSeg(a: { lo: number; hi: number; }, b: { lo: number; hi: number; }) {
+        return seg(a.hi, b.lo);
+    }
 
     for (let i = 0; i < row.length; i++) {
         for (let j = i + 1; j < row.length; j++) {
+
             const a = row[i];
             const b = row[j];
             const d = b.lo - a.hi;
             if (d <= EPS) {
                 continue;
             }
+
             // the moving box goes right of b, left of a, or centered between them
             const rightOfB = b.hi + d;
             rv.push({ delta: rightOfB - range(box, axis).lo, guides: [pairSeg(a, b), seg(b.hi, rightOfB)] });
@@ -108,10 +114,7 @@ function spacingCandidates(box: Rect, others: readonly Rect[], axis: SnapAxis): 
 
             if (size < d - EPS) {
                 const between = a.hi + (d - size) / 2;
-                rv.push({
-                    delta: between - range(box, axis).lo,
-                    guides: [seg(a.hi, between), seg(between + size, b.lo)],
-                });
+                rv.push({ delta: between - range(box, axis).lo, guides: [seg(a.hi, between), seg(between + size, b.lo)] });
             }
         }
     }
@@ -126,6 +129,7 @@ function alignGuides(placed: Rect, others: readonly Rect[], axis: SnapAxis): Sna
     const myCross = crossRange(placed, axis);
 
     for (const o of others) {
+
         const oCross = crossRange(o, axis);
         const from = Math.min(myCross.lo, oCross.lo);
         const to = Math.max(myCross.hi, oCross.hi);
@@ -135,10 +139,12 @@ function alignGuides(placed: Rect, others: readonly Rect[], axis: SnapAxis): Sna
                 if (Math.abs(ov - mv) > EPS) {
                     continue;
                 }
+
                 const key = `${mv.toFixed(3)}:${from.toFixed(3)}:${to.toFixed(3)}`;
                 if (seen.has(key)) {
                     continue;
                 }
+
                 seen.add(key);
                 rv.push(axis === 'x'
                     ? { x1: mv, y1: from, x2: mv, y2: to }
@@ -159,9 +165,11 @@ function values(r: Rect, axis: SnapAxis): number[] {
 }
 
 function range(r: Rect, axis: SnapAxis): { lo: number; hi: number; } {
-    return axis === 'x'
-        ? { lo: r.x, hi: r.x + r.width }
-        : { lo: r.y, hi: r.y + r.height };
+    return (
+        axis === 'x'
+            ? { lo: r.x, hi: r.x + r.width }
+            : { lo: r.y, hi: r.y + r.height }
+    );
 }
 
 function crossRange(r: Rect, axis: SnapAxis): { lo: number; hi: number; } {

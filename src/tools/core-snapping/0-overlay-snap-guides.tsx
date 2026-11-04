@@ -1,7 +1,7 @@
 import { useAtomValue } from "jotai";
 
 import { type Viewport, docToScreen, viewportAtom } from "@/store/4-editor";
-import { snapGuidesAtom } from "./2-snap-state";
+import { snapGuidesAtom } from "./a-snap-state";
 import { type SnapGuide } from "./1-snap-engine";
 
 const TICK = 4;
