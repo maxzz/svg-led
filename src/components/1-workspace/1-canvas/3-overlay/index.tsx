@@ -1,9 +1,9 @@
 import { useAtomValue } from "jotai";
 import { ToolId, activeToolIdAtom } from "@/store/4-editor";
 import { ViewBoxFrame } from "./1-viewbox-frame";
-import { SelectionOverlay } from "./2-selection-overlay";
-import { PointsOverlay } from "./3-points-overlay";
-import { PenOverlay } from "./4-pen-overlay";
+import { Overlay_Selection } from "./2-overlay-selection";
+import { Overlay_Points } from "./3-overlay-points";
+import { Overlay_Pen } from "./4-overlay-pen";
 import { Marquee } from "./5-marquee";
 import { Lasso } from "./6-lasso";
 import { SnapGuidesOverlay } from "@/tools/core-snapping";
@@ -18,12 +18,12 @@ export function OverlayLayer() {
             <ViewBoxFrame />
 
             {tool === ToolId.points
-                ? <PointsOverlay />
+                ? <Overlay_Points />
                 : tool === ToolId.pen
-                    ? <PenOverlay />
-                    : <SelectionOverlay />
+                    ? <Overlay_Pen />
+                    : <Overlay_Selection />
             }
-            
+
             <Marquee />
             <Lasso />
             <SnapGuidesOverlay />

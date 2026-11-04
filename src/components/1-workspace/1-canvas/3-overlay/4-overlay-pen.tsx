@@ -9,7 +9,7 @@ const ANCHOR = 4; // same box as direct-selection path points
 const KNOB = 3;    // direction-handle radius; a little larger than the anchor box
 
 /** Pen tool: anchors of the path being drawn, its last handles and the rubber-band segment to the pointer */
-export function PenOverlay() {
+export function Overlay_Pen() {
     const doc = useDocSnapshot();
     const vp = useAtomValue(viewportAtom);
     const draft = useAtomValue(penDraftAtom);

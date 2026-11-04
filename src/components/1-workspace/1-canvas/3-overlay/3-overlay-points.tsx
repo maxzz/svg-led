@@ -9,7 +9,7 @@ const ANCHOR = 4; // same box as the selection-mode corner grips
 const KNOB = 3;    // direction-handle radius; a little larger than the anchor box
 
 /** Points mode: outlines, anchors (squares), direction handles (lines with round knobs) and native shape handles */
-export function PointsOverlay() {
+export function Overlay_Points() {
     const doc = useDocSnapshot();
     const vp = useAtomValue(viewportAtom);
     const selection = useAtomValue(selectionAtom);

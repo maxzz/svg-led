@@ -12,7 +12,7 @@ const EDGES: [ResizeHandle, number, number][] = [['n', 0.5, 0], ['e', 1, 0.5], [
 const CORNERS: [ResizeHandle, number, number][] = [['nw', 0, 0], ['ne', 1, 0], ['se', 1, 1], ['sw', 0, 1]];
 
 /** Select tool: outlines of selected elements, the combined bbox, and a square grip on each corner and edge */
-export function SelectionOverlay() {
+export function Overlay_Selection() {
     const doc = useDocSnapshot();
     const vp = useAtomValue(viewportAtom);
     const selection = useAtomValue(selectionAtom);
