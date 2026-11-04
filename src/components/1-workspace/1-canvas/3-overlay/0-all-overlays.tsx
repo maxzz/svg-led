@@ -4,7 +4,7 @@ import { Overlay_ViewBoxFrame } from "./1-overlay-viewbox-frame";
 import { Overlay_Selection } from "./2-overlay-selection";
 import { Overlay_Points } from "./3-overlay-points";
 import { Overlay_Pen } from "./4-overlay-pen";
-import { Marquee, Lasso } from "./5-marquee";
+import { Marquee, Lasso } from "./5-overlay-marquees";
 import { SnapGuidesOverlay } from "@/tools/core-snapping";
 import { PointSnapOverlay } from "@/tools/core-point-snapping";
 
