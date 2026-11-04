@@ -1,7 +1,7 @@
 import { useAtomValue } from "jotai";
 
 import { type Point } from "@/svg-core";
-import { pointSnapScreenAtom } from "./3-point-snap-atoms";
+import { pointSnapScreenAtom } from "./a-point-snap-atoms";
 
 const CROSS = 3.5; // half the size of a cross mark, in screen pixels
 

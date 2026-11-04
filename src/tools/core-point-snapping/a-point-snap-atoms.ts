@@ -1,4 +1,5 @@
 import { atom } from "jotai";
+
 import { type Point } from "@/svg-core";
 import { docToScreen, viewportAtom } from "@/store/4-editor";
 import { type PointSnapResult } from "./1-point-snap-engine";
@@ -12,7 +13,8 @@ export const setPointSnapAtom = atom(
     (get, set, result: PointSnapResult) => {
         if (result.snapped) {
             set(pointSnapAtom, { guides: result.guides, marks: result.marks });
-        } else if (get(pointSnapAtom)) {
+        }
+        else if (get(pointSnapAtom)) {
             set(pointSnapAtom, null);
         }
     }
@@ -24,6 +26,8 @@ export const clearPointSnapAtom = atom(
         get(pointSnapAtom) && set(pointSnapAtom, null);
     }
 );
+
+//---------------------------------------------------------------------------
 
 /** Screen pixels a guide runs past its ends, so short guides stay visible */
 const GUIDE_OVERSHOOT = 8;
@@ -37,6 +41,7 @@ export const pointSnapScreenAtom = atom<{ guides: ScreenGuide[]; marks: Point[];
         if (!snap) {
             return null;
         }
+
         const vp = get(viewportAtom);
         return {
             guides: snap.guides.map((g) => extend(docToScreen(vp, { x: g.x1, y: g.y1 }), docToScreen(vp, { x: g.x2, y: g.y2 }))),
@@ -45,11 +50,14 @@ export const pointSnapScreenAtom = atom<{ guides: ScreenGuide[]; marks: Point[];
     }
 );
 
+//---------------------------------------------------------------------------
+
 function extend(a: Point, b: Point): ScreenGuide {
     const len = Math.hypot(b.x - a.x, b.y - a.y);
     if (len < 1e-6) {
         return { a, b };
     }
+    
     const ux = (b.x - a.x) / len * GUIDE_OVERSHOOT;
     const uy = (b.y - a.y) / len * GUIDE_OVERSHOOT;
     return { a: { x: a.x - ux, y: a.y - uy }, b: { x: b.x + ux, y: b.y + uy } };

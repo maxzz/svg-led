@@ -32,6 +32,8 @@ export type PointSnapOptions = {
 
 const EPS = 1e-6;
 
+//---------------------------------------------------------------------------
+
 export function snapPoint(p: Point, targets: readonly PointTarget[], opts: PointSnapOptions): PointSnapResult {
     if (opts.axes.length === 2) {
         const hit = nearestPoint(p, targets, opts.threshold);
