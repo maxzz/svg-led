@@ -1,11 +1,15 @@
 import { atom } from "jotai";
 import { type Point, type Rect, type SubPath } from "@/svg-core";
 
+//---------------------------------------------------------------------------
+
 /** Rubber-band selection in screen coordinates while dragging on empty canvas */
 export const marqueeAtom = atom<Rect | null>(null);
 
 /** Lasso selection in screen coordinates while dragging on empty canvas with Alt held */
 export const lassoAtom = atom<Point[] | null>(null);
+
+//---------------------------------------------------------------------------
 
 /** Space is held: dragging pans the canvas whatever the tool */
 export const spaceHeldAtom = atom(false);
@@ -15,6 +19,8 @@ export const isPanningAtom = atom(false);
 
 /** Last pointer position over the canvas, in document coordinates */
 export const pointerDocAtom = atom<Point | null>(null);
+
+//---------------------------------------------------------------------------
 
 /** Modifier keys held over the editor; Ctrl also covers Cmd */
 export type HeldKeys = { shift: boolean; alt: boolean; ctrl: boolean; };

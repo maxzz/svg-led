@@ -16,12 +16,14 @@ export function OverlayLayer() {
     return (
         <g>
             <ViewBoxFrame />
+
             {tool === ToolId.points
                 ? <PointsOverlay />
                 : tool === ToolId.pen
                     ? <PenOverlay />
                     : <SelectionOverlay />
             }
+            
             <Marquee />
             <Lasso />
             <SnapGuidesOverlay />
