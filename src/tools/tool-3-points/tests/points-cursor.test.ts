@@ -13,7 +13,7 @@ describe("pointsCursorClass", () => {
 
     it("uses the move arrow over a selected object, a point, or a handle, and while dragging", () => {
         expect(pointsCursorClass(hover({ kind: 'node', selected: true }), keys(), false)).toBe('cursor-direct-move');
-        expect(pointsCursorClass(hover({ kind: 'anchor' }), keys(), false)).toBe('cursor-direct-move');
+        expect(pointsCursorClass(hover({ kind: 'anchor' }), keys(), false)).toBe('cursor-direct-point');
         expect(pointsCursorClass(hover({ kind: 'handle' }), keys(), false)).toBe('cursor-direct-move');
         expect(pointsCursorClass(hover({ kind: 'shape-handle' }), keys(), false)).toBe('cursor-direct-move');
         expect(pointsCursorClass(hover(), keys(), true)).toBe('cursor-direct-move');

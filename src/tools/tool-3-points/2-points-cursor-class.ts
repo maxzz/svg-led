@@ -29,7 +29,11 @@ export function pointsCursorClass(hover: PointsHover, held: HeldKeys, dragging: 
         return 'cursor-direct-convert';
     }
 
-    if (hover.kind === 'anchor' || hover.kind === 'handle' || hover.kind === 'shape-handle') {
+    if (hover.kind === 'anchor') {
+        return 'cursor-direct-point';
+    }
+
+    if (hover.kind === 'handle' || hover.kind === 'shape-handle') {
         return 'cursor-direct-move';
     }
 
