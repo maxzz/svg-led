@@ -7,18 +7,24 @@ const M = MODIFIERS.pen;
 
 type PenHover = {
     action: PenActionType | null;  // what a plain click would do
-    overAnchor: boolean;           // an anchor the convert modifier can toggle or pull handles from
+    anchor: { nodeId: string; key: string; } | null; // the anchor under the pointer that the Pen can act on (toggle, pull handles, delete)
 };
 
 /** What a click would do where the pointer hovers; set by the Pen tool on hover, cleared when the pointer leaves */
-const penHoverAtom = atom<PenHover>({ action: null, overAnchor: false });
+const penHoverAtom = atom<PenHover>({ action: null, anchor: null });
+
+/** The anchor under the pointer in the Pen tool, or null; the overlay grows it like Direct selection does */
+export const penHoverAnchorAtom = atom((get) => get(penHoverAtom).anchor);
+
+const sameAnchor = (a: PenHover['anchor'], b: PenHover['anchor']): boolean =>
+    a?.nodeId === b?.nodeId && a?.key === b?.key;
 
 export const setPenHoverAtom = atom(
     null,
-    (get, set, hover: { action: PenAction | null; overAnchor: boolean; } | null) => {
-        const next = { action: hover?.action?.type ?? null, overAnchor: !!hover?.overAnchor };
+    (get, set, hover: { action: PenAction | null; anchor: PenHover['anchor']; } | null) => {
+        const next: PenHover = { action: hover?.action?.type ?? null, anchor: hover?.anchor ?? null };
         const cur = get(penHoverAtom);
-        (cur.action !== next.action || cur.overAnchor !== next.overAnchor) && set(penHoverAtom, next);
+        (cur.action !== next.action || !sameAnchor(cur.anchor, next.anchor)) && set(penHoverAtom, next);
     }
 );
 
@@ -33,9 +39,9 @@ export const penCursorAtom = atom(
         if (get(toolGestureActiveAtom)) {
             return 'cursor-pen';
         }
-        const { action, overAnchor } = get(penHoverAtom);
+        const { action, anchor } = get(penHoverAtom);
         const held = get(heldKeysAtom);
-        if (overAnchor && isMod(held, M.convertAnchor)) {
+        if (anchor && isMod(held, M.convertAnchor)) {
             return 'cursor-pen-convert';
         }
         const plainOnly = autoAddDeleteOff(held);
