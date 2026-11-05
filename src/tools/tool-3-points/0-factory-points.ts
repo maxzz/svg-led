@@ -39,7 +39,7 @@ export const pointsTool: ToolDef = {
             : modifierHint(held,
                 'Drag points and handles · [Shift] add · [Alt] break handle or suspend snap · [Ctrl] add/delete point', {
                 shift: '[Shift] Click to add or remove · Drag a handle to snap to 45°',
-                alt: '[Alt] Drag a handle to move it alone · Click a point to toggle corner or smooth · While moving an element, turn snapping off · on empty canvas, drag to lasso',
+                alt: '[Alt] Click a path to select all its points · Drag a point to pull out handles · Drag a handle to move it alone · While moving an element, turn snapping off · on empty canvas, drag to lasso',
                 ctrl: '[Ctrl] Click a segment to add a point · Click a point to delete it',
             })
     ),
@@ -135,6 +135,10 @@ export const pointsTool: ToolDef = {
             if (isMod(e, M.toggleAnchor)) {
                 ids = selection.includes(id) ? selection.filter((s) => s !== id) : [...selection, id];
                 set(selectionAtom, ids);
+                return;
+            }
+            // Alt+click on a path selects all of its points
+            if (isMod(e, M.convertAnchor) && selectWholePath(set, id)) {
                 return;
             }
             // Points of this element are selected: dragging moves those points only, never the whole element
@@ -243,12 +247,11 @@ export const pointsTool: ToolDef = {
                     break;
                 case 'alt-anchor': {
                     if (!gesture.moved) {
-                        const subs = structuredClone(gesture.subs);
-                        const [si, ai] = parseAnchorKey(gesture.key);
-                        subs[si] && toggleAnchorKind(subs[si], ai);
-                        writePath(gesture.nodeId, subs);
+                        // Alt+click on a point selects all points of its path
+                        selectWholePath(set, gesture.nodeId);
+                    } else {
+                        commitHistory();
                     }
-                    commitHistory();
                     break;
                 }
                 case 'node-move':
@@ -528,6 +531,18 @@ function writePath(id: string, subs: SubPath[]): void {
         return;
     }
     loc.node.d = subpathsToPathData(subs, docPrecision());
+}
+
+/** Selects every point of a path element (and the element itself); false if it has no points */
+function selectWholePath(set: Setter, nodeId: string): boolean {
+    const subs = pathSubpaths(nodeId);
+    const keys = subs?.flatMap((s, si) => s.anchors.map((_, ai) => nodeAnchorKey(nodeId, `${si}:${ai}`))) ?? [];
+    if (!keys.length) {
+        return false;
+    }
+    set(selectionAtom, [nodeId]);
+    set(selectedAnchorsAtom, keys);
+    return true;
 }
 
 function deletePathAnchors(nodeId: string, keys: Set<string>): void {
