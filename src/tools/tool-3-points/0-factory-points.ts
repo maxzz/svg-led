@@ -20,7 +20,7 @@ import { docTolerance, hitTestOutlines, nodeMatrices, snapValue } from "../0-sha
 import { modifierHint } from "../0-shared/5-hint";
 import { type MoveGesture, beginMove, endMove, moveAltKey, pastThreshold, updateMove } from "../0-shared/3-move-gesture";
 import { type SnapAxis, clearSnapGuides } from "@/tools/2-1-core-snapping";
-import { type PointSnapSession, beginPointSnap, endPointSnap, handleTargetKey, updatePointSnap } from "@/tools/2-2-core-snapping-points";
+import { type PointSnapSession, beginPointSnap, endPointSnap, handleTargetKey, updatePointSnap, updatePointSnapOverGrid } from "@/tools/2-2-core-snapping-points";
 import { pointsCursorAtom, pointsDraggingAtom, resolvePointsHover, setPointsHoverAtom } from "./2-points-cursor";
 
 const M = MODIFIERS.points;
@@ -448,8 +448,10 @@ function moveAnchorsGesture(set: Setter, g: Extract<Gesture, { type: 'anchors'; 
     }
 
     if (g.grabbed) {
+        // The grabbed point snaps from where the pointer is, so a target near the pointer is hit even when the grid would miss it
+        const raw = { x: g.grabbed.start.x + (e.doc.x - g.startDoc.x), y: g.grabbed.start.y + (e.doc.y - g.startDoc.y) };
         const p = { x: g.grabbed.start.x + dx, y: g.grabbed.start.y + dy };
-        const snapped = updatePointSnap(set, g.grabbed.snap, p, { axes });
+        const snapped = updatePointSnapOverGrid(set, g.grabbed.snap, raw, p, { axes });
         dx += snapped.x - p.x;
         dy += snapped.y - p.y;
     }

@@ -3,7 +3,7 @@ import { appSettings } from "@/store/1-ui-settings";
 
 import { type Point } from "@/svg-core";
 import { type SnapAxis, snapThreshold } from "@/tools/2-1-core-snapping";
-import { type PointTarget, snapPoint } from "./1-point-snap-engine";
+import { type PointTarget, nearestPoint, snapPoint } from "./1-point-snap-engine";
 import { type PointSnapExclude, collectPointTargets } from "./2-point-snap-targets";
 import { clearPointSnapAtom, setPointSnapAtom } from "./a-point-snap-atoms";
 
@@ -33,6 +33,24 @@ export function updatePointSnap(set: Setter, session: PointSnapSession, p: Point
     const result = snapPoint(p, session.targets, { threshold: snapThreshold(), axes });
     set(setPointSnapAtom, result);
     return result.point;
+}
+
+/**
+ * Like `updatePointSnap`, for a point dragged on a grid. `raw` is where the pointer really is and `gridded`
+ * is the same point after grid snapping. A target point within reach of the pointer wins outright, so the
+ * point lands exactly on it (not on the grid). Otherwise the grid point gets the usual guide snapping.
+ */
+export function updatePointSnapOverGrid(set: Setter, session: PointSnapSession, raw: Point, gridded: Point, opts: PointSnapDragOptions = {}): Point {
+    const axes = opts.axes ?? BOTH_AXES;
+    if (axes.length === 2 && appSettings.prefs.smartGuides) {
+        const hit = nearestPoint(raw, session.targets, snapThreshold());
+        if (hit) {
+            const point = { x: hit.x, y: hit.y };
+            set(setPointSnapAtom, { point, snapped: true, guides: [], marks: [point] });
+            return point;
+        }
+    }
+    return updatePointSnap(set, session, gridded, opts);
 }
 
 export function endPointSnap(set: Setter): void {

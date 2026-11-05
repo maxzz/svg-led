@@ -74,7 +74,7 @@ export function snapPoint(p: Point, targets: readonly PointTarget[], opts: Point
 }
 
 /** Target within `threshold` of `p`: the lowest tier first, then the nearest */
-function nearestPoint(p: Point, targets: readonly PointTarget[], threshold: number): PointTarget | undefined {
+export function nearestPoint(p: Point, targets: readonly PointTarget[], threshold: number): PointTarget | undefined {
     let best: PointTarget | undefined;
     let bestDist = Infinity;
     for (const t of targets) {
