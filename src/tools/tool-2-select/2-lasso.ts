@@ -5,8 +5,7 @@ import { type Point, type Rect, nearestOnLine, rectContainsRect, rectFromPoints,
  * or touches (Exclusive). Elements are tested by their outline, not only by their bounding box.
  */
 
-/** Document-space points of one polyline; a closed shape repeats its first point at the end */
-export type Polyline = Point[];
+//---------------------------------------------------------------------------
 
 /**
  * Drops lasso points that do not change its shape by more than `tolerance` (Ramer-Douglas-Peucker).
@@ -40,6 +39,11 @@ export function simplifyLasso(points: readonly Point[], tolerance: number): Poin
     }
     return points.filter((_, i) => keep[i]);
 }
+
+//---------------------------------------------------------------------------
+
+/** Document-space points of one polyline; a closed shape repeats its first point at the end */
+export type Polyline = Point[];
 
 /**
  * Ids of the elements the lasso selects. `linesOf` gives an element's polylines, computed only for elements
@@ -91,8 +95,7 @@ function touchesLasso(lasso: readonly Point[], lines: readonly Polyline[], inclu
     return inclusive ? inside === total : inside > 0;
 }
 
-/** Pixels the pointer must move before the lasso takes another point */
-export const LASSO_STEP_PX = 2;
+//---------------------------------------------------------------------------
 
 /** Even-odd test: true when `p` is inside the closed polygon */
 export function pointInPolygon(p: Point, poly: readonly Point[]): boolean {
@@ -131,3 +134,8 @@ function segmentsCross(a: Point, b: Point, c: Point, d: Point): boolean {
     const d4 = orientation(a, b, d);
     return ((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) && ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0));
 }
+
+//---------------------------------------------------------------------------
+
+/** Pixels the pointer must move before the lasso takes another point */
+export const LASSO_STEP_PX = 2;

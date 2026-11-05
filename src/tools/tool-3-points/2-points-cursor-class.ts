@@ -15,6 +15,7 @@ export function pointsCursorClass(hover: PointsHover, held: HeldKeys, dragging: 
     if (dragging) {
         return 'cursor-direct-move';
     }
+
     if (isMod(held, M.addDeletePoint)) {
         if (hover.kind === 'anchor') {
             return 'cursor-direct-delete';
@@ -23,14 +24,18 @@ export function pointsCursorClass(hover: PointsHover, held: HeldKeys, dragging: 
             return 'cursor-direct-add';
         }
     }
+
     if (isMod(held, M.convertAnchor) && hover.kind === 'anchor') {
         return 'cursor-direct-convert';
     }
+
     if (hover.kind === 'anchor' || hover.kind === 'handle' || hover.kind === 'shape-handle') {
         return 'cursor-direct-move';
     }
+
     if (hover.kind === 'node') {
         return hover.selected ? 'cursor-direct-move' : 'cursor-direct-hover';
     }
+    
     return 'cursor-direct-ptr';
 }

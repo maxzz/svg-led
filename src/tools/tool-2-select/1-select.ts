@@ -42,13 +42,16 @@ export const selectTool: ToolDef = {
     shortcut: 'v',
     altShortcut: '1',
     icon: MousePointer2,
-    hint: ({ held, dragging }) => dragging
-        ? '' //'Release to finish'
-        : modifierHint(held, 'Click to select, drag to move · Drag just outside the frame to rotate · Double-click an object to isolate it · [Shift] add · [Alt] copy, suspend snap, or lasso · [Ctrl] deep select', {
-            shift: '[Shift] Click to add or remove · Drag along one axis · Rotate in 15° steps',
-            alt: '[Alt] Drag an element to copy · While moving, turn snapping off (after a copy, release Alt and press it again) · on empty canvas, drag to lasso',
-            ctrl: '[Ctrl] Click to select an element inside groups · Drag snaps to other elements',
-        }),
+    hint: ({ held, dragging }) => (
+        dragging
+            ? '' //'Release to finish'
+            : modifierHint(held,
+                'Click to select, drag to move · Drag just outside the frame to rotate · Double-click an object to isolate it · [Shift] add · [Alt] copy, suspend snap, or lasso · [Ctrl] deep select', {
+                shift: '[Shift] Click to add or remove · Drag along one axis · Rotate in 15° steps',
+                alt: '[Alt] Drag an element to copy · While moving, turn snapping off (after a copy, release Alt and press it again) · on empty canvas, drag to lasso',
+                ctrl: '[Ctrl] Click to select an element inside groups · Drag snaps to other elements',
+            })
+    ),
     cursor: 'default', // fallback, the cursor classes below take precedence
     getCursor(get) {
         const resizing = get(resizeCursorAtom);
@@ -241,16 +244,21 @@ export const selectTool: ToolDef = {
         set(resizeCursorAtom, null);
         set(selectionGripsHiddenAtom, false);
         set(rotateReadoutAtom, null);
+
         if (gesture?.type === 'rotate') {
             gesture.moved && Math.abs(gesture.appliedDeg) > 1e-4 && commitHistory();
-        } else if (gesture?.type === 'move') {
+        }
+        else if (gesture?.type === 'move') {
             endMove(gesture.move);
-        } else if (gesture?.type === 'marquee') {
+        }
+        else if (gesture?.type === 'marquee') {
             set(marqueeAtom, null);
             set(lassoAtom, null);
-        } else if (gesture?.type === 'resize') {
+        }
+        else if (gesture?.type === 'resize') {
             gesture.moved && commitHistory();
         }
+
         gesture = null;
         syncRotateCursor(get, set, e.screen, null);
     },
@@ -307,7 +315,7 @@ type Gesture =
         lastScreen: Point;
     };
 
-type RotateGesture = Extract<Gesture, { type: 'rotate' }>;
+type RotateGesture = Extract<Gesture, { type: 'rotate'; }>;
 
 /** `center` is the original box center during a drag; otherwise the band is tested against the live selection. */
 function rotateCursorForPointer(get: Getter, screen: Point, center: Point | null): string | null {
@@ -474,6 +482,7 @@ function elementPolylines(doc: SvgDoc, topId: string): Polyline[] {
             lines.push([{ x, y }, { x: x + width, y }, { x: x + width, y: y + height }, { x, y: y + height }, { x, y }]);
         }
     });
+    
     return lines;
 }
 

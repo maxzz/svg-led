@@ -1,3 +1,5 @@
+//---------------------------------------------------------------------------
+
 export type Modifier = 'shift' | 'alt' | 'ctrl';
 
 /**
@@ -27,10 +29,6 @@ export const MODIFIERS = {
         addDeletePoint: 'ctrl',          // Ctrl+click on a segment adds, on an anchor deletes
         lassoSelect: 'alt',              // Alt on empty canvas drags a lasso; pressing or releasing Alt mid-drag switches
     },
-    shapes: {
-        constrain: 'shift',              // square, circle, 45 degree lines
-        fromCenter: 'alt',
-    },
     pen: {
         breakHandle: 'alt',              // Alt while dragging moves only the outgoing handle
         constrainAngle: 'shift',
@@ -38,7 +36,13 @@ export const MODIFIERS = {
         noAutoAddDelete: 'shift',        // over a selected path, place a plain point instead of adding or deleting one
         selectionTool: 'ctrl',           // held: the Direct selection tool, until released
     },
+    shapes: {
+        constrain: 'shift',              // square, circle, 45 degree lines
+        fromCenter: 'alt',
+    },
 } as const satisfies Record<string, Record<string, Modifier>>;
+
+//---------------------------------------------------------------------------
 
 type ModifierDescriptions = { [G in keyof typeof MODIFIERS]: Record<keyof typeof MODIFIERS[G], string> };
 
@@ -78,6 +82,8 @@ export const MODIFIER_DESCRIPTIONS: ModifierDescriptions = {
         selectionTool: 'hold to switch to the Direct selection tool to move points or drag a marquee; release to return to the Pen',
     },
 };
+
+//---------------------------------------------------------------------------
 
 export function isMod(e: { shift: boolean; alt: boolean; ctrl: boolean; }, m: Modifier): boolean {
     return e[m];

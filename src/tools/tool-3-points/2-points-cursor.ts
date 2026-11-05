@@ -1,4 +1,5 @@
 import { atom, type Getter } from "jotai";
+
 import { type Point, applyMatrix, matrixScale, nearestSegment, pathDataToSubpaths } from "@/svg-core";
 import { getNodeProxy } from "@/store/3-document";
 import { heldKeysAtom, selectionAtom } from "@/store/4-editor";
@@ -33,6 +34,8 @@ export const pointsCursorAtom = atom(
     (get) => pointsCursorClass(get(pointsHoverAtom), withoutSpringKey(get, get(heldKeysAtom)), get(pointsDraggingAtom))
 );
 
+//---------------------------------------------------------------------------
+
 /** Same reach as a Ctrl+click that inserts an anchor */
 const ADD_PX = 8;
 
@@ -47,28 +50,31 @@ export function resolvePointsHover(get: Getter, e: Pick<ToolPointerEvent, 'doc' 
     }
 
     const selected = target.type === 'node' && get(selectionAtom).includes(target.leafId);
-    const candidates = target.type === 'node'
-        ? [...new Set([...get(selectionAtom), target.leafId])]
-        : get(selectionAtom);
+    const candidates = target.type === 'node' ? [...new Set([...get(selectionAtom), target.leafId])] : get(selectionAtom);
     const canAdd = nearSegment(get, candidates, e.doc);
 
     if (target.type === 'anchor') {
         return { kind: 'anchor', selected: true, canAdd };
     }
+
     if (target.type === 'handle') {
         return { kind: 'handle', selected: true, canAdd };
     }
+
     if (target.type === 'shape-handle') {
         return { kind: 'shape-handle', selected: true, canAdd };
     }
+
     if (target.type === 'node') {
         return { kind: 'node', selected, canAdd };
     }
+
     return { kind: 'none', selected: false, canAdd };
 }
 
 function nearSegment(get: Getter, nodeIds: readonly string[], p: Point): boolean {
     const tolerance = docTolerance(get, ADD_PX);
+
     for (const nodeId of nodeIds) {
         const node = getNodeProxy(nodeId);
         const m = nodeMatrices(nodeId);
@@ -80,5 +86,6 @@ function nearSegment(get: Getter, nodeIds: readonly string[], p: Point): boolean
             return true;
         }
     }
+    
     return false;
 }

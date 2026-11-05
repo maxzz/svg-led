@@ -5,7 +5,7 @@ import { type SvgDoc, applyMatrix, findNode, getShapeHandles, isShapeNode, nodeC
 import { docState, nodeDocBBox } from "@/store/3-document";
 import { anchorsOfNode, nodeAnchorKey, selectedAnchorsAtom, selectionAtom } from "@/store/4-editor";
 import { getIsolationScope, isPickable } from "@/store/6-layers";
-import { pointsOptionsAtom } from "@/tools/tool-3-points/1-options";
+import { pointsOptionsAtom } from "@/tools/tool-3-points/a-options";
 import { type PointTarget, TIER_POINT, boxTargets } from "./1-point-snap-engine";
 
 /** What moves during the drag, so it is not snapped to */

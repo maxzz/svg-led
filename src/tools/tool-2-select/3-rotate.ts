@@ -29,9 +29,7 @@ export const rotateReadoutAtom = atom<RotateReadout | null>(null);
 /** Corner and edge grips hide for the duration of a resize or a rotation. */
 export const selectionGripsHiddenAtom = atom(false);
 
-export function expandedRect(box: Rect, pad: number): Rect {
-    return { x: box.x - pad, y: box.y - pad, width: box.width + 2 * pad, height: box.height + 2 * pad };
-}
+//---------------------------------------------------------------------------
 
 /** Screen point lies outside the grips and within the rotate reach around the selection frame. */
 export function inRotateBand(box: Rect, p: Point): boolean {
@@ -48,6 +46,10 @@ export function rotateBandD(box: Rect): string {
     return `M${px(o.x)} ${px(o.y)}h${px(o.width)}v${px(o.height)}h${px(-o.width)}zM${px(i.x)} ${px(i.y)}h${px(i.width)}v${px(i.height)}h${px(-i.width)}z`;
 }
 
+export function expandedRect(box: Rect, pad: number): Rect {
+    return { x: box.x - pad, y: box.y - pad, width: box.width + 2 * pad, height: box.height + 2 * pad };
+}
+
 /** Cursor whose bulge points from `center` toward `pointer`, in 15° steps. */
 export function rotateCursorClass(center: Point, pointer: Point): string {
     const deg = Math.atan2(pointer.y - center.y, pointer.x - center.x) * 180 / Math.PI;
@@ -55,6 +57,8 @@ export function rotateCursorClass(center: Point, pointer: Point): string {
     const index = mod(Math.round(deg / ROTATE_CURSOR_STEP), turns);
     return `cursor-rotate-${index * ROTATE_CURSOR_STEP}`;
 }
+
+//---------------------------------------------------------------------------
 
 /** Continuous radians from `start` to `current`, staying near the previous sample so a full turn does not flip. */
 export function unwrapAngle(start: number, current: number, previous: number): number {
@@ -83,6 +87,8 @@ export function formatRotation(degrees: number, snap: boolean): string {
     }
     return `${text}°`;
 }
+
+//---------------------------------------------------------------------------
 
 function contains(r: Rect, p: Point): boolean {
     return p.x >= r.x && p.y >= r.y && p.x <= r.x + r.width && p.y <= r.y + r.height;

@@ -1,6 +1,6 @@
-import { MousePointer } from "lucide-react";
-import { snapshot } from "valtio";
 import { type Getter, type Setter } from "jotai";
+import { snapshot } from "valtio";
+import { MousePointer } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -25,67 +25,7 @@ import { pointsCursorAtom, pointsDraggingAtom, resolvePointsHover, setPointsHove
 
 const M = MODIFIERS.points;
 
-type PathOriginal = { kind: 'path'; subs: SubPath[]; inv: Matrix; };
-type ShapeOriginal = { kind: 'shape'; node: ShapeNode; inv: Matrix; ctm: Matrix; };
-
-/** The point under the pointer when an anchor drag starts; it is the one that snaps */
-type GrabbedPoint = { start: Point; snap: PointSnapSession; };
-
-type Gesture =
-    | { type: 'anchors'; startDoc: Point; startScreen: Point; moved: boolean; originals: Map<string, PathOriginal | ShapeOriginal>; keys: string[]; grabbed: GrabbedPoint | null; }
-    | { type: 'handle'; nodeId: string; key: string; side: 'in' | 'out'; subs: SubPath[]; inv: Matrix; moved: boolean; snap: PointSnapSession; }
-    | { type: 'alt-anchor'; nodeId: string; key: string; subs: SubPath[]; inv: Matrix; startScreen: Point; moved: boolean; snap: PointSnapSession; }
-    | { type: 'node-move'; move: MoveGesture; }
-    | { type: 'marquee'; origin: Point; startScreen: Point; baseAnchors: string[]; baseNodes: string[]; candidates: Candidate[]; picks: Candidate[]; trail: Point[] | null; };
-
-/** An anchor or handle that a rubber band or lasso can pick */
-type Candidate = { full: string; nodeId: string; doc: Point; };
-
-let gesture: Gesture | null = null;
-
-/**
- * Updates an empty-canvas drag: a rubber band, or a lasso while Alt is held. Pressing or releasing Alt
- * mid-drag switches between them, and the selection carries over (same rules as the Selection tool).
- */
-function updateMarquee(get: Getter, set: Setter, g: Extract<Gesture, { type: 'marquee'; }>, e: ToolPointerEvent) {
-    const lasso = isMod(e, M.lassoSelect);
-    if (lasso !== (g.trail !== null)) {
-        if (g.trail) {
-            // leaving the lasso: its picks stay selected, and the rubber band starts from the pointer
-            g.baseAnchors = [...new Set([...g.baseAnchors, ...g.picks.map((c) => c.full)])];
-            g.baseNodes = [...new Set([...g.baseNodes, ...g.picks.map((c) => c.nodeId)])];
-            g.startScreen = e.screen;
-            g.trail = null;
-        } else {
-            // entering the lasso: it draws again from the drag origin
-            g.trail = [g.origin];
-        }
-        g.picks = [];
-    }
-
-    if (g.trail) {
-        const last = g.trail[g.trail.length - 1];
-        if (Math.hypot(e.screen.x - last.x, e.screen.y - last.y) >= LASSO_STEP_PX) {
-            g.trail.push(e.screen);
-        }
-
-        const vp = get(viewportAtom);
-        const polygon = simplifyLasso(g.trail.map((p) => screenToDoc(vp, p)), docTolerance(get, 1));
-        g.picks = g.candidates.filter((c) => pointInPolygon(c.doc, polygon));
-
-        set(lassoAtom, [...g.trail]);
-        set(marqueeAtom, null);
-    } else {
-        set(marqueeAtom, rectFromCorners(g.startScreen, e.screen));
-        set(lassoAtom, null);
-
-        const docRect = rectFromCorners(screenToDoc(get(viewportAtom), g.startScreen), e.doc);
-        g.picks = g.candidates.filter((c) => rectContainsPoint(docRect, c.doc));
-    }
-
-    set(selectedAnchorsAtom, [...new Set([...g.baseAnchors, ...g.picks.map((c) => c.full)])]);
-    set(selectionAtom, [...new Set([...g.baseNodes, ...g.picks.map((c) => c.nodeId)])]);
-}
+//---------------------------------------------------------------------------
 
 export const pointsTool: ToolDef = {
     id: ToolId.points,
@@ -93,13 +33,16 @@ export const pointsTool: ToolDef = {
     shortcut: 'a',
     altShortcut: '2',
     icon: MousePointer,
-    hint: ({ held, dragging }) => dragging
-        ? 'Release to finish'
-        : modifierHint(held, 'Drag points and handles · [Shift] add · [Alt] break handle or suspend snap · [Ctrl] add/delete point', {
-            shift: '[Shift] Click to add or remove · Drag a handle to snap to 45°',
-            alt: '[Alt] Drag a handle to move it alone · Click a point to toggle corner or smooth · While moving an element, turn snapping off · on empty canvas, drag to lasso',
-            ctrl: '[Ctrl] Click a segment to add a point · Click a point to delete it',
-        }),
+    hint: ({ held, dragging }) => (
+        dragging
+            ? 'Release to finish'
+            : modifierHint(held,
+                'Drag points and handles · [Shift] add · [Alt] break handle or suspend snap · [Ctrl] add/delete point', {
+                shift: '[Shift] Click to add or remove · Drag a handle to snap to 45°',
+                alt: '[Alt] Drag a handle to move it alone · Click a point to toggle corner or smooth · While moving an element, turn snapping off · on empty canvas, drag to lasso',
+                ctrl: '[Ctrl] Click a segment to add a point · Click a point to delete it',
+            })
+    ),
     cursor: 'default', // fallback, the cursor classes below take precedence
     getCursor: (get) => get(pointsCursorAtom),
 
@@ -354,11 +297,80 @@ export const pointsTool: ToolDef = {
     },
 };
 
+//---------------------------------------------------------------------------
+
+type PathOriginal = { kind: 'path'; subs: SubPath[]; inv: Matrix; };
+type ShapeOriginal = { kind: 'shape'; node: ShapeNode; inv: Matrix; ctm: Matrix; };
+
+/** The point under the pointer when an anchor drag starts; it is the one that snaps */
+type GrabbedPoint = { start: Point; snap: PointSnapSession; };
+
+type Gesture =
+    | { type: 'anchors'; startDoc: Point; startScreen: Point; moved: boolean; originals: Map<string, PathOriginal | ShapeOriginal>; keys: string[]; grabbed: GrabbedPoint | null; }
+    | { type: 'handle'; nodeId: string; key: string; side: 'in' | 'out'; subs: SubPath[]; inv: Matrix; moved: boolean; snap: PointSnapSession; }
+    | { type: 'alt-anchor'; nodeId: string; key: string; subs: SubPath[]; inv: Matrix; startScreen: Point; moved: boolean; snap: PointSnapSession; }
+    | { type: 'node-move'; move: MoveGesture; }
+    | { type: 'marquee'; origin: Point; startScreen: Point; baseAnchors: string[]; baseNodes: string[]; candidates: Candidate[]; picks: Candidate[]; trail: Point[] | null; };
+
+/** An anchor or handle that a rubber band or lasso can pick */
+type Candidate = { full: string; nodeId: string; doc: Point; };
+
+let gesture: Gesture | null = null;
+
+//---------------------------------------------------------------------------
+
+/**
+ * Updates an empty-canvas drag: a rubber band, or a lasso while Alt is held. Pressing or releasing Alt
+ * mid-drag switches between them, and the selection carries over (same rules as the Selection tool).
+ */
+function updateMarquee(get: Getter, set: Setter, g: Extract<Gesture, { type: 'marquee'; }>, e: ToolPointerEvent) {
+    const lasso = isMod(e, M.lassoSelect);
+    if (lasso !== (g.trail !== null)) {
+        if (g.trail) {
+            // leaving the lasso: its picks stay selected, and the rubber band starts from the pointer
+            g.baseAnchors = [...new Set([...g.baseAnchors, ...g.picks.map((c) => c.full)])];
+            g.baseNodes = [...new Set([...g.baseNodes, ...g.picks.map((c) => c.nodeId)])];
+            g.startScreen = e.screen;
+            g.trail = null;
+        } else {
+            // entering the lasso: it draws again from the drag origin
+            g.trail = [g.origin];
+        }
+        g.picks = [];
+    }
+
+    if (g.trail) {
+        const last = g.trail[g.trail.length - 1];
+        if (Math.hypot(e.screen.x - last.x, e.screen.y - last.y) >= LASSO_STEP_PX) {
+            g.trail.push(e.screen);
+        }
+
+        const vp = get(viewportAtom);
+        const polygon = simplifyLasso(g.trail.map((p) => screenToDoc(vp, p)), docTolerance(get, 1));
+        g.picks = g.candidates.filter((c) => pointInPolygon(c.doc, polygon));
+
+        set(lassoAtom, [...g.trail]);
+        set(marqueeAtom, null);
+    } else {
+        set(marqueeAtom, rectFromCorners(g.startScreen, e.screen));
+        set(lassoAtom, null);
+
+        const docRect = rectFromCorners(screenToDoc(get(viewportAtom), g.startScreen), e.doc);
+        g.picks = g.candidates.filter((c) => rectContainsPoint(docRect, c.doc));
+    }
+
+    set(selectedAnchorsAtom, [...new Set([...g.baseAnchors, ...g.picks.map((c) => c.full)])]);
+    set(selectionAtom, [...new Set([...g.baseNodes, ...g.picks.map((c) => c.nodeId)])]);
+}
+
+//---------------------------------------------------------------------------
+
 // Anchor drag
 
 /** `grab` is the anchor or shape handle under the pointer; the drag snaps it to other points (keyboard nudges pass none) */
 function beginAnchorsGesture(keys: string[], e: ToolPointerEvent, grab?: { get: Getter; full: string; }): Extract<Gesture, { type: 'anchors'; }> {
     const originals = new Map<string, PathOriginal | ShapeOriginal>();
+
     for (const full of keys) {
         const [nodeId] = splitNodeAnchorKey(full);
         if (originals.has(nodeId)) {
@@ -375,7 +387,16 @@ function beginAnchorsGesture(keys: string[], e: ToolPointerEvent, grab?: { get: 
             originals.set(nodeId, { kind: 'shape', node, inv: m.inv, ctm: m.ctm });
         }
     }
-    return { type: 'anchors', startDoc: e.doc, startScreen: e.screen, moved: false, originals, keys, grabbed: grab ? grabbedPoint(grab.get, grab.full, keys, originals) : null };
+
+    return {
+        type: 'anchors',
+        startDoc: e.doc,
+        startScreen: e.screen,
+        moved: false,
+        originals,
+        keys,
+        grabbed: grab ? grabbedPoint(grab.get, grab.full, keys, originals) : null,
+    };
 }
 
 /** Moving anchors and every handle of a reshaped shape move with the drag, so they are not snap targets */
@@ -385,11 +406,15 @@ function grabbedPoint(get: Getter, full: string, keys: string[], originals: Map<
         return null;
     }
     const moving = new Set(keys);
+
     for (const [nodeId, orig] of originals) {
         orig.kind === 'shape' && getShapeHandles(orig.node).forEach((h) => moving.add(nodeAnchorKey(nodeId, `h:${h.key}`)));
     }
+
     return { start, snap: beginPointSnap(get, { nodeIds: [...originals.keys()], anchors: moving }) };
 }
+
+//---------------------------------------------------------------------------
 
 /** A dragged handle snaps to anything but the handles of its own anchor (a smooth anchor turns both) */
 function beginHandleSnap(get: Getter, nodeId: string, key: string): PointSnapSession {
@@ -401,6 +426,8 @@ function beginHandleSnap(get: Getter, nodeId: string, key: string): PointSnapSes
 function snapHandle(set: Setter, snap: PointSnapSession, e: ToolPointerEvent): Point {
     return updatePointSnap(set, snap, e.doc, { axes: isMod(e, M.constrainAngle) ? [] : undefined });
 }
+
+//---------------------------------------------------------------------------
 
 function moveAnchorsGesture(set: Setter, g: Extract<Gesture, { type: 'anchors'; }>, e: ToolPointerEvent): void {
     if (!g.moved && !pastThreshold(g.startScreen, e.screen)) {

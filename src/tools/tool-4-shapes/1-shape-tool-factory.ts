@@ -1,4 +1,5 @@
 import { type ComponentType } from "react";
+
 import { type Matrix, type Point, type ShapeNode, applyMatrix, newNodeId } from "@/svg-core";
 import { commitHistory, getNodeProxy, replaceNode } from "@/store/3-document";
 import { insertNodeAtTop, newElementMatrix, removeNode } from "@/store/6-layers";
@@ -30,6 +31,8 @@ type ShapeToolConfig = {
     constrain: (a: Point, b: Point) => Point;
 };
 
+//---------------------------------------------------------------------------
+
 /** Rectangle, ellipse and line share the same drag-to-draw gesture */
 export function createShapeTool(config: ShapeToolConfig): ToolDef {
     let drawing: { id: string; start: Point; startDoc: Point; corner: CornerRadius; toLocal: Matrix; } | null = null;
@@ -40,12 +43,14 @@ export function createShapeTool(config: ShapeToolConfig): ToolDef {
         shortcut: config.shortcut,
         altShortcut: config.altShortcut,
         icon: config.icon,
-        hint: ({ held, dragging }) => dragging
-            ? `Release to finish · [Shift] ${config.shiftLabel} · [Alt] from center`
-            : modifierHint(held, `Drag to draw · [Shift] ${config.shiftLabel} · [Alt] from center`, {
-                shift: `[Shift] ${config.shiftHint}`,
-                alt: '[Alt] Drag to draw from center',
-            }),
+        hint: ({ held, dragging }) => (
+            dragging
+                ? `Release to finish · [Shift] ${config.shiftLabel} · [Alt] from center`
+                : modifierHint(held, `Drag to draw · [Shift] ${config.shiftLabel} · [Alt] from center`, {
+                    shift: `[Shift] ${config.shiftHint}`,
+                    alt: '[Alt] Drag to draw from center',
+                })
+        ),
         cursor: 'crosshair',
         newShapeKind: config.kind,
 

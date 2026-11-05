@@ -3,6 +3,8 @@ import { constrain45 } from "@/svg-core";
 import { ToolId } from "@/store/4-editor";
 import { constrainSquare, createShapeTool } from "./1-shape-tool-factory";
 
+//---------------------------------------------------------------------------
+
 export const rectangleTool = createShapeTool({
     id: ToolId.rectangle,
     label: 'Rectangle',
@@ -31,6 +33,8 @@ export const rectangleTool = createShapeTool({
     },
 });
 
+//---------------------------------------------------------------------------
+
 export const ellipseTool = createShapeTool({
     id: ToolId.ellipse,
     label: 'Ellipse',
@@ -51,6 +55,8 @@ export const ellipseTool = createShapeTool({
             : { id, kind: 'ellipse', cx, cy, rx, ry, attrs };
     },
 });
+
+//---------------------------------------------------------------------------
 
 export const lineTool = createShapeTool({
     id: ToolId.line,
