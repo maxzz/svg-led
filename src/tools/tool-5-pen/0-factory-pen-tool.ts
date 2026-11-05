@@ -43,7 +43,7 @@ export const penTool: ToolDef = {
     newShapeKind: 'path',
 
     onPointerHover({ get, set }, e) {
-        set(setPenHoverAtom, { action: resolvePenAction(get, e), overAnchor: !!penAnchorAt(get, e.doc) });
+        set(setPenHoverAtom, { action: resolvePenAction(get, e), anchor: penAnchorAt(get, e.doc) ?? null });
     },
 
     onPointerLeave({ set }) {

@@ -3,10 +3,17 @@ import { type Anchor, type SvgDoc, applyMatrix, findNode, getAnchor, pathDataToS
 import { useDocSnapshot } from "@/store/3-document";
 import { penDraftAtom, pointerDocAtom, selectionAtom, viewportAtom } from "@/store/4-editor";
 import { penConvertingAnchorAtom } from "@/tools/tool-5-pen/2-pen-convert-anchor";
+import { penHoverAnchorAtom } from "@/tools/tool-5-pen/a-pen-cursor";
 import { nodeScreenMatrix, outlineScreenD, pt, screenSubpaths, viewportMatrix } from "./8-overlays-math";
 
-const ANCHOR = 4; // same box as direct-selection path points
-const KNOB = 3;    // direction-handle radius; a little larger than the anchor box
+const ANCHOR = 4;       // same box as direct-selection path points
+const ANCHOR_HOVER = 6; // hovered anchor grows 1px on each side, as in direct selection
+const KNOB = 3;         // direction-handle radius; a little larger than the anchor box
+
+/** Side of an anchor square; the one under the pointer grows */
+function anchorSize(hover: { nodeId: string; key: string; } | null, nodeId: string, key: string): number {
+    return hover?.nodeId === nodeId && hover.key === key ? ANCHOR_HOVER : ANCHOR;
+}
 
 /** Pen tool: anchors of the path being drawn, its last handles and the rubber-band segment to the pointer */
 export function Overlay_Pen() {
@@ -15,6 +22,7 @@ export function Overlay_Pen() {
     const draft = useAtomValue(penDraftAtom);
     const pointer = useAtomValue(pointerDocAtom);
     const selection = useAtomValue(selectionAtom);
+    const hover = useAtomValue(penHoverAnchorAtom);
 
     if (!draft) {
         return (
@@ -55,20 +63,24 @@ export function Overlay_Pen() {
             <ConvertingHandles doc={doc} />
 
             {sub?.anchors.map(
-                (a, ai) => (
+                (a, ai) => {
+                    const key = `${draft.si}:${ai}`;
+                    const size = anchorSize(hover, draft.nodeId, key);
+                    return (
                     <rect
                         key={ai}
                         data-hit="anchor"
                         data-nid={draft.nodeId}
-                        data-key={`${draft.si}:${ai}`}
-                        x={a.x - ANCHOR / 2}
-                        y={a.y - ANCHOR / 2}
-                        width={ANCHOR}
-                        height={ANCHOR}
+                        data-key={key}
+                        x={a.x - size / 2}
+                        y={a.y - size / 2}
+                        width={size}
+                        height={size}
                         strokeWidth={1}
                         className={ai === sub.anchors.length - 1 ? "fill-(--editor-accent) stroke-(--editor-accent)" : "fill-background stroke-(--editor-accent)"}
                     />
-                )
+                    );
+                }
             )}
         </g>
     );
@@ -82,6 +94,7 @@ export function Overlay_Pen() {
  */
 function SelectedPathAnchors({ doc, ids }: { doc: SvgDoc; ids: string[]; }) {
     const vp = useAtomValue(viewportAtom);
+    const hover = useAtomValue(penHoverAnchorAtom);
     return (<>
         {ids.map(
             (id) => {
@@ -96,20 +109,24 @@ function SelectedPathAnchors({ doc, ids }: { doc: SvgDoc; ids: string[]; }) {
                         <Outline d={outlineScreenD(loc.node, m)} />
                         {subs.map(
                             (s, si) => s.anchors.map(
-                                (a, ai) => (
+                                (a, ai) => {
+                                    const key = `${si}:${ai}`;
+                                    const size = anchorSize(hover, id, key);
+                                    return (
                                     <rect
                                         data-hit="anchor"
                                         className="fill-background stroke-(--editor-accent)"
-                                        x={a.x - ANCHOR / 2}
-                                        y={a.y - ANCHOR / 2}
-                                        width={ANCHOR}
-                                        height={ANCHOR}
+                                        x={a.x - size / 2}
+                                        y={a.y - size / 2}
+                                        width={size}
+                                        height={size}
                                         strokeWidth={1}
                                         data-nid={id}
-                                        data-key={`${si}:${ai}`}
+                                        data-key={key}
                                         key={`${si}-${ai}`}
                                     />
-                                )
+                                    );
+                                }
                             )
                         )}
                     </g>
