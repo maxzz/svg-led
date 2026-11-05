@@ -2,7 +2,7 @@ import { useAtomValue } from "jotai";
 import { type Anchor, type SvgDoc, applyMatrix, findNode, getAnchor, pathDataToSubpaths } from "@/svg-core";
 import { useDocSnapshot } from "@/store/3-document";
 import { penDraftAtom, pointerDocAtom, selectionAtom, viewportAtom } from "@/store/4-editor";
-import { penConvertingAnchorAtom } from "@/tools/tool-5-pen/3-pen-convert-anchor";
+import { penConvertingAnchorAtom } from "@/tools/tool-5-pen/2-pen-convert-anchor";
 import { nodeScreenMatrix, outlineScreenD, pt, screenSubpaths, viewportMatrix } from "./8-overlays-math";
 
 const ANCHOR = 4; // same box as direct-selection path points

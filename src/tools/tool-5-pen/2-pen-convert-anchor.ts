@@ -25,10 +25,14 @@ type ConvertGesture = {
     moved: boolean;
 };
 
+//---------------------------------------------------------------------------
+
 let gesture: ConvertGesture | null = null;
 
 /** Anchor whose handles are being pulled; the Pen overlay shows its handles */
 export const penConvertingAnchorAtom = atom<{ nodeId: string; key: string; } | null>(null);
+
+//---------------------------------------------------------------------------
 
 /** Starts converting the anchor under the pointer; false when there is none, so the click places a point instead */
 export function beginConvertAnchor(get: Getter, set: Setter, e: ToolPointerEvent): boolean {
@@ -92,6 +96,8 @@ export function endConvertAnchor(get: Getter, set: Setter): boolean {
     g.onDraft || commitHistory();
     return true;
 }
+
+//---------------------------------------------------------------------------
 
 function write(get: Getter, set: Setter, g: ConvertGesture, subs: SubPath[]): void {
     const draft = get(penDraftAtom);

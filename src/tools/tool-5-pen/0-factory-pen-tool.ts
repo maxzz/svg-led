@@ -12,8 +12,8 @@ import { pastThreshold } from "../0-shared/3-move-gesture";
 import { styleAttrs } from "../0-shared/4-style-attrs";
 import { modifierHint } from "../0-shared/5-hint";
 import { type PenAction, editDraftPoints, editPathPoints, penAnchorAt, resolvePenAction, writeDraft } from "./1-pen-edit-points";
-import { autoAddDeleteOff, penCursorAtom, setPenHoverAtom } from "./2-pen-cursor";
-import { beginConvertAnchor, endConvertAnchor, moveConvertAnchor } from "./3-pen-convert-anchor";
+import { autoAddDeleteOff, penCursorAtom, setPenHoverAtom } from "./a-pen-cursor";
+import { beginConvertAnchor, endConvertAnchor, moveConvertAnchor } from "./2-pen-convert-anchor";
 
 const M = MODIFIERS.pen;
 
@@ -184,6 +184,8 @@ export const penTool: ToolDef = {
         set(setPenHoverAtom, null);
     },
 };
+
+//---------------------------------------------------------------------------
 
 /** Adds or deletes a point: on the path being drawn the draft goes on, on a selected path it is one undo step */
 function editPoints(get: Getter, set: Setter, action: Extract<PenAction, { type: 'add' | 'delete'; }>): void {

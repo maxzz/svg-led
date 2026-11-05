@@ -1,1 +1,1 @@
-export * from "./0-points";
+export * from "./0-factory-points";
