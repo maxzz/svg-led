@@ -259,6 +259,12 @@ const directHoverMark = `
     <rect x="13" y="15" width="6" height="6" fill="#000"/>
 `;
 
+/** Over a path point: the white arrow plus a small unfilled square at its lower right (white 1px border, black 1px edge) */
+const directPointMark = `
+    <rect x="13.5" y="15.5" width="5" height="5" fill="none" stroke="#fff" stroke-width="3"/>
+    <rect x="13.5" y="15.5" width="5" height="5" fill="none" stroke="#000" stroke-width="1"/>
+`;
+
 /** Over a selected object, point, or handle: the white arrow plus the four-way move icon */
 const directMoveMark = `
     <polygon points="16.5 10.5 14 13 19 13 16.5 10.5" fill="#fff" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>
@@ -290,14 +296,17 @@ export function cursorsPlugin({ addUtilities }: PluginAPI): void {
         '.cursor-resize-se': { cursor: cursorCss(resizeNwSe, 12, 12) },
         '.cursor-resize-ne': { cursor: cursorCss(resizeNeSw, 12, 12) },
         '.cursor-resize-sw': { cursor: cursorCss(resizeNeSw, 12, 12) },
+
         '.cursor-pen': { cursor: penCursorCss() },
         '.cursor-pen-add': { cursor: penCursorCss('add') },
         '.cursor-pen-delete': { cursor: penCursorCss('delete') },
         '.cursor-pen-continue': { cursor: penCursorCss('continue') },
         '.cursor-pen-close': { cursor: penCursorCss('close') },
         '.cursor-pen-convert': { cursor: penCursorCss('convert') },
+        
         '.cursor-direct-ptr': { cursor: directCursorCss() },
         '.cursor-direct-hover': { cursor: directCursorCss(directHoverMark) },
+        '.cursor-direct-point': { cursor: directCursorCss(directPointMark) },
         '.cursor-direct-move': { cursor: directCursorCss(directMoveMark) },
         '.cursor-direct-add': { cursor: directCursorCss(PEN_BADGES.add) },
         '.cursor-direct-delete': { cursor: directCursorCss(PEN_BADGES.delete) },
