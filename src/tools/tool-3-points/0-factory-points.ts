@@ -137,6 +137,13 @@ export const pointsTool: ToolDef = {
                 set(selectionAtom, ids);
                 return;
             }
+            // Points of this element are selected: dragging moves those points only, never the whole element
+            if (selectedAnchors.some((full) => splitNodeAnchorKey(full)[0] === id)) {
+                const grab = nearestSelectedAnchor(get, id, selectedAnchors, e.doc);
+                gesture = beginAnchorsGesture(selectedAnchors, e, grab ? { get, full: grab } : undefined);
+                set(pointsDraggingAtom, true);
+                return;
+            }
             if (!selection.includes(id)) {
                 ids = [id];
                 set(selectionAtom, ids);
@@ -366,6 +373,22 @@ function updateMarquee(get: Getter, set: Setter, g: Extract<Gesture, { type: 'ma
 //---------------------------------------------------------------------------
 
 // Anchor drag
+
+/** The selected point of one element nearest to the pointer, if it is within reach (a press can miss the small point box) */
+function nearestSelectedAnchor(get: Getter, nodeId: string, selected: readonly string[], p: Point): string | undefined {
+    const tolerance = docTolerance(get, 6);
+    let best: { full: string; dist: number; } | undefined;
+    for (const c of collectAnchorCandidates()) {
+        if (c.nodeId !== nodeId || !selected.includes(c.full)) {
+            continue;
+        }
+        const dist = Math.hypot(c.doc.x - p.x, c.doc.y - p.y);
+        if (dist <= tolerance && (!best || dist < best.dist)) {
+            best = { full: c.full, dist };
+        }
+    }
+    return best?.full;
+}
 
 /** `grab` is the anchor or shape handle under the pointer; the drag snaps it to other points (keyboard nudges pass none) */
 function beginAnchorsGesture(keys: string[], e: ToolPointerEvent, grab?: { get: Getter; full: string; }): Extract<Gesture, { type: 'anchors'; }> {
