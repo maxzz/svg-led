@@ -10,6 +10,8 @@ export type PointsHover = {
     canAdd: boolean;
     /** The path anchor under the pointer, when `kind` is 'anchor' */
     anchor?: { nodeId: string; key: string; };
+    /** The direction handle under the pointer, when `kind` is 'handle' */
+    handle?: { nodeId: string; key: string; side: 'in' | 'out'; };
 };
 
 /** Tailwind cursor class for Direct selection (cursors plugin). */

@@ -3,12 +3,13 @@ import { type Anchor, type Matrix, type SubPath, type SvgDoc, applyMatrix, findN
 import { useDocSnapshot } from "@/store/3-document";
 import { anchorsOfNode, hoverNodeIdAtom, selectedAnchorsAtom, selectionAtom, viewportAtom } from "@/store/4-editor";
 import { pointsOptionsAtom } from "@/tools/tool-3-points/a-options";
-import { hoveredAnchorAtom } from "@/tools/tool-3-points/2-points-cursor";
+import { hoveredAnchorAtom, hoveredHandleAtom } from "@/tools/tool-3-points/2-points-cursor";
 import { nodeScreenMatrix, outlineScreenD, screenSubpaths } from "./8-overlays-math";
 
 const ANCHOR = 4;       // same box as the selection-mode corner grips
 const ANCHOR_HOVER = 6; // hovered anchor grows 1px on each side
 const KNOB = 3;         // direction-handle radius; a little larger than the anchor box
+const KNOB_HOVER = 4;   // hovered direction handle grows 1px in radius
 
 /** Points mode: outlines, anchors (squares), direction handles (lines with round knobs) and native shape handles */
 export function Overlay_Points() {
@@ -137,6 +138,7 @@ function PathAnchors({ subs, nodeId, selected }: { subs: SubPath[]; nodeId: stri
  * (the ones that shape the adjacent segments); `showAll` shows every handle.
  */
 function PathHandles({ subs, nodeId, selected, showAll }: { subs: SubPath[]; nodeId: string; selected: Set<string>; showAll: boolean; }) {
+    const hovered = useAtomValue(hoveredHandleAtom);
     const items: { key: string; anchor: Anchor; side: 'in' | 'out'; }[] = [];
 
     subs.forEach(
@@ -163,6 +165,7 @@ function PathHandles({ subs, nodeId, selected, showAll }: { subs: SubPath[]; nod
         {items.map(
             ({ key, anchor, side }) => {
                 const h = anchor[side]!;
+                const r = hovered?.nodeId === nodeId && hovered.key === key && hovered.side === side ? KNOB_HOVER : KNOB;
                 return (
                     <g key={`${key}-${side}`}>
                         <line x1={anchor.x} y1={anchor.y} x2={h.x} y2={h.y} strokeWidth={1} className="stroke-(--editor-accent)/80 pointer-events-none" />
@@ -173,7 +176,7 @@ function PathHandles({ subs, nodeId, selected, showAll }: { subs: SubPath[]; nod
                             data-side={side}
                             cx={h.x}
                             cy={h.y}
-                            r={KNOB}
+                            r={r}
                             strokeWidth={1}
                             className="fill-(--editor-accent) stroke-background"
                         />
