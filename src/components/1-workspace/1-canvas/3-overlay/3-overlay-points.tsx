@@ -3,10 +3,12 @@ import { type Anchor, type Matrix, type SubPath, type SvgDoc, applyMatrix, findN
 import { useDocSnapshot } from "@/store/3-document";
 import { anchorsOfNode, hoverNodeIdAtom, selectedAnchorsAtom, selectionAtom, viewportAtom } from "@/store/4-editor";
 import { pointsOptionsAtom } from "@/tools/tool-3-points/a-options";
+import { hoveredAnchorAtom } from "@/tools/tool-3-points/2-points-cursor";
 import { nodeScreenMatrix, outlineScreenD, screenSubpaths } from "./8-overlays-math";
 
-const ANCHOR = 4; // same box as the selection-mode corner grips
-const KNOB = 3;    // direction-handle radius; a little larger than the anchor box
+const ANCHOR = 4;       // same box as the selection-mode corner grips
+const ANCHOR_HOVER = 6; // hovered anchor grows 1px on each side
+const KNOB = 3;         // direction-handle radius; a little larger than the anchor box
 
 /** Points mode: outlines, anchors (squares), direction handles (lines with round knobs) and native shape handles */
 export function Overlay_Points() {
@@ -101,6 +103,7 @@ function NodePoints({ doc, id, m }: { doc: SvgDoc; id: string; m: Matrix; }) {
 }
 
 function PathAnchors({ subs, nodeId, selected }: { subs: SubPath[]; nodeId: string; selected: Set<string>; }) {
+    const hovered = useAtomValue(hoveredAnchorAtom);
     return (<>
         {subs.map(
             (s, si) => s.anchors.map(
@@ -108,16 +111,17 @@ function PathAnchors({ subs, nodeId, selected }: { subs: SubPath[]; nodeId: stri
                     const key = `${si}:${ai}`;
                     const isSel = selected.has(key);
                     const isFirst = ai === 0 && !s.closed;
+                    const size = hovered?.nodeId === nodeId && hovered.key === key ? ANCHOR_HOVER : ANCHOR;
                     return (
                         <rect
                             key={key}
                             data-hit="anchor"
                             data-nid={nodeId}
                             data-key={key}
-                            x={a.x - ANCHOR / 2}
-                            y={a.y - ANCHOR / 2}
-                            width={ANCHOR}
-                            height={ANCHOR}
+                            x={a.x - size / 2}
+                            y={a.y - size / 2}
+                            width={size}
+                            height={size}
                             strokeWidth={isFirst ? 1.5 : 1}
                             className={isSel ? "fill-(--editor-accent) stroke-(--editor-accent)" : "fill-background stroke-(--editor-accent)"}
                         />

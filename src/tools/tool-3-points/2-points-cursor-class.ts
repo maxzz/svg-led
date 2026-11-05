@@ -8,6 +8,8 @@ export type PointsHover = {
     kind: 'none' | 'node' | 'anchor' | 'handle' | 'shape-handle';
     selected: boolean;
     canAdd: boolean;
+    /** The path anchor under the pointer, when `kind` is 'anchor' */
+    anchor?: { nodeId: string; key: string; };
 };
 
 /** Tailwind cursor class for Direct selection (cursors plugin). */

@@ -16,12 +16,19 @@ const NONE: PointsHover = { kind: 'none', selected: false, canAdd: false };
 
 const pointsHoverAtom = atom<PointsHover>(NONE);
 
+/** The path anchor under the pointer in Direct selection, or null */
+export const hoveredAnchorAtom = atom((get) => get(pointsHoverAtom).anchor ?? null);
+
+function sameAnchor(a: PointsHover['anchor'], b: PointsHover['anchor']): boolean {
+    return a?.nodeId === b?.nodeId && a?.key === b?.key;
+}
+
 export const setPointsHoverAtom = atom(
     null,
     (get, set, hover: PointsHover | null) => {
         const next = hover ?? NONE;
         const cur = get(pointsHoverAtom);
-        if (cur.kind !== next.kind || cur.selected !== next.selected || cur.canAdd !== next.canAdd) {
+        if (cur.kind !== next.kind || cur.selected !== next.selected || cur.canAdd !== next.canAdd || !sameAnchor(cur.anchor, next.anchor)) {
             set(pointsHoverAtom, next);
         }
     }
@@ -54,7 +61,7 @@ export function resolvePointsHover(get: Getter, e: Pick<ToolPointerEvent, 'doc' 
     const canAdd = nearSegment(get, candidates, e.doc);
 
     if (target.type === 'anchor') {
-        return { kind: 'anchor', selected: true, canAdd };
+        return { kind: 'anchor', selected: true, canAdd, anchor: { nodeId: target.nodeId, key: target.key } };
     }
 
     if (target.type === 'handle') {
