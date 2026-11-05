@@ -16,12 +16,24 @@ const NONE: PointsHover = { kind: 'none', selected: false, canAdd: false };
 
 const pointsHoverAtom = atom<PointsHover>(NONE);
 
+/** The path anchor under the pointer in Direct selection, or null */
+export const hoveredAnchorAtom = atom((get) => get(pointsHoverAtom).anchor ?? null);
+
+/** The direction handle under the pointer in Direct selection, or null */
+export const hoveredHandleAtom = atom((get) => get(pointsHoverAtom).handle ?? null);
+
+type Ref = { nodeId: string; key: string; side?: 'in' | 'out'; };
+
+function sameRef(a: Ref | undefined, b: Ref | undefined): boolean {
+    return a?.nodeId === b?.nodeId && a?.key === b?.key && a?.side === b?.side;
+}
+
 export const setPointsHoverAtom = atom(
     null,
     (get, set, hover: PointsHover | null) => {
         const next = hover ?? NONE;
         const cur = get(pointsHoverAtom);
-        if (cur.kind !== next.kind || cur.selected !== next.selected || cur.canAdd !== next.canAdd) {
+        if (cur.kind !== next.kind || cur.selected !== next.selected || cur.canAdd !== next.canAdd || !sameRef(cur.anchor, next.anchor) || !sameRef(cur.handle, next.handle)) {
             set(pointsHoverAtom, next);
         }
     }
@@ -54,11 +66,11 @@ export function resolvePointsHover(get: Getter, e: Pick<ToolPointerEvent, 'doc' 
     const canAdd = nearSegment(get, candidates, e.doc);
 
     if (target.type === 'anchor') {
-        return { kind: 'anchor', selected: true, canAdd };
+        return { kind: 'anchor', selected: true, canAdd, anchor: { nodeId: target.nodeId, key: target.key } };
     }
 
     if (target.type === 'handle') {
-        return { kind: 'handle', selected: true, canAdd };
+        return { kind: 'handle', selected: true, canAdd, handle: { nodeId: target.nodeId, key: target.key, side: target.side } };
     }
 
     if (target.type === 'shape-handle') {
