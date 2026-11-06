@@ -24,6 +24,13 @@ describe("inRotateBand", () => {
         expect(inRotateBand(box, { x: 0, y: 10 })).toBe(true);
     });
 
+    it("rotates along the diagonal out of a corner, not straight out of it", () => {
+        // top-right corner is (110, 20); along the diagonal toward the corner's outside
+        expect(inRotateBand(box, { x: 110 + 7.07, y: 20 - 7.07 })).toBe(true);
+        // straight up from the same corner is not on the line
+        expect(inRotateBand(box, { x: 110, y: 20 - 10 })).toBe(false);
+    });
+
     it("only reaches near the grips, not along the rest of an edge", () => {
         // above the top edge, midway between the top-left and top-middle grips
         expect(inRotateBand(box, { x: 30, y: 14 })).toBe(false);

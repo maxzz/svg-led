@@ -31,53 +31,64 @@ export const selectionGripsHiddenAtom = atom(false);
 
 //---------------------------------------------------------------------------
 
-/** Grip centers as fractions of the frame: four corners, then the four edge midpoints. */
-const GRIP_FRACTIONS: [number, number][] = [[0, 0], [1, 0], [1, 1], [0, 1], [0.5, 0], [1, 0.5], [0.5, 1], [0, 0.5]];
+/** Half-width of a rotate line, in screen pixels: the rotate cursor shows within this distance on either side of it. */
+export const ROTATE_LINE_HALF_PX = 2;
 
-/** Rotation is offered only in squares of half-size ROTATE_OUTER_PX around each grip, never along the rest of an edge. */
-function rotateZones(box: Rect): Rect[] {
-    return GRIP_FRACTIONS.map(([fx, fy]) => ({
-        x: box.x + fx * box.width - ROTATE_OUTER_PX,
-        y: box.y + fy * box.height - ROTATE_OUTER_PX,
-        width: 2 * ROTATE_OUTER_PX,
-        height: 2 * ROTATE_OUTER_PX,
-    }));
+/**
+ * Each grip with the direction of its rotate line, pointing outward from the frame: the edge normal for the
+ * edge midpoints, the diagonal for the corners. `fx`, `fy` place the grip on the frame (0 to 1).
+ */
+const GRIPS: { fx: number; fy: number; dx: number; dy: number; }[] = [
+    { fx: 0, fy: 0, dx: -Math.SQRT1_2, dy: -Math.SQRT1_2 }, // nw
+    { fx: 0.5, fy: 0, dx: 0, dy: -1 }, // n
+    { fx: 1, fy: 0, dx: Math.SQRT1_2, dy: -Math.SQRT1_2 }, // ne
+    { fx: 1, fy: 0.5, dx: 1, dy: 0 }, // e
+    { fx: 1, fy: 1, dx: Math.SQRT1_2, dy: Math.SQRT1_2 }, // se
+    { fx: 0.5, fy: 1, dx: 0, dy: 1 }, // s
+    { fx: 0, fy: 1, dx: -Math.SQRT1_2, dy: Math.SQRT1_2 }, // sw
+    { fx: 0, fy: 0.5, dx: -1, dy: 0 }, // w
+];
+
+/** One rotate line: starts at the grip center, runs along (dx, dy) and is rotate only from `start` out to ROTATE_OUTER_PX. */
+type RotateLine = { cx: number; cy: number; dx: number; dy: number; start: number; };
+
+function rotateLines(box: Rect): RotateLine[] {
+    return GRIPS.map(({ fx, fy, dx, dy }) => {
+        // the line leaves the square that covers the frame and grips once it has gone ROTATE_INNER_PX along each axis it moves on
+        const start = Math.min(...[dx, dy].filter((v) => v !== 0).map((v) => ROTATE_INNER_PX / Math.abs(v)));
+        return { cx: box.x + fx * box.width, cy: box.y + fy * box.height, dx, dy, start };
+    });
 }
 
-/** Screen point is near a grip, outside the frame and grips, so it rotates instead of moving or resizing. */
+/** Point lies in the band around the line: past the grip, within the reach, and within ROTATE_LINE_HALF_PX of the line. */
+function onRotateLine(line: RotateLine, p: Point): boolean {
+    const ox = p.x - line.cx;
+    const oy = p.y - line.cy;
+    const along = ox * line.dx + oy * line.dy;
+    const across = -ox * line.dy + oy * line.dx;
+    return along >= line.start && along <= ROTATE_OUTER_PX && Math.abs(across) <= ROTATE_LINE_HALF_PX;
+}
+
+/** Screen point is in a rotate band (outside the frame and grips, near a line). Rotation starts there instead of moving or resizing. */
 export function inRotateBand(box: Rect, p: Point): boolean {
-    return !contains(expandedRect(box, ROTATE_INNER_PX), p) && rotateZones(box).some((zone) => contains(zone, p));
+    return !contains(expandedRect(box, ROTATE_INNER_PX), p) && rotateLines(box).some((line) => onRotateLine(line, p));
 }
 
 /**
- * Path for the rotate zones, with the rect that covers the frame and the grips cut out.
- * The pieces do not overlap each other, so the path is filled with the nonzero rule.
+ * Path for the rotate bands, one rotated rectangle per grip. Every rectangle is built the same way, so they all
+ * have the same winding and the nonzero rule fills their union.
  * Coordinates are screen pixels, same space as the selection frame.
  */
 export function rotateBandD(box: Rect): string {
-    const inner = expandedRect(box, ROTATE_INNER_PX);
-    return rotateZones(box).flatMap((zone) => rectMinus(zone, inner)).map(rectPath).join('');
+    return rotateLines(box).map(rotateLinePath).join('');
 }
 
-/** `a` with `b` removed, as up to four rects. */
-function rectMinus(a: Rect, b: Rect): Rect[] {
-    const ix1 = Math.max(a.x, b.x);
-    const iy1 = Math.max(a.y, b.y);
-    const ix2 = Math.min(a.x + a.width, b.x + b.width);
-    const iy2 = Math.min(a.y + a.height, b.y + b.height);
-    if (ix1 >= ix2 || iy1 >= iy2) {
-        return [a];
-    }
-    const out: Rect[] = [];
-    if (iy1 > a.y) out.push({ x: a.x, y: a.y, width: a.width, height: iy1 - a.y });
-    if (iy2 < a.y + a.height) out.push({ x: a.x, y: iy2, width: a.width, height: a.y + a.height - iy2 });
-    if (ix1 > a.x) out.push({ x: a.x, y: iy1, width: ix1 - a.x, height: iy2 - iy1 });
-    if (ix2 < a.x + a.width) out.push({ x: ix2, y: iy1, width: a.x + a.width - ix2, height: iy2 - iy1 });
-    return out;
-}
-
-function rectPath(r: Rect): string {
-    return `M${px(r.x)} ${px(r.y)}h${px(r.width)}v${px(r.height)}h${px(-r.width)}z`;
+function rotateLinePath(line: RotateLine): string {
+    const nx = -line.dy;
+    const ny = line.dx;
+    const at = (along: number, across: number) => `${px(line.cx + along * line.dx + across * nx)} ${px(line.cy + along * line.dy + across * ny)}`;
+    const w = ROTATE_LINE_HALF_PX;
+    return `M${at(line.start, -w)}L${at(ROTATE_OUTER_PX, -w)}L${at(ROTATE_OUTER_PX, w)}L${at(line.start, w)}Z`;
 }
 
 export function expandedRect(box: Rect, pad: number): Rect {
