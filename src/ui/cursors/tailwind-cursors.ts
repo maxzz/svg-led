@@ -1,9 +1,9 @@
 import type { PluginAPI } from 'tailwindcss/plugin';
 import { cursorCss } from './8-cursor-css';
 import { resizeHorizontal, resizeVertical, resizeNwSe, resizeNeSw } from './1-1-cursor-resize';
-import { selectionMove, selectionPointer, selectionPointerHover } from './cursor-selection';
-import { directCursorCss, directHoverMark, directPointMark, directMoveMark } from './cursor-direct';
-import { PEN_BADGES, penCursorCss } from './cursor-pen';
+import { selectionMove, selectionPointer, selectionPointerHover } from './2-1-cursor-selection';
+import { directCursorCss, directHoverMark, directPointMark, directMoveMark } from './2-2-cursor-direct';
+import { PEN_BADGES, penCursorCss } from './2-3-cursor-pen';
 
 //---------------------------------------------------------------------------
 

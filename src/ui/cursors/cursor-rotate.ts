@@ -1,5 +1,5 @@
 import { cursorCss } from './8-cursor-css';
-import { ROTATE_CURSOR_DEGREES, ROTATE_GLYPH } from './rotate-glyph';
+import { ROTATE_CURSOR_DEGREES, ROTATE_GLYPH } from './8-rotate-glyph';
 
 /**
  * Rotate cursor at 0°: a quarter-circle bulging right, with an arrowhead at each end.

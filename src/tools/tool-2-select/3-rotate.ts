@@ -1,6 +1,6 @@
 import { atom } from "jotai";
 import { type Point, type Rect } from "@/svg-core";
-import { ROTATE_CURSOR_STEP } from "@/ui/cursors/rotate-glyph";
+import { ROTATE_CURSOR_STEP } from "@/ui/cursors/8-rotate-glyph";
 
 /**
  * The grips are 4px squares centered on the frame, so they stick out 2px.

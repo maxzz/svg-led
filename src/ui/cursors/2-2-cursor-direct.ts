@@ -1,5 +1,5 @@
 import { cursorCss } from './8-cursor-css';
-import { PEN_BADGES } from './cursor-pen';
+import { PEN_BADGES } from './2-3-cursor-pen';
 
 /**
  * Direct selection: the same arrow as the Selection tool, filled white with a 1px black edge,
