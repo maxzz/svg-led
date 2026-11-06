@@ -16,26 +16,33 @@ describe("inRotateBand", () => {
         expect(inRotateBand(box, { x: 9, y: 40 })).toBe(false);
     });
 
-    it("starts just outside the grips and stops at the outer reach", () => {
+    it("is a 2×2 px zone on the grip's line, starting 1px past the grip", () => {
+        // left-middle grip is (10, 40); its line points left, so the zone runs from x = 7 to x = 5
         expect(inRotateBand(box, { x: 7, y: 40 })).toBe(true);
-        expect(inRotateBand(box, { x: 10 - 16, y: 40 })).toBe(true);
-        expect(inRotateBand(box, { x: 10 - 17, y: 40 })).toBe(false);
-        // outside a corner, between the grip and the outer corner of the band
-        expect(inRotateBand(box, { x: 0, y: 10 })).toBe(true);
+        expect(inRotateBand(box, { x: 5, y: 40 })).toBe(true);
+        expect(inRotateBand(box, { x: 4, y: 40 })).toBe(false);
+        // 1px to each side of the line is still in the zone, 2px is not
+        expect(inRotateBand(box, { x: 6, y: 41 })).toBe(true);
+        expect(inRotateBand(box, { x: 6, y: 42 })).toBe(false);
+        // far out from a corner is not rotate
+        expect(inRotateBand(box, { x: 0, y: 10 })).toBe(false);
     });
 
     it("rotates along the diagonal out of a corner, not straight out of it", () => {
-        // top-right corner is (110, 20); along the diagonal toward the corner's outside
-        expect(inRotateBand(box, { x: 110 + 7.07, y: 20 - 7.07 })).toBe(true);
+        // top-right corner is (110, 20); the zone sits on the diagonal toward the corner's outside
+        expect(inRotateBand(box, { x: 110 + 3.42, y: 20 - 3.42 })).toBe(true);
         // straight up from the same corner is not on the line
-        expect(inRotateBand(box, { x: 110, y: 20 - 10 })).toBe(false);
+        expect(inRotateBand(box, { x: 110, y: 20 - 3.42 })).toBe(false);
+        // top-left corner, along its diagonal
+        expect(inRotateBand(box, { x: 10 - 3.42, y: 20 - 3.42 })).toBe(true);
     });
 
     it("only reaches near the grips, not along the rest of an edge", () => {
         // above the top edge, midway between the top-left and top-middle grips
         expect(inRotateBand(box, { x: 30, y: 14 })).toBe(false);
-        // above the top-middle grip
-        expect(inRotateBand(box, { x: 60, y: 14 })).toBe(true);
+        // above the top-middle grip, on its line
+        expect(inRotateBand(box, { x: 60, y: 16 })).toBe(true);
+        expect(inRotateBand(box, { x: 60, y: 14 })).toBe(false);
         // left of a tall frame: far from the top-left and left-middle grips
         const tall = { x: 10, y: 20, width: 100, height: 200 };
         expect(inRotateBand(tall, { x: 7, y: 60 })).toBe(false);

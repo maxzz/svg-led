@@ -8,7 +8,12 @@ import { ROTATE_CURSOR_IMAGE_STEP, ROTATE_CURSOR_STEP } from "@/ui/cursors/8-rot
  * inside the frame is a move, and the squares themselves stay resize.
  */
 export const ROTATE_INNER_PX = 2;
-export const ROTATE_OUTER_PX = 16;
+
+/** Gap between the outer edge of a grip (its corner, on a corner grip) and the near side of the rotate zone. */
+export const ROTATE_GAP_PX = 1;
+
+/** The rotate zone is a 2×2 px square on the grip's line: 2px long along the line, 1px to each side of it. */
+export const ROTATE_ZONE_PX = 2;
 
 export const ROTATE_SNAP_DEG = 15;
 
@@ -31,8 +36,8 @@ export const selectionGripsHiddenAtom = atom(false);
 
 //---------------------------------------------------------------------------
 
-/** Half-width of a rotate line, in screen pixels: the rotate cursor shows within this distance on either side of it. */
-export const ROTATE_LINE_HALF_PX = 2;
+/** Half of the 2px width of the rotate zone: the zone reaches 1px to each side of the grip's line. */
+const ROTATE_ZONE_HALF_PX = ROTATE_ZONE_PX / 2;
 
 /**
  * Each grip with the direction of its rotate line, pointing outward from the frame: the edge normal for the
@@ -49,33 +54,34 @@ const GRIPS: { fx: number; fy: number; dx: number; dy: number; }[] = [
     { fx: 0, fy: 0.5, dx: -1, dy: 0 }, // w
 ];
 
-/** One rotate line: starts at the grip center, runs along (dx, dy) and is rotate only from `start` out to ROTATE_OUTER_PX. */
-type RotateLine = { cx: number; cy: number; dx: number; dy: number; start: number; };
+/** One rotate zone: a square on the line from the grip center along (dx, dy), from `start` to `end` along the line. */
+type RotateLine = { cx: number; cy: number; dx: number; dy: number; start: number; end: number; };
 
 function rotateLines(box: Rect): RotateLine[] {
     return GRIPS.map(({ fx, fy, dx, dy }) => {
-        // the line leaves the square that covers the frame and grips once it has gone ROTATE_INNER_PX along each axis it moves on
-        const start = Math.min(...[dx, dy].filter((v) => v !== 0).map((v) => ROTATE_INNER_PX / Math.abs(v)));
-        return { cx: box.x + fx * box.width, cy: box.y + fy * box.height, dx, dy, start };
+        // how far the grip reaches along the line: its half-size along each axis the line moves on
+        const gripReach = ROTATE_INNER_PX * (Math.abs(dx) + Math.abs(dy));
+        const start = gripReach + ROTATE_GAP_PX;
+        return { cx: box.x + fx * box.width, cy: box.y + fy * box.height, dx, dy, start, end: start + ROTATE_ZONE_PX };
     });
 }
 
-/** Point lies in the band around the line: past the grip, within the reach, and within ROTATE_LINE_HALF_PX of the line. */
+/** Point lies in the zone: along the line between `start` and `end`, and within 1px of the line on either side. */
 function onRotateLine(line: RotateLine, p: Point): boolean {
     const ox = p.x - line.cx;
     const oy = p.y - line.cy;
     const along = ox * line.dx + oy * line.dy;
     const across = -ox * line.dy + oy * line.dx;
-    return along >= line.start && along <= ROTATE_OUTER_PX && Math.abs(across) <= ROTATE_LINE_HALF_PX;
+    return along >= line.start && along <= line.end && Math.abs(across) <= ROTATE_ZONE_HALF_PX;
 }
 
-/** Screen point is in a rotate band (outside the frame and grips, near a line). Rotation starts there instead of moving or resizing. */
+/** Screen point is in a rotate zone (outside the frame and grips, on a grip's line). Rotation starts there instead of moving or resizing. */
 export function inRotateBand(box: Rect, p: Point): boolean {
     return !contains(expandedRect(box, ROTATE_INNER_PX), p) && rotateLines(box).some((line) => onRotateLine(line, p));
 }
 
 /**
- * Path for the rotate bands, one rotated rectangle per grip. Every rectangle is built the same way, so they all
+ * Path for the rotate zones, one 2×2 px square per grip. Every square is built the same way, so they all
  * have the same winding and the nonzero rule fills their union.
  * Coordinates are screen pixels, same space as the selection frame.
  */
@@ -87,8 +93,8 @@ function rotateLinePath(line: RotateLine): string {
     const nx = -line.dy;
     const ny = line.dx;
     const at = (along: number, across: number) => `${px(line.cx + along * line.dx + across * nx)} ${px(line.cy + along * line.dy + across * ny)}`;
-    const w = ROTATE_LINE_HALF_PX;
-    return `M${at(line.start, -w)}L${at(ROTATE_OUTER_PX, -w)}L${at(ROTATE_OUTER_PX, w)}L${at(line.start, w)}Z`;
+    const h = ROTATE_ZONE_HALF_PX;
+    return `M${at(line.start, -h)}L${at(line.end, -h)}L${at(line.end, h)}L${at(line.start, h)}Z`;
 }
 
 export function expandedRect(box: Rect, pad: number): Rect {
