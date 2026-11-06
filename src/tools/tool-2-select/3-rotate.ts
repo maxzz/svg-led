@@ -1,6 +1,6 @@
 import { atom } from "jotai";
 import { type Point, type Rect } from "@/svg-core";
-import { ROTATE_CURSOR_STEP } from "@/ui/cursors/8-rotate-glyph";
+import { ROTATE_CURSOR_IMAGE_STEP, ROTATE_CURSOR_STEP } from "@/ui/cursors/8-rotate-glyph";
 
 /**
  * The grips are 4px squares centered on the frame, so they stick out 2px.
@@ -18,8 +18,8 @@ export const ROTATE_TOOLTIP_GAP = 16;
 export type RotateReadout = { x: number; y: number; label: string };
 
 /**
- * Which rotate bitmap to show (`cursor-rotate-0` … `cursor-rotate-345`) over the band and for the whole drag.
- * Resolved to an image when the canvas paints it; every 15° step exists, including the corners.
+ * Which rotate cursor class to show (`cursor-rotate-0` … `cursor-rotate-315`) over the band and for the whole drag.
+ * Each class is a 45° image defined in the Tailwind cursors plugin.
  */
 export const rotateCursorAtom = atom<string | null>(null);
 
@@ -50,12 +50,16 @@ export function expandedRect(box: Rect, pad: number): Rect {
     return { x: box.x - pad, y: box.y - pad, width: box.width + 2 * pad, height: box.height + 2 * pad };
 }
 
-/** Cursor whose bulge points from `center` toward `pointer`, in 15° steps. */
+/**
+ * Cursor whose bulge points from `center` toward `pointer`. The angle is snapped to 15° steps first,
+ * then the nearest of the eight 45° images is used.
+ */
 export function rotateCursorClass(center: Point, pointer: Point): string {
     const deg = Math.atan2(pointer.y - center.y, pointer.x - center.x) * 180 / Math.PI;
-    const turns = 360 / ROTATE_CURSOR_STEP;
-    const index = mod(Math.round(deg / ROTATE_CURSOR_STEP), turns);
-    return `cursor-rotate-${index * ROTATE_CURSOR_STEP}`;
+    const snapped = Math.round(deg / ROTATE_CURSOR_STEP) * ROTATE_CURSOR_STEP;
+    const turns = 360 / ROTATE_CURSOR_IMAGE_STEP;
+    const index = mod(Math.round(snapped / ROTATE_CURSOR_IMAGE_STEP), turns);
+    return `cursor-rotate-${index * ROTATE_CURSOR_IMAGE_STEP}`;
 }
 
 //---------------------------------------------------------------------------

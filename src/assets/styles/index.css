@@ -3,6 +3,7 @@
 @import "shadcn/tailwind.css";
 
 @plugin "../../ui/cursors/tailwind-cursors.ts";
+@source inline("cursor-rotate-{0,45,90,135,180,225,270,315}");
 
 @import "./caps-joins-icons.css";
 @import "./lasso.css";

@@ -4,6 +4,10 @@
 
 export const ROTATE_GLYPH = { size: 24, hotX: 12, hotY: 12 };
 
+/** Rotation snaps to multiples of this many degrees. */
 export const ROTATE_CURSOR_STEP = 15;
 
-export const ROTATE_CURSOR_DEGREES = Array.from({ length: 360 / ROTATE_CURSOR_STEP }, (_, i) => i * ROTATE_CURSOR_STEP);
+/** Eight cursor images, one every 45°: four corners and four edges. The pointer picks the nearest one. */
+export const ROTATE_CURSOR_IMAGE_STEP = 45;
+
+export const ROTATE_CURSOR_IMAGE_DEGREES = Array.from({ length: 360 / ROTATE_CURSOR_IMAGE_STEP }, (_, i) => i * ROTATE_CURSOR_IMAGE_STEP);

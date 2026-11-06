@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ROTATE_CURSOR_DEGREES } from "@/ui/cursors/8-rotate-glyph";
-import { rotateCursorStyle } from "@/ui/cursors/1-2-cursor-rotate";
+import { ROTATE_CURSOR_IMAGE_DEGREES } from "@/ui/cursors/8-rotate-glyph";
 import {
     formatRotation, inRotateBand, rotateCursorClass, snapRotation, unwrapAngle,
 } from "../3-rotate";
@@ -75,23 +74,16 @@ describe("rotateCursorClass", () => {
         expect(rotateCursorClass(center, { x: 0, y: -10 })).toBe("cursor-rotate-270");
     });
 
-    it("uses the same 15° steps as the cursor bitmaps", () => {
+    it("snaps to 15° first, then uses the nearest of the eight 45° images", () => {
         const at = (deg: number) => rotateCursorClass(center, { x: Math.cos(deg * Math.PI / 180), y: Math.sin(deg * Math.PI / 180) });
         expect(at(7)).toBe("cursor-rotate-0");
-        expect(at(8)).toBe("cursor-rotate-15");
+        expect(at(8)).toBe("cursor-rotate-0");   // snaps to 15, nearest image is 0
+        expect(at(23)).toBe("cursor-rotate-45"); // snaps to 30, nearest image is 45
+        expect(at(80)).toBe("cursor-rotate-90"); // snaps to 75 -> 90
+        expect(at(100)).toBe("cursor-rotate-90");
         for (const deg of [0, 15, 90, 180, 270, 345]) {
-            expect(ROTATE_CURSOR_DEGREES).toContain(Number(at(deg).slice("cursor-rotate-".length)));
+            expect(ROTATE_CURSOR_IMAGE_DEGREES).toContain(Number(at(deg).slice("cursor-rotate-".length)));
         }
-    });
-});
-
-describe("rotateCursorStyle", () => {
-    it("has a bitmap at every 15° step, so the corners are not stuck with the edge cursors", () => {
-        for (const deg of ROTATE_CURSOR_DEGREES) {
-            expect(rotateCursorStyle(`cursor-rotate-${deg}`), String(deg)).toMatch(/^url\(/);
-        }
-        expect(rotateCursorStyle("cursor-rotate-45")).not.toBe(rotateCursorStyle("cursor-rotate-0"));
-        expect(rotateCursorStyle("cursor-rotate-135")).not.toBe(rotateCursorStyle("cursor-rotate-90"));
     });
 });
 
