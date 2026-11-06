@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ROTATE_CURSOR_DEGREES } from "@/ui/cursors/8-rotate-glyph";
-import { rotateCursorStyle } from "@/ui/cursors/cursor-rotate";
+import { rotateCursorStyle } from "@/ui/cursors/1-2-cursor-rotate";
 import {
     formatRotation, inRotateBand, rotateCursorClass, snapRotation, unwrapAngle,
 } from "../3-rotate";
