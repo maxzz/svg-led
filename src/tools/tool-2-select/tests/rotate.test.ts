@@ -23,6 +23,17 @@ describe("inRotateBand", () => {
         // outside a corner, between the grip and the outer corner of the band
         expect(inRotateBand(box, { x: 0, y: 10 })).toBe(true);
     });
+
+    it("only reaches near the grips, not along the rest of an edge", () => {
+        // above the top edge, midway between the top-left and top-middle grips
+        expect(inRotateBand(box, { x: 30, y: 14 })).toBe(false);
+        // above the top-middle grip
+        expect(inRotateBand(box, { x: 60, y: 14 })).toBe(true);
+        // left of a tall frame: far from the top-left and left-middle grips
+        const tall = { x: 10, y: 20, width: 100, height: 200 };
+        expect(inRotateBand(tall, { x: 7, y: 60 })).toBe(false);
+        expect(inRotateBand(tall, { x: 7, y: 120 })).toBe(true);
+    });
 });
 
 describe("snapRotation", () => {
