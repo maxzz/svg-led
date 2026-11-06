@@ -1,5 +1,5 @@
 // Angle step and hotspot for the rotate cursor.
-// The drawing is the `rotateCursor` SVG in tailwind-cursors.ts.
+// The drawing is the `rotateCursor` SVG in cursor-rotate.ts.
 // Angle 0 bulges to the right; positive angles turn that bulge clockwise around the hotspot.
 
 export const ROTATE_GLYPH = { size: 24, hotX: 12, hotY: 12 };

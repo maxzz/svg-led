@@ -17,7 +17,7 @@ import { type MoveGesture, beginMove, endMove, moveAltKey, pastThreshold, update
 import { hitTestOutlines, docTolerance } from "../0-shared/2-tool-helpers";
 import { selectionUnitId } from "../0-shared/4-group-units";
 import { clearSnapGuides, collectSnapTargets, setSnapGuides, snapActive, snapBox, snapThreshold } from "../2-1-core-snapping";
-import { rotateCursorStyle } from "@/ui/cursors/tailwind-cursors";
+import { rotateCursorStyle } from "@/ui/cursors/cursor-rotate";
 import { LASSO_STEP_PX, type Polyline, lassoHits, simplifyLasso } from "./2-lasso";
 
 /** True while a move gesture drags the selection. The hover state is cleared on pointer down, so the cursor needs this to keep the move icon during the drag. */
