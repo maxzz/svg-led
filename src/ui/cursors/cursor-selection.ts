@@ -1,4 +1,4 @@
-import { cursorCss } from './cursor-css';
+import { cursorCss } from './8-cursor-css';
 
 /** Empty canvas, nothing selected: just the arrow */
 export const selectionPointer = `

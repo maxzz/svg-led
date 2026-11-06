@@ -1,4 +1,4 @@
-import { cursorCss } from './cursor-css';
+import { cursorCss } from './8-cursor-css';
 
 /**
  * Horizontal resize. Double arrow centered on the 24×24 grid; the hotspot is that center.

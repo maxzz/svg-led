@@ -1,4 +1,4 @@
-import { cursorCss } from './cursor-css';
+import { cursorCss } from './8-cursor-css';
 import { PEN_BADGES } from './cursor-pen';
 
 /**

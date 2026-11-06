@@ -1,4 +1,4 @@
-import { cursorCss } from './cursor-css';
+import { cursorCss } from './8-cursor-css';
 
 /**
  * Pen: a nib pointing to the upper left; the hotspot is the tip at (2, 2).
