@@ -10,10 +10,10 @@ import { ROTATE_CURSOR_IMAGE_STEP, ROTATE_CURSOR_STEP } from "@/ui/cursors/8-rot
 export const ROTATE_INNER_PX = 2;
 
 /** Gap between the outer edge of a grip (its corner, on a corner grip) and the near side of the rotate zone. */
-export const ROTATE_GAP_PX = 1;
+export const ROTATE_GAP_PX = 2;
 
-/** The rotate zone is a 2×2 px square on the grip's line: 2px long along the line, 1px to each side of it. */
-export const ROTATE_ZONE_PX = 2;
+/** The rotate zone is a 4×4 px square on the grip's line: 2px long along the line, 1px to each side of it. */
+export const ROTATE_ZONE_PX = 4;
 
 export const ROTATE_SNAP_DEG = 15;
 
