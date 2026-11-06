@@ -33,7 +33,7 @@ export function Overlay_Selection() {
             )}
 
             {box && (<>
-                <path d={rotateBandD(box)} fill="black" fillOpacity={0} fillRule="evenodd" pointerEvents="visibleFill" data-hit="rotate" />
+                <path d={rotateBandD(box)} fill="black" fillOpacity={0} fillRule="nonzero" pointerEvents="visibleFill" data-hit="rotate" />
                 <rect
                     className="stroke-(--editor-accent) pointer-events-none"
                     x={box.x} y={box.y} width={box.width} height={box.height}

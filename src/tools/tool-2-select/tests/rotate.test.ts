@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ROTATE_CURSOR_DEGREES } from "@/ui/cursors/8-rotate-glyph";
-import { rotateCursorStyle } from "@/ui/cursors/1-2-cursor-rotate";
+import { ROTATE_CURSOR_IMAGE_DEGREES } from "@/ui/cursors/8-rotate-glyph";
 import {
     formatRotation, inRotateBand, rotateCursorClass, snapRotation, unwrapAngle,
 } from "../3-rotate";
@@ -17,12 +16,37 @@ describe("inRotateBand", () => {
         expect(inRotateBand(box, { x: 9, y: 40 })).toBe(false);
     });
 
-    it("starts just outside the grips and stops at the outer reach", () => {
+    it("is a 2×2 px zone on the grip's line, starting 1px past the grip", () => {
+        // left-middle grip is (10, 40); its line points left, so the zone runs from x = 7 to x = 5
         expect(inRotateBand(box, { x: 7, y: 40 })).toBe(true);
-        expect(inRotateBand(box, { x: 10 - 16, y: 40 })).toBe(true);
-        expect(inRotateBand(box, { x: 10 - 17, y: 40 })).toBe(false);
-        // outside a corner, between the grip and the outer corner of the band
-        expect(inRotateBand(box, { x: 0, y: 10 })).toBe(true);
+        expect(inRotateBand(box, { x: 5, y: 40 })).toBe(true);
+        expect(inRotateBand(box, { x: 4, y: 40 })).toBe(false);
+        // 1px to each side of the line is still in the zone, 2px is not
+        expect(inRotateBand(box, { x: 6, y: 41 })).toBe(true);
+        expect(inRotateBand(box, { x: 6, y: 42 })).toBe(false);
+        // far out from a corner is not rotate
+        expect(inRotateBand(box, { x: 0, y: 10 })).toBe(false);
+    });
+
+    it("rotates along the diagonal out of a corner, not straight out of it", () => {
+        // top-right corner is (110, 20); the zone sits on the diagonal toward the corner's outside
+        expect(inRotateBand(box, { x: 110 + 3.42, y: 20 - 3.42 })).toBe(true);
+        // straight up from the same corner is not on the line
+        expect(inRotateBand(box, { x: 110, y: 20 - 3.42 })).toBe(false);
+        // top-left corner, along its diagonal
+        expect(inRotateBand(box, { x: 10 - 3.42, y: 20 - 3.42 })).toBe(true);
+    });
+
+    it("only reaches near the grips, not along the rest of an edge", () => {
+        // above the top edge, midway between the top-left and top-middle grips
+        expect(inRotateBand(box, { x: 30, y: 14 })).toBe(false);
+        // above the top-middle grip, on its line
+        expect(inRotateBand(box, { x: 60, y: 16 })).toBe(true);
+        expect(inRotateBand(box, { x: 60, y: 14 })).toBe(false);
+        // left of a tall frame: far from the top-left and left-middle grips
+        const tall = { x: 10, y: 20, width: 100, height: 200 };
+        expect(inRotateBand(tall, { x: 7, y: 60 })).toBe(false);
+        expect(inRotateBand(tall, { x: 7, y: 120 })).toBe(true);
     });
 });
 
@@ -75,23 +99,16 @@ describe("rotateCursorClass", () => {
         expect(rotateCursorClass(center, { x: 0, y: -10 })).toBe("cursor-rotate-270");
     });
 
-    it("uses the same 15° steps as the cursor bitmaps", () => {
+    it("snaps to 15° first, then uses the nearest of the eight 45° images", () => {
         const at = (deg: number) => rotateCursorClass(center, { x: Math.cos(deg * Math.PI / 180), y: Math.sin(deg * Math.PI / 180) });
         expect(at(7)).toBe("cursor-rotate-0");
-        expect(at(8)).toBe("cursor-rotate-15");
+        expect(at(8)).toBe("cursor-rotate-0");   // snaps to 15, nearest image is 0
+        expect(at(23)).toBe("cursor-rotate-45"); // snaps to 30, nearest image is 45
+        expect(at(80)).toBe("cursor-rotate-90"); // snaps to 75 -> 90
+        expect(at(100)).toBe("cursor-rotate-90");
         for (const deg of [0, 15, 90, 180, 270, 345]) {
-            expect(ROTATE_CURSOR_DEGREES).toContain(Number(at(deg).slice("cursor-rotate-".length)));
+            expect(ROTATE_CURSOR_IMAGE_DEGREES).toContain(Number(at(deg).slice("cursor-rotate-".length)));
         }
-    });
-});
-
-describe("rotateCursorStyle", () => {
-    it("has a bitmap at every 15° step, so the corners are not stuck with the edge cursors", () => {
-        for (const deg of ROTATE_CURSOR_DEGREES) {
-            expect(rotateCursorStyle(`cursor-rotate-${deg}`), String(deg)).toMatch(/^url\(/);
-        }
-        expect(rotateCursorStyle("cursor-rotate-45")).not.toBe(rotateCursorStyle("cursor-rotate-0"));
-        expect(rotateCursorStyle("cursor-rotate-135")).not.toBe(rotateCursorStyle("cursor-rotate-90"));
     });
 });
 

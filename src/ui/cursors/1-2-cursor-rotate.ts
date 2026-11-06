@@ -1,5 +1,4 @@
-import { cursorCss } from './8-cursor-css';
-import { ROTATE_CURSOR_DEGREES, ROTATE_GLYPH } from './8-rotate-glyph';
+import { ROTATE_GLYPH } from './8-rotate-glyph';
 
 /**
  * Rotate cursor at 0°: a quarter-circle bulging right, with an arrowhead at each end.
@@ -22,7 +21,7 @@ const rotateCursor = `
 //---------------------------------------------------------------------------
 
 /** Same drawing, turned clockwise around the hotspot. Angle 0 is the constant above. */
-function rotateCursorAt(deg: number): string {
+export function rotateCursorAt(deg: number): string {
     if (!deg) {
         return rotateCursor;
     }
@@ -35,16 +34,3 @@ function rotateCursorAt(deg: number): string {
     return `${withGroup.slice(0, end)}</g></svg>`;
 }
 
-/**
- * Bitmap for a rotate-cursor class (`cursor-rotate-45`, …).
- * The angle is chosen while the pointer moves, so this is a CSS cursor value rather than a Tailwind
- * class: Tailwind only emits class names written out in source, and the corner angles never were.
- */
-const rotateCursorStyles = new Map(ROTATE_CURSOR_DEGREES.map((deg) => [
-    `cursor-rotate-${deg}`,
-    cursorCss(rotateCursorAt(deg), ROTATE_GLYPH.hotX, ROTATE_GLYPH.hotY),
-]));
-
-export function rotateCursorStyle(className: string): string {
-    return rotateCursorStyles.get(className) ?? 'default';
-}
