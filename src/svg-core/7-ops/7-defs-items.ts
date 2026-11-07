@@ -1,6 +1,6 @@
 import { type SvgDoc, type SvgNode } from "../1-model/1-types";
 import { findNode, walkNodes } from "../1-model/3-tree";
-import { parseSvgFragment } from "../2-parse/1-parse-svg";
+import { parseDefsElementId, scanElements } from "../3-serialize/4-source-map";
 import { classRulesOf } from "./5-expand-stroke";
 
 /**
@@ -9,36 +9,56 @@ import { classRulesOf } from "./5-expand-stroke";
  */
 export const DEACTIVATED_PREFIX = 'deactivated-';
 
-/** An item inside a `<defs>` element, shown under it in the layers tree. Items are not on the canvas. */
-export type DefsItem = {
-    /** Stable within one defs element: `class:<name>` or `el:<index>` */
+/** A class of a `<defs>` element, shown under it in the layers tree */
+export type DefsClassItem = {
+    kind: 'class';
+    /** `class:<name>` */
     key: string;
-    /** `.name` for a class, the element id (or `<tag>`) for other elements */
+    /** `.name` */
     label: string;
-    kind: 'class' | 'element';
-    /** Element tag for `kind: 'element'`, e.g. `linearGradient` */
-    tag?: string;
-    /** Class name without the deactivated prefix, for `kind: 'class'` */
-    name?: string;
-    /** For a class: false when its rules are renamed to `.deactivated-<name>` */
-    active?: boolean;
+    name: string;
+    /** False when the rule is renamed to `.deactivated-<name>` */
+    active: boolean;
 };
 
+/** An element inside a `<defs>` element (at any depth), shown as a selectable row */
+export type DefsElementItem = {
+    kind: 'element';
+    /** `el:<index>`, unique within the defs element */
+    key: string;
+    /** Pre-order index among all elements of the defs element; see `defsElementId` */
+    index: number;
+    /** The element id, or `<tag>` when it has none */
+    label: string;
+    tag: string;
+    /** Elements nested directly inside this one (style elements are not listed) */
+    children: DefsElementItem[];
+};
+
+export type DefsItem = DefsClassItem | DefsElementItem;
+
 /**
- * Items of a `<defs>` element given its inner markup: one per class of its `<style>` children,
- * then one per other child element, in source order.
+ * Items of a `<defs>` element given its inner markup: its classes first (one per class of its `<style>` children),
+ * then its elements as a tree. Works on the markup text, so it does not need the DOM.
  */
 export function defsItemsOf(inner: string): DefsItem[] {
-    return defsItemsFromChildren(parseSvgFragment(inner) ?? []);
+    return [...classItemsOf(inner), ...elementItemsOf(inner)];
 }
 
-/** Same as `defsItemsOf`, for children that are already parsed */
-export function defsItemsFromChildren(children: readonly SvgNode[]): DefsItem[] {
-    const items: DefsItem[] = [];
+/** True when `id` names an element inside a `<defs>` element of `doc` that still exists */
+export function isDefsElementOf(doc: SvgDoc, id: string): boolean {
+    const parsed = parseDefsElementId(id);
+    const node = parsed ? findNode(doc, parsed.defsId)?.node : undefined;
+    return !!parsed && node?.kind === 'passthrough' && parsed.index < scanElements(node.inner).length;
+}
 
+//---------------------------------------------------------------------------
+
+function classItemsOf(inner: string): DefsClassItem[] {
+    const wrapper: SvgNode = { id: '', kind: 'passthrough', tag: 'defs', inner, attrs: {} };
     const active = new Set<string>();
     const inactive = new Set<string>();
-    for (const rule of classRulesOf(children)) {
+    for (const rule of classRulesOf([wrapper])) {
         for (const cls of rule.classes) {
             if (cls.length > DEACTIVATED_PREFIX.length && cls.startsWith(DEACTIVATED_PREFIX)) {
                 inactive.add(cls.slice(DEACTIVATED_PREFIX.length));
@@ -47,19 +67,59 @@ export function defsItemsFromChildren(children: readonly SvgNode[]): DefsItem[] 
             }
         }
     }
-    for (const name of new Set([...active, ...inactive])) {
-        items.push({ key: `class:${name}`, label: `.${name}`, kind: 'class', name, active: active.has(name) });
-    }
+    return [...new Set([...active, ...inactive])].map((name): DefsClassItem => ({
+        kind: 'class',
+        key: `class:${name}`,
+        label: `.${name}`,
+        name,
+        active: active.has(name),
+    }));
+}
 
-    children.forEach((child, index) => {
-        if (child.kind === 'passthrough' && child.tag.toLowerCase() === 'style') {
+type ScannedElement = { tag: string; id: string | undefined; parent: number; };
+
+/** Tag, id and parent (index in the list, -1 for none) of every element of the markup, in document order */
+function scanInner(inner: string): ScannedElement[] {
+    const ranges = scanElements(inner);
+    return ranges.map((r, i) => {
+        const startTag = inner.slice(r.start, r.end);
+        const tag = /^<([^\s/>]+)/.exec(startTag)?.[1] ?? '';
+        const id = /\sid\s*=\s*(["'])(.*?)\1/.exec(startTag)?.[2];
+        // the nearest earlier element that still contains this one
+        let parent = -1;
+        for (let j = i - 1; j >= 0; j--) {
+            if (ranges[j].end > r.start) {
+                parent = j;
+                break;
+            }
+        }
+        return { tag, id: id || undefined, parent };
+    });
+}
+
+function elementItemsOf(inner: string): DefsElementItem[] {
+    const scanned = scanInner(inner);
+    const items: DefsElementItem[] = scanned.map((e, index) => ({
+        kind: 'element',
+        key: `el:${index}`,
+        index,
+        label: e.id ?? `<${e.tag}>`,
+        tag: e.tag,
+        children: [],
+    }));
+
+    const roots: DefsElementItem[] = [];
+    scanned.forEach((e, i) => {
+        if (e.tag.toLowerCase() === 'style') {
             return;
         }
-        const tag = child.kind === 'passthrough' ? child.tag : child.kind;
-        items.push({ key: `el:${index}`, label: child.attrs.id || `<${tag}>`, kind: 'element', tag });
+        if (e.parent >= 0) {
+            items[e.parent].children.push(items[i]);
+        } else {
+            roots.push(items[i]);
+        }
     });
-
-    return items;
+    return roots;
 }
 
 /**
@@ -93,20 +153,10 @@ export function defsIdsForClassesOf(doc: SvgDoc, ids: readonly string[]): string
 
     const rv: string[] = [];
     walkNodes(doc.children, (node) => {
-        if (node.kind === 'passthrough' && node.tag.toLowerCase() === 'defs' && [...classNamesOfDefs(node.inner)].some((name) => used.has(name))) {
+        if (node.kind === 'passthrough' && node.tag.toLowerCase() === 'defs'
+            && classItemsOf(node.inner).some((item) => used.has(item.name))) {
             rv.push(node.id);
         }
     });
-    return rv;
-}
-
-/** Base class names defined by the `<style>` elements of a defs element; reads the markup without parsing it */
-function classNamesOfDefs(inner: string): Set<string> {
-    const rv = new Set<string>();
-    for (const rule of classRulesOf([{ id: '', kind: 'passthrough', tag: 'defs', inner, attrs: {} }])) {
-        for (const cls of rule.classes) {
-            rv.add(cls.length > DEACTIVATED_PREFIX.length && cls.startsWith(DEACTIVATED_PREFIX) ? cls.slice(DEACTIVATED_PREFIX.length) : cls);
-        }
-    }
     return rv;
 }

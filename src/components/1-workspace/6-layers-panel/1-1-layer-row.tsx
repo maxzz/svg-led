@@ -4,9 +4,9 @@ import { classNames } from "@/utils";
 import { useSnapshot } from "valtio";
 import { Braces, ChevronRight, Eye, EyeOff, Group, Lock, Shapes } from "lucide-react";
 
-import { type DefsItem, type GroupNode, type SvgDoc, type SvgNode, defsItemsOf, findNode } from "@/svg-core";
+import { type DefsClassItem, type DefsElementItem, type DefsItem, type GroupNode, type SvgDoc, type SvgNode, defsElementId, defsItemsOf, findNode } from "@/svg-core";
 import { docState } from "@/store/3-document";
-import { selectionAtom, setSelectionAtom } from "@/store/4-editor";
+import { defsSelectionAtom, selectionAtom, setDefsSelectionAtom, setSelectionAtom } from "@/store/4-editor";
 import { enterIsolationAtom, exitIsolationToAtom, isHidden, isHiddenOrLocked, isLocked, isolationManyOpenAtom, isolationScopeAtom, layerName, setDefsClassActive, setNodesHidden, setNodesLocked } from "@/store/6-layers";
 import { LayerThumbnail } from "./1-2-layer-thumbnail";
 import { isDraggedFamily, rowDragDownAtom } from "./2-reorder";
@@ -83,9 +83,7 @@ export const LayerRow = memo(
                 />
             )}
 
-            {open && !isGroup && defsItems.map((item) => (
-                <DefsItemRow key={item.key} defsId={snap.id} item={item} depth={depth + 1} />
-            ))}
+            {open && !isGroup && <DefsItemRows defsId={snap.id} items={defsItems} depth={depth + 1} />}
         </>);
     }
 );
@@ -98,46 +96,100 @@ function useDefsItems(snap: SvgNode): DefsItem[] {
     return useMemo(() => (inner === undefined ? [] : defsItemsOf(inner)), [inner]);
 }
 
+/** The items of a `<defs>` element at one depth: its classes, then its elements (each with the elements nested in it) */
+function DefsItemRows({ defsId, items, depth }: { defsId: string; items: readonly DefsItem[]; depth: number; }) {
+    return <>{items.map((item) => (
+        item.kind === 'class'
+            ? <DefsClassRow key={item.key} defsId={defsId} item={item} depth={depth} />
+            : <DefsElementRow key={item.key} defsId={defsId} item={item} depth={depth} />
+    ))}</>;
+}
+
 /**
- * A class or other element inside `<defs>`. Its eye turns the class on or off (see `setDefsClassActive`);
- * the padlock column is kept so the cells line up with the layer rows. Items have no selection, drag or rename.
+ * A class inside `<defs>`. Its eye turns the class on or off (see `setDefsClassActive`).
+ * The padlock column is kept empty so the cells line up with the layer rows. Classes are not selectable.
  */
-function DefsItemRow({ defsId, item, depth }: { defsId: string; item: DefsItem; depth: number; }) {
-    const Icon = item.kind === 'class' ? Braces : Shapes;
-    const className = item.kind === 'class' ? item.name : undefined;
-    const active = item.active !== false;
+function DefsClassRow({ defsId, item, depth }: { defsId: string; item: DefsClassItem; depth: number; }) {
+    const { name, active } = item;
     return (
         <div
             className="select-none h-7 text-muted-foreground border-b border-foreground/5 flex items-stretch"
             data-defs-item={item.key}
-            title={className !== undefined ? `Class ${item.label} in <defs>` : `<${item.tag}> in <defs>`}
+            title={`Class ${item.label} in <defs>`}
         >
-            {className !== undefined ? (
-                <button
-                    className="shrink-0 w-7 text-foreground/70 hover:text-foreground border-r border-foreground/5 flex items-center justify-center cursor-pointer"
-                    data-row-control
-                    onClick={(e) => { e.stopPropagation(); setDefsClassActive(defsId, className, !active); }}
-                    onDoubleClick={(e) => e.stopPropagation()}
-                    title={`${active ? "Turn off" : "Turn on"} class ${item.label}`}
-                    type="button"
-                >
-                    {active ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />}
-                </button>
-            ) : (
-                <span className="shrink-0 w-7 border-r border-foreground/5" />
-            )}
+            <button
+                className="shrink-0 w-7 text-foreground/70 hover:text-foreground border-r border-foreground/5 flex items-center justify-center cursor-pointer"
+                data-row-control
+                onClick={(e) => { stop(e); setDefsClassActive(defsId, name, !active); }}
+                onDoubleClick={stop}
+                title={`${active ? "Turn off" : "Turn on"} class ${item.label}`}
+                type="button"
+            >
+                {active ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />}
+            </button>
             <span className="shrink-0 w-7 border-r border-foreground/5" />
             <div className="grow min-w-0 flex items-center gap-1.5" style={{ paddingLeft: 4 + depth * ROW_INDENT_PX }}>
                 <span className="shrink-0 size-4" />
-                <div
-                    className="shrink-0 bg-white ring-1 ring-foreground/15 rounded-xs flex items-center justify-center"
-                    style={{ width: LAYER_ICON_PX, height: LAYER_ICON_PX }}
-                >
-                    <Icon className="size-3.5 text-neutral-600" />
-                </div>
+                <DefsIcon icon={Braces} />
                 <span className={classNames("truncate", !active && "line-through opacity-60")}>{item.label}</span>
             </div>
             <div className="shrink-0 w-9 border-l border-foreground/5" />
+        </div>
+    );
+}
+
+/**
+ * An element inside `<defs>`. Its row and selection circle select it (see `setDefsSelectionAtom`);
+ * its contents are listed under it when it is expanded. The visibility and padlock cells stay empty: they do not apply here.
+ */
+function DefsElementRow({ defsId, item, depth }: { defsId: string; item: DefsElementItem; depth: number; }) {
+    const id = defsElementId(defsId, item.index);
+    const selected = useAtomValue(defsSelectionAtom).includes(id);
+    const open = useAtomValue(isExpandedFamily(id));
+    const toggleExpanded = useSetAtom(toggleExpandedAtom);
+    const select = useSetAtom(setDefsSelectionAtom);
+    const hasChildren = item.children.length > 0;
+
+    return (<>
+        <div
+            className={classNames(
+                "select-none h-7 border-b border-foreground/5 flex items-stretch",
+                selected ? "text-foreground bg-(--editor-accent)/12" : "text-muted-foreground hover:bg-muted/60",
+            )}
+            data-defs-element={id}
+            title={`<${item.tag}> in <defs>`}
+            onClick={() => select([id])}
+        >
+            <span className="shrink-0 w-7 border-r border-foreground/5" />
+            <span className="shrink-0 w-7 border-r border-foreground/5" />
+            <div className="grow min-w-0 flex items-center gap-1.5" style={{ paddingLeft: 4 + depth * ROW_INDENT_PX }}>
+                <Expander isGroup={hasChildren} open={open} onToggle={() => toggleExpanded(id)} />
+                <DefsIcon icon={Shapes} />
+                <span className="truncate">{item.label}</span>
+            </div>
+            <div
+                className="relative shrink-0 w-9 h-full border-l border-foreground/5 flex items-center justify-center cursor-pointer touch-none"
+                data-row-control
+                onClick={(e) => { stop(e); select([id]); }}
+                onDoubleClick={stop}
+                title="Select"
+            >
+                <span className={classNames("-ml-3 size-2 border border-foreground/60 rounded-full", selected && "bg-(--editor-accent) border-(--editor-accent) ring-2 ring-(--editor-accent)/30")} />
+            </div>
+        </div>
+
+        {open && hasChildren && <DefsItemRows defsId={defsId} items={item.children} depth={depth + 1} />}
+    </>);
+}
+
+/** The small preview box of a `<defs>` item, the same size as a layer thumbnail */
+function DefsIcon({ icon: Icon }: { icon: typeof Braces; }) {
+    return (
+        <div
+            className="shrink-0 bg-white ring-1 ring-foreground/15 rounded-xs flex items-center justify-center"
+            style={{ width: LAYER_ICON_PX, height: LAYER_ICON_PX }}
+        >
+            <Icon className="size-3.5 text-neutral-600" />
         </div>
     );
 }

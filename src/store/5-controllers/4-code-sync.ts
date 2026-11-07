@@ -2,11 +2,11 @@ import { snapshot, subscribe } from "valtio";
 import { appSettings } from "../1-ui-settings";
 import { type AppStore, appStore } from "../0-app-store";
 
-import { type SvgDoc, buildSourceMap, defsIdsForClassesOf, nodeAtOffset } from "@/svg-core";
+import { type SvgDoc, buildSourceMap, defsIdsForClassesOf, nodeAtOffset, parseDefsElementId } from "@/svg-core";
 import { docState, docToText, historyState, loadSvgText } from "../3-document";
 
 import type * as Monaco from "monaco-editor";
-import { type MonacoHandle, codeDirtyAtom, codeErrorAtom, codeTextAtom, monacoHandleAtom, pruneSelectionAtom, selectionAtom, setSelectionAtom, sourceMapAtom } from "../4-editor";
+import { type MonacoHandle, codeDirtyAtom, codeErrorAtom, codeTextAtom, defsSelectionAtom, monacoHandleAtom, pruneSelectionAtom, selectionAtom, setDefsSelectionAtom, setSelectionAtom, sourceMapAtom } from "../4-editor";
 
 /**
  * Two-way sync between the Monaco editor and the document:
@@ -89,7 +89,7 @@ function attach(store: AppStore, { editor, monaco }: MonacoHandle): () => void {
     function highlightSelection(reveal: boolean) {
         const map = store.get(sourceMapAtom);
         const selection = store.get(selectionAtom);
-        const ranges = selection.map((id) => map.get(id)).filter((r) => !!r);
+        const ranges = [...selection, ...store.get(defsSelectionAtom)].map((id) => map.get(id)).filter((r) => !!r);
 
         // the <defs> that define the classes of the selected elements; they are not selected themselves
         const classDefs = defsIdsForClassesOf(snapshot(docState).doc as SvgDoc, selection)
@@ -127,6 +127,7 @@ function attach(store: AppStore, { editor, monaco }: MonacoHandle): () => void {
     });
 
     const unsubSelection = store.sub(selectionAtom, () => highlightSelection(true));
+    const unsubDefsSelection = store.sub(defsSelectionAtom, () => highlightSelection(true));
 
     const contentSub = editor.onDidChangeModelContent(() => {
         if (writing) {
@@ -147,7 +148,14 @@ function attach(store: AppStore, { editor, monaco }: MonacoHandle): () => void {
         }
         const m = model();
         const id = m && nodeAtOffset(store.get(sourceMapAtom), m.getOffsetAt(e.position));
-        if (id && !store.get(selectionAtom).includes(id)) {
+        if (!id) {
+            return;
+        }
+        if (parseDefsElementId(id)) {
+            if (!store.get(defsSelectionAtom).includes(id)) {
+                store.set(setDefsSelectionAtom, [id]);
+            }
+        } else if (!store.get(selectionAtom).includes(id)) {
             store.set(setSelectionAtom, [id]);
         }
     });
@@ -168,6 +176,7 @@ function attach(store: AppStore, { editor, monaco }: MonacoHandle): () => void {
         clearTimeout(parseTimer);
         unsubHistory();
         unsubSelection();
+        unsubDefsSelection();
         contentSub.dispose();
         cursorSub.dispose();
         decorations.clear();

@@ -10,34 +10,59 @@ export type SourceRange = {
 
 export type SourceMap = Map<string, SourceRange>;
 
+/** Separates the id of a `<defs>` element from the index of an element inside it: `<defsId>/<index>` */
+export const DEFS_ITEM_SEP = '/';
+
+/** Id of the element at pre-order `index` inside a `<defs>` element (index 0 is its first descendant) */
+export function defsElementId(defsId: string, index: number): string {
+    return `${defsId}${DEFS_ITEM_SEP}${index}`;
+}
+
+/** Splits an id made by `defsElementId`; undefined for ordinary node ids */
+export function parseDefsElementId(id: string): { defsId: string; index: number; } | undefined {
+    const i = id.lastIndexOf(DEFS_ITEM_SEP);
+    if (i <= 0) {
+        return undefined;
+    }
+    const index = Number(id.slice(i + 1));
+    return Number.isInteger(index) && index >= 0 ? { defsId: id.slice(0, i), index } : undefined;
+}
+
 //---------------------------------------------------------------------------
 /**
  * Maps node ids to their element ranges in `text`.
  * Works for any text that parses to `doc`: elements are matched by their order of appearance,
  * which is the same for DOMParser and for this scanner.
+ * The elements inside a `<defs>` element (not nodes of the document) get ids from `defsElementId`.
  */
 export function buildSourceMap(text: string, doc: SvgDoc): SourceMap {
     const ranges = scanElements(text);
     const lineStarts = computeLineStarts(text);
     const rv: SourceMap = new Map();
+    const rangeOf = (r: ElementRange): SourceRange => ({
+        start: r.start,
+        end: r.end,
+        startLine: lineOf(lineStarts, r.start),
+        endLine: lineOf(lineStarts, Math.max(r.start, r.end - 1)),
+    });
 
     let index = 1; // 0 is the root <svg>
     const visit = (nodes: readonly SvgNode[]) => {
         for (const node of nodes) {
             const r = ranges[index];
             if (r) {
-                rv.set(node.id, {
-                    start: r.start,
-                    end: r.end,
-                    startLine: lineOf(lineStarts, r.start),
-                    endLine: lineOf(lineStarts, Math.max(r.start, r.end - 1)),
-                });
+                rv.set(node.id, rangeOf(r));
             }
             index++;
             if (node.kind === 'g') {
                 visit(node.children);
             } else if (node.kind === 'passthrough' && node.inner) {
-                index += scanElements(node.inner).length;
+                const inner = scanElements(node.inner);
+                inner.forEach((_, k) => {
+                    const d = ranges[index + k];
+                    d && rv.set(defsElementId(node.id, k), rangeOf(d));
+                });
+                index += inner.length;
             }
         }
     };
