@@ -144,12 +144,12 @@ function SelectionCircle({ id, selected, containsSelected }: { id: string; selec
         >
             {containsSelected && (
                 <span
-                    className="absolute left-1 top-1/2 -translate-y-1/2 size-1.5 bg-(--editor-accent)"
+                    className="absolute top-1/2 left-[calc(50%+6px)] -translate-y-1/2 size-[5px] rounded-xs bg-(--editor-accent)"
                     title="Contains selected items"
                 />
             )}
             <span
-                className={classNames("size-2.5 border border-foreground/60 rounded-full", selected && "bg-(--editor-accent) border-(--editor-accent) ring-2 ring-(--editor-accent)/30")}
+                className={classNames("size-2 border border-foreground/60 rounded-full", selected && "bg-(--editor-accent) border-(--editor-accent) ring-2 ring-(--editor-accent)/30")}
             />
         </div>
     );
@@ -299,7 +299,7 @@ function ManyIsolationRoot({ nodes }: { nodes: SvgNode[]; }) {
                 onClick={(e) => { stop(e); selectAll(); }}
                 onDoubleClick={stop}
             >
-                <span className={classNames("size-2.5 border border-foreground/60 rounded-full", selected && "bg-(--editor-accent) border-(--editor-accent) ring-2 ring-(--editor-accent)/30")} />
+                <span className={classNames("size-2 border border-foreground/60 rounded-full", selected && "bg-(--editor-accent) border-(--editor-accent) ring-2 ring-(--editor-accent)/30")} />
             </div>
         </div>
 
