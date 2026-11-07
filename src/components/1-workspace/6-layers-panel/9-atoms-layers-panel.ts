@@ -62,6 +62,22 @@ export const isSelectedFamily = atomFamily(
     (id: string) => atom((get) => get(selectionAtom).includes(id))
 );
 
+/** Ids of every group that holds a selected item at any depth, whether it is collapsed or not */
+const selectedAncestorIdsAtom = atom((get) => {
+    const ids = new Set<string>();
+    for (const id of get(selectionAtom)) {
+        for (const p of findNode(docState.doc, id)?.parents ?? []) {
+            ids.add(p.id);
+        }
+    }
+    return ids;
+});
+
+/** True when a group row should show the marker that its contents are selected */
+export const containsSelectedFamily = atomFamily(
+    (id: string) => atom((get) => get(selectedAncestorIdsAtom).has(id))
+);
+
 //---------------------------------------------------------------------------
 // Visible rows
 

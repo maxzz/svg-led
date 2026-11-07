@@ -12,7 +12,7 @@ import { LayerThumbnail } from "./1-2-layer-thumbnail";
 import { isDraggedFamily, rowDragDownAtom } from "./2-reorder";
 import { LayerName } from "./3-rename";
 import { LockButton, VisibilityButton } from "./4-toggle-sweep";
-import { LAYER_ICON_PX, ROW_INDENT_PX, circlePointerDownAtom, circlePointerMoveAtom, circlePointerUpAtom, isExpandedFamily, isIsolationCollapsedFamily, isSelectedFamily, rowClickAtom, toggleExpandedAtom, toggleIsolationCollapsedAtom, toggleIsolationManyAtom } from "./9-atoms-layers-panel";
+import { LAYER_ICON_PX, ROW_INDENT_PX, circlePointerDownAtom, circlePointerMoveAtom, circlePointerUpAtom, containsSelectedFamily, isExpandedFamily, isIsolationCollapsedFamily, isSelectedFamily, rowClickAtom, toggleExpandedAtom, toggleIsolationCollapsedAtom, toggleIsolationManyAtom } from "./9-atoms-layers-panel";
 
 type LayerRowProps = {
     node: SvgNode;
@@ -30,6 +30,7 @@ export const LayerRow = memo(
         const expanded = useAtomValue(isExpandedFamily(snap.id));
         const collapsed = useAtomValue(isIsolationCollapsedFamily(snap.id));
         const selected = useAtomValue(isSelectedFamily(snap.id));
+        const containsSelected = useAtomValue(containsSelectedFamily(snap.id));
         const dragged = useAtomValue(isDraggedFamily(snap.id));
         const rowClick = useSetAtom(rowClickAtom);
         const dragDown = useSetAtom(rowDragDownAtom);
@@ -67,7 +68,7 @@ export const LayerRow = memo(
                     <LayerName id={snap.id} name={layerName(snap)} idAttr={snap.attrs.id ?? ''} dimmed={hidden || hiddenByParent} />
                 </div>
 
-                <SelectionCircle id={snap.id} selected={selected} />
+                <SelectionCircle id={snap.id} selected={selected} containsSelected={isGroup && containsSelected} />
             </div>
 
             {open && isGroup && (
@@ -124,14 +125,14 @@ function stop(e: MouseEvent) {
 //---------------------------------------------------------------------------
 
 /** Click selects only this layer; dragging across circles toggles each one; Shift and Ctrl work as on the row */
-function SelectionCircle({ id, selected }: { id: string; selected: boolean; }) {
+function SelectionCircle({ id, selected, containsSelected }: { id: string; selected: boolean; containsSelected: boolean; }) {
     const down = useSetAtom(circlePointerDownAtom);
     const move = useSetAtom(circlePointerMoveAtom);
     const up = useSetAtom(circlePointerUpAtom);
 
     return (
         <div
-            className="shrink-0 w-8 h-full border-l border-foreground/5 flex items-center justify-center cursor-pointer touch-none"
+            className="relative shrink-0 w-9 h-full border-l border-foreground/5 flex items-center justify-center cursor-pointer touch-none"
             data-row-control
             onPointerDown={(e) => { if (e.button === 0) { down({ id, shift: e.shiftKey, ctrl: e.ctrlKey || e.metaKey, pointerId: e.pointerId, target: e.currentTarget }); } }}
             onPointerMove={(e) => move({ clientX: e.clientX, clientY: e.clientY })}
@@ -141,8 +142,14 @@ function SelectionCircle({ id, selected }: { id: string; selected: boolean; }) {
             onDoubleClick={stop}
             title="Select · drag across circles to toggle · [Shift] range · [Ctrl] toggle"
         >
+            {containsSelected && (
+                <span
+                    className="absolute left-[calc(50%+4px)] top-1/2 -translate-y-1/2 size-1.5 rounded-xs bg-(--editor-accent)/40 border-(--editor-accent)/80 border"
+                    title="Contains selected items"
+                />
+            )}
             <span
-                className={classNames("size-2.5 border border-foreground/60 rounded-full", selected && "bg-(--editor-accent) border-(--editor-accent) ring-2 ring-(--editor-accent)/30")}
+                className={classNames("-ml-3 size-2 border border-foreground/60 rounded-full", selected && "bg-(--editor-accent) border-(--editor-accent) ring-2 ring-(--editor-accent)/30")}
             />
         </div>
     );
@@ -169,6 +176,7 @@ function SingleIsolationRoot({ node }: { node: SvgNode; }) {
     const snap = useSnapshot(node) as SvgNode;
     const collapsed = useAtomValue(isIsolationCollapsedFamily(node.id));
     const selected = useAtomValue(isSelectedFamily(node.id));
+    const containsSelected = useAtomValue(containsSelectedFamily(node.id));
     const rowClick = useSetAtom(rowClickAtom);
     const toggleCollapsed = useSetAtom(toggleIsolationCollapsedAtom);
     const exit = useSetAtom(exitIsolationToAtom);
@@ -204,7 +212,7 @@ function SingleIsolationRoot({ node }: { node: SvgNode; }) {
                 </span>
             </div>
 
-            <SelectionCircle id={snap.id} selected={selected} />
+            <SelectionCircle id={snap.id} selected={selected} containsSelected={isGroup && containsSelected} />
         </div>
 
         {open && isGroup && (
@@ -291,7 +299,7 @@ function ManyIsolationRoot({ nodes }: { nodes: SvgNode[]; }) {
                 onClick={(e) => { stop(e); selectAll(); }}
                 onDoubleClick={stop}
             >
-                <span className={classNames("size-2.5 border border-foreground/60 rounded-full", selected && "bg-(--editor-accent) border-(--editor-accent) ring-2 ring-(--editor-accent)/30")} />
+                <span className={classNames("size-2 border border-foreground/60 rounded-full", selected && "bg-(--editor-accent) border-(--editor-accent) ring-2 ring-(--editor-accent)/30")} />
             </div>
         </div>
 
