@@ -132,7 +132,7 @@ function SelectionCircle({ id, selected, containsSelected }: { id: string; selec
 
     return (
         <div
-            className="relative shrink-0 w-8 h-full border-l border-foreground/5 flex items-center justify-center cursor-pointer touch-none"
+            className="relative shrink-0 w-9 h-full border-l border-foreground/5 flex items-center justify-center cursor-pointer touch-none"
             data-row-control
             onPointerDown={(e) => { if (e.button === 0) { down({ id, shift: e.shiftKey, ctrl: e.ctrlKey || e.metaKey, pointerId: e.pointerId, target: e.currentTarget }); } }}
             onPointerMove={(e) => move({ clientX: e.clientX, clientY: e.clientY })}
@@ -144,12 +144,12 @@ function SelectionCircle({ id, selected, containsSelected }: { id: string; selec
         >
             {containsSelected && (
                 <span
-                    className="absolute top-1/2 left-[calc(50%+6px)] -translate-y-1/2 size-[5px] rounded-xs bg-(--editor-accent)"
+                    className="absolute left-[calc(50%+4px)] top-1/2 -translate-y-1/2 size-1.5 rounded-xs bg-(--editor-accent)/40 border-(--editor-accent)/80 border"
                     title="Contains selected items"
                 />
             )}
             <span
-                className={classNames("size-2 border border-foreground/60 rounded-full", selected && "bg-(--editor-accent) border-(--editor-accent) ring-2 ring-(--editor-accent)/30")}
+                className={classNames("-ml-3 size-2 border border-foreground/60 rounded-full", selected && "bg-(--editor-accent) border-(--editor-accent) ring-2 ring-(--editor-accent)/30")}
             />
         </div>
     );
