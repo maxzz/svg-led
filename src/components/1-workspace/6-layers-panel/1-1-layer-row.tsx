@@ -1,10 +1,10 @@
-import { type MouseEvent, memo } from "react";
+import { type MouseEvent, memo, useMemo } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { classNames } from "@/utils";
 import { useSnapshot } from "valtio";
-import { ChevronRight, Eye, EyeOff, Group, Lock } from "lucide-react";
+import { Braces, ChevronRight, Eye, EyeOff, Group, Lock, Shapes } from "lucide-react";
 
-import { type GroupNode, type SvgDoc, type SvgNode, findNode } from "@/svg-core";
+import { type DefsItem, type GroupNode, type SvgDoc, type SvgNode, defsItemsOf, findNode } from "@/svg-core";
 import { docState } from "@/store/3-document";
 import { selectionAtom, setSelectionAtom } from "@/store/4-editor";
 import { enterIsolationAtom, exitIsolationToAtom, isHidden, isHiddenOrLocked, isLocked, isolationManyOpenAtom, isolationScopeAtom, layerName, setNodesHidden, setNodesLocked } from "@/store/6-layers";
@@ -40,7 +40,9 @@ export const LayerRow = memo(
 
         const isGroup = snap.kind === 'g';
         const isRoot = scope.includes(snap.id);
-        const open = isGroup && (isRoot ? !collapsed : expanded);
+        const defsItems = useDefsItems(snap);
+        const canExpand = isGroup ? snap.children.length > 0 : defsItems.length > 0;
+        const open = isGroup ? (isRoot ? !collapsed : expanded) : canExpand && expanded;
         const hidden = isHidden(snap);
         const locked = isLocked(snap);
 
@@ -54,7 +56,7 @@ export const LayerRow = memo(
                 data-layer-id={snap.id}
                 data-layer-depth={depth}
                 data-layer-group={isGroup}
-                data-layer-open={open && snap.children.length > 0}
+                data-layer-open={open && canExpand}
                 onPointerDown={(e) => dragDown({ id: snap.id, button: e.button, pointerId: e.pointerId, clientX: e.clientX, clientY: e.clientY, target: e.target as Element, row: e.currentTarget })}
                 onClick={(e) => rowClick({ id: snap.id, shift: e.shiftKey, ctrl: e.ctrlKey || e.metaKey })}
                 onDoubleClick={() => enterIsolation(snap.id)}
@@ -63,7 +65,7 @@ export const LayerRow = memo(
                 <LockButton id={snap.id} locked={locked} inherited={lockedByParent} />
 
                 <div className="grow min-w-0 flex items-center gap-1.5" style={{ paddingLeft: 4 + depth * ROW_INDENT_PX }}>
-                    <Expander isGroup={isGroup && snap.children.length > 0} open={open} onToggle={() => (isRoot ? toggleCollapsed(snap.id) : toggleExpanded(snap.id))} />
+                    <Expander isGroup={canExpand} open={open} onToggle={() => (isRoot ? toggleCollapsed(snap.id) : toggleExpanded(snap.id))} />
                     <LayerThumbnail node={node} snap={snap} />
                     <LayerName id={snap.id} name={layerName(snap)} idAttr={snap.attrs.id ?? ''} dimmed={hidden || hiddenByParent} />
                 </div>
@@ -80,9 +82,46 @@ export const LayerRow = memo(
                     lockedByParent={lockedByParent || locked}
                 />
             )}
+
+            {open && !isGroup && defsItems.map((item) => (
+                <DefsItemRow key={item.key} item={item} depth={depth + 1} />
+            ))}
         </>);
     }
 );
+
+//---------------------------------------------------------------------------
+
+/** Items of a `<defs>` element (its classes and other children), or none for any other node */
+function useDefsItems(snap: SvgNode): DefsItem[] {
+    const inner = snap.kind === 'passthrough' && snap.tag.toLowerCase() === 'defs' ? snap.inner : undefined;
+    return useMemo(() => (inner === undefined ? [] : defsItemsOf(inner)), [inner]);
+}
+
+/** A class or other element inside `<defs>`. Shown for reference only: it has no visibility, lock, drag or selection. */
+function DefsItemRow({ item, depth }: { item: DefsItem; depth: number; }) {
+    const Icon = item.kind === 'class' ? Braces : Shapes;
+    return (
+        <div
+            className="select-none h-7 text-muted-foreground border-b border-foreground/5 flex items-stretch"
+            data-defs-item={item.key}
+            title={item.kind === 'class' ? `Class ${item.label} in <defs>` : `<${item.tag}> in <defs>`}
+        >
+            <div className="shrink-0 w-14" />
+            <div className="grow min-w-0 flex items-center gap-1.5" style={{ paddingLeft: 4 + depth * ROW_INDENT_PX }}>
+                <span className="shrink-0 size-4" />
+                <div
+                    className="shrink-0 bg-white ring-1 ring-foreground/15 rounded-xs flex items-center justify-center"
+                    style={{ width: LAYER_ICON_PX, height: LAYER_ICON_PX }}
+                >
+                    <Icon className="size-3.5 text-neutral-600" />
+                </div>
+                <span className="truncate">{item.label}</span>
+            </div>
+            <div className="shrink-0 w-9 border-l border-foreground/5" />
+        </div>
+    );
+}
 
 //---------------------------------------------------------------------------
 
