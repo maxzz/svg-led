@@ -4,10 +4,10 @@ import { classNames } from "@/utils";
 import { useSnapshot } from "valtio";
 import { Braces, ChevronRight, Eye, EyeOff, Group, Lock, Shapes } from "lucide-react";
 
-import { type DefsClassItem, type DefsElementItem, type DefsItem, type GroupNode, type SvgDoc, type SvgNode, defsClassId, defsElementId, defsItemsOf, findNode } from "@/svg-core";
+import { type DefsClassItem, type DefsElementItem, type DefsItem, type GroupNode, type SvgDoc, type SvgNode, defsClassId, defsItemId, defsItemsOf, findNode } from "@/svg-core";
 import { docState } from "@/store/3-document";
 import { defsSelectionAtom, selectionAtom, setDefsSelectionAtom, setSelectionAtom } from "@/store/4-editor";
-import { enterIsolationAtom, exitIsolationToAtom, isHidden, isHiddenOrLocked, isLocked, isolationManyOpenAtom, isolationScopeAtom, layerName, setDefsClassActive, setNodesHidden, setNodesLocked } from "@/store/6-layers";
+import { enterIsolationAtom, exitIsolationToAtom, isHidden, isHiddenOrLocked, isLocked, isolationManyOpenAtom, isolationScopeAtom, layerName, setDefsClassActive, setDefsElementActive, setNodesHidden, setNodesLocked } from "@/store/6-layers";
 import { LayerThumbnail } from "./1-2-layer-thumbnail";
 import { isDraggedFamily, rowDragDownAtom } from "./2-reorder";
 import { LayerName } from "./3-rename";
@@ -124,16 +124,12 @@ function DefsClassRow({ defsId, item, depth }: { defsId: string; item: DefsClass
             title={`Class ${item.label} in <defs>`}
             onClick={() => select([id])}
         >
-            <button
-                className="shrink-0 w-7 text-foreground/70 hover:text-foreground border-r border-foreground/5 flex items-center justify-center cursor-pointer"
-                data-row-control
-                onClick={(e) => { stop(e); setDefsClassActive(defsId, name, !active); }}
-                onDoubleClick={stop}
+            <DefsEyeButton
+                on={active}
+                toggleable={item.toggleable}
                 title={`${active ? "Turn off" : "Turn on"} class ${item.label}`}
-                type="button"
-            >
-                {active ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />}
-            </button>
+                onToggle={() => setDefsClassActive(defsId, name, !active)}
+            />
             <span className="shrink-0 w-7 border-r border-foreground/5" />
             <div className="grow min-w-0 flex items-center gap-1.5" style={{ paddingLeft: 4 + depth * ROW_INDENT_PX }}>
                 <span className="shrink-0 size-4" />
@@ -150,12 +146,20 @@ function DefsClassRow({ defsId, item, depth }: { defsId: string; item: DefsClass
  * its contents are listed under it when it is expanded. The visibility and padlock cells stay empty: they do not apply here.
  */
 function DefsElementRow({ defsId, item, depth }: { defsId: string; item: DefsElementItem; depth: number; }) {
-    const id = defsElementId(defsId, item.index);
+    const id = defsItemId(defsId, item.part);
     const selected = useAtomValue(defsSelectionAtom).includes(id);
     const open = useAtomValue(isExpandedFamily(id));
     const toggleExpanded = useSetAtom(toggleExpandedAtom);
     const select = useSetAtom(setDefsSelectionAtom);
+    const setSelection = useSetAtom(defsSelectionAtom);
     const hasChildren = item.children.length > 0;
+    const isStyle = item.tag.toLowerCase() === 'style';
+
+    // the eye turns the element's comment on or off; the part names a block, so the selection may now point elsewhere
+    const toggle = () => {
+        setDefsElementActive(defsId, item.part, item.off);
+        setSelection([]);
+    };
 
     return (<>
         <div
@@ -167,18 +171,44 @@ function DefsElementRow({ defsId, item, depth }: { defsId: string; item: DefsEle
             title={`<${item.tag}> in <defs>`}
             onClick={() => select([id])}
         >
-            <span className="shrink-0 w-7 border-r border-foreground/5" />
+            {isStyle
+                ? <span className="shrink-0 w-7 border-r border-foreground/5" />
+                : <DefsEyeButton on={!item.off} toggleable={item.toggleable} title={`${item.off ? "Turn on" : "Turn off"} <${item.tag}>`} onToggle={toggle} />}
             <span className="shrink-0 w-7 border-r border-foreground/5" />
             <div className="grow min-w-0 flex items-center gap-1.5" style={{ paddingLeft: 4 + depth * ROW_INDENT_PX }}>
                 <Expander isGroup={hasChildren} open={open} onToggle={() => toggleExpanded(id)} />
-                <DefsIcon icon={Shapes} />
-                <span className="truncate">{item.label}</span>
+                <DefsIcon icon={isStyle ? Braces : Shapes} />
+                <span className={classNames("truncate", item.off && "line-through opacity-60")}>{item.label}</span>
             </div>
             <DefsSelectionCircle selected={selected} onSelect={() => select([id])} />
         </div>
 
         {open && hasChildren && <DefsItemRows defsId={defsId} items={item.children} depth={depth + 1} />}
     </>);
+}
+
+/**
+ * Eye of a `<defs>` item. It shows the state; when `toggleable` is false the state is shown but cannot be changed
+ * (for example an element inside a deactivated element, which follows its block).
+ */
+function DefsEyeButton({ on, toggleable, title, onToggle }: { on: boolean; toggleable: boolean; title: string; onToggle: () => void; }) {
+    const Icon = on ? Eye : EyeOff;
+    return (
+        <button
+            className={classNames(
+                "shrink-0 w-7 text-foreground/70 border-r border-foreground/5 flex items-center justify-center",
+                toggleable ? "hover:text-foreground cursor-pointer" : "opacity-35 cursor-default",
+            )}
+            data-row-control
+            disabled={!toggleable}
+            onClick={(e) => { stop(e); toggleable && onToggle(); }}
+            onDoubleClick={stop}
+            title={toggleable ? title : "Follows the deactivated element above it"}
+            type="button"
+        >
+            <Icon className="size-3.5" />
+        </button>
+    );
 }
 
 /** Selection circle of a `<defs>` item; the same look as the one of a layer row */

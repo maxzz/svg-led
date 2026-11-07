@@ -1,4 +1,5 @@
 import { type SvgDoc, type SvgNode } from "../1-model/1-types";
+import { cssRulesOf, offBlocksOf } from "./5-defs-markup";
 
 /** Position of one element in the source text; lines are 1-based like in Monaco */
 export type SourceRange = {
@@ -13,14 +14,19 @@ export type SourceMap = Map<string, SourceRange>;
 /** Separates the id of a `<defs>` element from the part that names an item inside it: `<defsId>/<part>` */
 export const DEFS_ITEM_SEP = '/';
 
-/** Id of the element at pre-order `index` inside a `<defs>` element (index 0 is its first descendant) */
+/** Id of an item inside a `<defs>` element; `part` names it: a live element index, `o<n>[.<k>]`, or `.<class>` */
+export function defsItemId(defsId: string, part: string): string {
+    return `${defsId}${DEFS_ITEM_SEP}${part}`;
+}
+
+/** Id of the live element at pre-order `index` inside a `<defs>` element (index 0 is its first descendant) */
 export function defsElementId(defsId: string, index: number): string {
-    return `${defsId}${DEFS_ITEM_SEP}${index}`;
+    return defsItemId(defsId, String(index));
 }
 
 /** Id of a class of a `<defs>` element; the part is the selector, `.<name>` */
 export function defsClassId(defsId: string, name: string): string {
-    return `${defsId}${DEFS_ITEM_SEP}.${name}`;
+    return defsItemId(defsId, `.${name}`);
 }
 
 /** Splits an id made by `defsElementId` or `defsClassId`; undefined for ordinary node ids */
@@ -66,6 +72,11 @@ export function buildSourceMap(text: string, doc: SvgDoc): SourceMap {
                 for (const [name, r] of classRuleRanges(text, ranges.slice(index, index + inner.length))) {
                     rv.set(defsClassId(node.id, name), rangeOf(r));
                 }
+                // deactivated elements: a comment in the text, with the element itself first and its contents after it
+                const defsEl = ranges[index - 1];
+                defsEl && offBlockRanges(text, defsEl).forEach(({ n, k, r }) => {
+                    rv.set(defsItemId(node.id, k === 0 ? `o${n}` : `o${n}.${k}`), rangeOf(r));
+                });
                 index += inner.length;
             }
         }
@@ -90,8 +101,8 @@ export function nodeAtOffset(map: SourceMap, offset: number): string | undefined
 type ElementRange = { start: number; end: number; };
 
 /**
- * Text range of the first rule of each class (`.name` or `.deactivated-name`) in the `<style>` elements among `elements`.
- * The range covers the whole rule, from its selector to its closing brace.
+ * Text range of the first rule of each class in the `<style>` elements among `elements`.
+ * The range covers the whole rule, from its selector to its closing brace (a deactivated rule included).
  */
 function classRuleRanges(text: string, elements: readonly ElementRange[]): Map<string, ElementRange> {
     const rv = new Map<string, ElementRange>();
@@ -105,17 +116,35 @@ function classRuleRanges(text: string, elements: readonly ElementRange[]): Map<s
             continue;
         }
         const css = text.slice(open, close);
-        for (const m of css.matchAll(/([^{}]+)\{[^{}]*\}/g)) {
-            const lead = m[0].length - m[0].trimStart().length;
-            for (const part of m[1].split(',')) {
-                const selector = part.replace(/\/\*[\s\S]*?\*\//g, '').replace(/<!\[CDATA\[|\]\]>/g, '').trim();
-                const name = /^\.(?:deactivated-)?([A-Za-z_][\w-]*)$/.exec(selector)?.[1];
+        for (const rule of cssRulesOf(css)) {
+            for (const sel of rule.selectors) {
+                const name = /^\.([A-Za-z_][\w-]*)$/.exec(sel)?.[1];
                 if (name && !rv.has(name)) {
-                    rv.set(name, { start: open + m.index + lead, end: open + m.index + m[0].length });
+                    rv.set(name, { start: open + rule.start, end: open + rule.end });
                 }
             }
         }
     }
+    return rv;
+}
+
+/**
+ * Text ranges of the deactivated elements inside the `<defs>` element `defsEl` (its range in `text`).
+ * `n` numbers the blocks; `k` is 0 for the element of a block (its range is the whole comment) and the
+ * pre-order index of a nested element otherwise.
+ */
+function offBlockRanges(text: string, defsEl: ElementRange): { n: number; k: number; r: ElementRange; }[] {
+    const rv: { n: number; k: number; r: ElementRange; }[] = [];
+    const inner = text.slice(defsEl.start, defsEl.end);
+    offBlocksOf(inner).forEach((b, n) => {
+        const contentStart = defsEl.start + b.contentStart;
+        const content = text.slice(contentStart, defsEl.start + b.contentEnd);
+        scanElements(content).forEach((r, k) => {
+            rv.push(k === 0
+                ? { n, k, r: { start: defsEl.start + b.start, end: defsEl.start + b.end } }
+                : { n, k, r: { start: contentStart + r.start, end: contentStart + r.end } });
+        });
+    });
     return rv;
 }
 
