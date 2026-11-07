@@ -4,7 +4,7 @@ import { classNames } from "@/utils";
 import { useSnapshot } from "valtio";
 import { Braces, ChevronRight, Eye, EyeOff, Group, Lock, Shapes } from "lucide-react";
 
-import { type DefsClassItem, type DefsElementItem, type DefsItem, type GroupNode, type SvgDoc, type SvgNode, defsElementId, defsItemsOf, findNode } from "@/svg-core";
+import { type DefsClassItem, type DefsElementItem, type DefsItem, type GroupNode, type SvgDoc, type SvgNode, defsClassId, defsElementId, defsItemsOf, findNode } from "@/svg-core";
 import { docState } from "@/store/3-document";
 import { defsSelectionAtom, selectionAtom, setDefsSelectionAtom, setSelectionAtom } from "@/store/4-editor";
 import { enterIsolationAtom, exitIsolationToAtom, isHidden, isHiddenOrLocked, isLocked, isolationManyOpenAtom, isolationScopeAtom, layerName, setDefsClassActive, setNodesHidden, setNodesLocked } from "@/store/6-layers";
@@ -106,16 +106,23 @@ function DefsItemRows({ defsId, items, depth }: { defsId: string; items: readonl
 }
 
 /**
- * A class inside `<defs>`. Its eye turns the class on or off (see `setDefsClassActive`).
- * The padlock column is kept empty so the cells line up with the layer rows. Classes are not selectable.
+ * A class inside `<defs>`. Its eye turns the class on or off (see `setDefsClassActive`); selecting the row
+ * selects the class and highlights its rule in the code. The padlock column stays empty so the cells line up with the layer rows.
  */
 function DefsClassRow({ defsId, item, depth }: { defsId: string; item: DefsClassItem; depth: number; }) {
     const { name, active } = item;
+    const id = defsClassId(defsId, name);
+    const selected = useAtomValue(defsSelectionAtom).includes(id);
+    const select = useSetAtom(setDefsSelectionAtom);
     return (
         <div
-            className="select-none h-7 text-muted-foreground border-b border-foreground/5 flex items-stretch"
+            className={classNames(
+                "select-none h-7 border-b border-foreground/5 flex items-stretch",
+                selected ? "text-foreground bg-(--editor-accent)/12" : "text-muted-foreground hover:bg-muted/60",
+            )}
             data-defs-item={item.key}
             title={`Class ${item.label} in <defs>`}
+            onClick={() => select([id])}
         >
             <button
                 className="shrink-0 w-7 text-foreground/70 hover:text-foreground border-r border-foreground/5 flex items-center justify-center cursor-pointer"
@@ -133,7 +140,7 @@ function DefsClassRow({ defsId, item, depth }: { defsId: string; item: DefsClass
                 <DefsIcon icon={Braces} />
                 <span className={classNames("truncate", !active && "line-through opacity-60")}>{item.label}</span>
             </div>
-            <div className="shrink-0 w-9 border-l border-foreground/5" />
+            <DefsSelectionCircle selected={selected} onSelect={() => select([id])} />
         </div>
     );
 }
@@ -167,19 +174,26 @@ function DefsElementRow({ defsId, item, depth }: { defsId: string; item: DefsEle
                 <DefsIcon icon={Shapes} />
                 <span className="truncate">{item.label}</span>
             </div>
-            <div
-                className="relative shrink-0 w-9 h-full border-l border-foreground/5 flex items-center justify-center cursor-pointer touch-none"
-                data-row-control
-                onClick={(e) => { stop(e); select([id]); }}
-                onDoubleClick={stop}
-                title="Select"
-            >
-                <span className={classNames("-ml-3 size-2 border border-foreground/60 rounded-full", selected && "bg-(--editor-accent) border-(--editor-accent) ring-2 ring-(--editor-accent)/30")} />
-            </div>
+            <DefsSelectionCircle selected={selected} onSelect={() => select([id])} />
         </div>
 
         {open && hasChildren && <DefsItemRows defsId={defsId} items={item.children} depth={depth + 1} />}
     </>);
+}
+
+/** Selection circle of a `<defs>` item; the same look as the one of a layer row */
+function DefsSelectionCircle({ selected, onSelect }: { selected: boolean; onSelect: () => void; }) {
+    return (
+        <div
+            className="relative shrink-0 w-9 h-full border-l border-foreground/5 flex items-center justify-center cursor-pointer touch-none"
+            data-row-control
+            onClick={(e) => { stop(e); onSelect(); }}
+            onDoubleClick={stop}
+            title="Select"
+        >
+            <span className={classNames("-ml-3 size-2 border border-foreground/60 rounded-full", selected && "bg-(--editor-accent) border-(--editor-accent) ring-2 ring-(--editor-accent)/30")} />
+        </div>
+    );
 }
 
 /** The small preview box of a `<defs>` item, the same size as a layer thumbnail */

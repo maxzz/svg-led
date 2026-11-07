@@ -10,7 +10,7 @@ export type SourceRange = {
 
 export type SourceMap = Map<string, SourceRange>;
 
-/** Separates the id of a `<defs>` element from the index of an element inside it: `<defsId>/<index>` */
+/** Separates the id of a `<defs>` element from the part that names an item inside it: `<defsId>/<part>` */
 export const DEFS_ITEM_SEP = '/';
 
 /** Id of the element at pre-order `index` inside a `<defs>` element (index 0 is its first descendant) */
@@ -18,14 +18,15 @@ export function defsElementId(defsId: string, index: number): string {
     return `${defsId}${DEFS_ITEM_SEP}${index}`;
 }
 
-/** Splits an id made by `defsElementId`; undefined for ordinary node ids */
-export function parseDefsElementId(id: string): { defsId: string; index: number; } | undefined {
-    const i = id.lastIndexOf(DEFS_ITEM_SEP);
-    if (i <= 0) {
-        return undefined;
-    }
-    const index = Number(id.slice(i + 1));
-    return Number.isInteger(index) && index >= 0 ? { defsId: id.slice(0, i), index } : undefined;
+/** Id of a class of a `<defs>` element; the part is the selector, `.<name>` */
+export function defsClassId(defsId: string, name: string): string {
+    return `${defsId}${DEFS_ITEM_SEP}.${name}`;
+}
+
+/** Splits an id made by `defsElementId` or `defsClassId`; undefined for ordinary node ids */
+export function parseDefsItemId(id: string): { defsId: string; part: string; } | undefined {
+    const i = id.indexOf(DEFS_ITEM_SEP);
+    return i <= 0 ? undefined : { defsId: id.slice(0, i), part: id.slice(i + 1) };
 }
 
 //---------------------------------------------------------------------------
@@ -62,6 +63,9 @@ export function buildSourceMap(text: string, doc: SvgDoc): SourceMap {
                     const d = ranges[index + k];
                     d && rv.set(defsElementId(node.id, k), rangeOf(d));
                 });
+                for (const [name, r] of classRuleRanges(text, ranges.slice(index, index + inner.length))) {
+                    rv.set(defsClassId(node.id, name), rangeOf(r));
+                }
                 index += inner.length;
             }
         }
@@ -84,6 +88,36 @@ export function nodeAtOffset(map: SourceMap, offset: number): string | undefined
 }
 
 type ElementRange = { start: number; end: number; };
+
+/**
+ * Text range of the first rule of each class (`.name` or `.deactivated-name`) in the `<style>` elements among `elements`.
+ * The range covers the whole rule, from its selector to its closing brace.
+ */
+function classRuleRanges(text: string, elements: readonly ElementRange[]): Map<string, ElementRange> {
+    const rv = new Map<string, ElementRange>();
+    for (const el of elements) {
+        if (!/^<style[\s>]/i.test(text.slice(el.start, el.start + 7))) {
+            continue;
+        }
+        const open = text.indexOf('>', el.start) + 1;
+        const close = text.lastIndexOf('</', el.end);
+        if (open <= 0 || close < open) {
+            continue;
+        }
+        const css = text.slice(open, close);
+        for (const m of css.matchAll(/([^{}]+)\{[^{}]*\}/g)) {
+            const lead = m[0].length - m[0].trimStart().length;
+            for (const part of m[1].split(',')) {
+                const selector = part.replace(/\/\*[\s\S]*?\*\//g, '').replace(/<!\[CDATA\[|\]\]>/g, '').trim();
+                const name = /^\.(?:deactivated-)?([A-Za-z_][\w-]*)$/.exec(selector)?.[1];
+                if (name && !rv.has(name)) {
+                    rv.set(name, { start: open + m.index + lead, end: open + m.index + m[0].length });
+                }
+            }
+        }
+    }
+    return rv;
+}
 
 /** Element ranges in order of their start tags (document pre-order) */
 export function scanElements(text: string): ElementRange[] {

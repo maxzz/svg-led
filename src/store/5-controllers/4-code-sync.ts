@@ -2,7 +2,7 @@ import { snapshot, subscribe } from "valtio";
 import { appSettings } from "../1-ui-settings";
 import { type AppStore, appStore } from "../0-app-store";
 
-import { type SvgDoc, buildSourceMap, defsIdsForClassesOf, nodeAtOffset, parseDefsElementId } from "@/svg-core";
+import { type SvgDoc, buildSourceMap, defsIdsForClassesOf, nodeAtOffset, parseDefsItemId } from "@/svg-core";
 import { docState, docToText, historyState, loadSvgText } from "../3-document";
 
 import type * as Monaco from "monaco-editor";
@@ -151,7 +151,7 @@ function attach(store: AppStore, { editor, monaco }: MonacoHandle): () => void {
         if (!id) {
             return;
         }
-        if (parseDefsElementId(id)) {
+        if (parseDefsItemId(id)) {
             if (!store.get(defsSelectionAtom).includes(id)) {
                 store.set(setDefsSelectionAtom, [id]);
             }

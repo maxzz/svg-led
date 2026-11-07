@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { type SvgDoc, type SvgNode, buildSourceMap, defsElementId, defsIdsForClassesOf, defsItemsOf, isDefsElementOf, parseDefsElementId, setDefsClassActiveInMarkup } from "../index";
+import { type SvgDoc, type SvgNode, buildSourceMap, defsClassId, defsElementId, defsIdsForClassesOf, defsItemsOf, isDefsItemOf, parseDefsItemId, setDefsClassActiveInMarkup } from "../index";
 
 const style = (css: string) => `<style>${css}</style>`;
 const defs = (id: string, inner: string): SvgNode => ({ id, kind: 'passthrough', tag: 'defs', inner, attrs: {} });
@@ -40,22 +40,38 @@ describe("defsItemsOf", () => {
     });
 });
 
-describe("defs element ids", () => {
-    it("round-trips the defs id and the element index", () => {
-        expect(parseDefsElementId(defsElementId('n5', 3))).toEqual({ defsId: 'n5', index: 3 });
+describe("defs item ids", () => {
+    it("round-trips the defs id and the part for elements and classes", () => {
+        expect(parseDefsItemId(defsElementId('n5', 3))).toEqual({ defsId: 'n5', part: '3' });
+        expect(parseDefsItemId(defsClassId('n5', 'cls-1'))).toEqual({ defsId: 'n5', part: '.cls-1' });
     });
 
-    it("does not read ordinary node ids or anchor keys as defs elements", () => {
-        expect(parseDefsElementId('n5')).toBeUndefined();
-        expect(parseDefsElementId('n5|0')).toBeUndefined();
+    it("does not read ordinary node ids or anchor keys as defs items", () => {
+        expect(parseDefsItemId('n5')).toBeUndefined();
+        expect(parseDefsItemId('n5|0')).toBeUndefined();
     });
 
-    it("tells whether the element exists in the document", () => {
-        const doc: SvgDoc = { viewBox: null, rootAttrs: {}, children: [defs('d', '<linearGradient id="g"><stop/></linearGradient>')] };
-        expect(isDefsElementOf(doc, 'd/0')).toBe(true);
-        expect(isDefsElementOf(doc, 'd/1')).toBe(true);
-        expect(isDefsElementOf(doc, 'd/2')).toBe(false);
-        expect(isDefsElementOf(doc, 'x/0')).toBe(false);
+    it("tells whether the element or class exists in the document", () => {
+        const doc: SvgDoc = { viewBox: null, rootAttrs: {}, children: [defs('d', '<linearGradient id="g"><stop/></linearGradient>' + style('.cls-1{fill:red}'))] };
+        expect(isDefsItemOf(doc, 'd/0')).toBe(true);
+        expect(isDefsItemOf(doc, 'd/1')).toBe(true);
+        expect(isDefsItemOf(doc, 'd/3')).toBe(false);
+        expect(isDefsItemOf(doc, 'd/.cls-1')).toBe(true);
+        expect(isDefsItemOf(doc, 'd/.cls-2')).toBe(false);
+        expect(isDefsItemOf(doc, 'x/0')).toBe(false);
+    });
+});
+
+describe("buildSourceMap for classes of defs", () => {
+    it("gives each class the range of its rule, whether it is active or turned off", () => {
+        const text = '<svg xmlns="http://www.w3.org/2000/svg"><defs><style>.cls-1{fill:red}\n.deactivated-cls-2{stroke:blue}</style></defs><path d="M0 0"/></svg>';
+        const doc: SvgDoc = { viewBox: null, rootAttrs: {}, children: [defs('d', style('.cls-1{fill:red}\n.deactivated-cls-2{stroke:blue}')), path('p')] };
+        const map = buildSourceMap(text, doc);
+
+        const one = map.get(defsClassId('d', 'cls-1'))!;
+        const two = map.get(defsClassId('d', 'cls-2'))!;
+        expect(text.slice(one.start, one.end)).toBe('.cls-1{fill:red}');
+        expect(text.slice(two.start, two.end)).toBe('.deactivated-cls-2{stroke:blue}');
     });
 });
 

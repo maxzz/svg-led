@@ -1,6 +1,6 @@
 import { type SvgDoc, type SvgNode } from "../1-model/1-types";
 import { findNode, walkNodes } from "../1-model/3-tree";
-import { parseDefsElementId, scanElements } from "../3-serialize/4-source-map";
+import { parseDefsItemId, scanElements } from "../3-serialize/4-source-map";
 import { classRulesOf } from "./5-expand-stroke";
 
 /**
@@ -45,11 +45,19 @@ export function defsItemsOf(inner: string): DefsItem[] {
     return [...classItemsOf(inner), ...elementItemsOf(inner)];
 }
 
-/** True when `id` names an element inside a `<defs>` element of `doc` that still exists */
-export function isDefsElementOf(doc: SvgDoc, id: string): boolean {
-    const parsed = parseDefsElementId(id);
+/** True when `id` names an element or a class of a `<defs>` element of `doc` that still exists */
+export function isDefsItemOf(doc: SvgDoc, id: string): boolean {
+    const parsed = parseDefsItemId(id);
     const node = parsed ? findNode(doc, parsed.defsId)?.node : undefined;
-    return !!parsed && node?.kind === 'passthrough' && parsed.index < scanElements(node.inner).length;
+    if (!parsed || node?.kind !== 'passthrough') {
+        return false;
+    }
+    if (parsed.part.startsWith('.')) {
+        const name = parsed.part.slice(1);
+        return classItemsOf(node.inner).some((item) => item.name === name);
+    }
+    const index = Number(parsed.part);
+    return Number.isInteger(index) && index >= 0 && index < scanElements(node.inner).length;
 }
 
 //---------------------------------------------------------------------------
