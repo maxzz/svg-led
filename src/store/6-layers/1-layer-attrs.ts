@@ -1,4 +1,4 @@
-import { type SvgDoc, type SvgNode, findNode, getPresentation, setPresentation, walkNodes } from "@/svg-core";
+import { type SvgDoc, type SvgNode, findNode, getPresentation, setDefsClassActiveInMarkup, setDefsElementActiveInMarkup, setPresentation, walkNodes } from "@/svg-core";
 import { commitHistory, docState, getNodeProxy } from "../3-document";
 
 /** Editor-only attribute that marks a locked element; it is kept in the SVG so the lock survives saving */
@@ -61,6 +61,29 @@ export function setNodesLocked(ids: readonly string[], locked: boolean): void {
         }
     }
     ids.length && commitHistory();
+}
+
+/** Writes the markup of a `<defs>` element after one of its items was turned on or off; one history step */
+function writeDefsMarkup(defsId: string, change: (inner: string) => string): void {
+    const node = getNodeProxy(defsId);
+    if (node?.kind !== 'passthrough') {
+        return;
+    }
+    const inner = change(node.inner);
+    if (inner !== node.inner) {
+        node.inner = inner;
+        commitHistory();
+    }
+}
+
+/** Turns a class of a `<defs>` element on or off (its rule is rewritten; see `setDefsClassActiveInMarkup`) */
+export function setDefsClassActive(defsId: string, name: string, on: boolean): void {
+    writeDefsMarkup(defsId, (inner) => setDefsClassActiveInMarkup(inner, name, on));
+}
+
+/** Turns an element of a `<defs>` element on or off (it is commented out; see `setDefsElementActiveInMarkup`) */
+export function setDefsElementActive(defsId: string, part: string, on: boolean): void {
+    writeDefsMarkup(defsId, (inner) => setDefsElementActiveInMarkup(inner, part, on));
 }
 
 /** Shows every hidden element; returns the ids that were hidden */

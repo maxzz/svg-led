@@ -51,10 +51,28 @@ export function anchorsOfNode(selected: readonly string[], nodeId: string): Set<
     return rv;
 }
 
+//---------------------------------------------------------------------------
+
+/**
+ * Elements inside `<defs>` selected in the layers tree or from the code (ids from `defsElementId`).
+ * They are not document nodes, so they are kept apart from `selectionAtom`, which the canvas and the panels read as nodes.
+ */
+export const defsSelectionAtom = atom<string[]>([]);
+
 export const setSelectionAtom = atom(
     null,
     (_get, set, ids: string[]) => {
         set(selectionAtom, ids);
         set(selectedAnchorsAtom, []);
+        set(defsSelectionAtom, []);
+    }
+);
+
+/** Selects only elements inside `<defs>`; clears the ordinary selection */
+export const setDefsSelectionAtom = atom(
+    null,
+    (_get, set, ids: string[]) => {
+        set(setSelectionAtom, []);
+        set(defsSelectionAtom, ids);
     }
 );

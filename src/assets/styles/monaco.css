@@ -9,6 +9,19 @@
     background-color: var(--editor-accent);
 }
 
+/* The <defs> that define the classes of the selected elements: a lighter tint with a dashed outline */
+.svgled-code-class-defs {
+    background-color: color-mix(in oklch, var(--editor-accent) 6%, transparent);
+    outline: 1px dashed color-mix(in oklch, var(--editor-accent) 60%, transparent);
+    outline-offset: -1px;
+}
+
+.svgled-code-class-defs-gutter {
+    margin-left: 3px;
+    width: 3px !important;
+    background-color: color-mix(in oklch, var(--editor-accent) 60%, transparent);
+}
+
 /*
  * Monaco's hover tooltips are placed over their own trigger. Hovering one hides it, which shows it again,
  * so it opens and closes forever and eats the click. Let pointer events pass through the tooltips.
