@@ -38,7 +38,7 @@ describe("defsItemsOf", () => {
     });
 
     it("reads a deactivated class as inactive, and keeps its declarations for reactivation", () => {
-        const [s] = defsItemsOf(style('.cls-1{display:none;/*svg-led:off fill:red*/}.cls-2{fill:blue}'));
+        const [s] = defsItemsOf(style('.cls-1{/*svg-led:off fill:red*/}.cls-2{fill:blue}'));
         expect(s.kind === 'element' && s.children.map((c) => c.kind === 'class' && [c.name, c.active])).toEqual([['cls-1', false], ['cls-2', true]]);
     });
 
@@ -50,7 +50,14 @@ describe("defsItemsOf", () => {
 describe("setDefsClassActiveInMarkup", () => {
     it("rewrites the rule so the class hides its elements, keeping the declarations in a comment", () => {
         const off = setDefsClassActiveInMarkup(style('.cls-1{fill:red}'), 'cls-1', false);
-        expect(off).toBe(style('.cls-1{display:none;/*svg-led:off fill:red*/}'));
+        expect(off).toBe(style('.cls-1{/*svg-led:off fill:red*/}'));
+    });
+
+    it("does not add display to the rule, so other rules with the same class name are not affected", () => {
+        const text = style('.cls-1{fill:red}') + style('.cls-1{stroke:blue}');
+        const off = setDefsClassActiveInMarkup(text, 'cls-1', false);
+        expect(off).not.toContain('display');
+        expect(off).toBe(style('.cls-1{/*svg-led:off fill:red*/}') + style('.cls-1{stroke:blue}'));
     });
 
     it("restores the rule exactly when turned on again", () => {
@@ -61,7 +68,7 @@ describe("setDefsClassActiveInMarkup", () => {
 
     it("splits a shared rule so the other selectors keep their declarations", () => {
         expect(setDefsClassActiveInMarkup(style('.cls-2, .cls-3{stroke:blue}'), 'cls-2', false))
-            .toBe(style('.cls-3{stroke:blue}.cls-2{display:none;/*svg-led:off stroke:blue*/}'));
+            .toBe(style('.cls-3{stroke:blue}.cls-2{/*svg-led:off stroke:blue*/}'));
     });
 
     it("does not touch a longer class name that starts with the same text", () => {
@@ -132,7 +139,7 @@ describe("buildSourceMap for items of defs", () => {
     });
 
     it("gives each class the range of its rule, whether it is active or deactivated", () => {
-        const css = '.cls-1{fill:red}\n.cls-2{display:none;/*svg-led:off stroke:blue*/}';
+        const css = '.cls-1{fill:red}\n.cls-2{/*svg-led:off stroke:blue*/}';
         const text = `<svg xmlns="http://www.w3.org/2000/svg"><defs>${style(css)}</defs><path d="M0 0"/></svg>`;
         const doc: SvgDoc = { viewBox: null, rootAttrs: {}, children: [defs('d', style(css)), path('p')] };
         const map = buildSourceMap(text, doc);
@@ -140,7 +147,7 @@ describe("buildSourceMap for items of defs", () => {
         const one = map.get(defsClassId('d', 'cls-1'))!;
         const two = map.get(defsClassId('d', 'cls-2'))!;
         expect(text.slice(one.start, one.end)).toBe('.cls-1{fill:red}');
-        expect(text.slice(two.start, two.end)).toBe('.cls-2{display:none;/*svg-led:off stroke:blue*/}');
+        expect(text.slice(two.start, two.end)).toBe('.cls-2{/*svg-led:off stroke:blue*/}');
     });
 });
 
@@ -154,7 +161,7 @@ describe("defsIdsForClassesOf", () => {
     });
 
     it("counts a class that is deactivated, because the element still uses it", () => {
-        const d = doc([defs('d1', style('.a{display:none;/*svg-led:off fill:red*/}')), path('p1', 'a')]);
+        const d = doc([defs('d1', style('.a{/*svg-led:off fill:red*/}')), path('p1', 'a')]);
         expect(defsIdsForClassesOf(d, ['p1'])).toEqual(['d1']);
     });
 });

@@ -1,7 +1,7 @@
 /**
  * Markup of the `<defs>` elements that is deactivated in place.
  * - An element is turned off by wrapping its markup in a comment: `<!--svg-led:off <element>-->`.
- * - A class is turned off by rewriting its rule: `.name{display:none;/*svg-led:off <declarations>*\/}`.
+ * - A class is turned off by commenting out the declarations of its rule: `.name{/*svg-led:off <declarations>*\/}`.
  * Pure string helpers: no DOM, so they work in tests and in the source map.
  */
 
@@ -41,7 +41,7 @@ export function offBlocksOf(text: string): OffBlock[] {
 
 /** The declarations kept in a deactivated class rule, or undefined when the rule is active */
 export function cssOriginalBody(body: string): string | undefined {
-    return /^\s*display\s*:\s*none\s*;?\s*\/\*svg-led:off ([\s\S]*?)\*\/\s*$/.exec(body)?.[1];
+    return /^\s*\/\*svg-led:off ([\s\S]*?)\*\/\s*$/.exec(body)?.[1];
 }
 
 export type CssRule = {

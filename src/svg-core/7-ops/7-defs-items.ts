@@ -6,7 +6,7 @@ import { CSS_OFF_CLOSE, CSS_OFF_OPEN, OFF_CLOSE, OFF_OPEN, cssOriginalBody, cssR
 /**
  * Items of a `<defs>` element, as the layers tree shows them.
  * - An element is deactivated by wrapping its markup in a comment (`OFF_OPEN`). Its contents are then listed under it, marked off.
- * - A class is deactivated by rewriting its rule to `display:none`, keeping the declarations in a comment (`CSS_OFF_OPEN`).
+ * - A class is deactivated by commenting out the declarations of its rule (`CSS_OFF_OPEN`).
  * - A `<style>` element is an item of its own, with its classes as children.
  */
 
@@ -183,7 +183,7 @@ function classNamesOf(inner: string): Set<string> {
 
 /**
  * Turns a class on or off by rewriting its rule.
- * Off: `.name{display:none;/*svg-led:off <declarations> *\/}` (the rule keeps its other selectors in a rule of their own).
+ * Off: `.name{/*svg-led:off <declarations> *\/}` (the rule keeps its other selectors in a rule of their own).
  * On: the rule is restored from the declarations kept in the comment.
  */
 export function setDefsClassActiveInMarkup(inner: string, name: string, on: boolean): string {
@@ -207,7 +207,7 @@ export function setDefsClassActiveInMarkup(inner: string, name: string, on: bool
                 }
                 const others = rule.selectors.filter((s) => s !== selector);
                 replacement = (others.length ? `${others.join(', ')}{${rule.body}}` : '')
-                    + `${selector}{display:none;${CSS_OFF_OPEN}${rule.body}${CSS_OFF_CLOSE}}`;
+                    + `${selector}{${CSS_OFF_OPEN}${rule.body}${CSS_OFF_CLOSE}}`;
             }
             return inner.slice(0, open) + css.slice(0, rule.start) + replacement + css.slice(rule.end) + inner.slice(close);
         }
