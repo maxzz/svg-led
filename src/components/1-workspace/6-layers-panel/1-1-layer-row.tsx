@@ -7,7 +7,7 @@ import { Braces, ChevronRight, Eye, EyeOff, Group, Lock, Shapes } from "lucide-r
 import { type DefsItem, type GroupNode, type SvgDoc, type SvgNode, defsItemsOf, findNode } from "@/svg-core";
 import { docState } from "@/store/3-document";
 import { selectionAtom, setSelectionAtom } from "@/store/4-editor";
-import { enterIsolationAtom, exitIsolationToAtom, isHidden, isHiddenOrLocked, isLocked, isolationManyOpenAtom, isolationScopeAtom, layerName, setNodesHidden, setNodesLocked } from "@/store/6-layers";
+import { enterIsolationAtom, exitIsolationToAtom, isHidden, isHiddenOrLocked, isLocked, isolationManyOpenAtom, isolationScopeAtom, layerName, setDefsClassActive, setNodesHidden, setNodesLocked } from "@/store/6-layers";
 import { LayerThumbnail } from "./1-2-layer-thumbnail";
 import { isDraggedFamily, rowDragDownAtom } from "./2-reorder";
 import { LayerName } from "./3-rename";
@@ -84,7 +84,7 @@ export const LayerRow = memo(
             )}
 
             {open && !isGroup && defsItems.map((item) => (
-                <DefsItemRow key={item.key} item={item} depth={depth + 1} />
+                <DefsItemRow key={item.key} defsId={snap.id} item={item} depth={depth + 1} />
             ))}
         </>);
     }
@@ -98,16 +98,35 @@ function useDefsItems(snap: SvgNode): DefsItem[] {
     return useMemo(() => (inner === undefined ? [] : defsItemsOf(inner)), [inner]);
 }
 
-/** A class or other element inside `<defs>`. Shown for reference only: it has no visibility, lock, drag or selection. */
-function DefsItemRow({ item, depth }: { item: DefsItem; depth: number; }) {
+/**
+ * A class or other element inside `<defs>`. Its eye turns the class on or off (see `setDefsClassActive`);
+ * the padlock column is kept so the cells line up with the layer rows. Items have no selection, drag or rename.
+ */
+function DefsItemRow({ defsId, item, depth }: { defsId: string; item: DefsItem; depth: number; }) {
     const Icon = item.kind === 'class' ? Braces : Shapes;
+    const className = item.kind === 'class' ? item.name : undefined;
+    const active = item.active !== false;
     return (
         <div
             className="select-none h-7 text-muted-foreground border-b border-foreground/5 flex items-stretch"
             data-defs-item={item.key}
-            title={item.kind === 'class' ? `Class ${item.label} in <defs>` : `<${item.tag}> in <defs>`}
+            title={className !== undefined ? `Class ${item.label} in <defs>` : `<${item.tag}> in <defs>`}
         >
-            <div className="shrink-0 w-14" />
+            {className !== undefined ? (
+                <button
+                    className="shrink-0 w-7 text-foreground/70 hover:text-foreground border-r border-foreground/5 flex items-center justify-center cursor-pointer"
+                    data-row-control
+                    onClick={(e) => { e.stopPropagation(); setDefsClassActive(defsId, className, !active); }}
+                    onDoubleClick={(e) => e.stopPropagation()}
+                    title={`${active ? "Turn off" : "Turn on"} class ${item.label}`}
+                    type="button"
+                >
+                    {active ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />}
+                </button>
+            ) : (
+                <span className="shrink-0 w-7 border-r border-foreground/5" />
+            )}
+            <span className="shrink-0 w-7 border-r border-foreground/5" />
             <div className="grow min-w-0 flex items-center gap-1.5" style={{ paddingLeft: 4 + depth * ROW_INDENT_PX }}>
                 <span className="shrink-0 size-4" />
                 <div
@@ -116,7 +135,7 @@ function DefsItemRow({ item, depth }: { item: DefsItem; depth: number; }) {
                 >
                     <Icon className="size-3.5 text-neutral-600" />
                 </div>
-                <span className="truncate">{item.label}</span>
+                <span className={classNames("truncate", !active && "line-through opacity-60")}>{item.label}</span>
             </div>
             <div className="shrink-0 w-9 border-l border-foreground/5" />
         </div>

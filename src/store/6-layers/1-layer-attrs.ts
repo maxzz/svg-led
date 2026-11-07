@@ -1,4 +1,4 @@
-import { type SvgDoc, type SvgNode, findNode, getPresentation, setPresentation, walkNodes } from "@/svg-core";
+import { type SvgDoc, type SvgNode, findNode, getPresentation, setDefsClassActiveInMarkup, setPresentation, walkNodes } from "@/svg-core";
 import { commitHistory, docState, getNodeProxy } from "../3-document";
 
 /** Editor-only attribute that marks a locked element; it is kept in the SVG so the lock survives saving */
@@ -61,6 +61,19 @@ export function setNodesLocked(ids: readonly string[], locked: boolean): void {
         }
     }
     ids.length && commitHistory();
+}
+
+/** Turns a class of a `<defs>` element on or off by renaming its selector in the markup; one history step */
+export function setDefsClassActive(defsId: string, name: string, active: boolean): void {
+    const node = getNodeProxy(defsId);
+    if (node?.kind !== 'passthrough') {
+        return;
+    }
+    const inner = setDefsClassActiveInMarkup(node.inner, name, active);
+    if (inner !== node.inner) {
+        node.inner = inner;
+        commitHistory();
+    }
 }
 
 /** Shows every hidden element; returns the ids that were hidden */

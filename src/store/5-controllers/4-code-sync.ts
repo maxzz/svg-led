@@ -2,7 +2,7 @@ import { snapshot, subscribe } from "valtio";
 import { appSettings } from "../1-ui-settings";
 import { type AppStore, appStore } from "../0-app-store";
 
-import { type SvgDoc, buildSourceMap, nodeAtOffset } from "@/svg-core";
+import { type SvgDoc, buildSourceMap, defsIdsForClassesOf, nodeAtOffset } from "@/svg-core";
 import { docState, docToText, historyState, loadSvgText } from "../3-document";
 
 import type * as Monaco from "monaco-editor";
@@ -88,11 +88,25 @@ function attach(store: AppStore, { editor, monaco }: MonacoHandle): () => void {
 
     function highlightSelection(reveal: boolean) {
         const map = store.get(sourceMapAtom);
-        const ranges = store.get(selectionAtom).map((id) => map.get(id)).filter((r) => !!r);
-        decorations.set(ranges.map((r) => ({
-            range: new monaco.Range(r.startLine, 1, r.endLine, 1),
-            options: { isWholeLine: true, className: 'svgled-code-selected', linesDecorationsClassName: 'svgled-code-selected-gutter' },
-        })));
+        const selection = store.get(selectionAtom);
+        const ranges = selection.map((id) => map.get(id)).filter((r) => !!r);
+
+        // the <defs> that define the classes of the selected elements; they are not selected themselves
+        const classDefs = defsIdsForClassesOf(snapshot(docState).doc as SvgDoc, selection)
+            .filter((id) => !selection.includes(id))
+            .map((id) => map.get(id))
+            .filter((r) => !!r);
+
+        decorations.set([
+            ...ranges.map((r) => ({
+                range: new monaco.Range(r.startLine, 1, r.endLine, 1),
+                options: { isWholeLine: true, className: 'svgled-code-selected', linesDecorationsClassName: 'svgled-code-selected-gutter' },
+            })),
+            ...classDefs.map((r) => ({
+                range: new monaco.Range(r.startLine, 1, r.endLine, 1),
+                options: { isWholeLine: true, className: 'svgled-code-class-defs', linesDecorationsClassName: 'svgled-code-class-defs-gutter' },
+            })),
+        ]);
         if (reveal && ranges.length) {
             editor.revealLinesInCenterIfOutsideViewport(ranges[0].startLine, ranges[0].endLine);
         }
