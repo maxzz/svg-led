@@ -80,9 +80,9 @@ function TreeScroller() {
             {/* Overlay: absolutely positioned over the rows, so it never reflows the content. Widens only while hovered itself. */}
             <ScrollArea.Scrollbar
                 orientation="vertical"
-                className="absolute top-0 right-0 bottom-0 w-1.5 hover:w-3 p-px flex touch-none select-none transition-[width] duration-150 ease-out"
+                className="absolute top-0 right-0 bottom-0 w-1.5 hover:w-1.75 p-px flex touch-none select-none transition-[width] duration-150 ease-out"
             >
-                <ScrollArea.Thumb className="relative flex-1 rounded-full bg-muted-foreground/40 hover:bg-muted-foreground/70 transition-colors" />
+                <ScrollArea.Thumb className="relative flex-1 bg-muted-foreground/40 hover:bg-muted-foreground/70 transition-colors" />
             </ScrollArea.Scrollbar>
 
             <ScrollArea.Corner />
