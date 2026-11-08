@@ -1,10 +1,10 @@
 import { atom } from "jotai";
 import { atomFamily } from "jotai-family";
-import { type DefsItem, type SvgNode, defsItemId, defsItemsOf, findNode, parseDefsItemId, walkNodes } from "@/svg-core";
+import { type DefsItem, type SvgDoc, type SvgNode, defsItemId, defsItemsOf, findNode, parseDefsItemId, plainName, walkNodes } from "@/svg-core";
 import { appSettings } from "@/store/1-ui-settings";
 import { docState } from "@/store/3-document";
 import { defsSelectionAtom, selectionAtom, setSelectionAtom } from "@/store/4-editor";
-import { getIsolationScope, isHiddenOrLocked, isolationCollapsedAtom, isolationManyOpenAtom } from "@/store/6-layers";
+import { getIsolationScope, isHiddenOrLocked, isLocked, isolationCollapsedAtom, isolationManyOpenAtom } from "@/store/6-layers";
 
 //---------------------------------------------------------------------------
 // Row layout
@@ -186,11 +186,27 @@ function visibleRowIds(expanded: ReadonlySet<string>, scope: readonly string[], 
 /** Row where the last plain click happened; Shift+click selects from it */
 const rangeAnchorAtom = atom<string | null>(null);
 
-/** Hidden and locked layers cannot be selected, as on the canvas */
+/**
+ * A `<defs>` is never drawn, so its display does not matter: it can be selected in the tree even when hidden
+ * (its own display or a hidden group around it). Locking still applies.
+ */
+function isLayerRowBlocked(doc: SvgDoc, id: string): boolean {
+    const loc = findNode(doc, id);
+    if (!loc) {
+        return true;
+    }
+    const { node, parents } = loc;
+    if (node.kind === 'passthrough' && plainName(node.tag).toLowerCase() === 'defs') {
+        return [node, ...parents].some(isLocked);
+    }
+    return isHiddenOrLocked(doc, id);
+}
+
+/** Hidden and locked layers cannot be selected, as on the canvas; a hidden `<defs>` can be (see `isLayerRowBlocked`) */
 const selectLayersAtom = atom(
     null,
     (_get, set, ids: string[]) => {
-        set(setSelectionAtom, ids.filter((id) => !isHiddenOrLocked(docState.doc, id)));
+        set(setSelectionAtom, ids.filter((id) => !isLayerRowBlocked(docState.doc, id)));
     }
 );
 

@@ -17,8 +17,7 @@ export function DefsItemRows({ defsId, items, depth }: { defsId: string; items: 
                     ? <DefsClassRow key={item.key} defsId={defsId} item={item} depth={depth} />
                     : <DefsElementRow key={item.key} defsId={defsId} item={item} depth={depth} />
             )
-        )
-        }
+        )}
     </>);
 }
 
@@ -59,7 +58,9 @@ function DefsClassRow({ defsId, item, depth }: { defsId: string; item: DefsClass
             <SelectionCircle_Defs_Icon selected={selected} containsSelected={false} onSelect={() => select([id])} />
         </div>
 
-        {selected && <DeclTable defsId={defsId} item={item} depth={depth} />}
+        {selected && (
+            <DeclTable defsId={defsId} item={item} depth={depth} />
+        )}
     </>);
 }
 
@@ -67,7 +68,7 @@ function DefsClassRow({ defsId, item, depth }: { defsId: string; item: DefsClass
 function DeclTable({ defsId, item, depth }: { defsId: string; item: DefsClassItem; depth: number; }) {
     return (
         <div
-            className="my-1 mr-2 text-xs ring-1 ring-foreground/15 rounded-md overflow-hidden"
+            className="my-1 mr-1 text-xs ring-1 ring-foreground/15 rounded overflow-hidden"
             style={{ marginLeft: 4 + depth * ROW_INDENT_PX }}
             data-defs-decls={item.key}
         >
@@ -144,7 +145,7 @@ function DefsElementRow({ defsId, item, depth }: { defsId: string; item: DefsEle
                     {item.label}
                 </span>
             </div>
-            
+
             <SelectionCircle_Defs_Icon selected={selected} containsSelected={hasChildren && containsSelected} onSelect={() => select([id])} />
         </div>
 
