@@ -1,6 +1,7 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
 import { AnimatePresence, motion } from "motion/react";
+import { ScrollArea } from "radix-ui";
 import { Button } from "@/ui/shadcn/button";
 import { X } from "lucide-react";
 import { appSettings } from "@/store/1-ui-settings";
@@ -63,17 +64,29 @@ function TreeScroller() {
     const cancel = useSetAtom(rowDragCancelAtom);
 
     return (
-        <div
-            className="relative grow min-h-0 overflow-y-auto overflow-x-hidden"
-            data-layers-scroll
+        <ScrollArea.Root
+            className="relative grow min-h-0 overflow-hidden"
+            type="always"
             onPointerMove={(e) => move({ pointerId: e.pointerId, buttons: e.buttons, clientX: e.clientX, clientY: e.clientY })}
             onPointerUp={() => up()}
             onPointerCancel={() => cancel()}
         >
-            <LayersTree />
-            <LayersDropIndicator />
-            <LayersDragGhost />
-        </div>
+            <ScrollArea.Viewport data-layers-scroll className="relative h-full w-full [&>div]:block!">
+                <LayersTree />
+                <LayersDropIndicator />
+                <LayersDragGhost />
+            </ScrollArea.Viewport>
+
+            {/* Overlay: absolutely positioned over the rows, so it never reflows the content. Widens only while hovered itself. */}
+            <ScrollArea.Scrollbar
+                orientation="vertical"
+                className="absolute top-0 right-0 bottom-0 w-1.5 hover:w-1.75 p-px flex touch-none select-none transition-[width] duration-150 ease-out"
+            >
+                <ScrollArea.Thumb className="relative flex-1 bg-muted-foreground/40 hover:bg-muted-foreground/70 transition-colors" />
+            </ScrollArea.Scrollbar>
+
+            <ScrollArea.Corner />
+        </ScrollArea.Root>
     );
 }
 
