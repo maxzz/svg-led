@@ -1,7 +1,7 @@
 import { type MouseEvent } from "react";
 import { useSetAtom } from "jotai";
 import { classNames } from "@/utils";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Eye, EyeOff } from "lucide-react";
 
 import { type GroupNode } from "@/svg-core";
 import { circlePointerDownAtom, circlePointerMoveAtom, circlePointerUpAtom } from "../9-atoms-layers-panel";
@@ -73,4 +73,27 @@ export function SelectionCircle_Icon({ id, selected, containsSelected }: { id: s
 
 export function stop(e: MouseEvent) {
     e.stopPropagation();
+}
+
+//---------------------------------------------------------------------------
+
+/** Eye of a row: shows whether the item is on; a click turns it off or on. A disabled eye shows the state only. */
+export function EyeToggle({ on, title, disabled, onToggle }: { on: boolean; title: string; disabled?: boolean; onToggle: () => void; }) {
+    const Icon = on ? Eye : EyeOff;
+    return (
+        <button
+            className={classNames(
+                "shrink-0 w-7 text-foreground/70 border-r border-foreground/5 flex items-center justify-center",
+                disabled ? "opacity-35 cursor-default" : "hover:text-foreground cursor-pointer",
+            )}
+            data-row-control
+            disabled={disabled}
+            onClick={(e) => { stop(e); !disabled && onToggle(); }}
+            onDoubleClick={stop}
+            title={title}
+            type="button"
+        >
+            <Icon className="size-3.5" />
+        </button>
+    );
 }

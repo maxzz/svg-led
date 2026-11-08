@@ -2,17 +2,17 @@ import { memo, useMemo } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { classNames } from "@/utils";
 import { useSnapshot } from "valtio";
-import { Braces, CodeXml, Eye, EyeOff, Shapes } from "lucide-react";
+import { Braces, CodeXml, Shapes } from "lucide-react";
 
 import { type DefsClassItem, type DefsDecl, type DefsElementItem, type DefsItem, type GroupNode, type SvgNode, defsItemId, defsItemsOf, isDeactivatedName, plainName } from "@/svg-core";
 import { defsSelectionAtom, setDefsSelectionAtom } from "@/store/4-editor";
 import { enterIsolationAtom, isHidden, isLocked, isolationScopeAtom, layerName, setDefsChildrenActive, setDefsClassActive, setDefsDeclActive, setDefsElementActive, setPassthroughActive } from "@/store/6-layers";
+import { LAYER_ICON_PX, ROW_INDENT_PX, containsSelectedDefsFamily, containsSelectedFamily, isExpandedFamily, isIsolationCollapsedFamily, isSelectedFamily, rowClickAtom, toggleExpandedAtom, toggleIsolationCollapsedAtom } from "../9-atoms-layers-panel";
 import { LayerThumbnail } from "./8-layer-thumbnail";
 import { isDraggedFamily, rowDragDownAtom } from "../2-reorder";
 import { LayerName } from "../3-rename";
 import { LockButton, VisibilityButton } from "../4-toggle-sweep";
-import { LAYER_ICON_PX, ROW_INDENT_PX, containsSelectedDefsFamily, containsSelectedFamily, isExpandedFamily, isIsolationCollapsedFamily, isSelectedFamily, rowClickAtom, toggleExpandedAtom, toggleIsolationCollapsedAtom } from "../9-atoms-layers-panel";
-import { Expander_Icon, GroupChildren, SelectionCircle_Icon, stop } from "./8-row-common-parts";
+import { EyeToggle, Expander_Icon, GroupChildren, SelectionCircle_Icon, stop } from "./8-row-common-parts";
 
 type LayerRowProps = {
     node: SvgNode;
@@ -78,7 +78,7 @@ export const LayerRow = memo(
                 <div className="grow min-w-0 flex items-center gap-1.5" style={{ paddingLeft: 4 + depth * ROW_INDENT_PX }}>
                     <Expander_Icon isGroup={canExpand} open={open} onToggle={() => (isRoot ? toggleCollapsed(snap.id) : toggleExpanded(snap.id))} />
                     {defsNode
-                        ? <DefsIcon icon={CodeXml} />
+                        ? <Defs_Icon icon={CodeXml} />
                         : <LayerThumbnail node={node} snap={snap} />
                     }
                     <LayerName id={snap.id} name={layerName(snap)} idAttr={snap.attrs.id ?? ''} dimmed={hidden || hiddenByParent || off} />
@@ -144,7 +144,7 @@ function DefsClassRow({ defsId, item, depth }: { defsId: string; item: DefsClass
             <span className="shrink-0 w-7 border-r border-foreground/5" />
             <div className="grow min-w-0 flex items-center gap-1.5" style={{ paddingLeft: 4 + depth * ROW_INDENT_PX }}>
                 <span className="shrink-0 size-4" />
-                <DefsIcon icon={Braces} />
+                <Defs_Icon icon={Braces} />
                 <span className={classNames("truncate", item.off && "line-through opacity-60")}>{item.label}</span>
             </div>
             <DefsSelectionCircle selected={selected} containsSelected={false} onSelect={() => select([id])} />
@@ -213,7 +213,7 @@ function DefsElementRow({ defsId, item, depth }: { defsId: string; item: DefsEle
             <span className="shrink-0 w-7 border-r border-foreground/5" />
             <div className="grow min-w-0 flex items-center gap-1.5" style={{ paddingLeft: 4 + depth * ROW_INDENT_PX }}>
                 <Expander_Icon isGroup={hasChildren} open={open} onToggle={() => toggleExpanded(id)} />
-                <DefsIcon icon={isStyle ? Braces : Shapes} />
+                <Defs_Icon icon={isStyle ? Braces : Shapes} />
                 <span className={classNames("truncate", item.off && "line-through opacity-60")}>{item.label}</span>
             </div>
             <DefsSelectionCircle selected={selected} containsSelected={hasChildren && containsSelected} onSelect={() => select([id])} />
@@ -223,27 +223,6 @@ function DefsElementRow({ defsId, item, depth }: { defsId: string; item: DefsEle
             <DefsItemRows defsId={defsId} items={item.children} depth={depth + 1} />
         )}
     </>);
-}
-
-/** Eye of a row: shows whether the item is on; a click turns it off or on. A disabled eye shows the state only. */
-function EyeToggle({ on, title, disabled, onToggle }: { on: boolean; title: string; disabled?: boolean; onToggle: () => void; }) {
-    const Icon = on ? Eye : EyeOff;
-    return (
-        <button
-            className={classNames(
-                "shrink-0 w-7 text-foreground/70 border-r border-foreground/5 flex items-center justify-center",
-                disabled ? "opacity-35 cursor-default" : "hover:text-foreground cursor-pointer",
-            )}
-            data-row-control
-            disabled={disabled}
-            onClick={(e) => { stop(e); !disabled && onToggle(); }}
-            onDoubleClick={stop}
-            title={title}
-            type="button"
-        >
-            <Icon className="size-3.5" />
-        </button>
-    );
 }
 
 /** Selection circle of a `<defs>` item; the same look as the one of a layer row */
@@ -273,7 +252,7 @@ export function ContainsMarker() {
 }
 
 /** The small preview box of a `<defs>` item, the same size as a layer thumbnail */
-function DefsIcon({ icon: Icon }: { icon: typeof Braces; }) {
+function Defs_Icon({ icon: Icon }: { icon: typeof Braces; }) {
     return (
         <div
             className="shrink-0 bg-white ring-1 ring-foreground/15 rounded-xs flex items-center justify-center"
