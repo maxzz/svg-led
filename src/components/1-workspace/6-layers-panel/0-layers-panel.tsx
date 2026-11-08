@@ -1,9 +1,11 @@
 import { useAtomValue, useSetAtom } from "jotai";
+import { useRef } from "react";
 import { useSnapshot } from "valtio";
 import { AnimatePresence, motion } from "motion/react";
 import { Button } from "@/ui/shadcn/button";
 import { X } from "lucide-react";
 import { appSettings } from "@/store/1-ui-settings";
+import { useScrollbarHotZone } from "@/utils/util-hooks/use-scrollbar-hot-zone";
 
 import { LayersTree } from "./1-layers-tree";
 import { LayersBottomBar } from "./2-layers-bottom-bar";
@@ -62,9 +64,13 @@ function TreeScroller() {
     const up = useSetAtom(rowDragUpAtom);
     const cancel = useSetAtom(rowDragCancelAtom);
 
+    const scrollRef = useRef<HTMLDivElement>(null);
+    useScrollbarHotZone(scrollRef);
+
     return (
         <div
-            className="relative grow min-h-0 overflow-y-auto overflow-x-hidden"
+            ref={scrollRef}
+            className="thin-scrollbar relative grow min-h-0 overflow-y-auto overflow-x-hidden"
             data-layers-scroll
             onPointerMove={(e) => move({ pointerId: e.pointerId, buttons: e.buttons, clientX: e.clientX, clientY: e.clientY })}
             onPointerUp={() => up()}
