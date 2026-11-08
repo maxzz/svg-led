@@ -1,4 +1,4 @@
-import { type SvgDoc, type SvgNode, findNode, getPresentation, setDefsClassActiveInMarkup, setDefsElementActiveInMarkup, setPresentation, walkNodes } from "@/svg-core";
+import { type SvgDoc, type SvgNode, deactivatedName, findNode, getPresentation, setDefsClassActiveInMarkup, setDefsDeclActiveInMarkup, setDefsElementActiveInMarkup, setPresentation, walkNodes } from "@/svg-core";
 import { commitHistory, docState, getNodeProxy } from "../3-document";
 
 /** Editor-only attribute that marks a locked element; it is kept in the SVG so the lock survives saving */
@@ -76,14 +76,32 @@ function writeDefsMarkup(defsId: string, change: (inner: string) => string): voi
     }
 }
 
-/** Turns a class of a `<defs>` element on or off (its rule is rewritten; see `setDefsClassActiveInMarkup`) */
-export function setDefsClassActive(defsId: string, name: string, on: boolean): void {
-    writeDefsMarkup(defsId, (inner) => setDefsClassActiveInMarkup(inner, name, on));
+/** Turns a class of the `<style>` element `styleIndex` of a `<defs>` element on or off (its selector is renamed; see `setDefsClassActiveInMarkup`) */
+export function setDefsClassActive(defsId: string, styleIndex: number, name: string, active: boolean): void {
+    writeDefsMarkup(defsId, (inner) => setDefsClassActiveInMarkup(inner, styleIndex, name, active));
 }
 
-/** Turns an element of a `<defs>` element on or off (it is commented out; see `setDefsElementActiveInMarkup`) */
-export function setDefsElementActive(defsId: string, part: string, on: boolean): void {
-    writeDefsMarkup(defsId, (inner) => setDefsElementActiveInMarkup(inner, part, on));
+/** Turns one declaration of a class on or off (it is commented out; see `setDefsDeclActiveInMarkup`) */
+export function setDefsDeclActive(defsId: string, styleIndex: number, name: string, declIndex: number, active: boolean): void {
+    writeDefsMarkup(defsId, (inner) => setDefsDeclActiveInMarkup(inner, styleIndex, name, declIndex, active));
+}
+
+/** Turns an element of a `<defs>` element on or off (its tag is renamed; see `setDefsElementActiveInMarkup`) */
+export function setDefsElementActive(defsId: string, index: number, active: boolean): void {
+    writeDefsMarkup(defsId, (inner) => setDefsElementActiveInMarkup(inner, index, active));
+}
+
+/** Turns a passthrough element on or off by renaming its tag, such as `<defs>` (the layers panel shows its state in the eye) */
+export function setPassthroughActive(id: string, active: boolean): void {
+    const node = getNodeProxy(id);
+    if (node?.kind !== 'passthrough') {
+        return;
+    }
+    const tag = deactivatedName(node.tag, !active);
+    if (tag !== node.tag) {
+        node.tag = tag;
+        commitHistory();
+    }
 }
 
 /** Shows every hidden element; returns the ids that were hidden */

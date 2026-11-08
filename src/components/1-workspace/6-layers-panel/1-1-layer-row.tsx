@@ -4,10 +4,10 @@ import { classNames } from "@/utils";
 import { useSnapshot } from "valtio";
 import { Braces, ChevronRight, Eye, EyeOff, Group, Lock, Shapes } from "lucide-react";
 
-import { type DefsClassItem, type DefsElementItem, type DefsItem, type GroupNode, type SvgDoc, type SvgNode, defsClassId, defsItemId, defsItemsOf, findNode } from "@/svg-core";
+import { type DefsClassItem, type DefsDecl, type DefsElementItem, type DefsItem, type GroupNode, type SvgDoc, type SvgNode, defsItemId, defsItemsOf, findNode, isDeactivatedName, plainName } from "@/svg-core";
 import { docState } from "@/store/3-document";
 import { defsSelectionAtom, selectionAtom, setDefsSelectionAtom, setSelectionAtom } from "@/store/4-editor";
-import { enterIsolationAtom, exitIsolationToAtom, isHidden, isHiddenOrLocked, isLocked, isolationManyOpenAtom, isolationScopeAtom, layerName, setDefsClassActive, setDefsElementActive, setNodesHidden, setNodesLocked } from "@/store/6-layers";
+import { enterIsolationAtom, exitIsolationToAtom, isHidden, isHiddenOrLocked, isLocked, isolationManyOpenAtom, isolationScopeAtom, layerName, setDefsClassActive, setDefsDeclActive, setDefsElementActive, setNodesHidden, setNodesLocked, setPassthroughActive } from "@/store/6-layers";
 import { LayerThumbnail } from "./1-2-layer-thumbnail";
 import { isDraggedFamily, rowDragDownAtom } from "./2-reorder";
 import { LayerName } from "./3-rename";
@@ -45,6 +45,8 @@ export const LayerRow = memo(
         const open = isGroup ? (isRoot ? !collapsed : expanded) : canExpand && expanded;
         const hidden = isHidden(snap);
         const locked = isLocked(snap);
+        // a passthrough element (such as <defs>) is deactivated by the prefix on its tag, not by display
+        const off = snap.kind === 'passthrough' && isDeactivatedName(snap.tag);
 
         return (<>
             <div
@@ -61,13 +63,15 @@ export const LayerRow = memo(
                 onClick={(e) => rowClick({ id: snap.id, shift: e.shiftKey, ctrl: e.ctrlKey || e.metaKey })}
                 onDoubleClick={() => enterIsolation(snap.id)}
             >
-                <VisibilityButton id={snap.id} hidden={hidden} inherited={hiddenByParent} />
+                {snap.kind === 'passthrough'
+                    ? <EyeToggle on={!off} title={`${off ? "Turn on" : "Turn off"} <${plainName(snap.tag)}>`} onToggle={() => setPassthroughActive(snap.id, off)} />
+                    : <VisibilityButton id={snap.id} hidden={hidden} inherited={hiddenByParent} />}
                 <LockButton id={snap.id} locked={locked} inherited={lockedByParent} />
 
                 <div className="grow min-w-0 flex items-center gap-1.5" style={{ paddingLeft: 4 + depth * ROW_INDENT_PX }}>
                     <Expander isGroup={canExpand} open={open} onToggle={() => (isRoot ? toggleCollapsed(snap.id) : toggleExpanded(snap.id))} />
                     <LayerThumbnail node={node} snap={snap} />
-                    <LayerName id={snap.id} name={layerName(snap)} idAttr={snap.attrs.id ?? ''} dimmed={hidden || hiddenByParent} />
+                    <LayerName id={snap.id} name={layerName(snap)} idAttr={snap.attrs.id ?? ''} dimmed={hidden || hiddenByParent || off} />
                 </div>
 
                 <SelectionCircle id={snap.id} selected={selected} containsSelected={isGroup && containsSelected} />
@@ -90,13 +94,13 @@ export const LayerRow = memo(
 
 //---------------------------------------------------------------------------
 
-/** Items of a `<defs>` element (its classes and other children), or none for any other node */
+/** Items of a `<defs>` element (its `<style>` elements, classes and other children), or none for any other node */
 function useDefsItems(snap: SvgNode): DefsItem[] {
-    const inner = snap.kind === 'passthrough' && snap.tag.toLowerCase() === 'defs' ? snap.inner : undefined;
+    const inner = snap.kind === 'passthrough' && plainName(snap.tag).toLowerCase() === 'defs' ? snap.inner : undefined;
     return useMemo(() => (inner === undefined ? [] : defsItemsOf(inner)), [inner]);
 }
 
-/** The items of a `<defs>` element at one depth: its classes, then its elements (each with the elements nested in it) */
+/** The items of a `<defs>` element at one depth; each element comes with the items nested in it */
 function DefsItemRows({ defsId, items, depth }: { defsId: string; items: readonly DefsItem[]; depth: number; }) {
     return <>{items.map((item) => (
         item.kind === 'class'
@@ -106,15 +110,15 @@ function DefsItemRows({ defsId, items, depth }: { defsId: string; items: readonl
 }
 
 /**
- * A class inside `<defs>`. Its eye turns the class on or off (see `setDefsClassActive`); selecting the row
- * selects the class and highlights its rule in the code. The padlock column stays empty so the cells line up with the layer rows.
+ * A class inside `<defs>`. Its eye turns the class on or off (its selector is renamed); selecting the row selects the class,
+ * highlights its rule in the code, and shows its declarations in a table under it.
+ * The padlock column stays empty so the cells line up with the layer rows.
  */
 function DefsClassRow({ defsId, item, depth }: { defsId: string; item: DefsClassItem; depth: number; }) {
-    const { name, active } = item;
-    const id = defsClassId(defsId, name);
+    const id = defsItemId(defsId, item.part);
     const selected = useAtomValue(defsSelectionAtom).includes(id);
     const select = useSetAtom(setDefsSelectionAtom);
-    return (
+    return (<>
         <div
             className={classNames(
                 "select-none h-7 border-b border-foreground/5 flex items-stretch",
@@ -124,26 +128,54 @@ function DefsClassRow({ defsId, item, depth }: { defsId: string; item: DefsClass
             title={`Class ${item.label} in <defs>`}
             onClick={() => select([id])}
         >
-            <DefsEyeButton
-                on={active}
-                toggleable={item.toggleable}
-                title={`${active ? "Turn off" : "Turn on"} class ${item.label}`}
-                onToggle={() => setDefsClassActive(defsId, name, !active)}
-            />
+            <EyeToggle on={!item.off} title={`${item.off ? "Turn on" : "Turn off"} class ${item.label}`} onToggle={() => setDefsClassActive(defsId, item.styleIndex, item.name, item.off)} />
             <span className="shrink-0 w-7 border-r border-foreground/5" />
             <div className="grow min-w-0 flex items-center gap-1.5" style={{ paddingLeft: 4 + depth * ROW_INDENT_PX }}>
                 <span className="shrink-0 size-4" />
                 <DefsIcon icon={Braces} />
-                <span className={classNames("truncate", !active && "line-through opacity-60")}>{item.label}</span>
+                <span className={classNames("truncate", item.off && "line-through opacity-60")}>{item.label}</span>
             </div>
             <DefsSelectionCircle selected={selected} onSelect={() => select([id])} />
+        </div>
+
+        {selected && <DeclTable defsId={defsId} item={item} depth={depth} />}
+    </>);
+}
+
+/** The declarations of a class as a table: eye, property, value. Each eye comments its declaration out, or restores it. */
+function DeclTable({ defsId, item, depth }: { defsId: string; item: DefsClassItem; depth: number; }) {
+    return (
+        <div
+            className="my-1 mr-2 text-xs ring-1 ring-foreground/15 rounded-md overflow-hidden"
+            style={{ marginLeft: 4 + depth * ROW_INDENT_PX }}
+            data-defs-decls={item.key}
+        >
+            {item.decls.length === 0 && <div className="px-2 py-1 text-muted-foreground">No declarations</div>}
+            {item.decls.map((decl) => (
+                <DeclRow key={decl.key} defsId={defsId} item={item} decl={decl} />
+            ))}
+        </div>
+    );
+}
+
+function DeclRow({ defsId, item, decl }: { defsId: string; item: DefsClassItem; decl: DefsDecl; }) {
+    return (
+        <div className={classNames("h-6 border-b border-foreground/5 last:border-b-0 flex items-stretch", decl.off ? "text-muted-foreground" : "text-foreground")} data-defs-decl={decl.key}>
+            <EyeToggle
+                on={!decl.off}
+                disabled={!decl.toggleable}
+                title={decl.toggleable ? `${decl.off ? "Turn on" : "Turn off"} ${decl.prop}` : "This declaration holds the comment end, so it cannot be turned off"}
+                onToggle={() => setDefsDeclActive(defsId, item.styleIndex, item.name, decl.index, decl.off)}
+            />
+            <span className={classNames("w-2/5 shrink-0 px-2 truncate flex items-center border-r border-foreground/5", decl.off && "line-through opacity-60")}>{decl.prop}</span>
+            <span className={classNames("grow min-w-0 px-2 truncate flex items-center", decl.off && "line-through opacity-60")}>{decl.value}</span>
         </div>
     );
 }
 
 /**
- * An element inside `<defs>`. Its row and selection circle select it (see `setDefsSelectionAtom`);
- * its contents are listed under it when it is expanded. The visibility and padlock cells stay empty: they do not apply here.
+ * An element inside `<defs>`. Its eye renames its tag (see `setDefsElementActive`). Its row and selection circle select it;
+ * its children are listed under it when it is expanded. The padlock cell stays empty: locking does not apply here.
  */
 function DefsElementRow({ defsId, item, depth }: { defsId: string; item: DefsElementItem; depth: number; }) {
     const id = defsItemId(defsId, item.part);
@@ -151,15 +183,8 @@ function DefsElementRow({ defsId, item, depth }: { defsId: string; item: DefsEle
     const open = useAtomValue(isExpandedFamily(id));
     const toggleExpanded = useSetAtom(toggleExpandedAtom);
     const select = useSetAtom(setDefsSelectionAtom);
-    const setSelection = useSetAtom(defsSelectionAtom);
     const hasChildren = item.children.length > 0;
     const isStyle = item.tag.toLowerCase() === 'style';
-
-    // the eye turns the element's comment on or off; the part names a block, so the selection may now point elsewhere
-    const toggle = () => {
-        setDefsElementActive(defsId, item.part, item.off);
-        setSelection([]);
-    };
 
     return (<>
         <div
@@ -171,9 +196,7 @@ function DefsElementRow({ defsId, item, depth }: { defsId: string; item: DefsEle
             title={`<${item.tag}> in <defs>`}
             onClick={() => select([id])}
         >
-            {isStyle
-                ? <span className="shrink-0 w-7 border-r border-foreground/5" />
-                : <DefsEyeButton on={!item.off} toggleable={item.toggleable} title={`${item.off ? "Turn on" : "Turn off"} <${item.tag}>`} onToggle={toggle} />}
+            <EyeToggle on={!item.off} title={`${item.off ? "Turn on" : "Turn off"} <${item.tag}>`} onToggle={() => setDefsElementActive(defsId, Number(item.part), item.off)} />
             <span className="shrink-0 w-7 border-r border-foreground/5" />
             <div className="grow min-w-0 flex items-center gap-1.5" style={{ paddingLeft: 4 + depth * ROW_INDENT_PX }}>
                 <Expander isGroup={hasChildren} open={open} onToggle={() => toggleExpanded(id)} />
@@ -187,23 +210,20 @@ function DefsElementRow({ defsId, item, depth }: { defsId: string; item: DefsEle
     </>);
 }
 
-/**
- * Eye of a `<defs>` item. It shows the state; when `toggleable` is false the state is shown but cannot be changed
- * (for example an element inside a deactivated element, which follows its block).
- */
-function DefsEyeButton({ on, toggleable, title, onToggle }: { on: boolean; toggleable: boolean; title: string; onToggle: () => void; }) {
+/** Eye of a row: shows whether the item is on; a click turns it off or on. A disabled eye shows the state only. */
+function EyeToggle({ on, title, disabled, onToggle }: { on: boolean; title: string; disabled?: boolean; onToggle: () => void; }) {
     const Icon = on ? Eye : EyeOff;
     return (
         <button
             className={classNames(
                 "shrink-0 w-7 text-foreground/70 border-r border-foreground/5 flex items-center justify-center",
-                toggleable ? "hover:text-foreground cursor-pointer" : "opacity-35 cursor-default",
+                disabled ? "opacity-35 cursor-default" : "hover:text-foreground cursor-pointer",
             )}
             data-row-control
-            disabled={!toggleable}
-            onClick={(e) => { stop(e); toggleable && onToggle(); }}
+            disabled={disabled}
+            onClick={(e) => { stop(e); !disabled && onToggle(); }}
             onDoubleClick={stop}
-            title={toggleable ? title : "Follows the deactivated element above it"}
+            title={title}
             type="button"
         >
             <Icon className="size-3.5" />

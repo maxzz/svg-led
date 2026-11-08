@@ -1,5 +1,5 @@
 import { type SvgDoc, type SvgNode } from "../1-model/1-types";
-import { cssRulesOf, offBlocksOf } from "./5-defs-markup";
+import { classOfSelector, cssRulesOf, plainName } from "./5-defs-markup";
 
 /** Position of one element in the source text; lines are 1-based like in Monaco */
 export type SourceRange = {
@@ -14,22 +14,22 @@ export type SourceMap = Map<string, SourceRange>;
 /** Separates the id of a `<defs>` element from the part that names an item inside it: `<defsId>/<part>` */
 export const DEFS_ITEM_SEP = '/';
 
-/** Id of an item inside a `<defs>` element; `part` names it: a live element index, `o<n>[.<k>]`, or `.<class>` */
+/** Id of an item inside a `<defs>` element; `part` names it: an element index, or `<styleIndex>.<name>` for a class */
 export function defsItemId(defsId: string, part: string): string {
     return `${defsId}${DEFS_ITEM_SEP}${part}`;
 }
 
-/** Id of the live element at pre-order `index` inside a `<defs>` element (index 0 is its first descendant) */
+/** Id of the element at pre-order `index` inside a `<defs>` element (index 0 is its first child) */
 export function defsElementId(defsId: string, index: number): string {
     return defsItemId(defsId, String(index));
 }
 
-/** Id of a class of a `<defs>` element; the part is the selector, `.<name>` */
-export function defsClassId(defsId: string, name: string): string {
-    return defsItemId(defsId, `.${name}`);
+/** Id of a class of a `<style>` element (its index among the children of the `<defs>` element) */
+export function defsClassId(defsId: string, styleIndex: number, name: string): string {
+    return defsItemId(defsId, `${styleIndex}.${name}`);
 }
 
-/** Splits an id made by `defsElementId` or `defsClassId`; undefined for ordinary node ids */
+/** Splits an id made by `defsItemId`, `defsElementId` or `defsClassId`; undefined for ordinary node ids */
 export function parseDefsItemId(id: string): { defsId: string; part: string; } | undefined {
     const i = id.indexOf(DEFS_ITEM_SEP);
     return i <= 0 ? undefined : { defsId: id.slice(0, i), part: id.slice(i + 1) };
@@ -69,14 +69,9 @@ export function buildSourceMap(text: string, doc: SvgDoc): SourceMap {
                     const d = ranges[index + k];
                     d && rv.set(defsElementId(node.id, k), rangeOf(d));
                 });
-                for (const [name, r] of classRuleRanges(text, ranges.slice(index, index + inner.length))) {
-                    rv.set(defsClassId(node.id, name), rangeOf(r));
+                for (const [part, r] of classRuleRanges(text, ranges.slice(index, index + inner.length))) {
+                    rv.set(defsItemId(node.id, part), rangeOf(r));
                 }
-                // deactivated elements: a comment in the text, with the element itself first and its contents after it
-                const defsEl = ranges[index - 1];
-                defsEl && offBlockRanges(text, defsEl).forEach(({ n, k, r }) => {
-                    rv.set(defsItemId(node.id, k === 0 ? `o${n}` : `o${n}.${k}`), rangeOf(r));
-                });
                 index += inner.length;
             }
         }
@@ -101,49 +96,30 @@ export function nodeAtOffset(map: SourceMap, offset: number): string | undefined
 type ElementRange = { start: number; end: number; };
 
 /**
- * Text range of the first rule of each class in the `<style>` elements among `elements`.
- * The range covers the whole rule, from its selector to its closing brace (a deactivated rule included).
+ * Text range of the first rule of each class in the `<style>` elements among `elements` (the children of a `<defs>`).
+ * Keys are the parts of `defsClassId`: `<styleIndex>.<name>`. The range covers the whole rule, from its selector to its closing brace.
  */
 function classRuleRanges(text: string, elements: readonly ElementRange[]): Map<string, ElementRange> {
     const rv = new Map<string, ElementRange>();
-    for (const el of elements) {
-        if (!/^<style[\s>]/i.test(text.slice(el.start, el.start + 7))) {
-            continue;
+    elements.forEach((el, styleIndex) => {
+        const tag = /^<([^\s/>]+)/.exec(text.slice(el.start, el.end))?.[1] ?? '';
+        if (plainName(tag).toLowerCase() !== 'style') {
+            return;
         }
         const open = text.indexOf('>', el.start) + 1;
         const close = text.lastIndexOf('</', el.end);
         if (open <= 0 || close < open) {
-            continue;
+            return;
         }
-        const css = text.slice(open, close);
-        for (const rule of cssRulesOf(css)) {
+        for (const rule of cssRulesOf(text.slice(open, close))) {
             for (const sel of rule.selectors) {
-                const name = /^\.([A-Za-z_][\w-]*)$/.exec(sel)?.[1];
-                if (name && !rv.has(name)) {
-                    rv.set(name, { start: open + rule.start, end: open + rule.end });
+                const cls = classOfSelector(sel);
+                const part = cls && `${styleIndex}.${cls.name}`;
+                if (part && !rv.has(part)) {
+                    rv.set(part, { start: open + rule.start, end: open + rule.end });
                 }
             }
         }
-    }
-    return rv;
-}
-
-/**
- * Text ranges of the deactivated elements inside the `<defs>` element `defsEl` (its range in `text`).
- * `n` numbers the blocks; `k` is 0 for the element of a block (its range is the whole comment) and the
- * pre-order index of a nested element otherwise.
- */
-function offBlockRanges(text: string, defsEl: ElementRange): { n: number; k: number; r: ElementRange; }[] {
-    const rv: { n: number; k: number; r: ElementRange; }[] = [];
-    const inner = text.slice(defsEl.start, defsEl.end);
-    offBlocksOf(inner).forEach((b, n) => {
-        const contentStart = defsEl.start + b.contentStart;
-        const content = text.slice(contentStart, defsEl.start + b.contentEnd);
-        scanElements(content).forEach((r, k) => {
-            rv.push(k === 0
-                ? { n, k, r: { start: defsEl.start + b.start, end: defsEl.start + b.end } }
-                : { n, k, r: { start: contentStart + r.start, end: contentStart + r.end } });
-        });
     });
     return rv;
 }

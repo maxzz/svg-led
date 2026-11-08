@@ -1,6 +1,6 @@
 import { type Getter, atom } from "jotai";
 import { atomWithProxy } from "jotai-valtio";
-import { type SvgDoc, type SvgNode, findNode, groupPathIds, isCompoundPath } from "@/svg-core";
+import { type SvgDoc, type SvgNode, findNode, groupPathIds, isCompoundPath, plainName } from "@/svg-core";
 import { isolationScopeOf } from "@/tools/0-shared/4-group-units";
 import { docState } from "../3-document";
 import { isolatedGroupIdAtom, isolationStackAtom, setSelectionAtom } from "../4-editor/2-selection-atoms";
@@ -139,7 +139,7 @@ export function layerName(node: SvgNode): string {
         case 'line': return '<Line>';
         case 'polyline': return '<Polyline>';
         case 'polygon': return '<Polygon>';
-        case 'passthrough': return `<${node.tag}>`;
+        case 'passthrough': return `<${plainName(node.tag)}>`; // a deactivated tag shows without its prefix
     }
 }
 
