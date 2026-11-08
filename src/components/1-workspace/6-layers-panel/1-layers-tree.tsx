@@ -5,7 +5,7 @@ import { type NodeLocation, findNode, walkNodes } from "@/svg-core";
 import { docState } from "@/store/3-document";
 import { isolationScopeAtom } from "@/store/6-layers";
 import { LayerRow } from "./1-layer-row/0-all-layer-row";
-import { IsolationRoot } from "./1-layer-row/1-isolation-root";
+import { IsolationRoot } from "./1-layer-row/7-isolation-root";
 
 /** The layers of the document, or only the isolated objects and their contents in isolation mode */
 export function LayersTree() {

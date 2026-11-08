@@ -12,7 +12,7 @@ import { isDraggedFamily, rowDragDownAtom } from "../2-reorder";
 import { LayerName } from "../3-rename";
 import { LockButton, VisibilityButton } from "../4-toggle-sweep";
 import { LAYER_ICON_PX, ROW_INDENT_PX, containsSelectedDefsFamily, containsSelectedFamily, isExpandedFamily, isIsolationCollapsedFamily, isSelectedFamily, rowClickAtom, toggleExpandedAtom, toggleIsolationCollapsedAtom } from "../9-atoms-layers-panel";
-import { Expander_Icon, GroupChildren, SelectionCircle_Icon, stop } from "./2-row-parts";
+import { Expander_Icon, GroupChildren, SelectionCircle_Icon, stop } from "./8-row-common-parts";
 
 type LayerRowProps = {
     node: SvgNode;
