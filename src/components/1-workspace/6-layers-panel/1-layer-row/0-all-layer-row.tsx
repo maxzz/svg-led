@@ -7,11 +7,12 @@ import { CodeXml } from "lucide-react";
 import { type DefsItem, type GroupNode, type SvgNode, defsItemsOf, isDeactivatedName, plainName } from "@/svg-core";
 import { enterIsolationAtom, isHidden, isLocked, isolationScopeAtom, layerName, setDefsChildrenActive, setPassthroughActive } from "@/store/6-layers";
 import { ROW_INDENT_PX, containsSelectedFamily, isExpandedFamily, isIsolationCollapsedFamily, isSelectedFamily, rowClickAtom, toggleExpandedAtom, toggleIsolationCollapsedAtom } from "../9-atoms-layers-panel";
+
 import { LayerThumbnail } from "./8-layer-thumbnail";
 import { isDraggedFamily, rowDragDownAtom } from "../2-reorder";
 import { LayerName } from "../3-rename";
 import { LockButton, VisibilityButton } from "../4-toggle-sweep";
-import { Defs_Icon, SelectionCircle_Defs_Icon, EyeToggle_Icon, Expander_Icon, SelectionCircle_Icon, stop } from "./8-row-common-parts";
+import { Defs_Icon, EyeToggle_Icon, Expander_Icon, SelectionCircle_Icon } from "./8-row-common-parts";
 import { GroupChildren } from "./1-group-children";
 import { DefsItemRows } from "./2-defs-item-rows";
 
@@ -33,6 +34,7 @@ export const LayerRow = memo(
         const selected = useAtomValue(isSelectedFamily(snap.id));
         const containsSelected = useAtomValue(containsSelectedFamily(snap.id));
         const dragged = useAtomValue(isDraggedFamily(snap.id));
+        
         const rowClick = useSetAtom(rowClickAtom);
         const dragDown = useSetAtom(rowDragDownAtom);
         const enterIsolation = useSetAtom(enterIsolationAtom);
@@ -110,5 +112,7 @@ export const LayerRow = memo(
 /** Items of a `<defs>` element (its `<style>` elements, classes and other children), or none for any other node */
 function useDefsItems(snap: SvgNode): DefsItem[] {
     const inner = snap.kind === 'passthrough' && plainName(snap.tag).toLowerCase() === 'defs' ? snap.inner : undefined;
-    return useMemo(() => (inner === undefined ? [] : defsItemsOf(inner)), [inner]);
+    return useMemo(
+        () => (inner === undefined ? [] : defsItemsOf(inner)), [inner]
+    );
 }

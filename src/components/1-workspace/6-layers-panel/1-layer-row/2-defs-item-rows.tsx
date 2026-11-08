@@ -10,11 +10,16 @@ import { Defs_Icon, EyeToggle_Icon, Expander_Icon, SelectionCircle_Defs_Icon } f
 
 /** The items of a `<defs>` element at one depth; each element comes with the items nested in it */
 export function DefsItemRows({ defsId, items, depth }: { defsId: string; items: readonly DefsItem[]; depth: number; }) {
-    return <>{items.map((item) => (
-        item.kind === 'class'
-            ? <DefsClassRow key={item.key} defsId={defsId} item={item} depth={depth} />
-            : <DefsElementRow key={item.key} defsId={defsId} item={item} depth={depth} />
-    ))}</>;
+    return (<>
+        {items.map(
+            (item) => (
+                item.kind === 'class'
+                    ? <DefsClassRow key={item.key} defsId={defsId} item={item} depth={depth} />
+                    : <DefsElementRow key={item.key} defsId={defsId} item={item} depth={depth} />
+            )
+        )
+        }
+    </>);
 }
 
 /**
@@ -26,6 +31,7 @@ function DefsClassRow({ defsId, item, depth }: { defsId: string; item: DefsClass
     const id = defsItemId(defsId, item.part);
     const selected = useAtomValue(defsSelectionAtom).includes(id);
     const select = useSetAtom(setDefsSelectionAtom);
+
     return (<>
         <div
             className={classNames(
@@ -37,12 +43,19 @@ function DefsClassRow({ defsId, item, depth }: { defsId: string; item: DefsClass
             onClick={() => select([id])}
         >
             <EyeToggle_Icon on={!item.off} title={`${item.off ? "Turn on" : "Turn off"} class ${item.label}`} onToggle={() => setDefsClassActive(defsId, item.styleIndex, item.name, item.off)} />
+
             <span className="shrink-0 w-7 border-r border-foreground/5" />
+
             <div className="grow min-w-0 flex items-center gap-1.5" style={{ paddingLeft: 4 + depth * ROW_INDENT_PX }}>
                 <span className="shrink-0 size-4" />
+
                 <Defs_Icon icon={Braces} />
-                <span className={classNames("truncate", item.off && "line-through opacity-60")}>{item.label}</span>
+
+                <span className={classNames("truncate", item.off && "line-through opacity-60")}>
+                    {item.label}
+                </span>
             </div>
+
             <SelectionCircle_Defs_Icon selected={selected} containsSelected={false} onSelect={() => select([id])} />
         </div>
 
@@ -58,10 +71,14 @@ function DeclTable({ defsId, item, depth }: { defsId: string; item: DefsClassIte
             style={{ marginLeft: 4 + depth * ROW_INDENT_PX }}
             data-defs-decls={item.key}
         >
-            {item.decls.length === 0 && <div className="px-2 py-1 text-muted-foreground">No declarations</div>}
-            {item.decls.map((decl) => (
-                <DeclRow key={decl.key} defsId={defsId} item={item} decl={decl} />
-            ))}
+            {item.decls.length === 0 && (
+                <div className="px-2 py-1 text-muted-foreground">No declarations</div>
+            )}
+            {item.decls.map(
+                (decl) => (
+                    <DeclRow key={decl.key} defsId={defsId} item={item} decl={decl} />
+                )
+            )}
         </div>
     );
 }
@@ -75,8 +92,13 @@ function DeclRow({ defsId, item, decl }: { defsId: string; item: DefsClassItem; 
                 title={decl.toggleable ? `${decl.off ? "Turn on" : "Turn off"} ${decl.prop}` : "This declaration holds the comment end, so it cannot be turned off"}
                 onToggle={() => setDefsDeclActive(defsId, item.styleIndex, item.name, decl.index, decl.off)}
             />
-            <span className={classNames("w-2/5 shrink-0 px-2 truncate flex items-center border-r border-foreground/5", decl.off && "line-through opacity-60")}>{decl.prop}</span>
-            <span className={classNames("grow min-w-0 px-2 truncate flex items-center", decl.off && "line-through opacity-60")}>{decl.value}</span>
+
+            <span className={classNames("w-2/5 shrink-0 px-2 truncate flex items-center border-r border-foreground/5", decl.off && "line-through opacity-60")}>
+                {decl.prop}
+            </span>
+            <span className={classNames("grow min-w-0 px-2 truncate flex items-center", decl.off && "line-through opacity-60")}>
+                {decl.value}
+            </span>
         </div>
     );
 }
@@ -87,11 +109,14 @@ function DeclRow({ defsId, item, decl }: { defsId: string; item: DefsClassItem; 
  */
 function DefsElementRow({ defsId, item, depth }: { defsId: string; item: DefsElementItem; depth: number; }) {
     const id = defsItemId(defsId, item.part);
+
     const selected = useAtomValue(defsSelectionAtom).includes(id);
     const containsSelected = useAtomValue(containsSelectedDefsFamily(id));
     const open = useAtomValue(isExpandedFamily(id));
+
     const toggleExpanded = useSetAtom(toggleExpandedAtom);
     const select = useSetAtom(setDefsSelectionAtom);
+
     const hasChildren = item.children.length > 0;
     const isStyle = item.tag.toLowerCase() === 'style';
 
@@ -106,12 +131,20 @@ function DefsElementRow({ defsId, item, depth }: { defsId: string; item: DefsEle
             onClick={() => select([id])}
         >
             <EyeToggle_Icon on={!item.off} title={`${item.off ? "Turn on" : "Turn off"} <${item.tag}>`} onToggle={() => setDefsElementActive(defsId, Number(item.part), item.off)} />
+
             <span className="shrink-0 w-7 border-r border-foreground/5" />
+
             <div className="grow min-w-0 flex items-center gap-1.5" style={{ paddingLeft: 4 + depth * ROW_INDENT_PX }}>
+
                 <Expander_Icon isGroup={hasChildren} open={open} onToggle={() => toggleExpanded(id)} />
+
                 <Defs_Icon icon={isStyle ? Braces : Shapes} />
-                <span className={classNames("truncate", item.off && "line-through opacity-60")}>{item.label}</span>
+
+                <span className={classNames("truncate", item.off && "line-through opacity-60")}>
+                    {item.label}
+                </span>
             </div>
+            
             <SelectionCircle_Defs_Icon selected={selected} containsSelected={hasChildren && containsSelected} onSelect={() => select([id])} />
         </div>
 
