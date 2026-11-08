@@ -12,7 +12,7 @@ import { LayerThumbnail } from "./8-layer-thumbnail";
 import { isDraggedFamily, rowDragDownAtom } from "../2-reorder";
 import { LayerName } from "../3-rename";
 import { LockButton, VisibilityButton } from "../4-toggle-sweep";
-import { LAYER_ICON_PX, ROW_INDENT_PX, circlePointerDownAtom, circlePointerMoveAtom, circlePointerUpAtom, containsSelectedFamily, isExpandedFamily, isIsolationCollapsedFamily, isSelectedFamily, rowClickAtom, toggleExpandedAtom, toggleIsolationCollapsedAtom, toggleIsolationManyAtom } from "../9-atoms-layers-panel";
+import { LAYER_ICON_PX, ROW_INDENT_PX, circlePointerDownAtom, circlePointerMoveAtom, circlePointerUpAtom, containsSelectedDefsFamily, containsSelectedFamily, isExpandedFamily, isIsolationCollapsedFamily, isSelectedFamily, rowClickAtom, toggleExpandedAtom, toggleIsolationCollapsedAtom, toggleIsolationManyAtom } from "../9-atoms-layers-panel";
 
 type LayerRowProps = {
     node: SvgNode;
@@ -83,7 +83,7 @@ export const LayerRow = memo(
                     <LayerName id={snap.id} name={layerName(snap)} idAttr={snap.attrs.id ?? ''} dimmed={hidden || hiddenByParent || off} />
                 </div>
 
-                <SelectionCircle id={snap.id} selected={selected} containsSelected={isGroup && containsSelected} />
+                <SelectionCircle id={snap.id} selected={selected} containsSelected={(isGroup || defsNode) && containsSelected} />
             </div>
 
             {open && isGroup && (
@@ -146,7 +146,7 @@ function DefsClassRow({ defsId, item, depth }: { defsId: string; item: DefsClass
                 <DefsIcon icon={Braces} />
                 <span className={classNames("truncate", item.off && "line-through opacity-60")}>{item.label}</span>
             </div>
-            <DefsSelectionCircle selected={selected} onSelect={() => select([id])} />
+            <DefsSelectionCircle selected={selected} containsSelected={false} onSelect={() => select([id])} />
         </div>
 
         {selected && <DeclTable defsId={defsId} item={item} depth={depth} />}
@@ -191,6 +191,7 @@ function DeclRow({ defsId, item, decl }: { defsId: string; item: DefsClassItem; 
 function DefsElementRow({ defsId, item, depth }: { defsId: string; item: DefsElementItem; depth: number; }) {
     const id = defsItemId(defsId, item.part);
     const selected = useAtomValue(defsSelectionAtom).includes(id);
+    const containsSelected = useAtomValue(containsSelectedDefsFamily(id));
     const open = useAtomValue(isExpandedFamily(id));
     const toggleExpanded = useSetAtom(toggleExpandedAtom);
     const select = useSetAtom(setDefsSelectionAtom);
@@ -214,7 +215,7 @@ function DefsElementRow({ defsId, item, depth }: { defsId: string; item: DefsEle
                 <DefsIcon icon={isStyle ? Braces : Shapes} />
                 <span className={classNames("truncate", item.off && "line-through opacity-60")}>{item.label}</span>
             </div>
-            <DefsSelectionCircle selected={selected} onSelect={() => select([id])} />
+            <DefsSelectionCircle selected={selected} containsSelected={hasChildren && containsSelected} onSelect={() => select([id])} />
         </div>
 
         {open && hasChildren && (
@@ -245,7 +246,7 @@ function EyeToggle({ on, title, disabled, onToggle }: { on: boolean; title: stri
 }
 
 /** Selection circle of a `<defs>` item; the same look as the one of a layer row */
-function DefsSelectionCircle({ selected, onSelect }: { selected: boolean; onSelect: () => void; }) {
+function DefsSelectionCircle({ selected, containsSelected, onSelect }: { selected: boolean; containsSelected: boolean; onSelect: () => void; }) {
     return (
         <div
             className="relative shrink-0 w-9 h-full border-l border-foreground/5 flex items-center justify-center cursor-pointer touch-none"
@@ -254,8 +255,19 @@ function DefsSelectionCircle({ selected, onSelect }: { selected: boolean; onSele
             onDoubleClick={stop}
             title="Select"
         >
+            {containsSelected && <ContainsMarker />}
             <span className={classNames("-ml-3 size-2 border border-foreground/60 rounded-full", selected && "bg-(--editor-accent) border-(--editor-accent) ring-2 ring-(--editor-accent)/30")} />
         </div>
+    );
+}
+
+/** Small square right of the selection circle: a selected item is inside this row */
+function ContainsMarker() {
+    return (
+        <span
+            className="absolute left-[calc(50%+4px)] top-1/2 -translate-y-1/2 size-1.5 rounded-xs bg-(--editor-accent)/40 border-(--editor-accent)/80 border"
+            title="Contains selected items"
+        />
     );
 }
 
@@ -329,12 +341,7 @@ function SelectionCircle({ id, selected, containsSelected }: { id: string; selec
             onDoubleClick={stop}
             title="Select · drag across circles to toggle · [Shift] range · [Ctrl] toggle"
         >
-            {containsSelected && (
-                <span
-                    className="absolute left-[calc(50%+4px)] top-1/2 -translate-y-1/2 size-1.5 rounded-xs bg-(--editor-accent)/40 border-(--editor-accent)/80 border"
-                    title="Contains selected items"
-                />
-            )}
+            {containsSelected && <ContainsMarker />}
             <span
                 className={classNames("-ml-3 size-2 border border-foreground/60 rounded-full", selected && "bg-(--editor-accent) border-(--editor-accent) ring-2 ring-(--editor-accent)/30")}
             />
