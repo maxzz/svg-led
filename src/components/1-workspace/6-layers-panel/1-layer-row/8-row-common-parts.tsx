@@ -4,6 +4,7 @@ import { classNames } from "@/utils";
 import { Braces, ChevronRight, Eye, EyeOff } from "lucide-react";
 
 import { LAYER_ICON_PX, circlePointerDownAtom, circlePointerMoveAtom, circlePointerUpAtom } from "../9-atoms-layers-panel";
+
 //---------------------------------------------------------------------------
 
 export function Expander_Icon({ isGroup, open, onToggle }: { isGroup: boolean; open: boolean; onToggle: () => void; }) {
@@ -25,7 +26,7 @@ export function Expander_Icon({ isGroup, open, onToggle }: { isGroup: boolean; o
 }
 
 /** Eye of a row: shows whether the item is on; a click turns it off or on. A disabled eye shows the state only. */
-export function EyeToggle({ on, title, disabled, onToggle }: { on: boolean; title: string; disabled?: boolean; onToggle: () => void; }) {
+export function EyeToggle_Icon({ on, title, disabled, onToggle }: { on: boolean; title: string; disabled?: boolean; onToggle: () => void; }) {
     const Icon = on ? Eye : EyeOff;
     return (
         <button
