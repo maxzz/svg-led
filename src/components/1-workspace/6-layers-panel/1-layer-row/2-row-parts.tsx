@@ -23,7 +23,7 @@ export function GroupChildren({ group, count, depth, hiddenByParent, lockedByPar
 
 //---------------------------------------------------------------------------
 
-export function ExpanderIcon({ isGroup, open, onToggle }: { isGroup: boolean; open: boolean; onToggle: () => void; }) {
+export function Expander_Icon({ isGroup, open, onToggle }: { isGroup: boolean; open: boolean; onToggle: () => void; }) {
     if (!isGroup) {
         return <span className="shrink-0 size-4" />;
     }
@@ -44,7 +44,7 @@ export function ExpanderIcon({ isGroup, open, onToggle }: { isGroup: boolean; op
 //---------------------------------------------------------------------------
 
 /** Click selects only this layer; dragging across circles toggles each one; Shift and Ctrl work as on the row */
-export function SelectionCircleIcon({ id, selected, containsSelected }: { id: string; selected: boolean; containsSelected: boolean; }) {
+export function SelectionCircle_Icon({ id, selected, containsSelected }: { id: string; selected: boolean; containsSelected: boolean; }) {
     const down = useSetAtom(circlePointerDownAtom);
     const move = useSetAtom(circlePointerMoveAtom);
     const up = useSetAtom(circlePointerUpAtom);

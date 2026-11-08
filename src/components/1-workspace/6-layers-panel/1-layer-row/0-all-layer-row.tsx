@@ -12,7 +12,7 @@ import { isDraggedFamily, rowDragDownAtom } from "../2-reorder";
 import { LayerName } from "../3-rename";
 import { LockButton, VisibilityButton } from "../4-toggle-sweep";
 import { LAYER_ICON_PX, ROW_INDENT_PX, containsSelectedDefsFamily, containsSelectedFamily, isExpandedFamily, isIsolationCollapsedFamily, isSelectedFamily, rowClickAtom, toggleExpandedAtom, toggleIsolationCollapsedAtom } from "../9-atoms-layers-panel";
-import { ExpanderIcon, GroupChildren, SelectionCircleIcon, stop } from "./2-row-parts";
+import { Expander_Icon, GroupChildren, SelectionCircle_Icon, stop } from "./2-row-parts";
 
 type LayerRowProps = {
     node: SvgNode;
@@ -76,7 +76,7 @@ export const LayerRow = memo(
                 <LockButton id={snap.id} locked={locked} inherited={lockedByParent} />
 
                 <div className="grow min-w-0 flex items-center gap-1.5" style={{ paddingLeft: 4 + depth * ROW_INDENT_PX }}>
-                    <ExpanderIcon isGroup={canExpand} open={open} onToggle={() => (isRoot ? toggleCollapsed(snap.id) : toggleExpanded(snap.id))} />
+                    <Expander_Icon isGroup={canExpand} open={open} onToggle={() => (isRoot ? toggleCollapsed(snap.id) : toggleExpanded(snap.id))} />
                     {defsNode
                         ? <DefsIcon icon={CodeXml} />
                         : <LayerThumbnail node={node} snap={snap} />
@@ -84,7 +84,7 @@ export const LayerRow = memo(
                     <LayerName id={snap.id} name={layerName(snap)} idAttr={snap.attrs.id ?? ''} dimmed={hidden || hiddenByParent || off} />
                 </div>
 
-                <SelectionCircleIcon id={snap.id} selected={selected} containsSelected={(isGroup || defsNode) && containsSelected} />
+                <SelectionCircle_Icon id={snap.id} selected={selected} containsSelected={(isGroup || defsNode) && containsSelected} />
             </div>
 
             {open && isGroup && (
@@ -212,7 +212,7 @@ function DefsElementRow({ defsId, item, depth }: { defsId: string; item: DefsEle
             <EyeToggle on={!item.off} title={`${item.off ? "Turn on" : "Turn off"} <${item.tag}>`} onToggle={() => setDefsElementActive(defsId, Number(item.part), item.off)} />
             <span className="shrink-0 w-7 border-r border-foreground/5" />
             <div className="grow min-w-0 flex items-center gap-1.5" style={{ paddingLeft: 4 + depth * ROW_INDENT_PX }}>
-                <ExpanderIcon isGroup={hasChildren} open={open} onToggle={() => toggleExpanded(id)} />
+                <Expander_Icon isGroup={hasChildren} open={open} onToggle={() => toggleExpanded(id)} />
                 <DefsIcon icon={isStyle ? Braces : Shapes} />
                 <span className={classNames("truncate", item.off && "line-through opacity-60")}>{item.label}</span>
             </div>

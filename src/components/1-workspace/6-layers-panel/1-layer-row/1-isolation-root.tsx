@@ -1,7 +1,7 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { classNames } from "@/utils";
 import { useSnapshot } from "valtio";
-import { Eye, EyeOff, Group, Lock } from "lucide-react";
+import { Eye as Icon_Eye, EyeOff as Icon_EyeOff, Group as Icon_Group, Lock as Icon_Lock } from "lucide-react";
 
 import { type GroupNode, type SvgDoc, type SvgNode, findNode } from "@/svg-core";
 import { docState } from "@/store/3-document";
@@ -11,7 +11,7 @@ import { LayerThumbnail } from "./8-layer-thumbnail";
 import { LockButton, VisibilityButton } from "../4-toggle-sweep";
 import { LAYER_ICON_PX, containsSelectedFamily, isIsolationCollapsedFamily, isSelectedFamily, rowClickAtom, toggleIsolationCollapsedAtom, toggleIsolationManyAtom } from "../9-atoms-layers-panel";
 import { LayerRow } from "./0-all-layer-row";
-import { ExpanderIcon, GroupChildren, SelectionCircleIcon, stop } from "./2-row-parts";
+import { Expander_Icon, GroupChildren, SelectionCircle_Icon, stop } from "./2-row-parts";
 
 /**
  * Root of the tree while isolating. It stands for the isolated group (or for every isolated object),
@@ -58,14 +58,14 @@ function SingleIsolationRoot({ node }: { node: SvgNode; }) {
             <LockButton id={snap.id} locked={locked} inherited={lockedByParent} />
 
             <div className={nameClasses} style={{ paddingLeft: 4 }}>
-                <ExpanderIcon isGroup={childCount > 0} open={open} onToggle={() => toggleCollapsed(snap.id)} />
+                <Expander_Icon isGroup={childCount > 0} open={open} onToggle={() => toggleCollapsed(snap.id)} />
                 <LayerThumbnail node={node} snap={snap} />
                 <span className={classNames("truncate", (hidden || hiddenByParent) && "text-muted-foreground")}>
                     Isolation Mode
                 </span>
             </div>
 
-            <SelectionCircleIcon id={snap.id} selected={selected} containsSelected={isGroup && containsSelected} />
+            <SelectionCircle_Icon id={snap.id} selected={selected} containsSelected={isGroup && containsSelected} />
         </div>
 
         {open && isGroup && (
@@ -125,25 +125,25 @@ function ManyIsolationRoot({ nodes }: { nodes: SvgNode[]; }) {
             onDoubleClick={() => exit(null)}
         >
             <ScopeFlag
-                title={`${allHidden ? "Show" : "Hide"} the isolated objects`}
-                icon={allHidden ? EyeOff : Eye}
                 iconClassName={hiddenByParent && !allHidden ? "opacity-35" : undefined}
+                icon={allHidden ? Icon_EyeOff : Icon_Eye}
                 onToggle={toggleHidden}
+                title={`${allHidden ? "Show" : "Hide"} the isolated objects`}
             />
             <ScopeFlag
-                title={`${allLocked ? "Unlock" : "Lock"} the isolated objects`}
-                icon={Lock}
                 iconClassName={allLocked ? "opacity-100" : lockedByParent ? "opacity-35" : "opacity-0 group-hover/row:opacity-10"}
+                icon={Icon_Lock}
                 onToggle={toggleLocked}
+                title={`${allLocked ? "Unlock" : "Lock"} the isolated objects`}
             />
 
             <div className={nameClasses} style={{ paddingLeft: 4 }}>
-                <ExpanderIcon isGroup open={open} onToggle={() => toggle()} />
+                <Expander_Icon isGroup open={open} onToggle={() => toggle()} />
                 <div
                     className="shrink-0 bg-white ring-1 ring-foreground/15 rounded-xs overflow-hidden flex items-center justify-center"
                     style={{ width: LAYER_ICON_PX, height: LAYER_ICON_PX }}
                 >
-                    <Group className="size-3.5 text-neutral-800" />
+                    <Icon_Group className="size-3.5 text-neutral-800" />
                 </div>
                 <span className="truncate">Isolation Mode</span>
             </div>
@@ -176,7 +176,7 @@ function ManyIsolationRoot({ nodes }: { nodes: SvgNode[]; }) {
     </>);
 }
 
-function ScopeFlag({ title, icon: Icon, iconClassName, onToggle }: { title: string; icon: typeof Eye; iconClassName?: string; onToggle: () => void; }) {
+function ScopeFlag({ title, icon: Icon, iconClassName, onToggle }: { title: string; icon: typeof Icon_Eye; iconClassName?: string; onToggle: () => void; }) {
     return (
         <button
             className="shrink-0 w-7 h-full text-foreground/70 hover:text-foreground border-r border-foreground/5 flex items-center justify-center cursor-pointer touch-none"
