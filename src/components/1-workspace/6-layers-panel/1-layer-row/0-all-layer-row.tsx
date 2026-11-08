@@ -12,7 +12,8 @@ import { LayerThumbnail } from "./8-layer-thumbnail";
 import { isDraggedFamily, rowDragDownAtom } from "../2-reorder";
 import { LayerName } from "../3-rename";
 import { LockButton, VisibilityButton } from "../4-toggle-sweep";
-import { Defs_Icon, SelectionCircle_Defs_Icon, EyeToggle, Expander_Icon, GroupChildren, SelectionCircle_Icon, stop } from "./8-row-common-parts";
+import { Defs_Icon, SelectionCircle_Defs_Icon, EyeToggle, Expander_Icon, SelectionCircle_Icon, stop } from "./8-row-common-parts";
+import { GroupChildren } from "./1-group-children";
 
 type LayerRowProps = {
     node: SvgNode;

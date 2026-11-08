@@ -10,7 +10,8 @@ import { exitIsolationToAtom, isHidden, isHiddenOrLocked, isLocked, isolationMan
 import { LayerThumbnail } from "./8-layer-thumbnail";
 import { LockButton, VisibilityButton } from "../4-toggle-sweep";
 import { LAYER_ICON_PX, containsSelectedFamily, isIsolationCollapsedFamily, isSelectedFamily, rowClickAtom, toggleIsolationCollapsedAtom, toggleIsolationManyAtom } from "../9-atoms-layers-panel";
-import { Expander_Icon, GroupChildren, SelectionCircle_Icon, stop } from "./8-row-common-parts";
+import { Expander_Icon, SelectionCircle_Icon, stop } from "./8-row-common-parts";
+import { GroupChildren } from "./1-group-children";
 import { LayerRow } from "./0-all-layer-row";
 
 /**
