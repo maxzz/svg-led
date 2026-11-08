@@ -5,8 +5,8 @@ import { Button } from "@/ui/shadcn/button";
 import { X } from "lucide-react";
 import { appSettings } from "@/store/1-ui-settings";
 
-import { LayersTree } from "./1-0-layers-tree";
-import { LayersBottomBar } from "./1-3-layers-bottom-bar";
+import { LayersTree } from "./1-layers-tree";
+import { LayersBottomBar } from "./2-layers-bottom-bar";
 import { LayersDragGhost, LayersDropIndicator, rowDragCancelAtom, rowDragMoveAtom, rowDragUpAtom } from "./2-reorder";
 import { isLayersPanelResizingAtom, layersResizeDownAtom, layersResizeMoveAtom, layersResizeUpAtom } from "./9-atoms-layers-panel";
 
