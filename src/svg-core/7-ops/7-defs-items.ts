@@ -186,6 +186,22 @@ export function setDefsElementActiveInMarkup(inner: string, index: number, activ
     return next === markup ? inner : inner.slice(0, r.start) + next + inner.slice(r.end);
 }
 
+/**
+ * Deactivates (`active` false) or activates (`active` true) every direct child of a `<defs>` element, each on its own:
+ * an element is renamed, so a `<style>` child becomes `<deactivated-style>`. Renaming the `<defs>` tag itself has no effect,
+ * because the elements inside still resolve their references (`url(#id)`), so the children must be renamed.
+ */
+export function setDefsChildrenActiveInMarkup(inner: string, active: boolean): string {
+    let out = inner;
+    // from the last child to the first, so the offsets of the earlier children stay valid
+    for (const child of treeOf(inner).reverse()) {
+        const markup = out.slice(child.start, child.end);
+        const next = setTagDeactivatedInMarkup(markup, !active);
+        out = out.slice(0, child.start) + next + out.slice(child.end);
+    }
+    return out;
+}
+
 /** Renames the class `name` of the `<style>` element `styleIndex` to deactivated (`active` false) or back; the other styles are not touched */
 export function setDefsClassActiveInMarkup(inner: string, styleIndex: number, name: string, active: boolean): string {
     const st = styleAt(inner, styleIndex);

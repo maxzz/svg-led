@@ -1,4 +1,4 @@
-import { type SvgDoc, type SvgNode, deactivatedName, findNode, getPresentation, setDefsClassActiveInMarkup, setDefsDeclActiveInMarkup, setDefsElementActiveInMarkup, setPresentation, walkNodes } from "@/svg-core";
+import { type SvgDoc, type SvgNode, deactivatedName, findNode, getPresentation, setDefsChildrenActiveInMarkup, setDefsClassActiveInMarkup, setDefsDeclActiveInMarkup, setDefsElementActiveInMarkup, setPresentation, walkNodes } from "@/svg-core";
 import { commitHistory, docState, getNodeProxy } from "../3-document";
 
 /** Editor-only attribute that marks a locked element; it is kept in the SVG so the lock survives saving */
@@ -89,6 +89,24 @@ export function setDefsDeclActive(defsId: string, styleIndex: number, name: stri
 /** Turns an element of a `<defs>` element on or off (its tag is renamed; see `setDefsElementActiveInMarkup`) */
 export function setDefsElementActive(defsId: string, index: number, active: boolean): void {
     writeDefsMarkup(defsId, (inner) => setDefsElementActiveInMarkup(inner, index, active));
+}
+
+/**
+ * Turns every direct child of a `<defs>` element on or off (see `setDefsChildrenActiveInMarkup`), one history step.
+ * The `<defs>` tag stays `defs`; a tag renamed by an earlier version is set back.
+ */
+export function setDefsChildrenActive(defsId: string, active: boolean): void {
+    const node = getNodeProxy(defsId);
+    if (node?.kind !== 'passthrough') {
+        return;
+    }
+    const inner = setDefsChildrenActiveInMarkup(node.inner, active);
+    const tag = deactivatedName(node.tag, false);
+    if (inner !== node.inner || tag !== node.tag) {
+        node.inner = inner;
+        node.tag = tag;
+        commitHistory();
+    }
 }
 
 /** Turns a passthrough element on or off by renaming its tag, such as `<defs>` (the layers panel shows its state in the eye) */

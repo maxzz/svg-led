@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { type DefsClassItem, type DefsElementItem, type DefsItem, type SvgDoc, type SvgNode, buildSourceMap, defsClassId, defsElementId, defsIdsForClassesOf, defsItemsOf, isDefsItemOf, parseDefsItemId, setDefsClassActiveInMarkup, setDefsDeclActiveInMarkup, setDefsElementActiveInMarkup } from "../index";
+import { type DefsClassItem, type DefsElementItem, type DefsItem, type SvgDoc, type SvgNode, buildSourceMap, defsClassId, defsElementId, defsIdsForClassesOf, defsItemsOf, isDefsItemOf, parseDefsItemId, setDefsChildrenActiveInMarkup, setDefsClassActiveInMarkup, setDefsDeclActiveInMarkup, setDefsElementActiveInMarkup } from "../index";
 
 const style = (css: string) => `<style>${css}</style>`;
 const defs = (id: string, inner: string, tag = 'defs'): SvgNode => ({ id, kind: 'passthrough', tag, inner, attrs: {} });
@@ -78,6 +78,21 @@ describe("setDefsElementActiveInMarkup", () => {
 
     it("does nothing when the element already has the state asked for", () => {
         expect(setDefsElementActiveInMarkup('<deactivated-stop/>', 0, false)).toBe('<deactivated-stop/>');
+    });
+});
+
+describe("setDefsChildrenActiveInMarkup", () => {
+    it("renames each direct child, a style child included, and leaves nested elements alone", () => {
+        const text = '<linearGradient id="g"><stop/></linearGradient>' + style('.cls-1{fill:red}');
+        const off = setDefsChildrenActiveInMarkup(text, false);
+        expect(off).toBe('<deactivated-linearGradient id="g"><stop/></deactivated-linearGradient>' + style('.cls-1{fill:red}').replace('<style>', '<deactivated-style>').replace('</style>', '</deactivated-style>'));
+        expect(setDefsChildrenActiveInMarkup(off, true)).toBe(text);
+    });
+
+    it("keeps a child that is already off off, and turns it on with the others", () => {
+        const text = '<deactivated-filter id="f"/><clipPath id="c"/>';
+        expect(setDefsChildrenActiveInMarkup(text, false)).toBe('<deactivated-filter id="f"/><deactivated-clipPath id="c"/>');
+        expect(setDefsChildrenActiveInMarkup(text, true)).toBe('<filter id="f"/><clipPath id="c"/>');
     });
 });
 

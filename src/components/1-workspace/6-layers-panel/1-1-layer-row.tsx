@@ -7,7 +7,7 @@ import { Braces, ChevronRight, Eye, EyeOff, Group, Lock, Shapes } from "lucide-r
 import { type DefsClassItem, type DefsDecl, type DefsElementItem, type DefsItem, type GroupNode, type SvgDoc, type SvgNode, defsItemId, defsItemsOf, findNode, isDeactivatedName, plainName } from "@/svg-core";
 import { docState } from "@/store/3-document";
 import { defsSelectionAtom, selectionAtom, setDefsSelectionAtom, setSelectionAtom } from "@/store/4-editor";
-import { enterIsolationAtom, exitIsolationToAtom, isHidden, isHiddenOrLocked, isLocked, isolationManyOpenAtom, isolationScopeAtom, layerName, setDefsClassActive, setDefsDeclActive, setDefsElementActive, setNodesHidden, setNodesLocked, setPassthroughActive } from "@/store/6-layers";
+import { enterIsolationAtom, exitIsolationToAtom, isHidden, isHiddenOrLocked, isLocked, isolationManyOpenAtom, isolationScopeAtom, layerName, setDefsChildrenActive, setDefsClassActive, setDefsDeclActive, setDefsElementActive, setNodesHidden, setNodesLocked, setPassthroughActive } from "@/store/6-layers";
 import { LayerThumbnail } from "./1-2-layer-thumbnail";
 import { isDraggedFamily, rowDragDownAtom } from "./2-reorder";
 import { LayerName } from "./3-rename";
@@ -45,8 +45,9 @@ export const LayerRow = memo(
         const open = isGroup ? (isRoot ? !collapsed : expanded) : canExpand && expanded;
         const hidden = isHidden(snap);
         const locked = isLocked(snap);
-        // a passthrough element (such as <defs>) is deactivated by the prefix on its tag, not by display
-        const off = snap.kind === 'passthrough' && isDeactivatedName(snap.tag);
+        // a passthrough element is deactivated by the prefix on its tag, not by display; a <defs> is off when all its children are
+        const defsNode = snap.kind === 'passthrough' && plainName(snap.tag).toLowerCase() === 'defs';
+        const off = snap.kind === 'passthrough' && (isDeactivatedName(snap.tag) || (defsNode && defsItems.length > 0 && defsItems.every((i) => i.off)));
 
         return (<>
             <div
@@ -64,7 +65,11 @@ export const LayerRow = memo(
                 onDoubleClick={() => enterIsolation(snap.id)}
             >
                 {snap.kind === 'passthrough'
-                    ? <EyeToggle on={!off} title={`${off ? "Turn on" : "Turn off"} <${plainName(snap.tag)}>`} onToggle={() => setPassthroughActive(snap.id, off)} />
+                    ? <EyeToggle
+                        on={!off}
+                        title={defsNode ? `${off ? "Turn on" : "Turn off"} every item in <defs>` : `${off ? "Turn on" : "Turn off"} <${plainName(snap.tag)}>`}
+                        onToggle={() => (defsNode ? setDefsChildrenActive(snap.id, off) : setPassthroughActive(snap.id, off))}
+                    />
                     : <VisibilityButton id={snap.id} hidden={hidden} inherited={hiddenByParent} />}
                 <LockButton id={snap.id} locked={locked} inherited={lockedByParent} />
 
