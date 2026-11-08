@@ -56,13 +56,13 @@ export const LayerRow = memo(
                     selected ? "bg-(--editor-accent)/12" : "hover:bg-muted/60",
                     dragged && "opacity-40",
                 )}
+                onPointerDown={(e) => dragDown({ id: snap.id, button: e.button, pointerId: e.pointerId, clientX: e.clientX, clientY: e.clientY, target: e.target as Element, row: e.currentTarget })}
+                onClick={(e) => rowClick({ id: snap.id, shift: e.shiftKey, ctrl: e.ctrlKey || e.metaKey })}
+                onDoubleClick={() => enterIsolation(snap.id)}
                 data-layer-id={snap.id}
                 data-layer-depth={depth}
                 data-layer-group={isGroup}
                 data-layer-open={open && canExpand}
-                onPointerDown={(e) => dragDown({ id: snap.id, button: e.button, pointerId: e.pointerId, clientX: e.clientX, clientY: e.clientY, target: e.target as Element, row: e.currentTarget })}
-                onClick={(e) => rowClick({ id: snap.id, shift: e.shiftKey, ctrl: e.ctrlKey || e.metaKey })}
-                onDoubleClick={() => enterIsolation(snap.id)}
             >
                 {snap.kind === 'passthrough'
                     ? <EyeToggle
@@ -70,12 +70,16 @@ export const LayerRow = memo(
                         title={defsNode ? `${off ? "Turn on" : "Turn off"} every item in <defs>` : `${off ? "Turn on" : "Turn off"} <${plainName(snap.tag)}>`}
                         onToggle={() => (defsNode ? setDefsChildrenActive(snap.id, off) : setPassthroughActive(snap.id, off))}
                     />
-                    : <VisibilityButton id={snap.id} hidden={hidden} inherited={hiddenByParent} />}
+                    : <VisibilityButton id={snap.id} hidden={hidden} inherited={hiddenByParent} />
+                }
                 <LockButton id={snap.id} locked={locked} inherited={lockedByParent} />
 
                 <div className="grow min-w-0 flex items-center gap-1.5" style={{ paddingLeft: 4 + depth * ROW_INDENT_PX }}>
                     <Expander isGroup={canExpand} open={open} onToggle={() => (isRoot ? toggleCollapsed(snap.id) : toggleExpanded(snap.id))} />
-                    {defsNode ? <DefsIcon icon={CodeXml} /> : <LayerThumbnail node={node} snap={snap} />}
+                    {defsNode
+                        ? <DefsIcon icon={CodeXml} />
+                        : <LayerThumbnail node={node} snap={snap} />
+                    }
                     <LayerName id={snap.id} name={layerName(snap)} idAttr={snap.attrs.id ?? ''} dimmed={hidden || hiddenByParent || off} />
                 </div>
 
@@ -92,7 +96,9 @@ export const LayerRow = memo(
                 />
             )}
 
-            {open && !isGroup && <DefsItemRows defsId={snap.id} items={defsItems} depth={depth + 1} />}
+            {open && !isGroup && (
+                <DefsItemRows defsId={snap.id} items={defsItems} depth={depth + 1} />
+            )}
         </>);
     }
 );
@@ -211,7 +217,9 @@ function DefsElementRow({ defsId, item, depth }: { defsId: string; item: DefsEle
             <DefsSelectionCircle selected={selected} onSelect={() => select([id])} />
         </div>
 
-        {open && hasChildren && <DefsItemRows defsId={defsId} items={item.children} depth={depth + 1} />}
+        {open && hasChildren && (
+            <DefsItemRows defsId={defsId} items={item.children} depth={depth + 1} />
+        )}
     </>);
 }
 
@@ -482,18 +490,20 @@ function ManyIsolationRoot({ nodes }: { nodes: SvgNode[]; }) {
             </div>
         </div>
 
-        {open && nodes.map((node) => {
-            const parents = findNode(docState.doc, node.id)?.parents ?? [];
-            return (
-                <LayerRow
-                    key={node.id}
-                    node={node}
-                    depth={1}
-                    hiddenByParent={parents.some(isHidden)}
-                    lockedByParent={parents.some(isLocked)}
-                />
-            );
-        })}
+        {open && nodes.map(
+            (node) => {
+                const parents = findNode(docState.doc, node.id)?.parents ?? [];
+                return (
+                    <LayerRow
+                        key={node.id}
+                        node={node}
+                        depth={1}
+                        hiddenByParent={parents.some(isHidden)}
+                        lockedByParent={parents.some(isLocked)}
+                    />
+                );
+            }
+        )}
     </>);
 }
 
