@@ -8,11 +8,11 @@ import { type DefsClassItem, type DefsDecl, type DefsElementItem, type DefsItem,
 import { docState } from "@/store/3-document";
 import { defsSelectionAtom, selectionAtom, setDefsSelectionAtom, setSelectionAtom } from "@/store/4-editor";
 import { enterIsolationAtom, exitIsolationToAtom, isHidden, isHiddenOrLocked, isLocked, isolationManyOpenAtom, isolationScopeAtom, layerName, setDefsChildrenActive, setDefsClassActive, setDefsDeclActive, setDefsElementActive, setNodesHidden, setNodesLocked, setPassthroughActive } from "@/store/6-layers";
-import { LayerThumbnail } from "./1-2-layer-thumbnail";
-import { isDraggedFamily, rowDragDownAtom } from "./2-reorder";
-import { LayerName } from "./3-rename";
-import { LockButton, VisibilityButton } from "./4-toggle-sweep";
-import { LAYER_ICON_PX, ROW_INDENT_PX, circlePointerDownAtom, circlePointerMoveAtom, circlePointerUpAtom, containsSelectedFamily, isExpandedFamily, isIsolationCollapsedFamily, isSelectedFamily, rowClickAtom, toggleExpandedAtom, toggleIsolationCollapsedAtom, toggleIsolationManyAtom } from "./9-atoms-layers-panel";
+import { LayerThumbnail } from "./8-layer-thumbnail";
+import { isDraggedFamily, rowDragDownAtom } from "../2-reorder";
+import { LayerName } from "../3-rename";
+import { LockButton, VisibilityButton } from "../4-toggle-sweep";
+import { LAYER_ICON_PX, ROW_INDENT_PX, circlePointerDownAtom, circlePointerMoveAtom, circlePointerUpAtom, containsSelectedFamily, isExpandedFamily, isIsolationCollapsedFamily, isSelectedFamily, rowClickAtom, toggleExpandedAtom, toggleIsolationCollapsedAtom, toggleIsolationManyAtom } from "../9-atoms-layers-panel";
 
 type LayerRowProps = {
     node: SvgNode;
