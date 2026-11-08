@@ -2,7 +2,7 @@ import { type MouseEvent, memo, useMemo } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { classNames } from "@/utils";
 import { useSnapshot } from "valtio";
-import { Braces, ChevronRight, Eye, EyeOff, Group, Lock, Shapes } from "lucide-react";
+import { Braces, ChevronRight, CodeXml, Eye, EyeOff, Group, Lock, Shapes } from "lucide-react";
 
 import { type DefsClassItem, type DefsDecl, type DefsElementItem, type DefsItem, type GroupNode, type SvgDoc, type SvgNode, defsItemId, defsItemsOf, findNode, isDeactivatedName, plainName } from "@/svg-core";
 import { docState } from "@/store/3-document";
@@ -75,7 +75,7 @@ export const LayerRow = memo(
 
                 <div className="grow min-w-0 flex items-center gap-1.5" style={{ paddingLeft: 4 + depth * ROW_INDENT_PX }}>
                     <Expander isGroup={canExpand} open={open} onToggle={() => (isRoot ? toggleCollapsed(snap.id) : toggleExpanded(snap.id))} />
-                    <LayerThumbnail node={node} snap={snap} />
+                    {defsNode ? <DefsIcon icon={CodeXml} /> : <LayerThumbnail node={node} snap={snap} />}
                     <LayerName id={snap.id} name={layerName(snap)} idAttr={snap.attrs.id ?? ''} dimmed={hidden || hiddenByParent || off} />
                 </div>
 
