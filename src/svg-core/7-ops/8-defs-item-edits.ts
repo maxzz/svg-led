@@ -56,17 +56,17 @@ export function activeClassDecls(inner: string, styleIndex: number, name: string
 
 /** True when the `class` attribute lists `name` */
 export function hasClassToken(attrs: Attrs, name: string): boolean {
-    return classTokens(attrs).includes(name);
+    return attrs.class?.trim().split(/\s+/).includes(name) ?? false;
 }
 
 /**
- * Writes the declarations of class `name` onto an element and removes the class from its `class` attribute,
- * so the element looks the same without the stylesheet:
+ * Writes the declarations of a class onto an element, so the element looks the same without the stylesheet.
+ * The element keeps the class, so the class can be applied again after its rule changes.
  * - a presentation property becomes an attribute (a class beats an attribute, so it overwrites one);
  * - any other property (and an `!important` one) goes into the `style` attribute;
  * - a property already in the `style` attribute stays as it is, because inline style beats a class.
  */
-export function applyClassDecls(attrs: Attrs, name: string, decls: readonly CssProp[]): void {
+export function applyClassDecls(attrs: Attrs, decls: readonly CssProp[]): void {
     const style = parseStyle(attrs.style ?? '');
     const inline = new Set(Object.keys(style));
 
@@ -89,17 +89,6 @@ export function applyClassDecls(attrs: Attrs, name: string, decls: readonly CssP
     } else {
         delete attrs.style;
     }
-
-    const rest = classTokens(attrs).filter((t) => t !== name);
-    if (rest.length) {
-        attrs.class = rest.join(' ');
-    } else {
-        delete attrs.class;
-    }
-}
-
-function classTokens(attrs: Attrs): string[] {
-    return attrs.class?.trim().split(/\s+/).filter(Boolean) ?? [];
 }
 
 const IMPORTANT = /\s*!important\s*$/i;

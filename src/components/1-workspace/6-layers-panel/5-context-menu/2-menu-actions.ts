@@ -23,7 +23,7 @@ export function canApplyDefsClass(doc: SvgDoc, defsId: string, styleIndex: numbe
         && classTargets(doc, defsId, name).length > 0;
 }
 
-/** Moves the declarations of a class onto the elements that use it (see `applyClassDecls`); one history step */
+/** Copies the declarations of a class onto the elements that use it (see `applyClassDecls`); one history step */
 export function applyDefsClass(defsId: string, styleIndex: number, name: string): boolean {
     const defs = getNodeProxy(defsId);
     if (defs?.kind !== 'passthrough') {
@@ -35,7 +35,7 @@ export function applyDefsClass(defsId: string, styleIndex: number, name: string)
         return false;
     }
     for (const node of targets) {
-        applyClassDecls(node.attrs, name, decls);
+        applyClassDecls(node.attrs, decls);
     }
     commitHistory();
     return true;

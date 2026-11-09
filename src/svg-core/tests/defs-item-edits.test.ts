@@ -31,21 +31,28 @@ describe("activeClassDecls", () => {
 });
 
 describe("applyClassDecls", () => {
-    it("writes presentation properties as attributes and removes the class", () => {
+    it("writes presentation properties as attributes and keeps the class", () => {
         const attrs: Record<string, string> = { class: 'a b', fill: 'green' };
-        applyClassDecls(attrs, 'a', [{ prop: 'fill', value: 'red' }, { prop: 'stroke', value: 'blue' }]);
-        expect(attrs).toEqual({ class: 'b', fill: 'red', stroke: 'blue' });
+        applyClassDecls(attrs, [{ prop: 'fill', value: 'red' }, { prop: 'stroke', value: 'blue' }]);
+        expect(attrs).toEqual({ class: 'a b', fill: 'red', stroke: 'blue' });
     });
 
-    it("keeps inline style, puts other properties into style, and drops an empty class attribute", () => {
+    it("can be applied again after the rule changed", () => {
+        const attrs: Record<string, string> = { class: 'a' };
+        applyClassDecls(attrs, [{ prop: 'fill', value: 'red' }]);
+        applyClassDecls(attrs, [{ prop: 'fill', value: 'blue' }]);
+        expect(attrs).toEqual({ class: 'a', fill: 'blue' });
+    });
+
+    it("keeps inline style and puts other properties into style", () => {
         const attrs: Record<string, string> = { class: 'a', style: 'fill:green' };
-        applyClassDecls(attrs, 'a', [{ prop: 'fill', value: 'red' }, { prop: 'mix-blend-mode', value: 'multiply' }]);
-        expect(attrs).toEqual({ style: 'fill:green;mix-blend-mode:multiply' });
+        applyClassDecls(attrs, [{ prop: 'fill', value: 'red' }, { prop: 'mix-blend-mode', value: 'multiply' }]);
+        expect(attrs).toEqual({ class: 'a', style: 'fill:green;mix-blend-mode:multiply' });
     });
 
     it("lets an !important declaration override inline style", () => {
         const attrs: Record<string, string> = { class: 'a', style: 'fill:green' };
-        applyClassDecls(attrs, 'a', [{ prop: 'fill', value: 'red !important' }]);
-        expect(attrs).toEqual({ style: 'fill:red' });
+        applyClassDecls(attrs, [{ prop: 'fill', value: 'red !important' }]);
+        expect(attrs).toEqual({ class: 'a', style: 'fill:red' });
     });
 });
