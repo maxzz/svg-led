@@ -9,6 +9,7 @@ export * from "./3-serialize/2-serialize-path";
 export * from "./3-serialize/3-serialize-svg";
 export * from "./3-serialize/4-source-map";
 export * from "./3-serialize/5-defs-markup";
+export * from "./3-serialize/6-format-svg-text";
 export * from "./4-geometry/1-matrix";
 export * from "./4-geometry/2-bezier";
 export * from "./4-geometry/3-bbox";

@@ -1,8 +1,11 @@
 import { useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
+import { toast } from "sonner";
+import type * as Monaco from "monaco-editor";
 import { appSettings, MONACO_DEFAULT_FONT_FAMILY } from "@/store/1-ui-settings";
 
 import { docToText } from "@/store/3-document";
+import { formatSvgText } from "@/svg-core";
 import { isThemeDark } from "@/utils/theme-utils";
 
 import { monacoMountedAtom } from "./9-atoms-monaco-host";
@@ -25,7 +28,7 @@ export default function MonacoHost() {
                 fontSize: monaco.fontSize,
                 minimap: { enabled: monaco.minimap },
             }}
-            onMount={(editor, monaco) => { hideFindCloseTooltip(editor); onMount({ editor, monaco }); }}
+            onMount={(editor, monaco) => { hideFindCloseTooltip(editor); addFormatSvgAction(editor, monaco); onMount({ editor, monaco }); }}
             loading={<div className="p-3 text-muted-foreground">Loading editor...</div>}
         />
     );
@@ -44,6 +47,50 @@ const EDITOR_OPTIONS = {
     // Monaco pushes the text down while the find widget is open; the widget floats over the first line instead
     find: { addExtraSpaceOnTop: false },
 } as const;
+
+/**
+ * "Format SVG" in the context menu, the command palette (F1) and on Shift+Alt+F.
+ * Formatting is a normal edit, so the code-sync controller parses the result back onto the canvas.
+ */
+function addFormatSvgAction(editor: Monaco.editor.IStandaloneCodeEditor, monaco: typeof Monaco) {
+    editor.addAction({
+        id: 'svg-led.formatSvg',
+        label: 'Format SVG',
+        contextMenuGroupId: '1_modification',
+        contextMenuOrder: 1.5,
+        keybindings: [monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyF],
+        run: (ed) => {
+            const m = ed.getModel();
+            if (!m) {
+                return;
+            }
+            const old = m.getValue();
+            const formatted = formatSvgText(old);
+            if (formatted === null) {
+                toast.error('Cannot format: the SVG source has syntax errors');
+                return;
+            }
+            if (formatted === old) {
+                return;
+            }
+
+            // Keep the caret on the same token: count the non-space characters before it and find the same count in the new text
+            const before = old.slice(0, m.getOffsetAt(ed.getPosition() ?? { lineNumber: 1, column: 1 }));
+            const tokenCount = before.replace(/\s/g, '').length;
+            let newOffset = 0;
+            for (let seen = 0; newOffset < formatted.length && seen < tokenCount; newOffset++) {
+                if (!/\s/.test(formatted[newOffset])) {
+                    seen++;
+                }
+            }
+
+            ed.pushUndoStop();
+            ed.executeEdits('svg-led.formatSvg', [{ range: m.getFullModelRange(), text: formatted }]);
+            ed.pushUndoStop();
+            ed.setPosition(m.getPositionAt(newOffset));
+        },
+    });
+}
 
 /**
  * The find widget's X shows a useless "Close (Escape)" tooltip. Monaco has no option for a single button's tooltip,
