@@ -66,6 +66,8 @@ export const LayerRow = memo(
                 data-layer-depth={depth}
                 data-layer-group={isGroup}
                 data-layer-open={open && canExpand}
+                data-defs-drop={defsNode ? 'container' : undefined}
+                data-defs-id={defsNode ? snap.id : undefined}
             >
                 {snap.kind === 'passthrough'
                     ? <EyeToggle_Icon

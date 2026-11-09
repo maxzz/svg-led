@@ -1,11 +1,11 @@
 import { atom } from "jotai";
 import { atomFamily } from "jotai-family";
 import { motionValue } from "motion/react";
-import { findNode, topmostIds } from "@/svg-core";
+import { type DefsClassDrop, type DefsElementDrop, defsItemId, findNode, topmostIds } from "@/svg-core";
 import { docState } from "@/store/3-document";
-import { selectionAtom } from "@/store/4-editor";
+import { defsSelectionAtom, selectionAtom } from "@/store/4-editor";
 import { getIsolationScope, layerName } from "@/store/6-layers";
-import { type DropPlace, type LayerDrop, canDropLayers, moveLayers } from "@/store/7-layers-edit";
+import { type DropPlace, type LayerDrop, canDropLayers, moveDefsClass, moveDefsElement, moveLayers } from "@/store/7-layers-edit";
 import { ROW_INDENT_PX, ROW_NAME_LEFT_PX, expandedIdsAtom } from "../9-atoms-layers-panel";
 
 /** Layers being dragged in the tree and the text of the ghost under the pointer; null when no drag is running */
@@ -28,14 +28,24 @@ export const ghostY = motionValue(0);
 
 //---------------------------------------------------------------------------
 
+/** A `<defs>` item being dragged: a top-level element of a `<defs>` element (a `<style>` included), or a class of a `<style>` */
+export type DefsDragSource =
+    | { kind: 'element'; defsId: string; root: number; label: string; }
+    | { kind: 'class'; defsId: string; styleIndex: number; name: string; label: string; };
+
+/** Where a dragged `<defs>` item lands */
+type DefsDrop =
+    | { kind: 'element'; defsId: string; drop: DefsElementDrop; }
+    | { kind: 'class'; defsId: string; drop: DefsClassDrop; };
+
 type Gesture = {
-    id: string;                  // row where the pointer went down
-    row: Element;
+    row: Element;                // row where the pointer went down
     pointerId: number;
     startX: number;
     startY: number;
-    ids: string[] | null;        // set once the pointer moved far enough to start the drag
-    drop: LayerDrop | null;
+    started: boolean;            // set once the pointer moved far enough to start the drag
+    layers: { id: string; ids: string[]; drop: LayerDrop | null; } | null;   // a drag of layer rows
+    defs: { source: DefsDragSource; drop: DefsDrop | null; } | null;         // a drag of a `<defs>` item
 };
 
 let gesture: Gesture | null = null;
@@ -52,7 +62,21 @@ export const rowDragDownAtom = atom(
         if (e.button !== 0 || e.target.closest('[data-row-control]') || getIsolationScope(get).includes(e.id)) {
             return;
         }
-        gesture = { id: e.id, row: e.row, pointerId: e.pointerId, startX: e.clientX, startY: e.clientY, ids: null, drop: null };
+        gesture = { row: e.row, pointerId: e.pointerId, startX: e.clientX, startY: e.clientY, started: false, layers: { id: e.id, ids: [], drop: null }, defs: null };
+    }
+);
+
+type DefsPointerDown = { source: DefsDragSource; button: number; pointerId: number; clientX: number; clientY: number; target: Element; row: Element; };
+
+/** Pointer down on a `<defs>` item; like `rowDragDownAtom`, the drag starts after a small move */
+export const defsDragDownAtom = atom(
+    null,
+    (_get, _set, e: DefsPointerDown) => {
+        gesture = null;
+        if (e.button !== 0 || e.target.closest('[data-row-control]')) {
+            return;
+        }
+        gesture = { row: e.row, pointerId: e.pointerId, startX: e.clientX, startY: e.clientY, started: false, layers: null, defs: { source: e.source, drop: null } };
     }
 );
 
@@ -61,7 +85,8 @@ type TreePointerMove = { pointerId: number; buttons: number; clientX: number; cl
 export const rowDragMoveAtom = atom(
     null,
     (get, set, e: TreePointerMove) => {
-        if (!gesture || e.pointerId !== gesture.pointerId) {
+        const g = gesture;
+        if (!g || e.pointerId !== g.pointerId) {
             return;
         }
         if (!e.buttons) {
@@ -69,27 +94,40 @@ export const rowDragMoveAtom = atom(
             return;
         }
 
-        if (!gesture.ids) {
-            if (Math.hypot(e.clientX - gesture.startX, e.clientY - gesture.startY) < DRAG_THRESHOLD_PX) {
+        if (!g.started) {
+            if (Math.hypot(e.clientX - g.startX, e.clientY - g.startY) < DRAG_THRESHOLD_PX) {
                 return;
             }
-            const selection = get(selectionAtom);
-            gesture.ids = selection.includes(gesture.id) ? topmostIds(docState.doc, selection) : [gesture.id];
-            gesture.row.setPointerCapture(gesture.pointerId);
-            ghostX.set(e.clientX);
-            ghostY.set(e.clientY);
-            set(reorderDragAtom, { ids: gesture.ids, label: dragLabel(gesture.ids) });
+            g.started = true;
+            g.row.setPointerCapture(g.pointerId);
+            if (g.layers) {
+                const selection = get(selectionAtom);
+                g.layers.ids = selection.includes(g.layers.id) ? topmostIds(docState.doc, selection) : [g.layers.id];
+                set(reorderDragAtom, { ids: g.layers.ids, label: dragLabel(g.layers.ids) });
+            } else if (g.defs) {
+                set(reorderDragAtom, { ids: [], label: g.defs.source.label });
+            }
         }
 
         ghostX.set(e.clientX);
         ghostY.set(e.clientY);
 
-        const container = gesture.row.closest<HTMLElement>('[data-layers-scroll]');
+        const container = g.row.closest<HTMLElement>('[data-layers-scroll]');
         container && autoScroll(container, e.clientY);
 
+        if (g.defs) {
+            const hit = dropDefsAt(e.clientX, e.clientY, container, g.defs.source);
+            g.defs.drop = hit?.drop ?? null;
+            set(dropIndicatorAtom, hit && container ? indicatorFor(hit.anchor, hit.place, hit.depth, container) : null);
+            return;
+        }
+        if (!g.layers) {
+            return;
+        }
+
         const hit = dropAt(e.clientX, e.clientY, container, getIsolationScope(get));
-        const valid = hit && canDropLayers(docState.doc, gesture.ids, hit.drop);
-        gesture.drop = valid ? hit.drop : null;
+        const valid = hit && canDropLayers(docState.doc, g.layers.ids, hit.drop);
+        g.layers.drop = valid ? hit.drop : null;
         set(dropIndicatorAtom, valid && container ? indicatorFor(hit.anchor, hit.drop.place, hit.depth, container) : null);
     }
 );
@@ -99,13 +137,29 @@ export const rowDragUpAtom = atom(
     (get, set) => {
         const g = gesture;
         set(rowDragCancelAtom);
-        if (!g?.ids) {
+        if (!g?.started) {
             return;
         }
         swallowNextClick();
 
-        if (g.drop && moveLayers(g.ids, g.drop) && g.drop.place === 'inside') {
-            set(expandedIdsAtom, new Set([...get(expandedIdsAtom), g.drop.targetId]));
+        if (g.defs) {
+            const d = g.defs.drop;
+            if (d && moveDefsItem(g.defs.source, d)) {
+                set(defsSelectionAtom, []);
+                if (d.kind === 'class' && d.drop.place === 'end') {
+                    // show the class that was dropped into a collapsed style
+                    set(expandedIdsAtom, new Set([...get(expandedIdsAtom), defsItemId(d.defsId, String(d.drop.styleIndex))]));
+                }
+            }
+            return;
+        }
+
+        const layers = g.layers;
+        if (!layers) {
+            return;
+        }
+        if (layers.drop && moveLayers(layers.ids, layers.drop) && layers.drop.place === 'inside') {
+            set(expandedIdsAtom, new Set([...get(expandedIdsAtom), layers.drop.targetId]));
         }
     }
 );
@@ -126,10 +180,28 @@ function dragLabel(ids: readonly string[]): string {
     return node ? layerName(node) : `${ids.length} layers`;
 }
 
+/** Moves a `<defs>` item to its drop; the source and the drop must be of the same kind */
+function moveDefsItem(source: DefsDragSource, d: DefsDrop): boolean {
+    if (source.kind === 'element' && d.kind === 'element') {
+        return moveDefsElement({ defsId: source.defsId, root: source.root }, { defsId: d.defsId, drop: d.drop });
+    }
+    if (source.kind === 'class' && d.kind === 'class') {
+        return moveDefsClass({ defsId: source.defsId, styleIndex: source.styleIndex, name: source.name }, { defsId: d.defsId, drop: d.drop });
+    }
+    return false;
+}
+
 type DropHit = {
     anchor: HTMLElement;         // row whose edge the indicator line is drawn on
     drop: LayerDrop;
     depth: number;               // indent of the insertion line
+};
+
+type DefsHit = {
+    anchor: HTMLElement;
+    place: DropPlace;
+    depth: number;
+    drop: DefsDrop;
 };
 
 /**
@@ -168,6 +240,53 @@ function dropAt(x: number, y: number, container: HTMLElement | null, scope: read
         return dropBelow(rows, row, x, rowDepth, scope);
     }
     return { anchor: row, drop: { targetId, place }, depth: rowDepth };
+}
+
+/**
+ * The `<defs>` item under the pointer and the drop it means. An element goes above or below a top-level element of a `<defs>`
+ * element, or into the `<defs>` row (at its end). A class goes above or below another class, or into a `<style>` row (at its end).
+ */
+function dropDefsAt(x: number, y: number, container: HTMLElement | null, source: DefsDragSource): DefsHit | undefined {
+    if (!container) {
+        return;
+    }
+    const hit = document.elementFromPoint(x, y)?.closest<HTMLElement>('[data-defs-drop]');
+    const defsId = hit?.dataset.defsId;
+    if (!hit || !defsId || !container.contains(hit)) {
+        return;
+    }
+    const kind = hit.dataset.defsDrop;
+    const rect = hit.getBoundingClientRect();
+    const above = (y - rect.top) / Math.max(rect.height, 1) < 0.5;
+    const place: 'above' | 'below' = above ? 'above' : 'below';
+    const depth = Number(hit.dataset.defsDepth ?? 0);
+
+    if (source.kind === 'element') {
+        if (kind === 'container') {
+            return { anchor: hit, place: 'inside', depth, drop: { kind: 'element', defsId, drop: { place: 'end' } } };
+        }
+        const root = hit.dataset.defsRoot;
+        if (root === undefined || (kind !== 'element' && kind !== 'style')) {
+            return;
+        }
+        if (defsId === source.defsId && Number(root) === source.root) {
+            return; // the element itself
+        }
+        return { anchor: hit, place, depth, drop: { kind: 'element', defsId, drop: { ordinal: Number(root), place } } };
+    }
+
+    const styleIndex = Number(hit.dataset.defsStyle);
+    if (kind === 'class') {
+        const name = hit.dataset.defsName ?? '';
+        if (defsId === source.defsId && styleIndex === source.styleIndex && name === source.name) {
+            return; // the class itself
+        }
+        return { anchor: hit, place, depth, drop: { kind: 'class', defsId, drop: { styleIndex, name, place } } };
+    }
+    if (kind === 'style') {
+        return { anchor: hit, place: 'inside', depth, drop: { kind: 'class', defsId, drop: { styleIndex, place: 'end' } } };
+    }
+    return;
 }
 
 /** The last row, when the pointer is in the panel's empty space under the tree */
