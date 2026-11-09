@@ -1,5 +1,5 @@
 import { type Getter, type Setter } from "jotai";
-import { type LucideIcon, PaintBucket, Scan, Trash } from "lucide-react";
+import { Eraser, type LucideIcon, PaintBucket, Scan, Trash } from "lucide-react";
 import { type SvgDoc, findNode } from "@/svg-core";
 import { deleteNodes, docState } from "@/store/3-document";
 import { defsSelectionAtom, selectionAtom, setDefsSelectionAtom, setSelectionAtom } from "@/store/4-editor";
@@ -46,8 +46,18 @@ export const layersMenuCommands: readonly LayersMenuCommand[] = [
         icon: PaintBucket,
         targets: ['defs-class'],
         section: 'edit',
-        enabled: (get, t) => canApplyDefsClass(docOf(get), t.defsId, t.styleIndex, t.name),
-        run: (_get, _set, t) => applyDefsClass(t.defsId, t.styleIndex, t.name),
+        enabled: canApplyClass,
+        run: (_get, _set, t) => applyDefsClass(t.defsId, t.styleIndex, t.name, { removeClass: false }),
+    }),
+
+    command({
+        id: 'layers.applyClassAndRemove',
+        label: "Apply and remove",
+        icon: Eraser,
+        targets: ['defs-class'],
+        section: 'edit',
+        enabled: canApplyClass,
+        run: (_get, _set, t) => applyDefsClass(t.defsId, t.styleIndex, t.name, { removeClass: true }),
     }),
 
     command({
@@ -87,6 +97,11 @@ export function commandsFor(target: LayersMenuTarget): LayersMenuCommand[] {
 
 function docOf(get: Getter): SvgDoc {
     return get(docProxyAtom).doc as unknown as SvgDoc;
+}
+
+/** Both Apply commands need declarations in effect and elements that use the class */
+function canApplyClass(get: Getter, t: LayersMenuTargetOf<'defs-class'>): boolean {
+    return canApplyDefsClass(docOf(get), t.defsId, t.styleIndex, t.name);
 }
 
 /** A locked layer (or one in a locked group) stays, and so does the isolated object itself */

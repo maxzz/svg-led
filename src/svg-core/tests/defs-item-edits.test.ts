@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { activeClassDecls, applyClassDecls, deleteDefsClassMarkup, deleteDefsElementMarkup } from "../index";
+import { activeClassDecls, applyClassDecls, deleteDefsClassMarkup, deleteDefsElementMarkup, removeClassToken } from "../index";
 
 describe("deleteDefsElementMarkup", () => {
     it("removes an element with its children and the white space before it", () => {
@@ -27,6 +27,26 @@ describe("activeClassDecls", () => {
     it("skips commented-out declarations and deactivated selectors", () => {
         const inner = '<style>.a{fill:red;/*svg-led:off stroke:blue;*/}\n.deactivated-a{opacity:.5}\n.a, .b{stroke-width:2}</style>';
         expect(activeClassDecls(inner, 0, 'a')).toEqual([{ prop: 'fill', value: 'red' }, { prop: 'stroke-width', value: '2' }]);
+    });
+});
+
+describe("removeClassToken", () => {
+    it("removes only the named class and keeps the others", () => {
+        const attrs: Record<string, string> = { class: 'a b c' };
+        removeClassToken(attrs, 'b');
+        expect(attrs).toEqual({ class: 'a c' });
+    });
+
+    it("removes the class attribute when no other class is left", () => {
+        const attrs: Record<string, string> = { class: 'a', fill: 'red' };
+        removeClassToken(attrs, 'a');
+        expect(attrs).toEqual({ fill: 'red' });
+    });
+
+    it("does not match a class whose name only starts with the given one", () => {
+        const attrs: Record<string, string> = { class: 'ab a-b' };
+        removeClassToken(attrs, 'a');
+        expect(attrs).toEqual({ class: 'ab a-b' });
     });
 });
 

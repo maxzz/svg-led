@@ -60,6 +60,19 @@ export function hasClassToken(attrs: Attrs, name: string): boolean {
 }
 
 /**
+ * Removes the class `name` from the `class` attribute and keeps the other class names.
+ * The attribute itself is removed when no other class name is left.
+ */
+export function removeClassToken(attrs: Attrs, name: string): void {
+    const rest = (attrs.class?.trim().split(/\s+/) ?? []).filter((t) => t && t !== name);
+    if (rest.length) {
+        attrs.class = rest.join(' ');
+    } else {
+        delete attrs.class;
+    }
+}
+
+/**
  * Writes the declarations of a class onto an element, so the element looks the same without the stylesheet.
  * The element keeps the class, so the class can be applied again after its rule changes.
  * - a presentation property becomes an attribute (a class beats an attribute, so it overwrites one);

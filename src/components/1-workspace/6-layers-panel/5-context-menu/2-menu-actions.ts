@@ -1,4 +1,4 @@
-import { type SvgDoc, type SvgNode, activeClassDecls, applyClassDecls, deleteDefsClassMarkup, deleteDefsElementMarkup, findNode, hasClassToken, walkNodes } from "@/svg-core";
+import { type SvgDoc, type SvgNode, activeClassDecls, applyClassDecls, deleteDefsClassMarkup, deleteDefsElementMarkup, findNode, hasClassToken, removeClassToken, walkNodes } from "@/svg-core";
 import { commitHistory, docState, getNodeProxy } from "@/store/3-document";
 
 /**
@@ -23,8 +23,11 @@ export function canApplyDefsClass(doc: SvgDoc, defsId: string, styleIndex: numbe
         && classTargets(doc, defsId, name).length > 0;
 }
 
-/** Copies the declarations of a class onto the elements that use it (see `applyClassDecls`); one history step */
-export function applyDefsClass(defsId: string, styleIndex: number, name: string): boolean {
+/**
+ * Copies the declarations of a class onto the elements that use it (see `applyClassDecls`); one history step.
+ * `removeClass` also takes the class name off those elements (see `removeClassToken`).
+ */
+export function applyDefsClass(defsId: string, styleIndex: number, name: string, options: { removeClass: boolean; }): boolean {
     const defs = getNodeProxy(defsId);
     if (defs?.kind !== 'passthrough') {
         return false;
@@ -36,6 +39,7 @@ export function applyDefsClass(defsId: string, styleIndex: number, name: string)
     }
     for (const node of targets) {
         applyClassDecls(node.attrs, decls);
+        options.removeClass && removeClassToken(node.attrs, name);
     }
     commitHistory();
     return true;
