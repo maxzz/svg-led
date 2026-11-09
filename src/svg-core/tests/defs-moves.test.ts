@@ -74,7 +74,8 @@ describe("moveDefsClassMarkup", () => {
 
     it("keeps the class items of the tree consistent after a move", () => {
         const moved = moveDefsClassMarkup('<style>.a{}\n.b{}</style>', { styleIndex: 0, name: 'a' }, undefined, { styleIndex: 0, name: 'b', place: 'below' });
-        const names = defsItemsOf(moved!.src)[0].kind === 'element' ? defsItemsOf(moved!.src)[0].children.map((c) => c.kind === 'class' ? c.name : '') : [];
+        const [style] = defsItemsOf(moved?.src ?? '');
+        const names = style?.kind === 'element' ? style.children.map((c) => (c.kind === 'class' ? c.name : '')) : [];
         expect(names).toEqual(['b', 'a']);
     });
 });
