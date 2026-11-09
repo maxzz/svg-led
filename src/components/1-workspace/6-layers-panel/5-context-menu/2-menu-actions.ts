@@ -1,4 +1,4 @@
-import { type SvgDoc, type SvgNode, activeClassDecls, applyClassDecls, deleteDefsClassMarkup, deleteDefsElementMarkup, findNode, hasClassToken, removeClassToken, walkNodes } from "@/svg-core";
+import { type SvgDoc, type SvgNode, activeClassDecls, applyClassDecls, deleteDefsClassMarkup, deleteDefsElementMarkup, findNode, hasClassToken, removeClassDecls, removeClassToken, walkNodes } from "@/svg-core";
 import { commitHistory, docState, getNodeProxy } from "@/store/3-document";
 
 /**
@@ -40,6 +40,24 @@ export function applyDefsClass(defsId: string, styleIndex: number, name: string,
     for (const node of targets) {
         applyClassDecls(node.attrs, decls);
         options.removeClass && removeClassToken(node.attrs, name);
+    }
+    commitHistory();
+    return true;
+}
+
+/** Removes the attributes that the rules of a class define from the elements that use it (see `removeClassDecls`); one history step */
+export function removeDefsClassRules(defsId: string, styleIndex: number, name: string): boolean {
+    const defs = getNodeProxy(defsId);
+    if (defs?.kind !== 'passthrough') {
+        return false;
+    }
+    const decls = activeClassDecls(defs.inner, styleIndex, name);
+    const targets = classTargets(docState.doc, defsId, name);
+    if (!decls.length || !targets.length) {
+        return false;
+    }
+    for (const node of targets) {
+        removeClassDecls(node.attrs, decls);
     }
     commitHistory();
     return true;

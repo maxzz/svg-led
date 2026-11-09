@@ -1,11 +1,11 @@
 import { type Getter, type Setter } from "jotai";
-import { Eraser, type LucideIcon, PaintBucket, Scan, Trash } from "lucide-react";
+import { Eraser, ListX, type LucideIcon, PaintBucket, Scan, Trash } from "lucide-react";
 import { type SvgDoc, findNode } from "@/svg-core";
 import { deleteNodes, docState } from "@/store/3-document";
 import { defsSelectionAtom, selectionAtom, setDefsSelectionAtom, setSelectionAtom } from "@/store/4-editor";
 import { docProxyAtom, enterIsolationAtom, getIsolationScope, isLocked, sameIsolationIds } from "@/store/6-layers";
 import { type LayersMenuTarget, type LayersMenuTargetKind, type LayersMenuTargetOf } from "./1-menu-target";
-import { applyDefsClass, canApplyDefsClass, deleteDefsClass, deleteDefsElement } from "./2-menu-actions";
+import { applyDefsClass, canApplyDefsClass, deleteDefsClass, deleteDefsElement, removeDefsClassRules } from "./2-menu-actions";
 
 type CommandSpec<K extends LayersMenuTargetKind> = {
     id: string;
@@ -46,7 +46,7 @@ export const layersMenuCommands: readonly LayersMenuCommand[] = [
         icon: PaintBucket,
         targets: ['defs-class'],
         section: 'edit',
-        enabled: canApplyClass,
+        enabled: classIsInUse,
         run: (_get, _set, t) => applyDefsClass(t.defsId, t.styleIndex, t.name, { removeClass: false }),
     }),
 
@@ -56,8 +56,18 @@ export const layersMenuCommands: readonly LayersMenuCommand[] = [
         icon: Eraser,
         targets: ['defs-class'],
         section: 'edit',
-        enabled: canApplyClass,
+        enabled: classIsInUse,
         run: (_get, _set, t) => applyDefsClass(t.defsId, t.styleIndex, t.name, { removeClass: true }),
+    }),
+
+    command({
+        id: 'layers.removeClassRules',
+        label: "Remove CSS rules",
+        icon: ListX,
+        targets: ['defs-class'],
+        section: 'edit',
+        enabled: classIsInUse,
+        run: (_get, _set, t) => removeDefsClassRules(t.defsId, t.styleIndex, t.name),
     }),
 
     command({
@@ -99,8 +109,8 @@ function docOf(get: Getter): SvgDoc {
     return get(docProxyAtom).doc as unknown as SvgDoc;
 }
 
-/** Both Apply commands need declarations in effect and elements that use the class */
-function canApplyClass(get: Getter, t: LayersMenuTargetOf<'defs-class'>): boolean {
+/** The class commands need declarations in effect and elements that use the class */
+function classIsInUse(get: Getter, t: LayersMenuTargetOf<'defs-class'>): boolean {
     return canApplyDefsClass(docOf(get), t.defsId, t.styleIndex, t.name);
 }
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { activeClassDecls, applyClassDecls, deleteDefsClassMarkup, deleteDefsElementMarkup, removeClassToken } from "../index";
+import { activeClassDecls, applyClassDecls, deleteDefsClassMarkup, deleteDefsElementMarkup, removeClassDecls, removeClassToken } from "../index";
 
 describe("deleteDefsElementMarkup", () => {
     it("removes an element with its children and the white space before it", () => {
@@ -27,6 +27,34 @@ describe("activeClassDecls", () => {
     it("skips commented-out declarations and deactivated selectors", () => {
         const inner = '<style>.a{fill:red;/*svg-led:off stroke:blue;*/}\n.deactivated-a{opacity:.5}\n.a, .b{stroke-width:2}</style>';
         expect(activeClassDecls(inner, 0, 'a')).toEqual([{ prop: 'fill', value: 'red' }, { prop: 'stroke-width', value: '2' }]);
+    });
+});
+
+describe("removeClassDecls", () => {
+    it("removes an attribute with the value of the rule and keeps the others", () => {
+        const attrs: Record<string, string> = { class: 'a', fill: '#f3f', stroke: 'blue' };
+        removeClassDecls(attrs, [{ prop: 'fill', value: '#f3f' }, { prop: 'stroke-width', value: '2' }]);
+        expect(attrs).toEqual({ class: 'a', stroke: 'blue' });
+    });
+
+    it("keeps an attribute whose value differs from the rule", () => {
+        const attrs: Record<string, string> = { class: 'a', fill: 'red' };
+        removeClassDecls(attrs, [{ prop: 'fill', value: '#f3f' }]);
+        expect(attrs).toEqual({ class: 'a', fill: 'red' });
+    });
+
+    it("compares values without letter case, white space and !important", () => {
+        const attrs: Record<string, string> = { fill: '#F3F' };
+        removeClassDecls(attrs, [{ prop: 'fill', value: ' #f3f  !important' }]);
+        expect(attrs).toEqual({});
+    });
+
+    it("removes a matching entry of the style attribute and drops the style when it is empty", () => {
+        const attrs: Record<string, string> = { style: 'mix-blend-mode:multiply;fill:green' };
+        removeClassDecls(attrs, [{ prop: 'mix-blend-mode', value: 'multiply' }]);
+        expect(attrs).toEqual({ style: 'fill:green' });
+        removeClassDecls(attrs, [{ prop: 'fill', value: 'green' }]);
+        expect(attrs).toEqual({});
     });
 });
 

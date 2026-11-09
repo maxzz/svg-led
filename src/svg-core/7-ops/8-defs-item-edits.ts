@@ -73,6 +73,40 @@ export function removeClassToken(attrs: Attrs, name: string): void {
 }
 
 /**
+ * Removes the attributes that the declarations of a class define from an element, where the element has the same value:
+ * `fill="#f3f"` goes when the rule says `fill: #f3f`, while `fill="red"` stays. The same goes for an entry of `style`.
+ * Values are compared without `!important`, white space and letter case.
+ */
+export function removeClassDecls(attrs: Attrs, decls: readonly CssProp[]): void {
+    const style = parseStyle(attrs.style ?? '');
+    let styleChanged = false;
+
+    for (const { prop, value } of decls) {
+        const want = normalizeValue(value);
+        if (Object.hasOwn(attrs, prop) && normalizeValue(attrs[prop]) === want) {
+            delete attrs[prop];
+        }
+        if (Object.hasOwn(style, prop) && normalizeValue(style[prop]) === want) {
+            delete style[prop];
+            styleChanged = true;
+        }
+    }
+
+    if (styleChanged) {
+        const text = stringifyStyle(style);
+        if (text) {
+            attrs.style = text;
+        } else {
+            delete attrs.style;
+        }
+    }
+}
+
+function normalizeValue(value: string): string {
+    return value.replace(IMPORTANT, '').replace(/\s+/g, ' ').trim().toLowerCase();
+}
+
+/**
  * Writes the declarations of a class onto an element, so the element looks the same without the stylesheet.
  * The element keeps the class, so the class can be applied again after its rule changes.
  * - a presentation property becomes an attribute (a class beats an attribute, so it overwrites one);
