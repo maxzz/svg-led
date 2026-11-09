@@ -7,7 +7,8 @@ import { LAYER_ICON_PX, circlePointerDownAtom, circlePointerMoveAtom, circlePoin
 
 //---------------------------------------------------------------------------
 
-export function Expander_Icon({ isGroup, open, onToggle }: { isGroup: boolean; open: boolean; onToggle: () => void; }) {
+/** Expander of a row. A click toggles this row; with Ctrl (or Cmd) held, `all` is true and the whole subtree follows */
+export function Expander_Icon({ isGroup, open, onToggle }: { isGroup: boolean; open: boolean; onToggle: (all: boolean) => void; }) {
     if (!isGroup) {
         return <span className="shrink-0 size-4" />;
     }
@@ -15,7 +16,7 @@ export function Expander_Icon({ isGroup, open, onToggle }: { isGroup: boolean; o
         <button
             className="shrink-0 size-4 text-foreground/60 hover:text-foreground rounded-xs flex items-center justify-center cursor-pointer"
             data-row-control
-            onClick={(e) => { stop(e); onToggle(); }}
+            onClick={(e) => { stop(e); onToggle(e.ctrlKey || e.metaKey); }}
             onDoubleClick={stop}
             title={open ? "Collapse" : "Expand"}
             type="button"

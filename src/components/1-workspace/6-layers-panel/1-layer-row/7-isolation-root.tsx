@@ -9,7 +9,7 @@ import { selectionAtom, setSelectionAtom } from "@/store/4-editor";
 import { exitIsolationToAtom, isHidden, isHiddenOrLocked, isLocked, isolationManyOpenAtom, layerName, setNodesHidden, setNodesLocked } from "@/store/6-layers";
 import { LayerThumbnail } from "./8-layer-thumbnail";
 import { LockButton, VisibilityButton } from "../4-toggle-sweep";
-import { LAYER_ICON_PX, containsSelectedFamily, isIsolationCollapsedFamily, isSelectedFamily, rowClickAtom, toggleIsolationCollapsedAtom, toggleIsolationManyAtom } from "../9-atoms-layers-panel";
+import { LAYER_ICON_PX, containsSelectedFamily, expandableDescendantIds, isIsolationCollapsedFamily, isSelectedFamily, rowClickAtom, setSubtreeOpenAtom, toggleIsolationCollapsedAtom, toggleIsolationManyAtom } from "../9-atoms-layers-panel";
 import { Expander_Icon, SelectionCircle_Icon, stop } from "./8-row-common-parts";
 import { GroupChildren } from "./1-group-children";
 import { LayerRow } from "./0-all-layer-row";
@@ -33,6 +33,7 @@ function SingleIsolationRoot({ node }: { node: SvgNode; }) {
     const containsSelected = useAtomValue(containsSelectedFamily(node.id));
     const rowClick = useSetAtom(rowClickAtom);
     const toggleCollapsed = useSetAtom(toggleIsolationCollapsedAtom);
+    const setSubtreeOpen = useSetAtom(setSubtreeOpenAtom);
     const exit = useSetAtom(exitIsolationToAtom);
 
     const parents = findNode(docState.doc, node.id)?.parents ?? [];
@@ -59,7 +60,13 @@ function SingleIsolationRoot({ node }: { node: SvgNode; }) {
             <LockButton id={snap.id} locked={locked} inherited={lockedByParent} />
 
             <div className={nameClasses} style={{ paddingLeft: 4 }}>
-                <Expander_Icon isGroup={childCount > 0} open={open} onToggle={() => toggleCollapsed(snap.id)} />
+                <Expander_Icon
+                    isGroup={childCount > 0}
+                    open={open}
+                    onToggle={(all) => (all
+                        ? setSubtreeOpen({ id: snap.id, root: true, open: !open, ids: expandableDescendantIds(snap) })
+                        : toggleCollapsed(snap.id))}
+                />
                 <LayerThumbnail node={node} snap={snap} />
                 <span className={classNames("truncate", (hidden || hiddenByParent) && "text-muted-foreground")}>
                     Isolation Mode

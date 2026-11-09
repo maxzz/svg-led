@@ -6,7 +6,7 @@ import { CodeXml } from "lucide-react";
 
 import { type DefsItem, type GroupNode, type SvgNode, defsItemsOf, isDeactivatedName, plainName } from "@/svg-core";
 import { enterIsolationAtom, isHidden, isLocked, isolationScopeAtom, layerName, setDefsChildrenActive, setPassthroughActive } from "@/store/6-layers";
-import { ROW_INDENT_PX, containsSelectedFamily, isExpandedFamily, isIsolationCollapsedFamily, isSelectedFamily, rowClickAtom, toggleExpandedAtom, toggleIsolationCollapsedAtom } from "../9-atoms-layers-panel";
+import { ROW_INDENT_PX, containsSelectedFamily, expandableDescendantIds, isExpandedFamily, isIsolationCollapsedFamily, isSelectedFamily, rowClickAtom, setSubtreeOpenAtom, toggleExpandedAtom, toggleIsolationCollapsedAtom } from "../9-atoms-layers-panel";
 
 import { LayerThumbnail } from "./8-layer-thumbnail";
 import { isDraggedFamily, rowDragDownAtom } from "../2-reorder";
@@ -40,6 +40,7 @@ export const LayerRow = memo(
         const enterIsolation = useSetAtom(enterIsolationAtom);
         const toggleExpanded = useSetAtom(toggleExpandedAtom);
         const toggleCollapsed = useSetAtom(toggleIsolationCollapsedAtom);
+        const setSubtreeOpen = useSetAtom(setSubtreeOpenAtom);
 
         const isGroup = snap.kind === 'g';
         const isRoot = scope.includes(snap.id);
@@ -81,7 +82,13 @@ export const LayerRow = memo(
                 <LockButton id={snap.id} locked={locked} inherited={lockedByParent} />
 
                 <div className="grow min-w-0 flex items-center gap-1.5" style={{ paddingLeft: 4 + depth * ROW_INDENT_PX }}>
-                    <Expander_Icon isGroup={canExpand} open={open} onToggle={() => (isRoot ? toggleCollapsed(snap.id) : toggleExpanded(snap.id))} />
+                    <Expander_Icon
+                        isGroup={canExpand}
+                        open={open}
+                        onToggle={(all) => (all
+                            ? setSubtreeOpen({ id: snap.id, root: isRoot, open: !open, ids: expandableDescendantIds(snap) })
+                            : (isRoot ? toggleCollapsed(snap.id) : toggleExpanded(snap.id)))}
+                    />
                     {defsNode
                         ? <Defs_Icon icon={CodeXml} />
                         : <LayerThumbnail node={node} snap={snap} />

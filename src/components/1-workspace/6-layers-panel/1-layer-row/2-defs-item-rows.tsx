@@ -5,7 +5,7 @@ import { Braces, Shapes } from "lucide-react";
 import { type DefsClassItem, type DefsDecl, type DefsElementItem, type DefsItem, defsItemId } from "@/svg-core";
 import { defsSelectionAtom, setDefsSelectionAtom } from "@/store/4-editor";
 import { setDefsClassActive, setDefsDeclActive, setDefsElementActive } from "@/store/6-layers";
-import { ROW_INDENT_PX, containsSelectedDefsFamily, isExpandedFamily, toggleExpandedAtom } from "../9-atoms-layers-panel";
+import { ROW_INDENT_PX, containsSelectedDefsFamily, defsExpandableIds, isExpandedFamily, setSubtreeOpenAtom, toggleExpandedAtom } from "../9-atoms-layers-panel";
 import { defsDragDownAtom } from "../2-reorder";
 import { Defs_Icon, EyeToggle_Icon, Expander_Icon, SelectionCircle_Defs_Icon } from "./8-row-common-parts";
 
@@ -124,6 +124,7 @@ function DefsElementRow({ defsId, item, depth }: { defsId: string; item: DefsEle
     const open = useAtomValue(isExpandedFamily(id));
 
     const toggleExpanded = useSetAtom(toggleExpandedAtom);
+    const setSubtreeOpen = useSetAtom(setSubtreeOpenAtom);
     const select = useSetAtom(setDefsSelectionAtom);
     const dragDown = useSetAtom(defsDragDownAtom);
 
@@ -152,7 +153,13 @@ function DefsElementRow({ defsId, item, depth }: { defsId: string; item: DefsEle
 
             <div className="grow min-w-0 flex items-center gap-1.5" style={{ paddingLeft: 4 + depth * ROW_INDENT_PX }}>
 
-                <Expander_Icon isGroup={hasChildren} open={open} onToggle={() => toggleExpanded(id)} />
+                <Expander_Icon
+                    isGroup={hasChildren}
+                    open={open}
+                    onToggle={(all) => (all
+                        ? setSubtreeOpen({ id, root: false, open: !open, ids: defsExpandableIds(defsId, item.children) })
+                        : toggleExpanded(id))}
+                />
 
                 <Defs_Icon icon={isStyle ? Braces : Shapes} />
 
