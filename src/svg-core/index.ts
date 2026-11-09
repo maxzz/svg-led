@@ -25,4 +25,5 @@ export * from "./7-ops/4-compound-path";
 export * from "./7-ops/5-expand-stroke";
 export * from "./7-ops/6-offset-path";
 export * from "./7-ops/7-defs-items";
+export * from "./7-ops/8-defs-item-edits";
 export * from "./8-style/1-presentation";

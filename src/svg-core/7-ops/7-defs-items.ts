@@ -165,7 +165,7 @@ function styleCssOf(markup: string): string {
  * The `<style>` element at `index` among the elements of `inner`: its text, and where the text sits in `inner`.
  * `ranges` is `scanElements(inner)`, passed in when the caller has it already.
  */
-function styleAt(inner: string, index: number, ranges = scanElements(inner)): { open: number; close: number; css: string; } | undefined {
+export function styleAt(inner: string, index: number, ranges = scanElements(inner)): { open: number; close: number; css: string; } | undefined {
     const r = ranges[index];
     if (!r) {
         return undefined;
@@ -382,7 +382,7 @@ export function moveDefsClassMarkup(src: string, from: { styleIndex: number; nam
 }
 
 /** Removes the rules of class `name` from a stylesheet. Returns the rest of the sheet and the rules taken out, in order. */
-function takeClassRules(css: string, name: string): { css: string; pieces: string[]; } | undefined {
+export function takeClassRules(css: string, name: string): { css: string; pieces: string[]; } | undefined {
     const rules = cssRulesOf(css);
     const pieces: string[] = [];
     let out = css;
