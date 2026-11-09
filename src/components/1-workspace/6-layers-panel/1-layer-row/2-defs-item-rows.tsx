@@ -40,6 +40,7 @@ function DefsClassRow({ defsId, item, depth }: { defsId: string; item: DefsClass
                 selected ? "text-foreground bg-(--editor-accent)/12" : "text-muted-foreground hover:bg-muted/60",
             )}
             data-defs-item={item.key}
+            data-defs-class={id}
             data-defs-drop="class"
             data-defs-id={defsId}
             data-defs-style={item.styleIndex}

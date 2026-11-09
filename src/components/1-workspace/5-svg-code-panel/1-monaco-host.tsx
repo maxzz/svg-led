@@ -11,6 +11,7 @@ import { isThemeDark } from "@/utils/theme-utils";
 import { monacoMountedAtom } from "./9-atoms-monaco-host";
 import Editor from "@monaco-editor/react";
 import "./2-monaco-setup";
+import { addSelectInLayersAction } from "./3-monaco-select-in-layers";
 
 /** Lazy-loaded: pulls the whole Monaco bundle only when the panel opens */
 export default function MonacoHost() {
@@ -28,7 +29,7 @@ export default function MonacoHost() {
                 fontSize: monaco.fontSize,
                 minimap: { enabled: monaco.minimap },
             }}
-            onMount={(editor, monaco) => { hideFindCloseTooltip(editor); addFormatSvgAction(editor, monaco); onMount({ editor, monaco }); }}
+            onMount={(editor, monaco) => { hideFindCloseTooltip(editor); addFormatSvgAction(editor, monaco); addSelectInLayersAction(editor); onMount({ editor, monaco }); }}
             loading={<div className="p-3 text-muted-foreground">Loading editor...</div>}
         />
     );
