@@ -6,12 +6,16 @@
  * Pure string helpers: no DOM, so they work in tests and in the source map.
  */
 
+//---------------------------------------------------------------------------
+
 /** Prefix of a deactivated tag or class name */
 export const DEACTIVATED_PREFIX = 'deactivated-';
 
 /** Opens a deactivated declaration; its text follows, up to `CSS_OFF_CLOSE` */
 export const CSS_OFF_OPEN = '/*svg-led:off ';
 export const CSS_OFF_CLOSE = '*/';
+
+//---------------------------------------------------------------------------
 
 /** True when a tag or class name carries the prefix */
 export function isDeactivatedName(name: string): boolean {
@@ -27,6 +31,8 @@ export function plainName(name: string): string {
 export function deactivatedName(name: string, deactivated: boolean): string {
     return deactivated ? DEACTIVATED_PREFIX + plainName(name) : plainName(name);
 }
+
+//---------------------------------------------------------------------------
 
 /**
  * Renames the element of `markup` to deactivated or back: its start tag, and its end tag when it has one.

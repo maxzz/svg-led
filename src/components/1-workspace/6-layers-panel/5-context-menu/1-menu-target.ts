@@ -17,6 +17,8 @@ export type LayersMenuTargetKind = LayersMenuTarget['kind'];
 
 export type LayersMenuTargetOf<K extends LayersMenuTargetKind> = Extract<LayersMenuTarget, { kind: K; }>;
 
+//---------------------------------------------------------------------------
+
 /** Id of the row under a right-clicked element: a node id, or a `<defs>` item id (see `defsItemId`); undefined outside rows */
 export function menuTargetIdOf(el: Element): string | undefined {
     const row = el.closest<HTMLElement>('[data-layer-id], [data-defs-element], [data-defs-item]');

@@ -1,5 +1,6 @@
 import { type Getter, type Setter } from "jotai";
 import { Eraser, ListX, type LucideIcon, PaintBucket, Scan, Trash } from "lucide-react";
+
 import { type SvgDoc, findNode } from "@/svg-core";
 import { deleteNodes, docState } from "@/store/3-document";
 import { defsSelectionAtom, selectionAtom, setDefsSelectionAtom, setSelectionAtom } from "@/store/4-editor";
@@ -23,10 +24,7 @@ type CommandSpec<K extends LayersMenuTargetKind> = {
 
 export type LayersMenuCommand = CommandSpec<LayersMenuTargetKind>;
 
-/** Typed entry: `target` in `enabled` and `run` is narrowed to the kinds listed in `targets` */
-function command<K extends LayersMenuTargetKind>(spec: CommandSpec<K>): LayersMenuCommand {
-    return spec as unknown as LayersMenuCommand;
-}
+//---------------------------------------------------------------------------
 
 /** Commands of the layers context menu, in menu order. Add an entry here to add a command. */
 export const layersMenuCommands: readonly LayersMenuCommand[] = [
@@ -100,7 +98,16 @@ export const layersMenuCommands: readonly LayersMenuCommand[] = [
 ];
 
 export function commandsFor(target: LayersMenuTarget): LayersMenuCommand[] {
-    return layersMenuCommands.filter((c) => c.targets.includes(target.kind));
+    return layersMenuCommands.filter(
+        (c) => c.targets.includes(target.kind)
+    );
+}
+
+//---------------------------------------------------------------------------
+
+/** Typed entry: `target` in `enabled` and `run` is narrowed to the kinds listed in `targets` */
+function command<K extends LayersMenuTargetKind>(spec: CommandSpec<K>): LayersMenuCommand {
+    return spec as unknown as LayersMenuCommand;
 }
 
 //---------------------------------------------------------------------------

@@ -54,6 +54,9 @@ export function activeClassDecls(inner: string, styleIndex: number, name: string
         .filter((d) => d.prop && d.value);
 }
 
+//---------------------------------------------------------------------------
+// Class token
+
 /** True when the `class` attribute lists `name` */
 export function hasClassToken(attrs: Attrs, name: string): boolean {
     return attrs.class?.trim().split(/\s+/).includes(name) ?? false;
@@ -71,6 +74,9 @@ export function removeClassToken(attrs: Attrs, name: string): void {
         delete attrs.class;
     }
 }
+
+//---------------------------------------------------------------------------
+// Remove class rules
 
 /**
  * Removes the attributes that the declarations of a class define from an element, where the element has the same value:
@@ -105,6 +111,9 @@ export function removeClassDecls(attrs: Attrs, decls: readonly CssProp[]): void 
 function normalizeValue(value: string): string {
     return value.replace(IMPORTANT, '').replace(/\s+/g, ' ').trim().toLowerCase();
 }
+
+//---------------------------------------------------------------------------
+// Apply class declarations
 
 /**
  * Writes the declarations of a class onto an element, so the element looks the same without the stylesheet.
@@ -150,3 +159,5 @@ const PRESENTATION_ATTRS: ReadonlySet<string> = new Set([
     'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity', 'stroke-width', 'text-anchor', 'text-decoration',
     'text-rendering', 'unicode-bidi', 'vector-effect', 'visibility', 'word-spacing', 'writing-mode',
 ]);
+
+//---------------------------------------------------------------------------

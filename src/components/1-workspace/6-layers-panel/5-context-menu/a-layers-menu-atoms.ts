@@ -4,7 +4,7 @@ import { defsSelectionAtom, selectionAtom, setDefsSelectionAtom } from "@/store/
 import { docProxyAtom } from "@/store/6-layers";
 import { rowClickAtom } from "../9-atoms-layers-panel";
 import { type LayersMenuTarget, menuTargetIdOf, resolveMenuTarget } from "./1-menu-target";
-import { type LayersMenuCommand, commandsFor, layersMenuCommands } from "./3-menu-commands";
+import { type LayersMenuCommand, commandsFor, layersMenuCommands } from "./8-menu-commands-definition";
 
 /** Row the menu was opened for (a node id or a `<defs>` item id) */
 const menuTargetIdAtom = atom<string | null>(null);
@@ -38,6 +38,7 @@ export const openLayersMenuAtom = atom(
     (get, set, el: Element): boolean => {
         const id = menuTargetIdOf(el) ?? null;
         set(menuTargetIdAtom, id);
+
         const target = get(layersMenuTargetAtom);
         if (!id || !target) {
             return false;
@@ -57,6 +58,7 @@ export const runLayersMenuCommandAtom = atom(
     (get, set, commandId: string) => {
         const target = get(layersMenuTargetAtom);
         const command = layersMenuCommands.find((c) => c.id === commandId);
+
         if (target && command?.targets.includes(target.kind) && (!command.enabled || command.enabled(get, target))) {
             command.run(get, set, target);
         }
