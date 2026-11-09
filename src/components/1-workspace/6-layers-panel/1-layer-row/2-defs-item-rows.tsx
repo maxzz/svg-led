@@ -6,6 +6,7 @@ import { type DefsClassItem, type DefsDecl, type DefsElementItem, type DefsItem,
 import { defsSelectionAtom, setDefsSelectionAtom } from "@/store/4-editor";
 import { setDefsClassActive, setDefsDeclActive, setDefsElementActive } from "@/store/6-layers";
 import { ROW_INDENT_PX, containsSelectedDefsFamily, isExpandedFamily, toggleExpandedAtom } from "../9-atoms-layers-panel";
+import { defsDragDownAtom } from "../2-reorder";
 import { Defs_Icon, EyeToggle_Icon, Expander_Icon, SelectionCircle_Defs_Icon } from "./8-row-common-parts";
 
 /** The items of a `<defs>` element at one depth; each element comes with the items nested in it */
@@ -30,6 +31,7 @@ function DefsClassRow({ defsId, item, depth }: { defsId: string; item: DefsClass
     const id = defsItemId(defsId, item.part);
     const selected = useAtomValue(defsSelectionAtom).includes(id);
     const select = useSetAtom(setDefsSelectionAtom);
+    const dragDown = useSetAtom(defsDragDownAtom);
 
     return (<>
         <div
@@ -38,7 +40,13 @@ function DefsClassRow({ defsId, item, depth }: { defsId: string; item: DefsClass
                 selected ? "text-foreground bg-(--editor-accent)/12" : "text-muted-foreground hover:bg-muted/60",
             )}
             data-defs-item={item.key}
-            title={`Class ${item.label} in <defs>`}
+            data-defs-drop="class"
+            data-defs-id={defsId}
+            data-defs-style={item.styleIndex}
+            data-defs-name={item.name}
+            data-defs-depth={depth}
+            title={`Class ${item.label} in <defs> · drag to move`}
+            onPointerDown={(e) => dragDown({ source: { kind: 'class', defsId, styleIndex: item.styleIndex, name: item.name, label: item.label }, button: e.button, pointerId: e.pointerId, clientX: e.clientX, clientY: e.clientY, target: e.target as Element, row: e.currentTarget })}
             onClick={() => select([id])}
         >
             <EyeToggle_Icon on={!item.off} title={`${item.off ? "Turn on" : "Turn off"} class ${item.label}`} onToggle={() => setDefsClassActive(defsId, item.styleIndex, item.name, item.off)} />
@@ -117,6 +125,7 @@ function DefsElementRow({ defsId, item, depth }: { defsId: string; item: DefsEle
 
     const toggleExpanded = useSetAtom(toggleExpandedAtom);
     const select = useSetAtom(setDefsSelectionAtom);
+    const dragDown = useSetAtom(defsDragDownAtom);
 
     const hasChildren = item.children.length > 0;
     const isStyle = item.tag.toLowerCase() === 'style';
@@ -128,7 +137,13 @@ function DefsElementRow({ defsId, item, depth }: { defsId: string; item: DefsEle
                 selected ? "text-foreground bg-(--editor-accent)/12" : "text-muted-foreground hover:bg-muted/60",
             )}
             data-defs-element={id}
-            title={`<${item.tag}> in <defs>`}
+            data-defs-drop={isStyle ? 'style' : 'element'}
+            data-defs-id={defsId}
+            data-defs-style={item.part}
+            data-defs-root={item.topLevel ? item.root : undefined}
+            data-defs-depth={depth}
+            title={`<${item.tag}> in <defs>${item.topLevel ? " · drag to move" : ""}`}
+            onPointerDown={item.topLevel ? (e) => dragDown({ source: { kind: 'element', defsId, root: item.root, label: item.label }, button: e.button, pointerId: e.pointerId, clientX: e.clientX, clientY: e.clientY, target: e.target as Element, row: e.currentTarget }) : undefined}
             onClick={() => select([id])}
         >
             <EyeToggle_Icon on={!item.off} title={`${item.off ? "Turn on" : "Turn off"} <${item.tag}>`} onToggle={() => setDefsElementActive(defsId, Number(item.part), item.off)} />
