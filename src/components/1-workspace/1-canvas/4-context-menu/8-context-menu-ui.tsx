@@ -35,6 +35,8 @@ export function renderEntries(entries: MenuEntry[]): ReactNode[] {
     return rv;
 }
 
+//---------------------------------------------------------------------------
+
 function isSeparator(entry: MenuEntry): entry is typeof SEP {
     return entry === SEP;
 }
@@ -100,6 +102,7 @@ export function SubMenu({ icon, label, items }: { icon: ReactNode; label: string
                 {icon}
                 {label}
             </ContextMenuSubTrigger>
+
             <ContextMenuSubContent className="w-52">
                 {renderEntries(items)}
             </ContextMenuSubContent>

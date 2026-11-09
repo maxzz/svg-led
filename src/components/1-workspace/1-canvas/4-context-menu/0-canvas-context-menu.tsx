@@ -1,11 +1,8 @@
 import { type ReactNode } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { snapshot, useSnapshot } from "valtio";
-import {
-    ArrowDown, ArrowDownToLine, ArrowUp, ArrowUpToLine, ClipboardPaste, Combine, Copy, CopyPlus, Expand, FileCode, FlipHorizontal, FlipVertical, Group, ImageDown,
-    Layers, Moon, MousePointer2, PaintBucket, Pipette, Radius, Scan, Scissors, Spline, SquareDashedMousePointer, Split, Trash, Ungroup, Waypoints,
-} from "lucide-react";
 import { ContextMenu, ContextMenuContent, ContextMenuTrigger } from "@/ui/shadcn/context-menu";
+import { ArrowDown, ArrowDownToLine, ArrowUp, ArrowUpToLine, ClipboardPaste, Combine, Copy, CopyPlus, Expand, FileCode, FlipHorizontal, FlipVertical, Group, ImageDown, Layers, Moon, MousePointer2, PaintBucket, Pipette, Radius, Scan, Scissors, Spline, SquareDashedMousePointer, Split, Trash, Ungroup, Waypoints } from "lucide-react";
 import { appSettings } from "@/store/1-ui-settings";
 
 import { ActionItem, CommandCheckItem, CommandItem, SEP, SubMenu, renderEntries } from "./8-context-menu-ui";
