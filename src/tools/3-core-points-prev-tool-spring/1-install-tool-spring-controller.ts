@@ -5,7 +5,7 @@ import { activeToolIdAtom, toolGestureActiveAtom } from "@/store/4-editor";
 import { pressSpringKeyAtom, releaseSpringKeyAtom, springGestureEndedAtom, springToolChangedAtom } from "./a-tool-spring-atoms";
 
 /** Wires the Ctrl spring to the keyboard and to tool and drag changes; runs outside React */
-export function installToolSpring(store: AppStore): () => void {
+export function installToolSpringController(store: AppStore): () => void {
     const controller = new AbortController();
 
     const { signal } = controller;
