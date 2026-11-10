@@ -5,7 +5,7 @@ import { Braces, Shapes } from "lucide-react";
 import { type DefsClassItem, type DefsDecl, type DefsElementItem, type DefsItem, defsItemId } from "@/svg-core";
 import { defsSelectionAtom, setDefsSelectionAtom } from "@/store/4-editor";
 import { setDefsClassActive, setDefsDeclActive, setDefsElementActive } from "@/store/6-layers";
-import { ROW_INDENT_PX, containsSelectedDefsFamily, defsExpandableIds, isExpandedFamily, setSubtreeOpenAtom, toggleExpandedAtom } from "../a-layer-atoms/9-atoms-layers-panel";
+import { ROW_INDENT_PX, containsSelectedDefsFamily, defsExpandableIds, isExpandedFamily, setSubtreeOpenAtom, toggleExpandedAtom } from "../a-layer-atoms";
 import { defsDragDownAtom } from "../2-reorder";
 import { Defs_Icon, EyeToggle_Icon, Expander_Icon, SelectionCircle_Defs_Icon } from "./8-row-common-parts";
 

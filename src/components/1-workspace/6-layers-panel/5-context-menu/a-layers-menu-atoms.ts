@@ -2,7 +2,7 @@ import { atom } from "jotai";
 import { type SvgDoc } from "@/svg-core";
 import { defsSelectionAtom, selectionAtom, setDefsSelectionAtom } from "@/store/4-editor";
 import { docProxyAtom } from "@/store/6-layers";
-import { rowClickAtom } from "../a-layer-atoms/9-atoms-layers-panel";
+import { rowClickAtom } from "../a-layer-atoms";
 import { type LayersMenuTarget, menuTargetIdOf, resolveMenuTarget } from "./1-menu-target";
 import { type LayersMenuCommand, commandsFor, layersMenuCommands } from "./8-menu-commands-definition";
 

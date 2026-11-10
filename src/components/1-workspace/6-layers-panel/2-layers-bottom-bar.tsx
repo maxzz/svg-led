@@ -3,7 +3,7 @@ import { type WritableAtom, useAtomValue, useSetAtom } from "jotai";
 import { Copy, Crosshair, FolderPlus, Group, Scan, Trash2 } from "lucide-react";
 
 import { canIsolateSelectionAtom, deleteSelectionAtom, duplicateSelectionAtom, groupSelectionAtom, hasLiveSelectionAtom, isolateSelectionAtom, newGroupAtom } from "@/store/6-layers";
-import { locateSelectionAtom } from "./a-layer-atoms/9-atoms-layers-panel";
+import { locateSelectionAtom } from "./a-layer-atoms";
 
 /** Operations on layers, as at the bottom of Illustrator's Layers panel */
 export function LayersBottomBar() {

@@ -6,7 +6,7 @@ import { CodeXml } from "lucide-react";
 
 import { type DefsItem, type GroupNode, type SvgNode, defsItemsOf, isDeactivatedName, plainName } from "@/svg-core";
 import { enterIsolationAtom, isHidden, isLocked, isolationScopeAtom, layerName, setDefsChildrenActive, setPassthroughActive } from "@/store/6-layers";
-import { ROW_INDENT_PX, containsSelectedFamily, expandableDescendantIds, isExpandedFamily, isIsolationCollapsedFamily, isSelectedFamily, rowClickAtom, setSubtreeOpenAtom, toggleExpandedAtom, toggleIsolationCollapsedAtom } from "../a-layer-atoms/9-atoms-layers-panel";
+import { ROW_INDENT_PX, containsSelectedFamily, expandableDescendantIds, isExpandedFamily, isIsolationCollapsedFamily, isSelectedFamily, rowClickAtom, setSubtreeOpenAtom, toggleExpandedAtom, toggleIsolationCollapsedAtom } from "../a-layer-atoms";
 
 import { LayerThumbnail } from "./8-layer-thumbnail";
 import { isDraggedFamily, rowDragDownAtom } from "../2-reorder";
