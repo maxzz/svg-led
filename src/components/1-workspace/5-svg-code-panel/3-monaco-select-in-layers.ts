@@ -1,5 +1,5 @@
 import type * as Monaco from "monaco-editor";
-import { appStore } from "@/store/0-app-store";
+import { jotaiStore } from "@/store/0-app-store";
 import { sourceMapAtom } from "@/store/4-editor";
 import { nodeAtOffset } from "@/svg-core";
 import { selectInLayersAtom } from "../6-layers-panel/a-layer-atoms";
@@ -17,12 +17,12 @@ export function addSelectInLayersAction(editor: Monaco.editor.IStandaloneCodeEdi
     const elementAtCaret = (): string | undefined => {
         const model = editor.getModel();
         const position = editor.getPosition();
-        return model && position ? nodeAtOffset(appStore.get(sourceMapAtom), model.getOffsetAt(position)) : undefined;
+        return model && position ? nodeAtOffset(jotaiStore.get(sourceMapAtom), model.getOffsetAt(position)) : undefined;
     };
     const update = () => hasElement.set(elementAtCaret() !== undefined);
 
     update();
-    const unsubMap = appStore.sub(sourceMapAtom, update);
+    const unsubMap = jotaiStore.sub(sourceMapAtom, update);
     const cursorSub = editor.onDidChangeCursorPosition(update);
     editor.onDidDispose(() => {
         unsubMap();
@@ -36,7 +36,7 @@ export function addSelectInLayersAction(editor: Monaco.editor.IStandaloneCodeEdi
         precondition: ELEMENT_AT_CARET,
         run: () => {
             const id = elementAtCaret();
-            id && appStore.set(selectInLayersAtom, id);
+            id && jotaiStore.set(selectInLayersAtom, id);
         },
     });
 }

@@ -1,7 +1,7 @@
 import { type DragEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { type Getter, type Setter, atom } from "jotai";
 import { toast } from "sonner";
-import { appStore } from "@/store/0-app-store";
+import { jotaiStore } from "@/store/0-app-store";
 import { appSettings } from "@/store/1-ui-settings";
 import { docState, loadSvgFile } from "@/store/3-document";
 import { exitIsolationToAtom, filterTarget, getIsolationScope, insertMarkupAtTop } from "@/store/6-layers";
@@ -234,11 +234,11 @@ export function canvasRef(el: SVGSVGElement | null) {
     const ro = new ResizeObserver(
         ([entry]) => {
             const { width, height } = entry.contentRect;
-            appStore.set(canvasSizeAtom, { width, height });
+            jotaiStore.set(canvasSizeAtom, { width, height });
             if (!fitted && width > 0 && height > 0) {
                 fitted = true;
-                appStore.set(zoomToFitAtom, { leftInset: appSettings.prefs.fitAvoidsProperties ? PROPERTIES_POPUP_RIGHT_EDGE_PX : 0 });
-                appStore.set(canvasReadyAtom, true);
+                jotaiStore.set(zoomToFitAtom, { leftInset: appSettings.prefs.fitAvoidsProperties ? PROPERTIES_POPUP_RIGHT_EDGE_PX : 0 });
+                jotaiStore.set(canvasReadyAtom, true);
             }
         }
     );
@@ -251,12 +251,12 @@ export function canvasRef(el: SVGSVGElement | null) {
         const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1;
 
         if (e.shiftKey && !e.ctrlKey) {
-            appStore.set(panByAtom, { dx: -(e.deltaY || e.deltaX) * unit, dy: 0 });
+            jotaiStore.set(panByAtom, { dx: -(e.deltaY || e.deltaX) * unit, dy: 0 });
             return;
         }
         
         const speed = e.ctrlKey ? 0.01 : 0.0015; // ctrl+wheel is a trackpad pinch
-        appStore.set(zoomByAtom, { factor: Math.exp(-e.deltaY * unit * speed), at });
+        jotaiStore.set(zoomByAtom, { factor: Math.exp(-e.deltaY * unit * speed), at });
     };
     el.addEventListener('wheel', onWheel, { passive: false });
 

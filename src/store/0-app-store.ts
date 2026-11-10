@@ -5,6 +5,6 @@ import { getDefaultStore } from "jotai";
  * module-level controllers (keyboard, code sync, autosave) that live outside React.
  * It is the default store, so code that calls getDefaultStore() sees the same atoms.
  */
-export const appStore = getDefaultStore();
+export const jotaiStore = getDefaultStore();
 
-export type AppStore = typeof appStore;
+export type JotaiStore = typeof jotaiStore;

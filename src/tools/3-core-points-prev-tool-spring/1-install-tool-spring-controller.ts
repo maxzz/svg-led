@@ -1,11 +1,11 @@
-import { type AppStore } from "@/store/0-app-store";
+import { type JotaiStore } from "@/store/0-app-store";
 import { isEditableTarget } from "@/commands";
 
 import { activeToolIdAtom, toolGestureActiveAtom } from "@/store/4-editor";
 import { pressSpringKeyAtom, releaseSpringKeyAtom, springGestureEndedAtom, springToolChangedAtom } from "./a-tool-spring-atoms";
 
 /** Wires the Ctrl spring to the keyboard and to tool and drag changes; runs outside React */
-export function installToolSpringController(store: AppStore): () => void {
+export function installToolSpringController(store: JotaiStore): () => void {
     const controller = new AbortController();
 
     const { signal } = controller;

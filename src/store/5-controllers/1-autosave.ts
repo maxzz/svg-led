@@ -2,7 +2,7 @@ import { subscribe } from "valtio";
 
 import { STORAGE_KEYS } from "../2-persist";
 import { SAMPLE_SVG, docToText, equivalentDocText, historyState, loadSvgText } from "../3-document";
-import { appStore } from "../0-app-store";
+import { jotaiStore } from "../0-app-store";
 import { codeTextAtom } from "../4-editor";
 
 /** Loads the last document (or the sample) and saves the source after every history change */
@@ -15,7 +15,7 @@ export function installAutosaveController(): () => void {
     }
     if (saved && loadSvgText(saved, { resetUndo: true }).ok) {
         // the editor starts from the saved text, so a formatted file keeps its layout
-        appStore.set(codeTextAtom, saved);
+        jotaiStore.set(codeTextAtom, saved);
     } else {
         loadSvgText(SAMPLE_SVG, { resetUndo: true });
     }
@@ -47,7 +47,7 @@ const SAVE_DELAY_MS = 600;
 function save() {
     try {
         const canonical = docToText();
-        const code = appStore.get(codeTextAtom);
+        const code = jotaiStore.get(codeTextAtom);
         localStorage.setItem(STORAGE_KEYS.doc, code && equivalentDocText(code, canonical) ? code : canonical);
     } catch (e) {
         console.error('Failed to autosave the document', e);

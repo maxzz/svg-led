@@ -6,7 +6,7 @@ import type * as Monaco from "monaco-editor";
 import { appSettings, MONACO_DEFAULT_FONT_FAMILY } from "@/store/1-ui-settings";
 
 import { docToText, equivalentDocText } from "@/store/3-document";
-import { appStore } from "@/store/0-app-store";
+import { jotaiStore } from "@/store/0-app-store";
 import { codeTextAtom } from "@/store/4-editor";
 import { formatSvgText } from "@/svg-core";
 import { isThemeDark } from "@/utils/theme-utils";
@@ -43,7 +43,7 @@ export default function MonacoHost() {
 /** The last editor text when it still describes the document (keeps a formatted file formatted), otherwise the canonical text */
 function startText(): string {
     const doc = docToText();
-    const last = appStore.get(codeTextAtom);
+    const last = jotaiStore.get(codeTextAtom);
     return last && equivalentDocText(last, doc) ? last : doc;
 }
 

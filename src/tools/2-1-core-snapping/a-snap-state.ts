@@ -1,6 +1,6 @@
 import { atom } from "jotai";
 import { appSettings } from "@/store/1-ui-settings";
-import { appStore } from "@/store/0-app-store";
+import { jotaiStore } from "@/store/0-app-store";
 
 import { viewportAtom } from "@/store/4-editor";
 import { type SnapGuide } from "./1-snap-engine";
@@ -12,7 +12,7 @@ export const snapGuidesAtom = atom<SnapGuide[]>([]);
 const SNAP_DISTANCE_PX = 6;
 
 export function snapThreshold(): number {
-    return SNAP_DISTANCE_PX / appStore.get(viewportAtom).zoom;
+    return SNAP_DISTANCE_PX / jotaiStore.get(viewportAtom).zoom;
 }
 
 /** Snapping is on while the Preferences toggle is on, or while the snap key (Ctrl) is held during a drag */
@@ -21,11 +21,11 @@ export function snapActive(snapKeyHeld: boolean): boolean {
 }
 
 export function setSnapGuides(guides: SnapGuide[]): void {
-    appStore.set(snapGuidesAtom, guides);
+    jotaiStore.set(snapGuidesAtom, guides);
 }
 
 export function clearSnapGuides(): void {
-    if (appStore.get(snapGuidesAtom).length) {
-        appStore.set(snapGuidesAtom, []);
+    if (jotaiStore.get(snapGuidesAtom).length) {
+        jotaiStore.set(snapGuidesAtom, []);
     }
 }

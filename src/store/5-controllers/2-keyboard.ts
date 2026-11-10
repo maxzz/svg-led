@@ -1,11 +1,11 @@
-import { type AppStore } from "../0-app-store";
+import { type JotaiStore } from "../0-app-store";
 import { ToolId, activeToolIdAtom, heldKeysOf, NO_HELD_KEYS, selectionAtom, setActiveToolAtom, setHeldKeysAtom, setSelectionAtom, spaceHeldAtom } from "../4-editor";
 import { exitIsolationLevelAtom } from "../6-layers";
 import { getTool, toolByShortcut } from "@/tools";
 import { COMMANDS, isEditableTarget, matchShortcut, nudgeSelection } from "@/commands";
 
 /** Global shortcuts: the active tool gets the key first, then commands, then tool letters and nudging */
-export function installKeyboardController(store: AppStore): () => void {
+export function installKeyboardController(store: JotaiStore): () => void {
     const ctx = { get: store.get, set: store.set };
 
     function onKeyDown(e: KeyboardEvent) {

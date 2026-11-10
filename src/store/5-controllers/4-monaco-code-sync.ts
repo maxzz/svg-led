@@ -1,6 +1,6 @@
 import { snapshot, subscribe } from "valtio";
 import { appSettings } from "../1-ui-settings";
-import { type AppStore, appStore } from "../0-app-store";
+import { type JotaiStore, jotaiStore } from "../0-app-store";
 
 import { type SvgDoc, buildSourceMap, defsIdsForClassesOf, nodeAtOffset, parseDefsItemId } from "@/svg-core";
 import { docState, docToText, equivalentDocText, historyState, loadSvgText } from "../3-document";
@@ -13,7 +13,7 @@ import { type MonacoHandle, codeDirtyAtom, codeErrorAtom, codeTextAtom, defsSele
  * canvas commits are written into the editor, editor changes are parsed (debounced) into the document,
  * and the selection is mirrored as highlighted lines. Attaches whenever the editor mounts.
  */
-export function installCodeSyncController(store: AppStore): () => void {
+export function installCodeSyncController(store: JotaiStore): () => void {
     let detach: (() => void) | undefined;
 
     const unsubHandle = store.sub(monacoHandleAtom, () => {
@@ -28,7 +28,7 @@ export function installCodeSyncController(store: AppStore): () => void {
     };
 }
 
-function attach(store: AppStore, { editor, monaco }: MonacoHandle): () => void {
+function attach(store: JotaiStore, { editor, monaco }: MonacoHandle): () => void {
     let writing = false;         // the editor change comes from writeFromDoc, not from typing
     let codeEdited = false;      // the text was typed while sync was off
     let parseTimer: ReturnType<typeof setTimeout> | undefined;
@@ -267,7 +267,7 @@ export function reloadCodeFromCanvas(): void {
  * a parse error keeps the code and leaves sync off.
  */
 export function setCodeSync(on: boolean): void {
-    if (on && appStore.get(codeDirtyAtom) && codeSyncCommands && !codeSyncCommands.resume()) {
+    if (on && jotaiStore.get(codeDirtyAtom) && codeSyncCommands && !codeSyncCommands.resume()) {
         return;
     }
     appSettings.codePanel.sync = on;
