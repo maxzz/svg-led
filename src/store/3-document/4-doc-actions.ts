@@ -44,6 +44,23 @@ export function docToText(doc: SvgDoc = snapshot(docState).doc as SvgDoc): strin
     return serializeSvg(doc, { precision: docPrecision() });
 }
 
+/**
+ * True when two SVG texts describe the same document, e.g. the canonical output and the same markup formatted by hand.
+ * Both sides go through parse and serialize, so only layout (whitespace, attribute spacing) can differ.
+ */
+export function equivalentDocText(a: string, b: string): boolean {
+    if (a === b) {
+        return true;
+    }
+    const pa = parseSvg(a);
+    const pb = parseSvg(b);
+    if (!pa.ok || !pb.ok) {
+        return false;
+    }
+    const precision = docPrecision();
+    return serializeSvg(pa.doc, { precision }) === serializeSvg(pb.doc, { precision });
+}
+
 export function nodesToText(ids: readonly string[]): string {
     const doc = snapshot(docState).doc as SvgDoc;
     const nodes = topmostIds(doc, ids).map((id) => findNode(doc, id)!.node);

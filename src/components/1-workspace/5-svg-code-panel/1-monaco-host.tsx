@@ -1,10 +1,13 @@
+import { useState } from "react";
 import { useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
 import { toast } from "sonner";
 import type * as Monaco from "monaco-editor";
 import { appSettings, MONACO_DEFAULT_FONT_FAMILY } from "@/store/1-ui-settings";
 
-import { docToText } from "@/store/3-document";
+import { docToText, equivalentDocText } from "@/store/3-document";
+import { appStore } from "@/store/0-app-store";
+import { codeTextAtom } from "@/store/4-editor";
 import { formatSvgText } from "@/svg-core";
 import { isThemeDark } from "@/utils/theme-utils";
 
@@ -17,11 +20,13 @@ import { addSelectInLayersAction } from "./3-monaco-select-in-layers";
 export default function MonacoHost() {
     const { theme, monaco } = useSnapshot(appSettings);
     const onMount = useSetAtom(monacoMountedAtom);
+    // Read once: the editor only uses the initial value on mount
+    const [initialText] = useState(startText);
 
     return (
         <Editor
             defaultLanguage="xml"
-            defaultValue={docToText()}
+            defaultValue={initialText}
             theme={isThemeDark(theme) ? 'vs-dark' : 'vs'}
             options={{
                 ...EDITOR_OPTIONS,
@@ -33,6 +38,13 @@ export default function MonacoHost() {
             loading={<div className="p-3 text-muted-foreground">Loading editor...</div>}
         />
     );
+}
+
+/** The last editor text when it still describes the document (keeps a formatted file formatted), otherwise the canonical text */
+function startText(): string {
+    const doc = docToText();
+    const last = appStore.get(codeTextAtom);
+    return last && equivalentDocText(last, doc) ? last : doc;
 }
 
 const EDITOR_OPTIONS = {

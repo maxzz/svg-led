@@ -3,7 +3,7 @@ import { appSettings } from "../1-ui-settings";
 import { type AppStore, appStore } from "../0-app-store";
 
 import { type SvgDoc, buildSourceMap, defsIdsForClassesOf, nodeAtOffset, parseDefsItemId } from "@/svg-core";
-import { docState, docToText, historyState, loadSvgText } from "../3-document";
+import { docState, docToText, equivalentDocText, historyState, loadSvgText } from "../3-document";
 
 import type * as Monaco from "monaco-editor";
 import { type MonacoHandle, codeDirtyAtom, codeErrorAtom, codeTextAtom, defsSelectionAtom, monacoHandleAtom, pruneSelectionAtom, selectionAtom, setDefsSelectionAtom, setSelectionAtom, sourceMapAtom } from "../4-editor";
@@ -43,7 +43,8 @@ function attach(store: AppStore, { editor, monaco }: MonacoHandle): () => void {
         }
         const text = docToText();
         const old = m.getValue();
-        if (old !== text) {
+        // Keep the editor's own layout (e.g. a formatted file) when it describes the same document
+        if (old !== text && !equivalentDocText(old, text)) {
             const edits = changedEdits(monaco, m, old, text);
             writing = true;
             editor.pushUndoStop();
@@ -51,12 +52,13 @@ function attach(store: AppStore, { editor, monaco }: MonacoHandle): () => void {
             editor.pushUndoStop();
             writing = false;
         }
+        const current = m.getValue();
         codeEdited = false;
-        store.set(codeTextAtom, text);
+        store.set(codeTextAtom, current);
         store.set(codeDirtyAtom, false);
         store.set(codeErrorAtom, null);
         monaco.editor.setModelMarkers(m, MARKER_OWNER, []);
-        updateSourceMap(text);
+        updateSourceMap(current);
     }
 
     function updateSourceMap(text: string) {
