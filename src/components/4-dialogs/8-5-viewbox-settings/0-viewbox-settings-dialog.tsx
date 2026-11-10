@@ -83,7 +83,13 @@ function Body() {
 
             <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                 <PrefCombo label="Grid size" value={prefs.gridSize} presets={GRID_SIZES} min={1} max={256} onValueChange={(n) => { appSettings.prefs.gridSize = n; }} />
-                <PrefSelect label="Precision" value={prefs.precision} items={PRECISIONS} suffix=" dec." onValueChange={(n) => { appSettings.prefs.precision = n; }} />
+                <PrefSelect
+                    label="Precision"
+                    hint="Decimal digits kept for coordinates when the SVG source is written. Fewer digits make a smaller file but less exact shapes. Example: 12.34567 becomes 12.346 at 3 decimals and 12 at 0 (integers)."
+                    value={prefs.precision}
+                    items={PRECISIONS}
+                    onValueChange={(n) => { appSettings.prefs.precision = n; }}
+                />
             </div>
 
             <div className="pt-3 border-t">
@@ -130,21 +136,31 @@ function PrefSwitch({ label, hint, checked, onCheckedChange }: { label: string; 
     );
 }
 
-function PrefSelect({ label, value, items, suffix = "", onValueChange }: { label: string; value: number; items: number[]; suffix?: string; onValueChange: (n: number) => void; }) {
+/** Drop-down row paired with a tooltip that explains the setting */
+function PrefSelect({ label, hint, value, items, onValueChange }: { label: string; hint: string; value: number; items: number[]; onValueChange: (n: number) => void; }) {
     const id = useId();
 
     return (
-        <div className="flex items-center justify-between gap-2">
-            <Label className="text-xs" htmlFor={id}>{label}</Label>
-            <Select value={String(value)} onValueChange={(v) => onValueChange(Number(v))}>
-                <SelectTrigger id={id} className="w-24 tabular-nums" size="sm">
-                    <SelectValue />
-                </SelectTrigger>
+        <TooltipProvider>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <div className="flex items-center justify-between gap-2">
+                        <Label className="text-xs" htmlFor={id}>{label}</Label>
+                        <Select value={String(value)} onValueChange={(v) => onValueChange(Number(v))}>
+                            <SelectTrigger id={id} className="w-16 tabular-nums" size="sm">
+                                <SelectValue />
+                            </SelectTrigger>
 
-                <SelectContent position="popper" align="end">
-                    {items.map((n) => <SelectItem className="tabular-nums" value={String(n)} key={n}>{n}{suffix}</SelectItem>)}
-                </SelectContent>
-            </Select>
-        </div>
+                            <SelectContent position="popper" align="end">
+                                {items.map((n) => <SelectItem className="tabular-nums" value={String(n)} key={n}>{n}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </TooltipTrigger>
+                <TooltipContent side="left" sideOffset={6} className="max-w-64">
+                    {hint}
+                </TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
     );
 }
