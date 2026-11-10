@@ -2,6 +2,7 @@ import { snapshot } from "valtio";
 import { type SvgDoc, findNode, serializeSvg, topmostIds } from "@/svg-core";
 import { appSettings } from "../1-ui-settings";
 import { docPrecision, docState } from "./1-doc-store";
+import { markSaved } from "./2-doc-history";
 import { docToText, loadSvgText } from "./4-doc-actions";
 import { nodesDocBBox } from "./3-doc-geometry";
 
@@ -56,9 +57,11 @@ export async function saveSvgFile(): Promise<FileResult> {
             await writable.close();
             currentHandle = handle;
             docState.fileName = handle.name;
+            markSaved('file');
             return { ok: true };
         }
         downloadBlob(new Blob([text], { type: 'image/svg+xml' }), docState.fileName);
+        markSaved('file');
         return { ok: true };
     } catch (e) {
         return isAbort(e) ? { ok: false, cancelled: true } : { ok: false, error: String(e) };

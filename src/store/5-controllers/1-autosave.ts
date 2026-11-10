@@ -1,9 +1,8 @@
-import { subscribe } from "valtio";
 import { STORAGE_KEYS } from "../2-persist";
-import { SAMPLE_SVG, docToText, historyState, loadSvgText } from "../3-document";
+import { SAMPLE_SVG, docToText, loadSvgText, markSaved } from "../3-document";
 
-/** Loads the last document (or the sample) and saves the source after every history change */
-export function installAutosave(): () => void {
+/** Loads the last saved document from local storage (or the sample) at startup. Saving is manual, see `saveDocToStorage`. */
+export function installAutosave(): void {
     let saved: string | null = null;
     try {
         saved = localStorage.getItem(STORAGE_KEYS.doc);
@@ -13,31 +12,16 @@ export function installAutosave(): () => void {
     if (!saved || !loadSvgText(saved, { resetUndo: true }).ok) {
         loadSvgText(SAMPLE_SVG, { resetUndo: true });
     }
-
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const unsubscribe = subscribe(
-        historyState,
-        () => {
-            clearTimeout(timer);
-            timer = setTimeout(save, SAVE_DELAY_MS);
-        }
-    );
-
-    window.addEventListener('beforeunload', save);
-
-    return () => {
-        unsubscribe();
-        clearTimeout(timer);
-        window.removeEventListener('beforeunload', save);
-    };
 }
 
-const SAVE_DELAY_MS = 600;
-
-function save() {
+/** Writes the current document to local storage; clears the unsaved-changes indicator on success */
+export function saveDocToStorage(): boolean {
     try {
         localStorage.setItem(STORAGE_KEYS.doc, docToText());
+        markSaved('storage');
+        return true;
     } catch (e) {
-        console.error('Failed to autosave the document', e);
+        console.error('Failed to save the document to local storage', e);
+        return false;
     }
 }

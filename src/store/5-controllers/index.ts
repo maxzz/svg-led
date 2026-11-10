@@ -5,6 +5,7 @@ import { installClipboard } from "./3-clipboard";
 import { installCodeSync } from "./4-code-sync";
 import { installToolSpring } from "@/tools/3-core-points-prev-tool-spring";
 export { applyCodeToCanvas, reloadCodeFromCanvas, setCodeSync } from "./4-code-sync";
+export { saveDocToStorage } from "./1-autosave";
 
 /** Wires everything that runs outside React; called once from main.tsx */
 export function installControllers(): void {

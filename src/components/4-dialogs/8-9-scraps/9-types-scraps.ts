@@ -145,7 +145,7 @@ export const doLoadScrapAtom = atom(
             return false;
         }
         docState.doc = { viewBox: scrap.viewBox, rootAttrs: scrap.rootAttrs, children: parsed.doc.children };
-        commitHistory({ origin: 'load' });
+        commitHistory({ origin: 'canvas' });
         set(setSelectionAtom, []);
         return true; // the caller zooms to fit after closing the dialog
     }

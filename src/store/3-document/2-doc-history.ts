@@ -24,6 +24,20 @@ export const historyState = proxy({
     origin: 'load' as ChangeOrigin,
 });
 
+/**
+ * Changes made since the document was last saved to each place.
+ * `file` drives Save / Save As; `storage` drives the unsaved-changes indicator (saved to local storage on click).
+ * A load (open, startup, sample) starts clean; every other change marks both as modified.
+ */
+export const modifiedState = proxy({
+    file: false,
+    storage: false,
+});
+
+export function markSaved(target: keyof typeof modifiedState): void {
+    modifiedState[target] = false;
+}
+
 export function resetHistory(origin: ChangeOrigin = 'load'): void {
     entries.length = 0;
     entries.push({ doc: snapshot(docState).doc as SvgDoc, time: Date.now() });
@@ -85,4 +99,8 @@ function publish(index: number, origin: ChangeOrigin): void {
     historyState.length = entries.length;
     historyState.origin = origin;
     historyState.version++;
+
+    const isLoad = origin === 'load';
+    modifiedState.file = !isLoad;
+    modifiedState.storage = !isLoad;
 }

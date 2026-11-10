@@ -5,7 +5,7 @@ import {
     type FileResult, commitHistory, convertToPath, copyPngToClipboard, copySvgToClipboard, createEmptyDoc, deleteNodes, docState, docToText, duplicateNodes,
     exportPng, exportSvgDownload, flipNodes, getNodeProxy, groupNodes, historyState, isPointEditable, moveNodes,
     nodesToText, openSvgFile, readNodeStyle, reorderNodes, saveSvgFile, saveSvgFileAs, ungroupNodes, writeNodesStyle,
-    canExpandPaths, expandPaths,
+    canExpandPaths, expandPaths, modifiedState,
     canMakeCompoundPath, makeCompoundPath, canReleaseCompoundPath, releaseCompoundPaths,
 } from "@/store/3-document";
 import {
@@ -31,6 +31,7 @@ import { renameSelectionAtom } from "@/components/1-workspace/6-layers-panel/3-r
 import { type Command } from "./9-command-types";
 
 const hasSelection = (get: Parameters<NonNullable<Command['enabled']>>[0]) => get(selectionAtom).length > 0;
+const hasFileChanges = () => modifiedState.file;
 
 function reportFile(rv: FileResult, okMessage?: string) {
     if (rv.ok) {
@@ -52,8 +53,8 @@ const FILE: Command[] = [
             reportFile(rv);
         },
     },
-    { id: 'file.save', label: 'Save', group: 'file', shortcut: 'Ctrl+S', run: async () => reportFile(await saveSvgFile(), 'Saved') },
-    { id: 'file.saveAs', label: 'Save as...', group: 'file', shortcut: 'Ctrl+Shift+S', run: async () => reportFile(await saveSvgFileAs(), 'Saved') },
+    { id: 'file.save', label: 'Save', group: 'file', shortcut: 'Ctrl+S', enabled: hasFileChanges, run: async () => reportFile(await saveSvgFile(), 'Saved') },
+    { id: 'file.saveAs', label: 'Save as...', group: 'file', shortcut: 'Ctrl+Shift+S', enabled: hasFileChanges, run: async () => reportFile(await saveSvgFileAs(), 'Saved') },
     { id: 'file.exportSvg', label: 'Export SVG', group: 'file', run: () => exportSvgDownload() },
     { id: 'file.exportPng1', label: 'Export PNG (1x)', group: 'file', shortcut: 'Ctrl+Shift+E', run: async () => reportFile(await exportPng(1)) },
     { id: 'file.exportPng2', label: 'Export PNG (2x)', group: 'file', run: async () => reportFile(await exportPng(2)) },
@@ -89,7 +90,7 @@ const FILE: Command[] = [
             if (ok) {
                 docState.doc = createEmptyDoc();
                 docState.fileName = 'untitled.svg';
-                commitHistory({ origin: 'load' });
+                commitHistory({ origin: 'canvas' });
                 set(setSelectionAtom, []);
                 set(zoomToFitAtom);
             }

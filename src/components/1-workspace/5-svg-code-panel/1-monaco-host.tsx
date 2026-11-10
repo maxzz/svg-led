@@ -12,6 +12,7 @@ import { monacoMountedAtom } from "./9-atoms-monaco-host";
 import Editor from "@monaco-editor/react";
 import "./2-monaco-setup";
 import { addSelectInLayersAction } from "./3-monaco-select-in-layers";
+import { applyCodeToCanvas } from "@/store/5-controllers/4-code-sync";
 
 /** Lazy-loaded: pulls the whole Monaco bundle only when the panel opens */
 export default function MonacoHost() {
@@ -89,6 +90,11 @@ function addFormatSvgAction(editor: Monaco.editor.IStandaloneCodeEditor, monaco:
             ed.executeEdits('svg-led.formatSvg', [{ range: m.getFullModelRange(), text: formatted }]);
             ed.pushUndoStop();
             ed.setPosition(m.getPositionAt(newOffset));
+
+            // With sync on the edit is parsed back by the code-sync controller. With sync off nothing reaches the document yet, so apply it here.
+            if (!appSettings.codePanel.sync) {
+                applyCodeToCanvas();
+            }
         },
     });
 }
