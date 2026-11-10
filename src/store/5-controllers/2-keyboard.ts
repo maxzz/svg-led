@@ -5,7 +5,7 @@ import { getTool, toolByShortcut } from "@/tools";
 import { COMMANDS, isEditableTarget, matchShortcut, nudgeSelection } from "@/commands";
 
 /** Global shortcuts: the active tool gets the key first, then commands, then tool letters and nudging */
-export function installKeyboard(store: AppStore): () => void {
+export function installKeyboardController(store: AppStore): () => void {
     const ctx = { get: store.get, set: store.set };
 
     function onKeyDown(e: KeyboardEvent) {
