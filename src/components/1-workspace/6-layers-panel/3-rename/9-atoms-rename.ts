@@ -5,7 +5,7 @@ import { findNode } from "@/svg-core";
 import { docState } from "@/store/3-document";
 import { selectionAtom } from "@/store/4-editor";
 import { renameLayer } from "@/store/7-layers-edit";
-import { locateSelectionAtom } from "../a-layer-atoms/9-atoms-layers-panel";
+import { locateSelectionAtom } from "../a-layer-atoms";
 
 /** Row whose name is being edited */
 export const renamingIdAtom = atom<string | null>(null);

@@ -2,7 +2,7 @@ import type * as Monaco from "monaco-editor";
 import { appStore } from "@/store/0-app-store";
 import { sourceMapAtom } from "@/store/4-editor";
 import { nodeAtOffset } from "@/svg-core";
-import { selectInLayersAtom } from "../6-layers-panel/a-layer-atoms/9-atoms-layers-panel";
+import { selectInLayersAtom } from "../6-layers-panel/a-layer-atoms";
 
 /** Context key: true while the caret is on an element, so the command is only offered there */
 const ELEMENT_AT_CARET = 'svgLed.elementAtCaret';

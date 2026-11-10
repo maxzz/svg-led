@@ -3,7 +3,7 @@ import { useSetAtom } from "jotai";
 import { classNames } from "@/utils";
 import { Braces, ChevronRight, Eye, EyeOff } from "lucide-react";
 
-import { LAYER_ICON_PX, circlePointerDownAtom, circlePointerMoveAtom, circlePointerUpAtom } from "../a-layer-atoms/9-atoms-layers-panel";
+import { LAYER_ICON_PX, circlePointerDownAtom, circlePointerMoveAtom, circlePointerUpAtom } from "../a-layer-atoms";
 
 //---------------------------------------------------------------------------
 

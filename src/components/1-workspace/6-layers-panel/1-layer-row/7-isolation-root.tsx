@@ -9,7 +9,7 @@ import { selectionAtom, setSelectionAtom } from "@/store/4-editor";
 import { exitIsolationToAtom, isHidden, isHiddenOrLocked, isLocked, isolationManyOpenAtom, layerName, setNodesHidden, setNodesLocked } from "@/store/6-layers";
 import { LayerThumbnail } from "./8-layer-thumbnail";
 import { LockButton, VisibilityButton } from "../4-toggle-sweep";
-import { LAYER_ICON_PX, containsSelectedFamily, expandableDescendantIds, isIsolationCollapsedFamily, isSelectedFamily, rowClickAtom, setSubtreeOpenAtom, toggleIsolationCollapsedAtom, toggleIsolationManyAtom } from "../a-layer-atoms/9-atoms-layers-panel";
+import { LAYER_ICON_PX, containsSelectedFamily, expandableDescendantIds, isIsolationCollapsedFamily, isSelectedFamily, rowClickAtom, setSubtreeOpenAtom, toggleIsolationCollapsedAtom, toggleIsolationManyAtom } from "../a-layer-atoms";
 import { Expander_Icon, SelectionCircle_Icon, stop } from "./8-row-common-parts";
 import { GroupChildren } from "./1-group-children";
 import { LayerRow } from "./0-all-layer-row";
