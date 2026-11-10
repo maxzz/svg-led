@@ -151,7 +151,7 @@ function PrefSelect({ label, hint, value, items, onValueChange }: { label: strin
                                 <SelectValue />
                             </SelectTrigger>
 
-                            <SelectContent position="popper" align="end">
+                            <SelectContent position="popper" align="end" className="min-w-0 w-fit">
                                 {items.map((n) => <SelectItem className="tabular-nums" value={String(n)} key={n}>{n}</SelectItem>)}
                             </SelectContent>
                         </Select>
