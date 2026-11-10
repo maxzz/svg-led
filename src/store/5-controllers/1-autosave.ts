@@ -1,4 +1,5 @@
 import { subscribe } from "valtio";
+
 import { STORAGE_KEYS } from "../2-persist";
 import { SAMPLE_SVG, docToText, equivalentDocText, historyState, loadSvgText } from "../3-document";
 import { appStore } from "../0-app-store";
