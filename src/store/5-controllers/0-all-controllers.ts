@@ -5,7 +5,7 @@ import { installClipboardController } from "./3-clipboard";
 import { installCodeSyncController } from "./4-monaco-code-sync";
 import { installToolSpringController } from "@/tools/3-core-points-prev-tool-spring";
 
-export { applyCodeToCanvas, reloadCodeFromCanvas, setCodeSync } from "./4-monaco-code-sync";
+export { applyCodeToCanvas, reloadCodeFromCanvas, setCodeSync, sourceTextForSave } from "./4-monaco-code-sync";
 
 /** Wires everything that runs outside React; called once from main.tsx */
 export function installControllers(): void {

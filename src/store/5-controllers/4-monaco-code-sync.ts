@@ -164,6 +164,7 @@ function attach(store: JotaiStore, { editor, monaco }: MonacoHandle): () => void
 
     codeSyncCommands = {
         apply: applyFromEditor,
+        text: () => model()?.getValue() ?? '',
         reload: writeFromDoc,
         resume: () => {
             if (codeEdited) {
@@ -250,11 +251,21 @@ function errorMarker(monaco: typeof Monaco, m: Monaco.editor.ITextModel, error: 
 
 //---------------------------------------------------------------------------
 
-let codeSyncCommands: { apply: () => boolean; reload: () => void; resume: () => boolean; } | null = null;
+let codeSyncCommands: { apply: () => boolean; text: () => string; reload: () => void; resume: () => boolean; } | null = null;
 
 /** Parses the editor text into the document (used while sync is off and when sync is turned on) */
 export function applyCodeToCanvas(): boolean {
     return codeSyncCommands?.apply() ?? false;
+}
+
+/**
+ * The SVG text to save or export: the editor's own text (so a formatted file stays formatted) when it describes the
+ * current document, otherwise the canonical serialization of the document.
+ */
+export function sourceTextForSave(): string {
+    const text = codeSyncCommands ? codeSyncCommands.text() : jotaiStore.get(codeTextAtom);
+    const canonical = docToText();
+    return text && equivalentDocText(text, canonical) ? text : canonical;
 }
 
 /** Replaces the editor text with the current document */

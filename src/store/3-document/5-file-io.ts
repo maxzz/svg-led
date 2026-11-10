@@ -2,7 +2,7 @@ import { snapshot } from "valtio";
 import { type SvgDoc, findNode, serializeSvg, topmostIds } from "@/svg-core";
 import { appSettings } from "../1-ui-settings";
 import { docPrecision, docState } from "./1-doc-store";
-import { docToText, loadSvgText } from "./4-doc-actions";
+import { loadSvgText } from "./4-doc-actions";
 import { nodesDocBBox } from "./3-doc-geometry";
 
 type FilePickerWindow = Window & {
@@ -45,8 +45,8 @@ export async function loadSvgFile(file: File): Promise<FileResult> {
 
 //---------------------------------------------------------------------------
 
-export async function saveSvgFile(): Promise<FileResult> {
-    const text = docToText();
+/** Writes `text` (the source as the editor shows it) to the current file, or asks for a file */
+export async function saveSvgFile(text: string): Promise<FileResult> {
     const w = window as FilePickerWindow;
     try {
         if (w.showSaveFilePicker) {
@@ -65,15 +65,15 @@ export async function saveSvgFile(): Promise<FileResult> {
     }
 }
 
-export function saveSvgFileAs(): Promise<FileResult> {
+export function saveSvgFileAs(text: string): Promise<FileResult> {
     currentHandle = null;
-    return saveSvgFile();
+    return saveSvgFile(text);
 }
 
 //---------------------------------------------------------------------------
 
-export function exportSvgDownload(): void {
-    downloadBlob(new Blob([docToText()], { type: 'image/svg+xml' }), docState.fileName);
+export function exportSvgDownload(text: string): void {
+    downloadBlob(new Blob([text], { type: 'image/svg+xml' }), docState.fileName);
 }
 
 /** Rasterizes the document at its viewBox size (or content bbox) times `scale` */

@@ -1,9 +1,10 @@
 import { subscribe } from "valtio";
 
 import { STORAGE_KEYS } from "../2-persist";
-import { SAMPLE_SVG, docToText, equivalentDocText, historyState, loadSvgText } from "../3-document";
+import { SAMPLE_SVG, historyState, loadSvgText } from "../3-document";
 import { jotaiStore } from "../8-jotai-store";
 import { codeTextAtom } from "../4-editor";
+import { sourceTextForSave } from "./4-monaco-code-sync";
 
 /** Loads the last document (or the sample) and saves the source after every history change */
 export function installAutosaveController(): () => void {
@@ -40,15 +41,10 @@ export function installAutosaveController(): () => void {
 
 const SAVE_DELAY_MS = 600;
 
-/**
- * Saves the editor's text when it describes the current document (so a formatted file stays formatted),
- * otherwise the canonical serialization. The editor text may be stale, but the equivalence check makes that harmless.
- */
+/** Saves the source as the editor shows it, so a formatted file stays formatted */
 function save() {
     try {
-        const canonical = docToText();
-        const code = jotaiStore.get(codeTextAtom);
-        localStorage.setItem(STORAGE_KEYS.doc, code && equivalentDocText(code, canonical) ? code : canonical);
+        localStorage.setItem(STORAGE_KEYS.doc, sourceTextForSave());
     } catch (e) {
         console.error('Failed to autosave the document', e);
     }

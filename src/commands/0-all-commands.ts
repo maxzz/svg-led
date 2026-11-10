@@ -17,6 +17,7 @@ import {
     isolationRootChildren, lockSelectionAtom, selectionCanIsolate, showAllAtom, unlockAllAtom,
 } from "@/store/6-layers";
 import { TOOLS } from "@/tools";
+import { sourceTextForSave } from "@/store/5-controllers";
 import { doAsyncExecuteConfirmDialogAtom } from "@/components/4-dialogs/8-1-confirmation/9-types-confirmation";
 import { fitViewBoxDialogAtom } from "@/components/4-dialogs/8-4-fit-viewbox/9-types-fit-viewbox";
 import { isOpenViewBoxSettingsDialogAtom } from "@/components/4-dialogs/8-5-viewbox-settings/9-types-viewbox-settings";
@@ -52,9 +53,9 @@ const FILE: Command[] = [
             reportFile(rv);
         },
     },
-    { id: 'file.save', label: 'Save', group: 'file', shortcut: 'Ctrl+S', run: async () => reportFile(await saveSvgFile(), 'Saved') },
-    { id: 'file.saveAs', label: 'Save as...', group: 'file', shortcut: 'Ctrl+Shift+S', run: async () => reportFile(await saveSvgFileAs(), 'Saved') },
-    { id: 'file.exportSvg', label: 'Export SVG', group: 'file', run: () => exportSvgDownload() },
+    { id: 'file.save', label: 'Save', group: 'file', shortcut: 'Ctrl+S', run: async () => reportFile(await saveSvgFile(sourceTextForSave()), 'Saved') },
+    { id: 'file.saveAs', label: 'Save as...', group: 'file', shortcut: 'Ctrl+Shift+S', run: async () => reportFile(await saveSvgFileAs(sourceTextForSave()), 'Saved') },
+    { id: 'file.exportSvg', label: 'Export SVG', group: 'file', run: () => exportSvgDownload(sourceTextForSave()) },
     { id: 'file.exportPng1', label: 'Export PNG (1x)', group: 'file', shortcut: 'Ctrl+Shift+E', run: async () => reportFile(await exportPng(1)) },
     { id: 'file.exportPng2', label: 'Export PNG (2x)', group: 'file', run: async () => reportFile(await exportPng(2)) },
     { id: 'file.exportPng4', label: 'Export PNG (4x)', group: 'file', run: async () => reportFile(await exportPng(4)) },
