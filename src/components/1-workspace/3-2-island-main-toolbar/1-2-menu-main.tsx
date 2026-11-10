@@ -1,5 +1,5 @@
 import { useSetAtom } from "jotai";
-import { Download, SlidersHorizontal, FolderOpen, GitFork, CircleQuestionMark, ImageDown, Menu, Save, Settings2, ClipboardPaste, Trash } from "lucide-react";
+import { Download, FolderOpen, GitFork, CircleQuestionMark, ImageDown, Menu, Save, Settings2, ClipboardPaste, Trash } from "lucide-react";
 import {
     DropdownMenu, DropdownMenuContent, DropdownMenuItem,
     DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger,
@@ -58,7 +58,6 @@ export function Island_MainMenu() {
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator />
-                <CommandMenuItem id="viewbox.settings" icon={<SlidersHorizontal className={icClasses} />} />
                 <CommandMenuItem id="help.options" icon={<Settings2 className={icClasses} />} label="More options..." />
             </DropdownMenuContent>
         </DropdownMenu>
