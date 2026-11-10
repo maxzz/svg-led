@@ -59,6 +59,8 @@ export function ActionItem({ icon, label, shortcut, variant, disabled, onSelect 
     );
 }
 
+//---------------------------------------------------------------------------
+
 /** Item bound to a command: label, shortcut and enabled state come from the command registry */
 export function CommandItem({ id, label, icon, variant }: { id: string; label?: string; icon?: ReactNode; variant?: 'default' | 'destructive'; }) {
     useAtomValue(selectionAtom); // re-evaluate enabled state when the selection changes while the menu is open
