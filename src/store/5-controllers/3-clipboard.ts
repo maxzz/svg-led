@@ -5,7 +5,7 @@ import { insertMarkupAtTop } from "../6-layers";
 import { isEditableTarget } from "@/commands";
 
 /** Copy, cut and paste of elements as SVG markup, so they can be pasted into other apps and back */
-export function installClipboard(store: AppStore): () => void {
+export function installClipboardController(store: AppStore): () => void {
 
     function onCopy(e: ClipboardEvent, cut: boolean) {
         const ids = store.get(selectionAtom);
