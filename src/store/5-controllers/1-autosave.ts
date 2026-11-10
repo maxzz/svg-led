@@ -6,7 +6,7 @@ import { appStore } from "../0-app-store";
 import { codeTextAtom } from "../4-editor";
 
 /** Loads the last document (or the sample) and saves the source after every history change */
-export function installAutosave(): () => void {
+export function installAutosaveController(): () => void {
     let saved: string | null = null;
     try {
         saved = localStorage.getItem(STORAGE_KEYS.doc);
