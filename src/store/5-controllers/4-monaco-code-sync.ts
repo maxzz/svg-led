@@ -13,7 +13,7 @@ import { type MonacoHandle, codeDirtyAtom, codeErrorAtom, codeTextAtom, defsSele
  * canvas commits are written into the editor, editor changes are parsed (debounced) into the document,
  * and the selection is mirrored as highlighted lines. Attaches whenever the editor mounts.
  */
-export function installCodeSync(store: AppStore): () => void {
+export function installCodeSyncController(store: AppStore): () => void {
     let detach: (() => void) | undefined;
 
     const unsubHandle = store.sub(monacoHandleAtom, () => {
