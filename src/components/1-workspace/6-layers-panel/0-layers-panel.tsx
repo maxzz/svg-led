@@ -3,7 +3,7 @@ import { useSnapshot } from "valtio";
 import { AnimatePresence, motion } from "motion/react";
 import { ScrollArea } from "radix-ui";
 import { Button } from "@/ui/shadcn/button";
-import { X } from "lucide-react";
+import { X as XIcon } from "lucide-react";
 import { appSettings } from "@/store/1-ui-settings";
 
 import { LayersTree } from "./1-layers-tree";
@@ -31,7 +31,7 @@ export function LayersPanel() {
                         <PanelHeader />
 
                         <TreeScroller />
-                        
+
                         <LayersBottomBar />
                     </div>
                     <ResizeHandle />
@@ -48,9 +48,11 @@ const SLIDE = { type: 'spring', stiffness: 420, damping: 40 } as const;
 function PanelHeader() {
     return (
         <div className="shrink-0 px-3 h-7 border-b flex items-center gap-2">
-            <span className="text-xs font-bold">Layers</span>
+            <span className="text-xs font-bold">
+                Layers
+            </span>
             <Button className="ml-auto" variant="ghost" size="icon-xs" onClick={() => { appSettings.layersPanel.open = false; }} title="Close — Ctrl+Shift+L">
-                <X />
+                <XIcon />
             </Button>
         </div>
     );
@@ -76,15 +78,13 @@ function TreeScroller() {
                 <LayersContextMenu>
                     <LayersTree />
                 </LayersContextMenu>
+
                 <LayersDropIndicator />
                 <LayersDragGhost />
             </ScrollArea.Viewport>
 
             {/* Overlay: absolutely positioned over the rows, so it never reflows the content. Widens only while hovered itself. */}
-            <ScrollArea.Scrollbar
-                orientation="vertical"
-                className="absolute top-0 right-0 bottom-0 w-1.5 hover:w-1.75 p-px flex touch-none select-none transition-[width] duration-150 ease-out"
-            >
+            <ScrollArea.Scrollbar className="absolute top-0 right-0 bottom-0 w-1.5 hover:w-1.75 p-px flex touch-none select-none transition-[width] duration-150 ease-out" orientation="vertical">
                 <ScrollArea.Thumb className="relative flex-1 bg-muted-foreground/40 hover:bg-muted-foreground/70 transition-colors" />
             </ScrollArea.Scrollbar>
 

@@ -36,6 +36,8 @@ export const toggleExpandedAtom = atom(
     }
 );
 
+//---------------------------------------------------------------------------
+
 /** True when this isolated object was collapsed in the current isolation */
 export const isIsolationCollapsedFamily = atomFamily(
     (id: string) => atom((get) => get(isolationCollapsedAtom).has(id))
@@ -49,6 +51,8 @@ export const toggleIsolationCollapsedAtom = atom(
         set(isolationCollapsedAtom, next);
     }
 );
+
+//---------------------------------------------------------------------------
 
 /** Ids of the `<defs>` items with children, at any depth, appended to `out` */
 export function defsExpandableIds(defsId: string, items: readonly DefsItem[], out: string[] = []): string[] {
@@ -77,6 +81,8 @@ export function expandableDescendantIds(node: SvgNode, out: string[] = []): stri
     }
     return out;
 }
+
+//---------------------------------------------------------------------------
 
 /**
  * Opens or closes a row and every expandable row under it (Ctrl+click on an expander).
@@ -292,6 +298,8 @@ export const rowClickAtom = atom(
         set(rangeAnchorAtom, id);
     }
 );
+
+//---------------------------------------------------------------------------
 
 /** Pointer is down on a selection circle; dragging across other circles toggles each of them once */
 let drag: { startId: string; base: string[]; toggled: Set<string>; moved: boolean; } | null = null;
@@ -515,3 +523,5 @@ export const layersResizeUpAtom = atom(
         set(isLayersPanelResizingAtom, false);
     }
 );
+
+//---------------------------------------------------------------------------
