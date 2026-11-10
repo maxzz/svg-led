@@ -10,6 +10,7 @@ import { Label } from "@/ui/shadcn/label";
 import { Switch } from "@/ui/shadcn/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
+import { PrefCombo } from "./4-pref-combo";
 import { CollapsibleSection } from "@/components/1-workspace/2-props-panel/2-props-panel-controls/2-section";
 import { isOpenViewBoxSettingsDialogAtom, isOpenViewBoxSettingsPopoverAtom } from "./9-types-viewbox-settings";
 import { Controls_ViewBoxRect } from "./1-viewbox-rect";
@@ -77,11 +78,11 @@ function Body() {
                 <PrefSwitch label="Show grid" hint="Draw the background grid on the canvas" checked={prefs.showGrid} onCheckedChange={(v) => { appSettings.prefs.showGrid = v; }} />
                 <PrefSwitch label="Snap to grid" hint="Snap points to the nearest grid line while editing" checked={prefs.snapToGrid} onCheckedChange={(v) => { appSettings.prefs.snapToGrid = v; }} />
                 <PrefSwitch label="Snap to objects" hint="Snap to other objects while dragging (hold Ctrl to snap when this is off)" checked={prefs.snapToObjects} onCheckedChange={(v) => { appSettings.prefs.snapToObjects = v; }} />
-                <PrefSwitch label="All control handles" hint="Show direction handles for all points, not only for the selected ones" checked={pointsOptions.showAllHandles} onCheckedChange={(v) => setPointsOptions({ showAllHandles: v })} />
+                <PrefSwitch label="All control handles" hint="Points tool only: show direction handles on every anchor of the selected paths, not just on the selected anchors and their neighbours. Use it to see curves that are otherwise hidden." checked={pointsOptions.showAllHandles} onCheckedChange={(v) => setPointsOptions({ showAllHandles: v })} />
             </div>
 
             <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-                <PrefSelect label="Grid size" value={prefs.gridSize} items={GRID_SIZES} onValueChange={(n) => { appSettings.prefs.gridSize = n; }} />
+                <PrefCombo label="Grid size" value={prefs.gridSize} presets={GRID_SIZES} min={1} max={256} onValueChange={(n) => { appSettings.prefs.gridSize = n; }} />
                 <PrefSelect label="Precision" value={prefs.precision} items={PRECISIONS} suffix=" dec." onValueChange={(n) => { appSettings.prefs.precision = n; }} />
             </div>
 
