@@ -1,7 +1,7 @@
 import { type SvgNode, localBBox, nodeOwnMatrix, transformRect } from "@/svg-core";
 import { domBBoxFallback } from "@/store/3-document";
 import { NodeView } from "../../1-canvas/2-doc-layer/1-node-view";
-import { LAYER_ICON_PX } from "../9-atoms-layers-panel";
+import { LAYER_ICON_PX } from "../a-layer-atoms/9-atoms-layers-panel";
 
 /**
  * Preview of one layer, fitted into a small square. The bbox is taken in the parent's coordinates (the node's own transform applied),

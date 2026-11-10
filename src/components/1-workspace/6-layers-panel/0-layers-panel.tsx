@@ -10,7 +10,7 @@ import { LayersTree } from "./1-layers-tree";
 import { LayersBottomBar } from "./2-layers-bottom-bar";
 import { LayersDragGhost, LayersDropIndicator, rowDragCancelAtom, rowDragMoveAtom, rowDragUpAtom } from "./2-reorder";
 import { LayersContextMenu } from "./5-context-menu";
-import { isLayersPanelResizingAtom, layersResizeDownAtom, layersResizeMoveAtom, layersResizeUpAtom } from "./9-atoms-layers-panel";
+import { isLayersPanelResizingAtom, layersResizeDownAtom, layersResizeMoveAtom, layersResizeUpAtom } from "./a-layer-atoms/9-atoms-layers-panel";
 
 /** Layers of the document as a tree, slides out from the right edge */
 export function LayersPanel() {

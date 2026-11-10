@@ -6,7 +6,7 @@ import { docState } from "@/store/3-document";
 import { defsSelectionAtom, selectionAtom } from "@/store/4-editor";
 import { getIsolationScope, layerName } from "@/store/6-layers";
 import { type DropPlace, type LayerDrop, canDropLayers, moveDefsClass, moveDefsElement, moveLayers } from "@/store/7-layers-edit";
-import { ROW_INDENT_PX, ROW_NAME_LEFT_PX, expandedIdsAtom } from "../9-atoms-layers-panel";
+import { ROW_INDENT_PX, ROW_NAME_LEFT_PX, expandedIdsAtom } from "../a-layer-atoms/9-atoms-layers-panel";
 
 /** Layers being dragged in the tree and the text of the ghost under the pointer; null when no drag is running */
 export type ReorderDrag = { ids: readonly string[]; label: string; };
