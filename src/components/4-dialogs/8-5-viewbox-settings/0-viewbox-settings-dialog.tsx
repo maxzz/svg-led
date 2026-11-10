@@ -1,4 +1,4 @@
-import { type ReactNode, useId } from "react";
+import { type FocusEvent, type ReactNode, useId } from "react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
 import { appSettings } from "@/store/1-ui-settings";
@@ -115,6 +115,16 @@ function Body() {
 const GRID_SIZES = [1, 5, 8, 10, 16, 20, 32];
 const PRECISIONS = [0, 1, 2, 3, 4];
 
+/**
+ * Focus opens a tooltip only for keyboard focus. The popover auto-focuses its first control on open,
+ * which would otherwise show that control's tooltip at once; hovering still waits for the delay.
+ */
+function keyboardFocusOnly(e: FocusEvent<HTMLElement>) {
+    if (!(e.target as HTMLElement).matches(':focus-visible')) {
+        e.preventDefault();
+    }
+}
+
 /** Toggle row (label + switch) paired with a tooltip that explains the setting */
 function PrefSwitch({ label, hint, checked, onCheckedChange }: { label: string; hint: string; checked: boolean; onCheckedChange: (v: boolean) => void; }) {
     const id = useId();
@@ -123,7 +133,7 @@ function PrefSwitch({ label, hint, checked, onCheckedChange }: { label: string; 
         <TooltipProvider>
             <Tooltip>
                 <TooltipTrigger asChild>
-                    <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center justify-between gap-2" onFocus={keyboardFocusOnly}>
                         <Label className="text-xs" htmlFor={id}>{label}</Label>
                         <Switch id={id} checked={checked} onCheckedChange={onCheckedChange} />
                     </div>
@@ -144,7 +154,7 @@ function PrefSelect({ label, hint, value, items, onValueChange }: { label: strin
         <TooltipProvider>
             <Tooltip>
                 <TooltipTrigger asChild>
-                    <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center justify-between gap-2" onFocus={keyboardFocusOnly}>
                         <Label className="text-xs" htmlFor={id}>{label}</Label>
                         <Select value={String(value)} onValueChange={(v) => onValueChange(Number(v))}>
                             <SelectTrigger id={id} className="w-16 tabular-nums" size="sm">
