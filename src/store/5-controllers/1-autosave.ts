@@ -2,7 +2,7 @@ import { subscribe } from "valtio";
 
 import { STORAGE_KEYS } from "../2-persist";
 import { SAMPLE_SVG, docToText, equivalentDocText, historyState, loadSvgText } from "../3-document";
-import { jotaiStore } from "../0-app-store";
+import { jotaiStore } from "../8-jotai-store";
 import { codeTextAtom } from "../4-editor";
 
 /** Loads the last document (or the sample) and saves the source after every history change */

@@ -1,7 +1,7 @@
 import { type DragEvent, type PointerEvent as ReactPointerEvent } from "react";
 import { type Getter, type Setter, atom } from "jotai";
 import { toast } from "sonner";
-import { jotaiStore } from "@/store/0-app-store";
+import { jotaiStore } from "@/store/8-jotai-store";
 import { appSettings } from "@/store/1-ui-settings";
 import { docState, loadSvgFile } from "@/store/3-document";
 import { exitIsolationToAtom, filterTarget, getIsolationScope, insertMarkupAtTop } from "@/store/6-layers";

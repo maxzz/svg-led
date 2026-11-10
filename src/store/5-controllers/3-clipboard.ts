@@ -1,4 +1,4 @@
-import { type JotaiStore } from "../0-app-store";
+import { type JotaiStore } from "../8-jotai-store";
 import { deleteNodes, nodesToText } from "../3-document";
 import { selectionAtom, setSelectionAtom } from "../4-editor";
 import { insertMarkupAtTop } from "../6-layers";

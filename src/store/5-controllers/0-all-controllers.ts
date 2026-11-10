@@ -1,4 +1,4 @@
-import { jotaiStore } from "../0-app-store";
+import { jotaiStore } from "../8-jotai-store";
 import { installAutosaveController } from "./1-autosave";
 import { installKeyboardController } from "./2-keyboard";
 import { installClipboardController } from "./3-clipboard";

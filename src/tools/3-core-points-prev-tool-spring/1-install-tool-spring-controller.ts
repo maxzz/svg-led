@@ -1,4 +1,4 @@
-import { type JotaiStore } from "@/store/0-app-store";
+import { type JotaiStore } from "@/store/8-jotai-store";
 import { isEditableTarget } from "@/commands";
 
 import { activeToolIdAtom, toolGestureActiveAtom } from "@/store/4-editor";

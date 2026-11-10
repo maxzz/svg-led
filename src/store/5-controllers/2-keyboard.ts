@@ -1,4 +1,4 @@
-import { type JotaiStore } from "../0-app-store";
+import { type JotaiStore } from "../8-jotai-store";
 import { ToolId, activeToolIdAtom, heldKeysOf, NO_HELD_KEYS, selectionAtom, setActiveToolAtom, setHeldKeysAtom, setSelectionAtom, spaceHeldAtom } from "../4-editor";
 import { exitIsolationLevelAtom } from "../6-layers";
 import { getTool, toolByShortcut } from "@/tools";

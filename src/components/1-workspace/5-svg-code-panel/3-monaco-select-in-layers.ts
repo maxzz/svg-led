@@ -1,5 +1,5 @@
 import type * as Monaco from "monaco-editor";
-import { jotaiStore } from "@/store/0-app-store";
+import { jotaiStore } from "@/store/8-jotai-store";
 import { sourceMapAtom } from "@/store/4-editor";
 import { nodeAtOffset } from "@/svg-core";
 import { selectInLayersAtom } from "../6-layers-panel/a-layer-atoms";
