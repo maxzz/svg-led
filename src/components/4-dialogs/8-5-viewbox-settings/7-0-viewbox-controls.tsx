@@ -1,6 +1,7 @@
 import { type FocusEvent, type ReactNode, useId } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
 import { Label } from "@/ui/shadcn/label";
+import { Checkbox } from "@/ui/shadcn/checkbox";
 import { Switch } from "@/ui/shadcn/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
 
@@ -31,6 +32,21 @@ function keyboardFocusOnly(e: FocusEvent<HTMLElement>) {
     if (!(e.target as HTMLElement).matches(':focus-visible')) {
         e.preventDefault();
     }
+}
+
+
+//---------------------------------------------------------------------------
+
+/** Checkbox row (label + checkbox) paired with a tooltip that explains the setting */
+export function Control_Checkbox({ label, hint, checked, onCheckedChange }: { label: string; hint: string; checked: boolean; onCheckedChange: (v: boolean) => void; }) {
+    const id = useId();
+
+    return (
+        <Control_WithHint hint={hint}>
+            <Label className="text-xs" htmlFor={id}>{label}</Label>
+            <Checkbox id={id} checked={checked} onCheckedChange={onCheckedChange} />
+        </Control_WithHint>
+    );
 }
 
 //---------------------------------------------------------------------------
