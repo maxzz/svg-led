@@ -1,4 +1,4 @@
-import { type FocusEvent, type ReactNode, useId } from "react";
+import { type ReactNode, useId } from "react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
 import { appSettings } from "@/store/1-ui-settings";
@@ -9,8 +9,8 @@ import { Popover, PopoverArrow, PopoverContent, PopoverTrigger } from "@/ui/shad
 import { Label } from "@/ui/shadcn/label";
 import { Switch } from "@/ui/shadcn/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
 import { PrefCombo } from "./4-pref-combo";
+import { PrefRow } from "./5-pref-row";
 import { CollapsibleSection } from "@/components/1-workspace/2-props-panel/2-props-panel-controls/2-section";
 import { isOpenViewBoxSettingsDialogAtom, isOpenViewBoxSettingsPopoverAtom } from "./9-types-viewbox-settings";
 import { Controls_ViewBoxRect } from "./1-viewbox-rect";
@@ -82,7 +82,15 @@ function Body() {
             </div>
 
             <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-                <PrefCombo label="Grid size" value={prefs.gridSize} presets={GRID_SIZES} min={1} max={256} onValueChange={(n) => { appSettings.prefs.gridSize = n; }} />
+                <PrefCombo
+                    label="Grid size"
+                    hint="Spacing between grid lines, in document units. Snap to grid uses the same step. Type any whole number from 1 to 256, or pick a preset."
+                    value={prefs.gridSize}
+                    presets={GRID_SIZES}
+                    min={1}
+                    max={256}
+                    onValueChange={(n) => { appSettings.prefs.gridSize = n; }}
+                />
                 <PrefSelect
                     label="Precision"
                     hint="Decimal digits kept for coordinates when the SVG source is written. Fewer digits make a smaller file but less exact shapes. Example: 12.34567 becomes 12.346 at 3 decimals and 12 at 0 (integers)."
@@ -115,34 +123,15 @@ function Body() {
 const GRID_SIZES = [1, 5, 8, 10, 16, 20, 32];
 const PRECISIONS = [0, 1, 2, 3, 4];
 
-/**
- * Focus opens a tooltip only for keyboard focus. The popover auto-focuses its first control on open,
- * which would otherwise show that control's tooltip at once; hovering still waits for the delay.
- */
-function keyboardFocusOnly(e: FocusEvent<HTMLElement>) {
-    if (!(e.target as HTMLElement).matches(':focus-visible')) {
-        e.preventDefault();
-    }
-}
-
 /** Toggle row (label + switch) paired with a tooltip that explains the setting */
 function PrefSwitch({ label, hint, checked, onCheckedChange }: { label: string; hint: string; checked: boolean; onCheckedChange: (v: boolean) => void; }) {
     const id = useId();
 
     return (
-        <TooltipProvider>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <div className="flex items-center justify-between gap-2" onFocus={keyboardFocusOnly}>
-                        <Label className="text-xs" htmlFor={id}>{label}</Label>
-                        <Switch id={id} checked={checked} onCheckedChange={onCheckedChange} />
-                    </div>
-                </TooltipTrigger>
-                <TooltipContent side="left" sideOffset={6}>
-                    {hint}
-                </TooltipContent>
-            </Tooltip>
-        </TooltipProvider>
+        <PrefRow hint={hint}>
+            <Label className="text-xs" htmlFor={id}>{label}</Label>
+            <Switch id={id} checked={checked} onCheckedChange={onCheckedChange} />
+        </PrefRow>
     );
 }
 
@@ -151,26 +140,17 @@ function PrefSelect({ label, hint, value, items, onValueChange }: { label: strin
     const id = useId();
 
     return (
-        <TooltipProvider>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <div className="flex items-center justify-between gap-2" onFocus={keyboardFocusOnly}>
-                        <Label className="text-xs" htmlFor={id}>{label}</Label>
-                        <Select value={String(value)} onValueChange={(v) => onValueChange(Number(v))}>
-                            <SelectTrigger id={id} className="w-16 tabular-nums" size="sm">
-                                <SelectValue />
-                            </SelectTrigger>
+        <PrefRow hint={hint}>
+            <Label className="text-xs" htmlFor={id}>{label}</Label>
+            <Select value={String(value)} onValueChange={(v) => onValueChange(Number(v))}>
+                <SelectTrigger id={id} className="w-16 tabular-nums" size="sm">
+                    <SelectValue />
+                </SelectTrigger>
 
-                            <SelectContent position="popper" align="end" className="min-w-0 w-fit">
-                                {items.map((n) => <SelectItem className="tabular-nums" value={String(n)} key={n}>{n}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </TooltipTrigger>
-                <TooltipContent side="left" sideOffset={6} className="max-w-64">
-                    {hint}
-                </TooltipContent>
-            </Tooltip>
-        </TooltipProvider>
+                <SelectContent position="popper" align="end" className="min-w-0 w-fit">
+                    {items.map((n) => <SelectItem className="tabular-nums" value={String(n)} key={n}>{n}</SelectItem>)}
+                </SelectContent>
+            </Select>
+        </PrefRow>
     );
 }

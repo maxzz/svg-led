@@ -3,9 +3,12 @@ import { ChevronDown } from "lucide-react";
 import { cn } from "@/utils/classnames";
 import { Label } from "@/ui/shadcn/label";
 import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
+import { PrefRow } from "./5-pref-row";
 
 type PrefComboProps = {
     label: string;
+    /** Tooltip text that explains the setting */
+    hint: string;
     value: number;
     /** Drop-down choices; the input accepts any whole number from `min` to `max` */
     presets: readonly number[];
@@ -15,7 +18,7 @@ type PrefComboProps = {
 };
 
 /** Input and preset drop-down in one control. Invalid text is marked red and reverted on blur or Escape. */
-export function PrefCombo({ label, value, presets, min, max, onValueChange }: PrefComboProps) {
+export function PrefCombo({ label, hint, value, presets, min, max, onValueChange }: PrefComboProps) {
     const id = useId();
     const [draft, setDraft] = useState(String(value));
     const [invalid, setInvalid] = useState(false);
@@ -77,7 +80,7 @@ export function PrefCombo({ label, value, presets, min, max, onValueChange }: Pr
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
-            <div className="flex items-center justify-between gap-2">
+            <PrefRow hint={hint}>
                 <Label className="text-xs" htmlFor={id}>{label}</Label>
 
                 <PopoverAnchor asChild>
@@ -103,7 +106,7 @@ export function PrefCombo({ label, value, presets, min, max, onValueChange }: Pr
                         </PopoverTrigger>
                     </div>
                 </PopoverAnchor>
-            </div>
+            </PrefRow>
 
             <PopoverContent
                 align="end"
