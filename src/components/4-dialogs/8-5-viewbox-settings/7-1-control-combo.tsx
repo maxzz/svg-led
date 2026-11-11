@@ -1,7 +1,6 @@
-import { type FocusEvent, type KeyboardEvent, useRef, useId, useState } from "react";
+import { type FocusEvent, type KeyboardEvent, useId, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/utils/classnames";
-import { Label } from "@/ui/shadcn/label";
 import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
 import { Control_WithHint } from "./7-0-viewbox-controls";
 
@@ -80,11 +79,7 @@ export function Contron_Combo({ label, hint, value, presets, min, max, onValueCh
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
-            <Control_WithHint hint={hint}>
-                <Label className="text-xs" htmlFor={id}>
-                    {label}
-                </Label>
-
+            <Control_WithHint id={id} label={label} hint={hint}>
                 <PopoverAnchor asChild>
                     <div className={cn("flex items-stretch w-12 h-6 rounded-md bg-muted/60 overflow-hidden", invalid ? "ring-1 ring-red-500" : "focus-within:ring-1 focus-within:ring-(--editor-accent)")}>
                         <input
