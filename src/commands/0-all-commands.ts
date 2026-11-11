@@ -20,7 +20,7 @@ import { TOOLS } from "@/tools";
 import { sourceTextForSave } from "@/store/5-controllers";
 import { doAsyncExecuteConfirmDialogAtom } from "@/components/4-dialogs/8-1-confirmation/9-types-confirmation";
 import { fitViewBoxDialogAtom } from "@/components/4-dialogs/8-4-fit-viewbox/9-types-fit-viewbox";
-import { isOpenViewBoxSettingsDialogAtom } from "@/components/4-dialogs/8-5-viewbox-settings/9-types-viewbox-settings";
+import { isOpenViewBoxSettingsDialogAtom } from "@/components/4-dialogs/8-5-viewbox-settings/a-types-viewbox-settings";
 import { isOpenShortcutsHelpDialogAtom } from "@/components/4-dialogs/8-6-shortcuts-help/9-types-shortcuts-help";
 import { isOpenCommandPaletteAtom } from "@/components/4-dialogs/8-7-command-palette/9-types-command-palette";
 import { isOpenFindOnCanvasAtom } from "@/components/4-dialogs/8-8-find-on-canvas/9-types-find-on-canvas";

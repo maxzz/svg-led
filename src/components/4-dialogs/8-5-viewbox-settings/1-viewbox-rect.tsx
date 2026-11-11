@@ -4,7 +4,7 @@ import { useDocSnapshot } from "@/store/3-document";
 import { NumberField } from "@/components/1-workspace/2-props-panel/2-props-panel-controls/3-0-number-field";
 import { Button } from "@/ui/shadcn/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
-import { VIEWBOX_PRESETS, addViewBoxAtom, setViewBoxAndFitAtom } from "./9-types-viewbox-settings";
+import { VIEWBOX_PRESETS, addViewBoxAtom, setViewBoxAndFitAtom } from "./a-types-viewbox-settings";
 import { Buttons_ViewBoxFit } from "./2-viewbox-fit-buttons";
 
 /** X/Y/W/H fields (when a viewBox exists), fit buttons, and the square presets list with None/Custom */

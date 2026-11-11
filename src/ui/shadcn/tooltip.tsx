@@ -2,7 +2,7 @@ import { type ComponentProps } from "react"; // 05.09.26
 import { cn } from "@/utils/classnames";
 import { Tooltip as TooltipPrimitive } from "radix-ui";
 
-export function TooltipProvider({ delayDuration = 0, ...rest }: ComponentProps<typeof TooltipPrimitive.Provider>) {
+export function TooltipProvider({ delayDuration = 700, ...rest }: ComponentProps<typeof TooltipPrimitive.Provider>) {
     return <TooltipPrimitive.Provider data-slot="tooltip-provider" delayDuration={delayDuration} {...rest} />;
 }
 

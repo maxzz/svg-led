@@ -3,7 +3,7 @@ import { setRootAttr, useDocSnapshot } from "@/store/3-document";
 import { cn } from "@/utils/classnames";
 import { fieldDividerClasses, fieldInputClasses, fieldLabelClasses, fieldShellClasses } from "@/components/1-workspace/2-props-panel/2-props-panel-controls/3-0-number-field";
 import { Button } from "@/ui/shadcn/button";
-import { sizeFromViewBoxAtom } from "./9-types-viewbox-settings";
+import { sizeFromViewBoxAtom } from "./a-types-viewbox-settings";
 
 /** "Size attributes" section: width/height text fields and a button to match the viewBox size */
 export function Controls_SvgSizeAttributes() {

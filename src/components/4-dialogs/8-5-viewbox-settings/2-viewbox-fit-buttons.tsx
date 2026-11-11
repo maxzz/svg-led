@@ -3,7 +3,7 @@ import { useSetAtom } from "jotai";
 import { runCommandAtom } from "@/commands";
 import { Button } from "@/ui/shadcn/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/shadcn/tooltip";
-import { isOpenViewBoxSettingsDialogAtom, isOpenViewBoxSettingsPopoverAtom } from "./9-types-viewbox-settings";
+import { isOpenViewBoxSettingsDialogAtom, isOpenViewBoxSettingsPopoverAtom } from "./a-types-viewbox-settings";
 
 const FIT_ACTIONS = [
     { id: 'viewbox.toContent',    label: 'Fit viewBox to content...',    Icon: Maximize },
