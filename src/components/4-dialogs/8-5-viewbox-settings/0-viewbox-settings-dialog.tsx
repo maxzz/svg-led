@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PrefCombo } from "./4-pref-combo";
 import { PrefRow } from "./5-pref-row";
 import { CollapsibleSection } from "@/components/1-workspace/2-props-panel/2-props-panel-controls/2-section";
-import { isOpenViewBoxSettingsDialogAtom, isOpenViewBoxSettingsPopoverAtom } from "./9-types-viewbox-settings";
+import { isOpenViewBoxSettingsDialogAtom, isOpenViewBoxSettingsPopoverAtom } from "./a-types-viewbox-settings";
 import { Controls_ViewBoxRect } from "./1-viewbox-rect";
 import { Controls_SvgSizeAttributes } from "./3-viewbox-size-attributes";
 

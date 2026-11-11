@@ -81,13 +81,12 @@ export function PrefCombo({ label, hint, value, presets, min, max, onValueChange
     return (
         <Popover open={open} onOpenChange={setOpen}>
             <PrefRow hint={hint}>
-                <Label className="text-xs" htmlFor={id}>{label}</Label>
+                <Label className="text-xs" htmlFor={id}>
+                    {label}
+                </Label>
 
                 <PopoverAnchor asChild>
-                    <div className={cn(
-                        "flex items-stretch w-16 h-6 rounded-md bg-muted/60 overflow-hidden",
-                        invalid ? "ring-1 ring-red-500" : "focus-within:ring-1 focus-within:ring-(--editor-accent)",
-                    )}>
+                    <div className={cn("flex items-stretch w-16 h-6 rounded-md bg-muted/60 overflow-hidden", invalid ? "ring-1 ring-red-500" : "focus-within:ring-1 focus-within:ring-(--editor-accent)")}>
                         <input
                             id={id}
                             className={cn("w-full min-w-0 px-1.5 tabular-nums bg-transparent outline-none", invalid && "text-red-500")}
