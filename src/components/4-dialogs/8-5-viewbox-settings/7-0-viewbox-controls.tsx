@@ -43,8 +43,10 @@ export function Control_Checkbox({ label, hint, checked, onCheckedChange }: { la
 
     return (
         <Control_WithHint hint={hint}>
-            <Label className="text-xs" htmlFor={id}>{label}</Label>
-            <Checkbox id={id} checked={checked} onCheckedChange={onCheckedChange} />
+            <div className="flex items-center gap-2">
+                <Checkbox id={id} checked={checked} onCheckedChange={onCheckedChange} />
+                <Label className="text-xs" htmlFor={id}>{label}</Label>
+            </div>
         </Control_WithHint>
     );
 }
