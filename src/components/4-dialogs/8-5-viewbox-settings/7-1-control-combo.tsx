@@ -86,7 +86,7 @@ export function Contron_Combo({ label, hint, value, presets, min, max, onValueCh
                 </Label>
 
                 <PopoverAnchor asChild>
-                    <div className={cn("flex items-stretch w-16 h-6 rounded-md bg-muted/60 overflow-hidden", invalid ? "ring-1 ring-red-500" : "focus-within:ring-1 focus-within:ring-(--editor-accent)")}>
+                    <div className={cn("flex items-stretch w-12 h-6 rounded-md bg-muted/60 overflow-hidden", invalid ? "ring-1 ring-red-500" : "focus-within:ring-1 focus-within:ring-(--editor-accent)")}>
                         <input
                             id={id}
                             className={cn("w-full min-w-0 px-1.5 tabular-nums bg-transparent outline-none", invalid && "text-red-500")}
@@ -99,7 +99,7 @@ export function Contron_Combo({ label, hint, value, presets, min, max, onValueCh
                         />
 
                         <PopoverTrigger asChild>
-                            <button ref={buttonRef} type="button" aria-label={`${label} presets`} className="w-5 shrink-0 grid place-items-center hover:bg-foreground/10">
+                            <button className="w-5 shrink-0 grid place-items-center hover:bg-foreground/10" ref={buttonRef} type="button" aria-label={`${label} presets`}>
                                 <ChevronDown className="size-3" />
                             </button>
                         </PopoverTrigger>
@@ -108,7 +108,7 @@ export function Contron_Combo({ label, hint, value, presets, min, max, onValueCh
             </Control_WithHint>
 
             <PopoverContent
-                className="p-1 gap-0 w-(--radix-popper-anchor-width) min-w-16"
+                className="p-1 gap-0 w-(--radix-popper-anchor-width) min-w-12 rounded"
                 align="end"
                 sideOffset={4}
                 onOpenAutoFocus={(e) => e.preventDefault()} // Keep focus in the input

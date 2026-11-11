@@ -60,10 +60,8 @@ export function ViewBoxSettingsPopover({ children }: { children: ReactNode; }) {
 }
 
 function Body() {
-    const { fileName } = useSnapshot(docState);
-    const { prefs, propertySections } = useSnapshot(appSettings);
-    const pointsOptions = useAtomValue(pointsOptionsAtom);
-    const setPointsOptions = useSetAtom(pointsOptionsAtom);
+    const { prefs } = useSnapshot(appSettings);
+    const [pointsOptions, setPointsOptions] = useAtom(pointsOptionsAtom);
 
     return (
         <div className="px-4 py-4 text-xs flex flex-col gap-4">
@@ -71,7 +69,7 @@ function Body() {
 
             <Controls_ViewBoxRect />
 
-            <div className="pt-3 border-t flex flex-col gap-3">
+            <div className="pt-3 border-t flex flex-col gap-1">
                 <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                     <Control_Checkbox label="Show grid" hint="Draw the background grid on the canvas" checked={prefs.showGrid} onCheckedChange={(v) => { appSettings.prefs.showGrid = v; }} />
                     <Contron_Combo
@@ -83,30 +81,39 @@ function Body() {
                         max={256}
                         onValueChange={(n) => { appSettings.prefs.gridSize = n; }}
                     />
-                    <Control_Checkbox label="Snap to grid" hint="Snap points to the nearest grid line while editing" checked={prefs.snapToGrid} onCheckedChange={(v) => { appSettings.prefs.snapToGrid = v; }} />
-                    <Control_Checkbox label="Snap to objects" hint="Snap to other objects while dragging (hold Ctrl to snap when this is off)" checked={prefs.snapToObjects} onCheckedChange={(v) => { appSettings.prefs.snapToObjects = v; }} />
                 </div>
 
+                <Control_Checkbox label="Snap to grid" hint="Snap points to the nearest grid line while editing" checked={prefs.snapToGrid} onCheckedChange={(v) => { appSettings.prefs.snapToGrid = v; }} />
+                <Control_Checkbox label="Snap to objects" hint="Snap to other objects while dragging (hold Ctrl to snap when this is off)" checked={prefs.snapToObjects} onCheckedChange={(v) => { appSettings.prefs.snapToObjects = v; }} />
                 <Control_Checkbox label="All control handles" hint="Points tool only: show direction handles on every anchor of the selected paths, not just on the selected anchors and their neighbours. Use it to see curves that are otherwise hidden." checked={pointsOptions.showAllHandles} onCheckedChange={(v) => setPointsOptions({ showAllHandles: v })} />
             </div>
 
             <div className="pt-3 border-t">
-                <CollapsibleSection
-                    title="File"
-                    gutter={false}
-                    open={propertySections.viewBoxFileOpen}
-                    onOpenChange={(open) => { appSettings.propertySections.viewBoxFileOpen = open; }}
-                >
-                    <div className="flex flex-col gap-3">
-                        <div className="text-xs font-medium truncate" title={fileName}>
-                            {fileName}
-                        </div>
-
-                        <Controls_SvgSizeAttributes />
-                    </div>
-                </CollapsibleSection>
+                <FileSection />
             </div>
         </div>
+    );
+}
+
+function FileSection() {
+    const { fileName } = useSnapshot(docState);
+    const { propertySections } = useSnapshot(appSettings);
+
+    return (
+        <CollapsibleSection
+            title="File"
+            gutter={false}
+            open={propertySections.viewBoxFileOpen}
+            onOpenChange={(open) => { appSettings.propertySections.viewBoxFileOpen = open; }}
+        >
+            <div className="flex flex-col gap-3">
+                <div className="text-xs font-medium truncate" title={fileName}>
+                    {fileName}
+                </div>
+
+                <Controls_SvgSizeAttributes />
+            </div>
+        </CollapsibleSection>
     );
 }
 
