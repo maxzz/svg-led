@@ -1,4 +1,4 @@
-import { type ReactNode, useId } from "react";
+import { type ReactNode } from "react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useSnapshot } from "valtio";
 import { appSettings } from "@/store/1-ui-settings";
@@ -6,11 +6,8 @@ import { docState } from "@/store/3-document";
 import { pointsOptionsAtom } from "@/tools/tool-3-points/a-options";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/ui/shadcn/dialog";
 import { Popover, PopoverArrow, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
-import { Label } from "@/ui/shadcn/label";
-import { Switch } from "@/ui/shadcn/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/shadcn/select";
-import { PrefCombo } from "./4-pref-combo";
-import { PrefRow } from "./5-pref-row";
+import { Contron_Combo } from "./7-1-control-combo";
+import { Control_Select, Control_Switch } from "./7-0-viewbox-controls";
 import { CollapsibleSection } from "@/components/1-workspace/2-props-panel/2-props-panel-controls/2-section";
 import { isOpenViewBoxSettingsDialogAtom, isOpenViewBoxSettingsPopoverAtom } from "./a-types-viewbox-settings";
 import { Controls_ViewBoxRect } from "./1-viewbox-rect";
@@ -70,19 +67,19 @@ function Body() {
 
     return (
         <div className="px-4 py-4 text-xs flex flex-col gap-4">
-            <PrefSwitch label="Use viewBox" hint="Show the viewBox outline on the canvas" checked={prefs.showViewBox} onCheckedChange={(v) => { appSettings.prefs.showViewBox = v; }} />
+            <Control_Switch label="Use viewBox" hint="Show the viewBox outline on the canvas" checked={prefs.showViewBox} onCheckedChange={(v) => { appSettings.prefs.showViewBox = v; }} />
 
             <Controls_ViewBoxRect />
 
             <div className="pt-3 border-t grid grid-cols-2 gap-x-4 gap-y-3">
-                <PrefSwitch label="Show grid" hint="Draw the background grid on the canvas" checked={prefs.showGrid} onCheckedChange={(v) => { appSettings.prefs.showGrid = v; }} />
-                <PrefSwitch label="Snap to grid" hint="Snap points to the nearest grid line while editing" checked={prefs.snapToGrid} onCheckedChange={(v) => { appSettings.prefs.snapToGrid = v; }} />
-                <PrefSwitch label="Snap to objects" hint="Snap to other objects while dragging (hold Ctrl to snap when this is off)" checked={prefs.snapToObjects} onCheckedChange={(v) => { appSettings.prefs.snapToObjects = v; }} />
-                <PrefSwitch label="All control handles" hint="Points tool only: show direction handles on every anchor of the selected paths, not just on the selected anchors and their neighbours. Use it to see curves that are otherwise hidden." checked={pointsOptions.showAllHandles} onCheckedChange={(v) => setPointsOptions({ showAllHandles: v })} />
+                <Control_Switch label="Show grid" hint="Draw the background grid on the canvas" checked={prefs.showGrid} onCheckedChange={(v) => { appSettings.prefs.showGrid = v; }} />
+                <Control_Switch label="Snap to grid" hint="Snap points to the nearest grid line while editing" checked={prefs.snapToGrid} onCheckedChange={(v) => { appSettings.prefs.snapToGrid = v; }} />
+                <Control_Switch label="Snap to objects" hint="Snap to other objects while dragging (hold Ctrl to snap when this is off)" checked={prefs.snapToObjects} onCheckedChange={(v) => { appSettings.prefs.snapToObjects = v; }} />
+                <Control_Switch label="All control handles" hint="Points tool only: show direction handles on every anchor of the selected paths, not just on the selected anchors and their neighbours. Use it to see curves that are otherwise hidden." checked={pointsOptions.showAllHandles} onCheckedChange={(v) => setPointsOptions({ showAllHandles: v })} />
             </div>
 
             <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-                <PrefCombo
+                <Contron_Combo
                     label="Grid size"
                     hint="Spacing between grid lines, in document units. Snap to grid uses the same step. Type any whole number from 1 to 256, or pick a preset."
                     value={prefs.gridSize}
@@ -91,7 +88,7 @@ function Body() {
                     max={256}
                     onValueChange={(n) => { appSettings.prefs.gridSize = n; }}
                 />
-                <PrefSelect
+                <Control_Select
                     label="Precision"
                     hint="Decimal digits kept for coordinates when the SVG source is written. Fewer digits make a smaller file but less exact shapes. Example: 12.34567 becomes 12.346 at 3 decimals and 12 at 0 (integers)."
                     value={prefs.precision}
@@ -122,35 +119,3 @@ function Body() {
 
 const GRID_SIZES = [1, 5, 8, 10, 16, 20, 32];
 const PRECISIONS = [0, 1, 2, 3, 4];
-
-/** Toggle row (label + switch) paired with a tooltip that explains the setting */
-function PrefSwitch({ label, hint, checked, onCheckedChange }: { label: string; hint: string; checked: boolean; onCheckedChange: (v: boolean) => void; }) {
-    const id = useId();
-
-    return (
-        <PrefRow hint={hint}>
-            <Label className="text-xs" htmlFor={id}>{label}</Label>
-            <Switch id={id} checked={checked} onCheckedChange={onCheckedChange} />
-        </PrefRow>
-    );
-}
-
-/** Drop-down row paired with a tooltip that explains the setting */
-function PrefSelect({ label, hint, value, items, onValueChange }: { label: string; hint: string; value: number; items: number[]; onValueChange: (n: number) => void; }) {
-    const id = useId();
-
-    return (
-        <PrefRow hint={hint}>
-            <Label className="text-xs" htmlFor={id}>{label}</Label>
-            <Select value={String(value)} onValueChange={(v) => onValueChange(Number(v))}>
-                <SelectTrigger id={id} className="w-16 tabular-nums" size="sm">
-                    <SelectValue />
-                </SelectTrigger>
-
-                <SelectContent position="popper" align="end" className="min-w-0 w-fit">
-                    {items.map((n) => <SelectItem className="tabular-nums" value={String(n)} key={n}>{n}</SelectItem>)}
-                </SelectContent>
-            </Select>
-        </PrefRow>
-    );
-}

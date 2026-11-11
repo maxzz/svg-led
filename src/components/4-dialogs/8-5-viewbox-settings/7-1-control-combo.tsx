@@ -3,7 +3,7 @@ import { ChevronDown } from "lucide-react";
 import { cn } from "@/utils/classnames";
 import { Label } from "@/ui/shadcn/label";
 import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
-import { PrefRow } from "./5-pref-row";
+import { Control_WithHint } from "./7-0-viewbox-controls";
 
 type PrefComboProps = {
     label: string;
@@ -18,7 +18,7 @@ type PrefComboProps = {
 };
 
 /** Input and preset drop-down in one control. Invalid text is marked red and reverted on blur or Escape. */
-export function PrefCombo({ label, hint, value, presets, min, max, onValueChange }: PrefComboProps) {
+export function Contron_Combo({ label, hint, value, presets, min, max, onValueChange }: PrefComboProps) {
     const id = useId();
     const [draft, setDraft] = useState(String(value));
     const [invalid, setInvalid] = useState(false);
@@ -80,7 +80,7 @@ export function PrefCombo({ label, hint, value, presets, min, max, onValueChange
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
-            <PrefRow hint={hint}>
+            <Control_WithHint hint={hint}>
                 <Label className="text-xs" htmlFor={id}>
                     {label}
                 </Label>
@@ -105,12 +105,12 @@ export function PrefCombo({ label, hint, value, presets, min, max, onValueChange
                         </PopoverTrigger>
                     </div>
                 </PopoverAnchor>
-            </PrefRow>
+            </Control_WithHint>
 
             <PopoverContent
+                className="p-1 gap-0 w-(--radix-popper-anchor-width) min-w-16"
                 align="end"
                 sideOffset={4}
-                className="p-1 gap-0 w-(--radix-popper-anchor-width) min-w-16"
                 onOpenAutoFocus={(e) => e.preventDefault()} // Keep focus in the input
                 onPointerDownOutside={(e) => {
                     // The trigger toggles the list itself; don't let the outside click close it first and then reopen it
