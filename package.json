@@ -32,7 +32,7 @@
         "@monaco-editor/react": "^4.7.0",
         "@tailwindcss/vite": "^4.3.4",
         "class-variance-authority": "^0.7.1",
-        "clipper2-ts": "2.0.1-18",
+        "clipper2-ts": "2.0.1-19",
         "clsx": "^2.1.1",
         "cmdk": "^1.1.1",
         "colorjs.io": "^0.7.1",
