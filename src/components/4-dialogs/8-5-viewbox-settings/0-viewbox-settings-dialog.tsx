@@ -70,7 +70,10 @@ function Body() {
 
     return (
         <div className="px-4 pt-2 pb-3 text-xs flex flex-col gap-2">
-            <Control_Checkbox label="Use viewBox" hint="Show the viewBox outline on the canvas" checked={prefs.showViewBox} onCheckedChange={(v) => { appSettings.prefs.showViewBox = v; }} />
+            <div className="grid grid-cols-2 gap-x-4">
+                <Control_Checkbox label="Use viewBox" hint="Show the viewBox outline on the canvas" checked={prefs.showViewBox} onCheckedChange={(v) => { appSettings.prefs.showViewBox = v; }} />
+                <Control_Checkbox label="Show rulers" hint="Draw rulers in viewBox units along the top and left edges of the viewBox outline. Requires Use viewBox." checked={prefs.showRulers} disabled={!prefs.showViewBox} onCheckedChange={(v) => { appSettings.prefs.showRulers = v; }} />
+            </div>
 
             <AnimatePresence initial={false}>
                 {prefs.showViewBox && (
