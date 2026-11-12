@@ -8,7 +8,7 @@ export const isOpenViewBoxSettingsDialogAtom = atom(false);
 /** Popover variant opened from the toolbar button */
 export const isOpenViewBoxSettingsPopoverAtom = atom(false);
 
-export const VIEWBOX_PRESETS = [16, 24, 32, 48, 64, 100, 128, 256, 512, 1024];
+export const VIEWBOX_PRESETS = [16, 24, 32, 48, 64, 256, 512];
 
 export const setViewBoxAndFitAtom = atom(
     null,

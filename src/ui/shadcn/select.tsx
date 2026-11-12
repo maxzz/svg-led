@@ -1,4 +1,4 @@
-import { type ComponentProps } from "react"; // 05.09.26
+import { type ComponentProps } from "react"; // 05.09.26, 10.11.26
 import { cn } from "@/utils/classnames";
 import { Select as SelectPrimitive } from "radix-ui";
 import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from "lucide-react";
@@ -59,13 +59,13 @@ border \
 border-input \
 flex items-center justify-between gap-1.5";
 
-export function SelectTrigger({ className, size = "default", children, ...rest }: ComponentProps<typeof SelectPrimitive.Trigger> & { size?: "sm" | "default"; }) {
+export function SelectTrigger({ className, iconClasses, size = "default", children, ...rest }: ComponentProps<typeof SelectPrimitive.Trigger> & { size?: "sm" | "default"; iconClasses?: string; }) {
     return (
         <SelectPrimitive.Trigger data-slot="select-trigger" data-size={size} className={cn(triggerClasses, className)} {...rest}>
             {children}
 
             <SelectPrimitive.Icon asChild>
-                <ChevronDownIcon className="size-4 text-muted-foreground pointer-events-none" />
+                <ChevronDownIcon className={cn("size-4 text-muted-foreground pointer-events-none", iconClasses)} />
             </SelectPrimitive.Icon>
         </SelectPrimitive.Trigger>
     );

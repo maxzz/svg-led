@@ -45,21 +45,24 @@ export function Controls_ViewBoxRect() {
 
     return (
         <div className="grid grid-cols-[repeat(2,max-content)_1fr] gap-1">
-            {vb ? (<>
-                <NumberField className="max-w-16" label="X" value={vb.x} onInput={editDraft("x")} onChange={editDraft("x")} />
-                <NumberField className="max-w-16" label="Y" value={vb.y} onInput={editDraft("y")} onChange={editDraft("y")} />
-                <div className="justify-self-end">
-                    <Buttons_ViewBoxFit />
-                </div>
-                <NumberField className="max-w-16" label="W" value={vb.width} min={0.01} onInput={editDraft("width")} onChange={editDraft("width")} />
-                <NumberField className="max-w-16" label="H" value={vb.height} min={0.01} onInput={editDraft("height")} onChange={editDraft("height")} />
-            </>) : (
-                <span className="col-span-full text-muted-foreground">The document has no viewBox.</span>
-            )}
+            {vb
+                ? (<>
+                    <NumberField className="max-w-16" label="X" value={vb.x} onInput={editDraft("x")} onChange={editDraft("x")} />
+                    <NumberField className="max-w-16" label="Y" value={vb.y} onInput={editDraft("y")} onChange={editDraft("y")} />
+                    <div className="justify-self-end">
+                        <Buttons_ViewBoxFit />
+                    </div>
+                    <NumberField className="max-w-16" label="W" value={vb.width} min={0.01} onInput={editDraft("width")} onChange={editDraft("width")} />
+                    <NumberField className="max-w-16" label="H" value={vb.height} min={0.01} onInput={editDraft("height")} onChange={editDraft("height")} />
+                </>)
+                : (
+                    <span className="col-span-full text-muted-foreground">The document has no viewBox.</span>
+                )
+            }
 
             <div className="relative min-w-0 justify-self-end">
                 <Select value={selectValue} onValueChange={onPick}>
-                    <SelectTrigger className="min-w-0 tabular-nums" size="sm" aria-label="Square presets">
+                    <SelectTrigger className="min-w-0 tabular-nums" iconClasses="size-3" size="sm" aria-label="Square presets">
                         <SelectValue placeholder="Square" />
                     </SelectTrigger>
 

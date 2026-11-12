@@ -42,7 +42,7 @@ export function Control_Checkbox({ label, hint, checked, onCheckedChange }: { la
     const id = useId();
 
     return (
-        <div className="flex items-center gap-2">
+        <div className="h-6 flex items-center gap-2">
             <Checkbox id={id} checked={checked} onCheckedChange={onCheckedChange} />
             <Control_Label htmlFor={id} hint={hint}>{label}</Control_Label>
         </div>

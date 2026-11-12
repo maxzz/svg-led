@@ -1,17 +1,19 @@
 import { type ReactNode } from "react";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtom } from "jotai";
 import { useSnapshot } from "valtio";
 import { appSettings } from "@/store/1-ui-settings";
-import { docState } from "@/store/3-document";
-import { pointsOptionsAtom } from "@/tools/tool-3-points/a-options";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/ui/shadcn/dialog";
 import { Popover, PopoverArrow, PopoverContent, PopoverTrigger } from "@/ui/shadcn/popover";
+
+import { CollapsibleSection } from "@/components/1-workspace/2-props-panel/2-props-panel-controls/2-section";
 import { Contron_Combo } from "./7-1-control-combo";
 import { Control_Checkbox } from "./7-0-viewbox-controls";
-import { CollapsibleSection } from "@/components/1-workspace/2-props-panel/2-props-panel-controls/2-section";
-import { isOpenViewBoxSettingsDialogAtom, isOpenViewBoxSettingsPopoverAtom } from "./a-types-viewbox-settings";
 import { Controls_ViewBoxRect } from "./1-viewbox-rect";
 import { Controls_SvgSizeAttributes } from "./3-viewbox-size-attributes";
+
+import { docState } from "@/store/3-document";
+import { pointsOptionsAtom } from "@/tools/tool-3-points/a-options";
+import { isOpenViewBoxSettingsDialogAtom, isOpenViewBoxSettingsPopoverAtom } from "./a-types-viewbox-settings";
 
 export function ViewBoxSettingsDialog() {
     const [isOpen, setIsOpen] = useAtom(isOpenViewBoxSettingsDialogAtom);
@@ -48,7 +50,7 @@ export function ViewBoxSettingsPopover({ children }: { children: ReactNode; }) {
             </PopoverTrigger>
 
             <PopoverContent className="p-0 max-w-100 gap-0" align="start" side="bottom" collisionPadding={{ right: 12 }} sideOffset={-2}>
-                <div className="px-4 py-3 border-b text-sm font-medium">
+                <div className="px-4 py-2 border-b text-sm font-medium">
                     ViewBox
                 </div>
 
@@ -59,17 +61,19 @@ export function ViewBoxSettingsPopover({ children }: { children: ReactNode; }) {
     );
 }
 
+//---------------------------------------------------------------------------
+
 function Body() {
     const { prefs } = useSnapshot(appSettings);
     const [pointsOptions, setPointsOptions] = useAtom(pointsOptionsAtom);
 
     return (
-        <div className="px-4 py-4 text-xs flex flex-col gap-4">
+        <div className="px-4 pt-2 pb-3 text-xs flex flex-col gap-2">
             <Control_Checkbox label="Use viewBox" hint="Show the viewBox outline on the canvas" checked={prefs.showViewBox} onCheckedChange={(v) => { appSettings.prefs.showViewBox = v; }} />
 
             <Controls_ViewBoxRect />
 
-            <div className="pt-3 border-t flex flex-col gap-1">
+            <div className="pt-3 border-t flex flex-col">
                 <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                     <Control_Checkbox label="Show grid" hint="Draw the background grid on the canvas" checked={prefs.showGrid} onCheckedChange={(v) => { appSettings.prefs.showGrid = v; }} />
                     <Contron_Combo
@@ -95,6 +99,10 @@ function Body() {
     );
 }
 
+const GRID_SIZES = [1, 5, 8, 10, 16, 20, 32];
+
+//---------------------------------------------------------------------------
+
 function FileSection() {
     const { fileName } = useSnapshot(docState);
     const { propertySections } = useSnapshot(appSettings);
@@ -116,5 +124,3 @@ function FileSection() {
         </CollapsibleSection>
     );
 }
-
-const GRID_SIZES = [1, 5, 8, 10, 16, 20, 32];
