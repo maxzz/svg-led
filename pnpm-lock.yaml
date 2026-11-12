@@ -98,7 +98,7 @@ importers:
     devDependencies:
       '@tailwindcss/forms':
         specifier: ^0.5.11
-        version: 0.5.11(tailwindcss@4.3.4)
+        version: 0.5.11(tailwindcss@4.3.5)
       '@types/node':
         specifier: ^26.6.6
         version: 26.6.6
@@ -121,14 +121,14 @@ importers:
         specifier: ^7.1.1
         version: 7.1.1(rolldown@1.2.16)
       tailwindcss:
-        specifier: ^4.3.4
-        version: 4.3.4
+        specifier: ^4.3.5
+        version: 4.3.5
       tailwindcss-plugin-debug-screens-tw4:
         specifier: ^1.0.4
-        version: 1.0.4(tailwindcss@4.3.4)
+        version: 1.0.4(tailwindcss@4.3.5)
       tailwindcss-plugin-overflow-tw4:
         specifier: ^1.0.1
-        version: 1.0.1(tailwindcss@4.3.4)
+        version: 1.0.1(tailwindcss@4.3.5)
       tsx:
         specifier: ^4.23.15
         version: 4.23.15
@@ -3041,9 +3041,6 @@ packages:
     peerDependencies:
       tailwindcss: ^4.0.0
 
-  tailwindcss@4.3.4:
-    resolution: {integrity: sha512-PCJZTFFdG+sL3gvnP1Do9o6GbkvH2q0p04xSs3f7cSvmAeK+sttG+/7ncK1fdRwKFfC7n+wDDJaOMBSefkI9ow==}
-
   tailwindcss@4.3.5:
     resolution: {integrity: sha512-FcQk9BuffmEHJP2G0XmB2SplU1aLTI7j07Kunk+U74Ny+XiWOtzXz9aujFZ/avntw1e2cOv/3PkgzflQ7gX2vQ==}
 
@@ -4744,10 +4741,10 @@ snapshots:
 
   '@sindresorhus/merge-streams@4.0.0': {}
 
-  '@tailwindcss/forms@0.5.11(tailwindcss@4.3.4)':
+  '@tailwindcss/forms@0.5.11(tailwindcss@4.3.5)':
     dependencies:
       mini-svg-data-uri: 1.4.4
-      tailwindcss: 4.3.4
+      tailwindcss: 4.3.5
 
   '@tailwindcss/node@4.3.5':
     dependencies:
@@ -6093,15 +6090,13 @@ snapshots:
 
   tailwind-merge@3.7.0: {}
 
-  tailwindcss-plugin-debug-screens-tw4@1.0.4(tailwindcss@4.3.4):
+  tailwindcss-plugin-debug-screens-tw4@1.0.4(tailwindcss@4.3.5):
     dependencies:
-      tailwindcss: 4.3.4
+      tailwindcss: 4.3.5
 
-  tailwindcss-plugin-overflow-tw4@1.0.1(tailwindcss@4.3.4):
+  tailwindcss-plugin-overflow-tw4@1.0.1(tailwindcss@4.3.5):
     dependencies:
-      tailwindcss: 4.3.4
-
-  tailwindcss@4.3.4: {}
+      tailwindcss: 4.3.5
 
   tailwindcss@4.3.5: {}
 

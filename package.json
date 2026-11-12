@@ -14,7 +14,7 @@
         "globals": "^17.14.0",
         "jotai-family": "^1.1.0",
         "rollup-plugin-visualizer": "^7.1.1",
-        "tailwindcss": "^4.3.4",
+        "tailwindcss": "^4.3.5",
         "tailwindcss-plugin-debug-screens-tw4": "^1.0.4",
         "tailwindcss-plugin-overflow-tw4": "^1.0.1",
         "tsx": "^4.23.15",
