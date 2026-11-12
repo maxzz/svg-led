@@ -1,10 +1,12 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useAtomValue } from "jotai";
 import { useSnapshot } from "valtio";
-import { fmtNum } from "@/svg-core";
+import { type Point, type SvgDoc, applyMatrix, findNode, fmtNum, nodeCtm, pathDataToSubpaths } from "@/svg-core";
 import { appSettings } from "@/store/1-ui-settings";
 import { useDocSnapshot } from "@/store/3-document";
 import { pointerDocAtom } from "@/store/4-editor";
+import { cn } from "@/utils/classnames";
+import { type PointRef, hoveredPointRefAtom } from "./9-atoms-pointer-coords";
 
 /**
  * ViewBox numbers shown inside the help island (bottom-right corner) while "Use viewBox" is enabled.
@@ -60,28 +62,48 @@ export function ViewBoxDimsLabel() {
 }
 
 /**
- * Pointer position in document units, shown as a third line under the viewBox numbers.
+ * Position in document units, shown as a third line under the viewBox numbers.
+ * While the pointer is over a path anchor or direction handle, it shows that point's coordinates (accent color);
+ * otherwise the pointer's own position.
  * Each value sits in a fixed-width slot (in `ch`, sized for values like -1234.56), so a change in X never moves Y,
  * and the three lines fill the same 36px as the island's buttons, so the island keeps its height.
  */
 function PointerCoords() {
     const { showPointerCoords } = useSnapshot(appSettings.prefs);
     const pointer = useAtomValue(pointerDocAtom);
+    const pointRef = useAtomValue(hoveredPointRefAtom);
+    const doc = useDocSnapshot();
 
     if (!showPointerCoords) {
         return null;
     }
 
+    const onPoint = pointRef ? pointInDoc(doc, pointRef) : null;
+    const at = onPoint ?? pointer;
+
     return (
         <span className="whitespace-nowrap flex gap-x-1">
-            <span className="w-[8ch] text-right" title="Pointer X">
-                {pointer ? fmtNum(pointer.x, 2) : '–'}
+            <span className={cn("w-[8ch] text-right", onPoint && "text-(--editor-accent)")} title={onPoint ? "Point X" : "Pointer X"}>
+                {at ? fmtNum(at.x, 2) : '–'}
             </span>
-            <span className="w-[8ch] text-right" title="Pointer Y">
-                {pointer ? fmtNum(pointer.y, 2) : '–'}
+            <span className={cn("w-[8ch] text-right", onPoint && "text-(--editor-accent)")} title={onPoint ? "Point Y" : "Pointer Y"}>
+                {at ? fmtNum(at.y, 2) : '–'}
             </span>
         </span>
     );
+}
+
+/** Document-space position of a path anchor or handle, or null when the node is gone or is not a path */
+function pointInDoc(doc: SvgDoc, ref: PointRef): Point | null {
+    const loc = findNode(doc, ref.nodeId);
+    if (loc?.node.kind !== 'path') {
+        return null;
+    }
+
+    const [si, ai] = ref.key.split(':').map(Number);
+    const anchor = pathDataToSubpaths(loc.node.d)[si]?.anchors[ai];
+    const local = ref.side ? anchor?.[ref.side] : anchor;
+    return local ? applyMatrix(nodeCtm(loc), local) : null;
 }
 
 const SLIDE_PX = 24;
