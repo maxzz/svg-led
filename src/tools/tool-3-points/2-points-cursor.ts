@@ -41,7 +41,6 @@ export const setPointsHoverAtom = atom(
 
 /** True while a drag moves points, handles, or a whole element. Hover is cleared on pointer down, so the cursor reads this instead. */
 export const pointsDraggingAtom = atom(false);
-
 export const pointsCursorAtom = atom(
     (get) => pointsCursorClass(get(pointsHoverAtom), withoutSpringKey(get, get(heldKeysAtom)), get(pointsDraggingAtom))
 );
