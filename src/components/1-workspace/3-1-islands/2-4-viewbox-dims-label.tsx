@@ -1,8 +1,10 @@
 import { AnimatePresence, motion } from "motion/react";
+import { useAtomValue } from "jotai";
 import { useSnapshot } from "valtio";
 import { fmtNum } from "@/svg-core";
 import { appSettings } from "@/store/1-ui-settings";
 import { useDocSnapshot } from "@/store/3-document";
+import { pointerDocAtom } from "@/store/4-editor";
 
 /**
  * ViewBox numbers shown inside the help island (bottom-right corner) while "Use viewBox" is enabled.
@@ -45,6 +47,8 @@ export function ViewBoxDimsLabel() {
                                 {/* <span className="mx-px text-[7px]">x</span> */}
                                 {fmtNum(vb.height, 3)}
                             </span>
+                            
+                            <PointerCoords />
                         </div>
 
                         <div className="w-px self-stretch bg-foreground/15" />
@@ -52,6 +56,31 @@ export function ViewBoxDimsLabel() {
                 </motion.div>
             )}
         </AnimatePresence>
+    );
+}
+
+/**
+ * Pointer position in document units, shown as a third line under the viewBox numbers.
+ * Each value sits in a fixed-width slot (in `ch`, sized for values like -1234.56), so a change in X never moves Y,
+ * and the three lines fill the same 36px as the island's buttons, so the island keeps its height.
+ */
+function PointerCoords() {
+    const { showPointerCoords } = useSnapshot(appSettings.prefs);
+    const pointer = useAtomValue(pointerDocAtom);
+
+    if (!showPointerCoords) {
+        return null;
+    }
+
+    return (
+        <span className="whitespace-nowrap flex gap-x-1">
+            <span className="w-[8ch] text-right" title="Pointer X">
+                {pointer ? fmtNum(pointer.x, 2) : '–'}
+            </span>
+            <span className="w-[8ch] text-right" title="Pointer Y">
+                {pointer ? fmtNum(pointer.y, 2) : '–'}
+            </span>
+        </span>
     );
 }
 

@@ -25,6 +25,7 @@ export function Tab_General() {
             <PinPropertiesSwitch />
             <HintPlacementSelect />
             <SelectionModeSelect />
+            <PointerCoordsSwitch />
 
             <SubHeader>Snapping</SubHeader>
             <SmartGuidesSwitch />
@@ -224,6 +225,26 @@ const SELECTION_MODE_ITEMS: readonly (readonly [label: string, value: SelectionM
     ["Inclusive", SelectionMode.inclusive],
     ["Exclusive", SelectionMode.exclusive],
 ];
+
+//---------------------------------------------------------------------------
+
+function PointerCoordsSwitch() {
+    const { prefs } = useSnapshot(appSettings);
+    const id = useId();
+
+    return (
+        <div className="flex items-center justify-between gap-4">
+            <OptionLabel
+                htmlFor={id}
+                tip="Show the pointer position in document units (X and Y) under the viewBox numbers in the bottom-right island. Needs the viewBox display to be on."
+            >
+                Mouse coordinates in viewBox
+            </OptionLabel>
+
+            <Switch id={id} checked={prefs.showPointerCoords} onCheckedChange={(v) => { appSettings.prefs.showPointerCoords = v; }} />
+        </div>
+    );
+}
 
 //---------------------------------------------------------------------------
 
