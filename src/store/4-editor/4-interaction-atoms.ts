@@ -20,6 +20,16 @@ export const isPanningAtom = atom(false);
 /** Last pointer position over the canvas, in document coordinates */
 export const pointerDocAtom = atom<Point | null>(null);
 
+/** A path anchor (`side` unset) or direction handle (`side` set) with `key` = `subpath:anchor` */
+export type PointRef = { nodeId: string; key: string; side?: 'in' | 'out'; };
+
+/**
+ * The point a drag grabbed (Direct selection or Pen): set on pointer down on an anchor or handle, kept through the drag and
+ * after release (so the final, snapped position stays shown), and cleared once the pointer hovers something else, leaves the canvas,
+ * or the tool deactivates.
+ */
+export const pointFocusAtom = atom<PointRef | null>(null);
+
 //---------------------------------------------------------------------------
 
 /** Modifier keys held over the editor; Ctrl also covers Cmd */

@@ -2,7 +2,7 @@ import { PenTool } from "lucide-react";
 import { type Getter, type Setter } from "jotai";
 import { type Anchor, type Point, type SubPath, applyMatrix, constrain45, findNode, newNodeId, parseAnchorKey, pathDataToSubpaths, pullHandles, subpathsToPathData } from "@/svg-core";
 import { commitHistory, docPrecision, docState, getNodeProxy } from "@/store/3-document";
-import { ToolId, penDraftAtom, selectionAtom, setSelectionAtom } from "@/store/4-editor";
+import { ToolId, penDraftAtom, pointFocusAtom, selectionAtom, setSelectionAtom } from "@/store/4-editor";
 import { newShapeStyleAtom } from "@/store/2-persist";
 import { insertNodeAtTop, newElementMatrix } from "@/store/6-layers";
 import { type ToolDef } from "../9-types-tool-def";
@@ -43,14 +43,20 @@ export const penTool: ToolDef = {
     newShapeKind: 'path',
 
     onPointerHover({ get, set }, e) {
-        set(setPenHoverAtom, { action: resolvePenAction(get, e), anchor: penAnchorAt(get, e.doc) ?? null });
+        const anchor = penAnchorAt(get, e.doc) ?? null;
+        set(setPenHoverAtom, { action: resolvePenAction(get, e), anchor });
+        if (!anchor) {
+            set(pointFocusAtom, null); // hovering something that is not a point ends the focus on the last grabbed point
+        }
     },
 
     onPointerLeave({ set }) {
         set(setPenHoverAtom, null);
+        set(pointFocusAtom, null);
     },
 
     onPointerDown({ get, set }, e) {
+        set(pointFocusAtom, null);
         if (beginConvertAnchor(get, set, e)) {
             set(setPenHoverAtom, null);
             return;
@@ -82,6 +88,7 @@ export const penTool: ToolDef = {
                         set(penDraftAtom, { nodeId: node.id, subpaths: subs, si, isNew: false, startCount: sub.anchors.length });
                         set(setSelectionAtom, [node.id]);
                         gesture = { ai: sub.anchors.length - 1, startScreen: e.screen, moved: false, closing: false };
+                        focusDraftAnchor(set, node.id, si, gesture.ai);
                         return;
                     }
                 }
@@ -94,6 +101,7 @@ export const penTool: ToolDef = {
             set(penDraftAtom, { nodeId: id, subpaths, si: 0, isNew: true, startCount: 0 });
             set(setSelectionAtom, [id]);
             gesture = { ai: 0, startScreen: e.screen, moved: false, closing: false };
+            focusDraftAnchor(set, id, 0, 0);
             return;
         }
 
@@ -108,6 +116,7 @@ export const penTool: ToolDef = {
             sub.closed = true;
             writeDraft(set, draft);
             gesture = { ai: 0, startScreen: e.screen, moved: false, closing: true };
+            focusDraftAnchor(set, draft.nodeId, draft.si, 0);
             return;
         }
 
@@ -115,6 +124,7 @@ export const penTool: ToolDef = {
         sub.anchors.push({ x: local.x, y: local.y, kind: 'corner' });
         writeDraft(set, draft);
         gesture = { ai: sub.anchors.length - 1, startScreen: e.screen, moved: false, closing: false };
+        focusDraftAnchor(set, draft.nodeId, draft.si, gesture.ai);
     },
 
     onPointerMove({ get, set }, e) {
@@ -127,6 +137,9 @@ export const penTool: ToolDef = {
         }
         if (!gesture.moved && !pastThreshold(gesture.startScreen, e.screen)) {
             return;
+        }
+        if (!gesture.moved) {
+            focusDraftAnchor(set, draft.nodeId, draft.si, gesture.ai, 'out'); // the pulled out handle is the point under the cursor
         }
         gesture.moved = true;
 
@@ -182,10 +195,17 @@ export const penTool: ToolDef = {
     onDeactivate({ get, set }) {
         finishDraft(get, set);
         set(setPenHoverAtom, null);
+        set(pointFocusAtom, null);
     },
 };
 
 //---------------------------------------------------------------------------
+
+/** Focuses an anchor of the path being drawn; `side` picks one of its handles instead */
+function focusDraftAnchor(set: Setter, nodeId: string, si: number, ai: number, side?: 'in' | 'out'): void {
+    const key = `${si}:${ai}`;
+    set(pointFocusAtom, side ? { nodeId, key, side } : { nodeId, key });
+}
 
 /** Adds or deletes a point: on the path being drawn the draft goes on, on a selected path it is one undo step */
 function editPoints(get: Getter, set: Setter, action: Extract<PenAction, { type: 'add' | 'delete'; }>): void {

@@ -1,7 +1,7 @@
 import { type Getter, type Setter, atom } from "jotai";
 import { type Matrix, type Point, type SubPath, applyMatrix, constrain45, findNode, getAnchor, parseAnchorKey, pathDataToSubpaths, pullHandles, subpathsToPathData, toggleAnchorKind } from "@/svg-core";
 import { commitHistory, docPrecision, docState, getNodeProxy } from "@/store/3-document";
-import { penDraftAtom } from "@/store/4-editor";
+import { penDraftAtom, pointFocusAtom } from "@/store/4-editor";
 import { type ToolPointerEvent } from "../9-types-tool-def";
 import { MODIFIERS, isMod } from "../tool-2-select/8-definition-of-modifiers";
 import { nodeMatrices } from "../0-shared/2-tool-helpers";
@@ -53,6 +53,7 @@ export function beginConvertAnchor(get: Getter, set: Setter, e: ToolPointerEvent
     }
     gesture = { nodeId: hit.nodeId, key: hit.key, onDraft, subs, inv: m.inv, startScreen: e.screen, moved: false };
     set(penConvertingAnchorAtom, hit);
+    set(pointFocusAtom, { nodeId: hit.nodeId, key: hit.key });
     return true;
 }
 
@@ -63,6 +64,9 @@ export function moveConvertAnchor(get: Getter, set: Setter, e: ToolPointerEvent)
     }
     if (!gesture.moved && !pastThreshold(gesture.startScreen, e.screen)) {
         return true;
+    }
+    if (!gesture.moved) {
+        set(pointFocusAtom, { nodeId: gesture.nodeId, key: gesture.key, side: 'out' }); // the pulled out handle is the point under the cursor
     }
     gesture.moved = true;
     const subs = structuredClone(gesture.subs);

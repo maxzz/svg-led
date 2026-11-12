@@ -10,7 +10,7 @@ import {
     toggleAnchorKind, walkNodes,
 } from "@/svg-core";
 import { commitHistory, docPrecision, docState, getNodeProxy, replaceNode } from "@/store/3-document";
-import { ToolId, anchorsOfNode, lassoAtom, marqueeAtom, nodeAnchorKey, screenToDoc, selectedAnchorsAtom, selectionAtom, setActiveToolAtom, splitNodeAnchorKey, viewportAtom } from "@/store/4-editor";
+import { ToolId, anchorsOfNode, lassoAtom, marqueeAtom, nodeAnchorKey, pointFocusAtom, screenToDoc, selectedAnchorsAtom, selectionAtom, setActiveToolAtom, splitNodeAnchorKey, viewportAtom } from "@/store/4-editor";
 
 import { getIsolationScope, isPickable } from "@/store/6-layers";
 import { type ToolDef, type ToolPointerEvent } from "../9-types-tool-def";
@@ -21,7 +21,7 @@ import { modifierHint } from "../0-shared/5-hint";
 import { type MoveGesture, beginMove, endMove, moveAltKey, pastThreshold, updateMove } from "../0-shared/3-move-gesture";
 import { type SnapAxis, clearSnapGuides } from "@/tools/2-1-core-snapping";
 import { type PointSnapSession, beginPointSnap, endPointSnap, handleTargetKey, updatePointSnap, updatePointSnapOverGrid } from "@/tools/2-2-core-snapping-points";
-import { type PointRef, pointFocusAtom, pointsCursorAtom, pointsDraggingAtom, resolvePointsHover, setPointsHoverAtom } from "./2-points-cursor";
+import { pointsCursorAtom, pointsDraggingAtom, resolvePointsHover, setPointsHoverAtom } from "./2-points-cursor";
 
 const M = MODIFIERS.points;
 

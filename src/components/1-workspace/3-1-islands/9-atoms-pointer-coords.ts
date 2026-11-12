@@ -1,5 +1,6 @@
 import { atom } from "jotai";
-import { type PointRef, hoveredAnchorAtom, hoveredHandleAtom, pointFocusAtom } from "@/tools/tool-3-points/2-points-cursor";
+import { type PointRef, pointFocusAtom } from "@/store/4-editor";
+import { hoveredAnchorAtom, hoveredHandleAtom } from "@/tools/tool-3-points/2-points-cursor";
 import { penHoverAnchorAtom } from "@/tools/tool-5-pen/a-pen-cursor";
 
 /**

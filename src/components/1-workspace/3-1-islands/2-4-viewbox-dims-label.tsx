@@ -4,9 +4,8 @@ import { useSnapshot } from "valtio";
 import { type Point, type SvgDoc, applyMatrix, findNode, fmtNum, nodeCtm, pathDataToSubpaths } from "@/svg-core";
 import { appSettings } from "@/store/1-ui-settings";
 import { useDocSnapshot } from "@/store/3-document";
-import { pointerDocAtom } from "@/store/4-editor";
+import { type PointRef, pointerDocAtom } from "@/store/4-editor";
 import { cn } from "@/utils/classnames";
-import { type PointRef } from "@/tools/tool-3-points/2-points-cursor";
 import { shownPointRefAtom } from "./9-atoms-pointer-coords";
 
 /**
