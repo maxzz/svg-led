@@ -41,6 +41,27 @@ describe("rulerTicks", () => {
         expect(ticks.filter((t) => t.label).map((t) => t.label)).toEqual(['8', '10', '12']);
     });
 
+    it("always numbers the far end of the viewBox edge", () => {
+        const labels = (to: number, zoom: number) => rulerTicks(rulerSteps(zoom), { ...axis, to, zoom })
+            .filter((t) => t.label)
+            .map((t) => t.label);
+
+        expect(labels(24, 15.5)).toEqual(['0', '5', '10', '15', '20', '24']);
+        expect(labels(24, 4.06)).toEqual(['0', '20', '24']);
+        expect(labels(24.375, 15.5).at(-1)).toBe('24.375');
+    });
+
+    it("drops the number before the end when the two would overlap", () => {
+        const ticks = rulerTicks(rulerSteps(15.5), { ...axis, to: 20.5, zoom: 15.5 });
+        expect(ticks.filter((t) => t.label).map((t) => t.label)).toEqual(['0', '5', '10', '15', '20.5']);
+        expect(ticks.filter((t) => t.kind === TickKind.major)).toHaveLength(6); // the tick at 20 stays, unnumbered
+    });
+
+    it("leaves the end out when it is off screen", () => {
+        const ticks = rulerTicks(rulerSteps(axis.zoom), { ...axis, clipTo: 400 });
+        expect(ticks.at(-1)?.label).toBe('12');
+    });
+
     it("labels negative and fractional values without float noise", () => {
         const ticks = rulerTicks(rulerSteps(200), { from: -1, to: 1, zoom: 200, offset: 0, clipFrom: -1000, clipTo: 1000 });
         expect(ticks.filter((t) => t.label).map((t) => t.label)).toEqual(['-1', '-0.5', '0', '0.5', '1']);

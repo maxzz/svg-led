@@ -72,7 +72,34 @@ export function rulerTicks(steps: RulerSteps, axis: RulerAxis): RulerTick[] {
             ticks.push({ pos, kind: steps.perMajor % 2 === 0 && index === steps.perMajor / 2 ? TickKind.mid : TickKind.minor });
         }
     }
+
+    if (to <= hi + eps && to > from) {
+        addEndTick(ticks, to * zoom + offset, formatLabel(to, Math.max(steps.decimals, END_LABEL_DECIMALS)));
+    }
     return ticks;
+}
+
+/** Width of one label character at the ruler font size, rounded up; used to tell when two centered labels would overlap */
+const LABEL_CHAR_PX = 5;
+/** Smallest space left between the end label and the number before it */
+const LABEL_SPACE_PX = 4;
+/** Fraction digits kept for an end value that falls between steps (e.g. a 24.375 wide viewBox) */
+const END_LABEL_DECIMALS = 3;
+
+/** The far end of the viewBox edge always gets a numbered tick, whatever the step */
+function addEndTick(ticks: RulerTick[], pos: number, label: string) {
+    const last = ticks.at(-1);
+    if (last && Math.abs(last.pos - pos) < 0.5) {
+        ticks[ticks.length - 1] = { pos: last.pos, kind: TickKind.major, label };
+    } else {
+        ticks.push({ pos, kind: TickKind.major, label });
+    }
+
+    // When the two numbers would overlap, the earlier one gives way; its tick stays
+    const prev = ticks.findLast((t, i) => i < ticks.length - 1 && t.label !== undefined);
+    if (prev?.label && pos - prev.pos < ((prev.label.length + label.length) / 2) * LABEL_CHAR_PX + LABEL_SPACE_PX) {
+        delete prev.label;
+    }
 }
 
 function formatLabel(value: number, decimals: number): string {
