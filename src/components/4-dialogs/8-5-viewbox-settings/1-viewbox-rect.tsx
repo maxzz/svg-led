@@ -23,9 +23,9 @@ export function Controls_ViewBoxRect() {
     }
 
     const isDirty = !!vb && !!draft && (draft.x !== vb.x || draft.y !== vb.y || draft.width !== vb.width || draft.height !== vb.height);
-    // Shown value: "None" without a viewBox, the matching preset size, or "Custom" for any other size
+    // Shown value: empty (placeholder "Square") without a viewBox, the matching preset size, or "Custom" for any other size
     const selectValue = !vb
-        ? "none"
+        ? ""
         : vb.width === vb.height && VIEWBOX_PRESETS.includes(vb.width)
             ? String(vb.width)
             : "custom";
@@ -34,9 +34,7 @@ export function Controls_ViewBoxRect() {
     const editDraft = (k: "x" | "y" | "width" | "height") => (n: number) => setDraft((d) => (d ? { ...d, [k]: n } : d));
 
     function onPick(v: string) {
-        if (v === 'none') {
-            setVb(null);
-        } else if (v === 'custom') {
+        if (v === 'custom') {
             addVb();
         } else {
             setVb({ x: 0, y: 0, width: Number(v), height: Number(v) });
@@ -67,7 +65,6 @@ export function Controls_ViewBoxRect() {
                     </SelectTrigger>
 
                     <SelectContent position="popper" align="end">
-                        <SelectItem value="none">None</SelectItem>
                         <SelectItem value="custom">Custom</SelectItem>
                         {VIEWBOX_PRESETS.map(
                             (n) => (
