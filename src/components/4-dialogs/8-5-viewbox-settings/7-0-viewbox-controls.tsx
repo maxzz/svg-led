@@ -38,12 +38,12 @@ export function Control_WithHint({ id, label, hint, children }: { id: string; la
 //---------------------------------------------------------------------------
 
 /** Checkbox row (checkbox + label) paired with a tooltip that explains the setting */
-export function Control_Checkbox({ label, hint, checked, onCheckedChange }: { label: string; hint: string; checked: boolean; onCheckedChange: (v: boolean) => void; }) {
+export function Control_Checkbox({ label, hint, checked, disabled, onCheckedChange }: { label: string; hint: string; checked: boolean; disabled?: boolean; onCheckedChange: (v: boolean) => void; }) {
     const id = useId();
 
     return (
         <div className="h-6 flex items-center gap-2">
-            <Checkbox id={id} checked={checked} onCheckedChange={onCheckedChange} />
+            <Checkbox id={id} checked={checked} disabled={disabled} onCheckedChange={onCheckedChange} />
             <Control_Label htmlFor={id} hint={hint}>{label}</Control_Label>
         </div>
     );

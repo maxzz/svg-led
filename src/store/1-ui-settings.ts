@@ -52,6 +52,7 @@ export interface LayersPanelSettings {
 
 export interface EditorPreferences {
     showViewBox: boolean;        // Draw the viewBox frame and dim everything outside it
+    showRulers: boolean;         // Draw rulers along the top and left edges of the viewBox frame
     showGrid: boolean;           // Draw the grid in document units
     snapToGrid: boolean;         // Snap dragged points to the grid
     snapToObjects: boolean;      // Snap dragged elements to the edges and centers of other elements (Ctrl also snaps while dragging)
@@ -138,6 +139,7 @@ const DEFAULT_SETTINGS: AppSettings = {
     },
     prefs: {
         showViewBox: true,
+        showRulers: false,
         showGrid: false,
         snapToGrid: false,
         snapToObjects: false,

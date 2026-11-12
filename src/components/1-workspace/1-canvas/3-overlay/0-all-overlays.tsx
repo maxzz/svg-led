@@ -7,6 +7,7 @@ import { Overlay_Pen } from "./4-overlay-pen";
 import { Overlay_Marquee, Overlay_Lasso } from "./5-overlay-marquees";
 import { Overlay_SnapGuides } from "@/tools/2-1-core-snapping";
 import { Overlay_PointSnap } from "@/tools/2-2-core-snapping-points";
+import { Overlay_Rulers } from "../5-rulers";
 
 /** Editor decorations drawn in screen space so they keep their size at any zoom */
 export function OverlayLayer() {
@@ -15,6 +16,7 @@ export function OverlayLayer() {
     return (
         <g>
             <Overlay_ViewBoxFrame />
+            <Overlay_Rulers />
 
             {tool === ToolId.points
                 ? <Overlay_Points />
