@@ -6,7 +6,8 @@ import { appSettings } from "@/store/1-ui-settings";
 import { useDocSnapshot } from "@/store/3-document";
 import { pointerDocAtom } from "@/store/4-editor";
 import { cn } from "@/utils/classnames";
-import { type PointRef, hoveredPointRefAtom } from "./9-atoms-pointer-coords";
+import { type PointRef } from "@/tools/tool-3-points/2-points-cursor";
+import { shownPointRefAtom } from "./9-atoms-pointer-coords";
 
 /**
  * ViewBox numbers shown inside the help island (bottom-right corner) while "Use viewBox" is enabled.
@@ -71,7 +72,7 @@ export function ViewBoxDimsLabel() {
 function PointerCoords() {
     const { showPointerCoords } = useSnapshot(appSettings.prefs);
     const pointer = useAtomValue(pointerDocAtom);
-    const pointRef = useAtomValue(hoveredPointRefAtom);
+    const pointRef = useAtomValue(shownPointRefAtom);
     const doc = useDocSnapshot();
 
     if (!showPointerCoords) {

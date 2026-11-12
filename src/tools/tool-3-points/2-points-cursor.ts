@@ -42,6 +42,15 @@ export const setPointsHoverAtom = atom(
 /** True while a drag moves points, handles, or a whole element. Hover is cleared on pointer down, so the cursor reads this instead. */
 export const pointsDraggingAtom = atom(false);
 
+/** A path anchor (`side` unset) or direction handle (`side` set) with `key` = `subpath:anchor` */
+export type PointRef = { nodeId: string; key: string; side?: 'in' | 'out'; };
+
+/**
+ * The point the pointer grabbed: set on pointer down on an anchor or handle, kept through the drag and after release
+ * (so the final, snapped position stays shown), and cleared once the pointer hovers something else or leaves the canvas.
+ */
+export const pointFocusAtom = atom<PointRef | null>(null);
+
 export const pointsCursorAtom = atom(
     (get) => pointsCursorClass(get(pointsHoverAtom), withoutSpringKey(get, get(heldKeysAtom)), get(pointsDraggingAtom))
 );

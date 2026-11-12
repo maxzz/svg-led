@@ -21,7 +21,7 @@ import { modifierHint } from "../0-shared/5-hint";
 import { type MoveGesture, beginMove, endMove, moveAltKey, pastThreshold, updateMove } from "../0-shared/3-move-gesture";
 import { type SnapAxis, clearSnapGuides } from "@/tools/2-1-core-snapping";
 import { type PointSnapSession, beginPointSnap, endPointSnap, handleTargetKey, updatePointSnap, updatePointSnapOverGrid } from "@/tools/2-2-core-snapping-points";
-import { pointsCursorAtom, pointsDraggingAtom, resolvePointsHover, setPointsHoverAtom } from "./2-points-cursor";
+import { type PointRef, pointFocusAtom, pointsCursorAtom, pointsDraggingAtom, resolvePointsHover, setPointsHoverAtom } from "./2-points-cursor";
 
 const M = MODIFIERS.points;
 
@@ -47,16 +47,22 @@ export const pointsTool: ToolDef = {
     getCursor: (get) => get(pointsCursorAtom),
 
     onPointerHover({ get, set }, e) {
-        set(setPointsHoverAtom, resolvePointsHover(get, e));
+        const hover = resolvePointsHover(get, e);
+        set(setPointsHoverAtom, hover);
+        if (!hover.anchor && !hover.handle) {
+            set(pointFocusAtom, null); // hovering something that is not a point ends the focus on the last grabbed point
+        }
     },
 
     onPointerLeave({ set }) {
         set(setPointsHoverAtom, null);
+        set(pointFocusAtom, null);
     },
 
     onPointerDown({ get, set }, e) {
         set(pointsDraggingAtom, false);
         set(setPointsHoverAtom, null);
+        set(pointFocusAtom, null);
         const selection = get(selectionAtom);
         const selectedAnchors = get(selectedAnchorsAtom);
         let target = e.target;
@@ -97,6 +103,7 @@ export const pointsTool: ToolDef = {
             if (m && subs) {
                 gesture = { type: 'handle', nodeId: target.nodeId, key: target.key, side: target.side, subs, inv: m.inv, moved: false, snap: beginHandleSnap(get, target.nodeId, target.key) };
                 set(pointsDraggingAtom, true);
+                set(pointFocusAtom, { nodeId: target.nodeId, key: target.key, side: target.side });
             }
             return;
         }
@@ -107,6 +114,7 @@ export const pointsTool: ToolDef = {
             if (m && subs) {
                 gesture = { type: 'alt-anchor', nodeId: target.nodeId, key: target.key, subs, inv: m.inv, startScreen: e.screen, moved: false, snap: beginHandleSnap(get, target.nodeId, target.key) };
                 set(pointsDraggingAtom, true);
+                set(pointFocusAtom, { nodeId: target.nodeId, key: target.key });
             }
             return;
         }
@@ -126,6 +134,7 @@ export const pointsTool: ToolDef = {
             set(selectedAnchorsAtom, keys);
             gesture = beginAnchorsGesture(keys, e, { get, full });
             set(pointsDraggingAtom, true);
+            focusAnchorKey(set, full);
             return;
         }
 
@@ -146,6 +155,7 @@ export const pointsTool: ToolDef = {
                 const grab = nearestSelectedAnchor(get, id, selectedAnchors, e.doc);
                 gesture = beginAnchorsGesture(selectedAnchors, e, grab ? { get, full: grab } : undefined);
                 set(pointsDraggingAtom, true);
+                grab && focusAnchorKey(set, grab);
                 return;
             }
             if (!selection.includes(id)) {
@@ -270,6 +280,7 @@ export const pointsTool: ToolDef = {
     onDeactivate({ set }) {
         set(pointsDraggingAtom, false);
         set(setPointsHoverAtom, null);
+        set(pointFocusAtom, null);
     },
 
     onKeyDown({ get, set }, e) {
@@ -326,6 +337,14 @@ type Gesture =
 type Candidate = { full: string; nodeId: string; doc: Point; };
 
 let gesture: Gesture | null = null;
+
+/** Focuses the grabbed path anchor; shape handles (`h:` keys) have no path point to show */
+function focusAnchorKey(set: Setter, full: string) {
+    const [nodeId, key] = splitNodeAnchorKey(full);
+    if (!key.startsWith('h:')) {
+        set(pointFocusAtom, { nodeId, key });
+    }
+}
 
 //---------------------------------------------------------------------------
 
