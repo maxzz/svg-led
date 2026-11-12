@@ -1,5 +1,6 @@
 import { type ReactNode } from "react";
 import { useAtom } from "jotai";
+import { AnimatePresence, motion } from "motion/react";
 import { useSnapshot } from "valtio";
 import { appSettings } from "@/store/1-ui-settings";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/ui/shadcn/dialog";
@@ -71,7 +72,19 @@ function Body() {
         <div className="px-4 pt-2 pb-3 text-xs flex flex-col gap-2">
             <Control_Checkbox label="Use viewBox" hint="Show the viewBox outline on the canvas" checked={prefs.showViewBox} onCheckedChange={(v) => { appSettings.prefs.showViewBox = v; }} />
 
-            <Controls_ViewBoxRect />
+            <AnimatePresence initial={false}>
+                {prefs.showViewBox && (
+                    <motion.div
+                        className="overflow-hidden -mx-1 px-1"
+                        initial={{ height: 0, opacity: 0, marginTop: -BODY_GAP_PX, marginBottom: 0, paddingTop: 0, paddingBottom: 0 }}
+                        animate={{ height: 'auto', opacity: 1, marginTop: -BODY_RING_PX, marginBottom: -BODY_RING_PX, paddingTop: BODY_RING_PX, paddingBottom: BODY_RING_PX }}
+                        exit={{ height: 0, opacity: 0, marginTop: -BODY_GAP_PX, marginBottom: 0, paddingTop: 0, paddingBottom: 0 }}
+                        transition={{ duration: 0.2, ease: 'easeOut' }}
+                    >
+                        <Controls_ViewBoxRect />
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <div className="pt-3 border-t flex flex-col">
                 <div className="grid grid-cols-2 gap-x-4 gap-y-3">
@@ -100,6 +113,11 @@ function Body() {
 }
 
 const GRID_SIZES = [1, 5, 8, 10, 16, 20, 32];
+
+/** Gap between rows in `Body` (gap-2 = 0.5rem). Must match, so the collapsed rect leaves no gap behind. */
+const BODY_GAP_PX = 8;
+/** Room for focus rings inside the collapsible area, which its overflow-hidden would otherwise clip. Offset by negative margins, so the layout does not change. */
+const BODY_RING_PX = 4;
 
 //---------------------------------------------------------------------------
 
