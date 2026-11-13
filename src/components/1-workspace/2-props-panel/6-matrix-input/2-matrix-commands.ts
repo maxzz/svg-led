@@ -17,7 +17,7 @@ export function applySelectionMatrices(ids: readonly string[]): void {
         if (!canBakeMatrix(plain)) {
             continue;
         }
-        replaceNode(id, bakeNodeMatrix(plain, precision));
+        replaceNode(id, bakeNodeMatrix(plain, precision, loc.parents));
         changed = true;
     }
 
