@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
     type SvgDoc, type SvgNode, type GroupNode, reuseNodeIds, applyMatrix, buildSourceMap, cubicBBox, cubicPoint, deleteAnchors, fitRectMatrix, getPresentation, inertPointerEvents, insertAnchor,
     invert, multiply, nearestSegment, nodeAtOffset, parsePathData, parseTransform, pathDataToSubpaths, rotateMatrix, scanElements,
-    serializeSvg, setHandle, setPresentation, shapeToSubpaths, subpathsToPathData, toggleAnchorKind, transformNode, transformPathData,
+    serializeSvg, setHandle, setPresentation, scalePathStrokeWidth, shapeToSubpaths, subpathsToPathData, toggleAnchorKind, transformNode, transformPathData,
     uniformPadding, localBBox,
 } from "../index";
 
@@ -150,6 +150,27 @@ describe("ops", () => {
         expect(next.children[0]).toMatchObject({ x: 0, y: 0, width: 20, height: 10 });
         expect(next.children[0].attrs['stroke-width']).toBe('2');
         expect(next.children[0].attrs.transform).toBeUndefined();
+    });
+
+    it("scales the stroke of a path inside a non-uniformly resized group", () => {
+        const inherits = { id: 'p1', kind: 'path' as const, d: 'M0 0 L10 0', attrs: {} };
+        const own = { id: 'p2', kind: 'path' as const, d: 'M0 0 L10 0', attrs: { 'stroke-width': '2' } };
+        const group = { id: 'g', kind: 'g' as const, attrs: { 'stroke-width': '4' }, children: [inherits, own] as SvgNode[] };
+        const next = transformNode(group, [2, 0, 0, 1, 0, 0], 3) as typeof group;
+
+        expect(next.attrs['stroke-width']).toBe('4');
+        expect(next.children[0].attrs['stroke-width']).toBe('5.657');
+        expect(next.children[1].attrs['stroke-width']).toBe('2.828');
+    });
+
+    it("scales a path's stroke width with its size, but not for rotations or percentages", () => {
+        const path = (attrs: Record<string, string>) => ({ id: 'p', kind: 'path' as const, d: 'M0 0 L10 0', attrs });
+        expect(scalePathStrokeWidth(path({ 'stroke-width': '2' }), [], [2, 0, 0, 1, 0, 0], 3).attrs['stroke-width']).toBe('2.828');
+        expect(scalePathStrokeWidth(path({ 'stroke-width': '2' }), [], rotateMatrix(45), 3).attrs['stroke-width']).toBe('2');
+        expect(scalePathStrokeWidth(path({ 'stroke-width': '10%' }), [], [2, 0, 0, 2, 0, 0], 3).attrs['stroke-width']).toBe('10%');
+
+        const group = { id: 'g', kind: 'g' as const, attrs: { 'stroke-width': '4' }, children: [] as SvgNode[] };
+        expect(scalePathStrokeWidth(path({}), [group], [2, 0, 0, 2, 0, 0], 3).attrs['stroke-width']).toBe('8');
     });
 
     it("fits a rect into a padded box keeping aspect", () => {

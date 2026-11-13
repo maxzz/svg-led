@@ -3,7 +3,7 @@ import {
     type Attrs, type GroupNode, type Matrix, type Padding, type FitOptions, type SvgDoc, type SvgNode, type ViewBox, type PathNode, type NodeLocation,
     docToParentMatrix, findNode, fitRectMatrix, isShapeNode, newNodeId, nodeOwnMatrix, parentsMatrix, parseSvg,
     canExpandPath, classRulesOf, expandPathNode,
-    parseSvgFragment, serializeNodes, serializeSvg, setPresentation, shapeToPath, topmostIds, transformNode, translateMatrix,
+    parseSvgFragment, serializeNodes, serializeSvg, setPresentation, scalePathStrokeWidth, shapeToPath, topmostIds, transformNode, translateMatrix,
     viewBoxAround, walkNodes, makeFmt, isIdentity, multiply, scaleMatrix, reuseNodeIds, type Rect, scaleAround, getPresentation,
     combinePaths, isCompoundPath, releaseCompoundPath, IDENTITY, invert,
 } from "@/svg-core";
@@ -194,7 +194,7 @@ export function applyDocMatrix(originals: NodeOriginals, mDoc: Matrix): void {
             continue;
         }
         const mParent = docToParentMatrix(mDoc, parentsMatrix(loc.parents));
-        loc.siblings[loc.index] = transformNode(original, mParent, precision);
+        loc.siblings[loc.index] = scalePathStrokeWidth(transformNode(original, mParent, precision, loc.parents), loc.parents, mParent, precision);
     }
 }
 
