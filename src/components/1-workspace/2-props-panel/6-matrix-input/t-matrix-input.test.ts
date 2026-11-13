@@ -130,15 +130,22 @@ describe("bakeNodeMatrix", () => {
         expect(next.attrs["stroke-width"]).toBe("2");
         expect(next.children[0].attrs["stroke-width"]).toBe("4");
         expect(next.children[1].attrs["stroke-width"]).toBeUndefined();
-        expect(next.children[2].attrs["stroke-width"]).toBe("1");
+        expect(next.children[2].attrs["stroke-width"]).toBeUndefined(); // no visible stroke, so no width is written
+    });
+
+    it("does not add stroke-width to a group that only passes its scale to children", () => {
+        const next = bakeNodeMatrix(group("g", [rect("r", 0, 0, 10, 10, { stroke: "#000", "stroke-width": "2" })], { transform: "scale(2)" }), 3) as GroupNode;
+
+        expect(next.attrs["stroke-width"]).toBeUndefined();
+        expect(next.children[0].attrs["stroke-width"]).toBe("4");
     });
 
     it("keeps an inherited width from outside the baked group when its scale changes", () => {
         const outer = group("outer", [], { "stroke-width": "3" });
-        const next = bakeNodeMatrix(group("g", [rect("r", 0, 0, 10, 10)], { transform: "scale(2)" }), 3, [outer]) as GroupNode;
+        const next = bakeNodeMatrix(group("g", [rect("r", 0, 0, 10, 10, { stroke: "#000" })], { transform: "scale(2)" }), 3, [outer]) as GroupNode;
 
-        expect(next.attrs["stroke-width"]).toBe("6");
-        expect(next.children[0].attrs["stroke-width"]).toBeUndefined();
+        expect(next.attrs["stroke-width"]).toBeUndefined();
+        expect(next.children[0].attrs["stroke-width"]).toBe("6");
     });
 
     it("does not bake a text element, and strip leaves the geometry alone", () => {

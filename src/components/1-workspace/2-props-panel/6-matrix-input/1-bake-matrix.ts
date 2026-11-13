@@ -1,5 +1,5 @@
 import {
-    type Matrix, type SvgNode, IDENTITY, getPresentation, isIdentity, isShapeNode, makeFmt, multiply, nodeOwnMatrix, setPresentation, shapeToPath, transformNode,
+    type Matrix, type SvgNode, IDENTITY, getPresentation, isIdentity, isPaintVisible, isShapeNode, makeFmt, multiply, nodeOwnMatrix, setPresentation, shapeToPath, transformNode,
 } from "@/svg-core";
 
 /** True when Apply can write this node's matrix into points (or into a group's children). */
@@ -38,10 +38,12 @@ export function bakeNodeMatrix(node: SvgNode, precision: number, parents: readon
 /**
  * Stroke width a node inherits. `orig` is the value in the source document; `next` is the value it
  * inherits in the baked tree. NaN marks a width that cannot be scaled (a percentage, em, …).
+ * `paint` is the nearest stroke paint set by an ancestor, so a width is only written where a stroke shows.
  */
 interface InheritedStroke {
     orig: number;
     next: number;
+    paint?: string;
 }
 
 const DEFAULT_STROKE = 1;
@@ -57,50 +59,58 @@ function linearScale(m: Matrix): number {
     return Math.sqrt(Math.abs(m[0] * m[3] - m[1] * m[2]));
 }
 
-/** The stroke width the root of the bake inherits from the groups around it */
-function outerStroke(parents: readonly SvgNode[]): InheritedStroke {
+/** Nearest value of a presentation property set on the groups around a node */
+function inheritedPresentation(parents: readonly SvgNode[], prop: string): string | undefined {
     for (let i = parents.length - 1; i >= 0; i--) {
-        const own = getPresentation(parents[i].attrs, 'stroke-width');
-        if (own !== undefined) {
-            const value = strokeNumber(own);
-            return { orig: value, next: value };
+        const value = getPresentation(parents[i].attrs, prop);
+        if (value !== undefined) {
+            return value;
         }
     }
-    return { orig: DEFAULT_STROKE, next: DEFAULT_STROKE };
+    return undefined;
+}
+
+/** The stroke width the root of the bake inherits from the groups around it */
+function outerStroke(parents: readonly SvgNode[]): InheritedStroke {
+    const own = inheritedPresentation(parents, 'stroke-width');
+    const value = own === undefined ? DEFAULT_STROKE : strokeNumber(own);
+    return { orig: value, next: value, paint: inheritedPresentation(parents, 'stroke') };
 }
 
 /**
  * Makes `node` render its stroke at the same size after the bake. `scale` is the linear scale that the
  * node's transform change contributes once it is baked. It is 1 when the transform stays on the element.
- * Writes stroke-width when the node has its own value, or when its inherited value would now be wrong.
+ * Writes stroke-width when the node has its own value, or when it inherits a width that would now be wrong
+ * and it actually draws a stroke. A node with no visible stroke gets no stroke-width.
  */
 function settleStroke(node: SvgNode, inherited: InheritedStroke, scale: number, precision: number): InheritedStroke {
     const fmt = makeFmt(precision);
     const own = getPresentation(node.attrs, 'stroke-width');
+    const paint = getPresentation(node.attrs, 'stroke') ?? inherited.paint;
 
     if (own !== undefined) {
         const orig = strokeNumber(own);
         if (Number.isNaN(orig)) {
-            return { orig: Number.NaN, next: Number.NaN };
+            return { orig: Number.NaN, next: Number.NaN, paint };
         }
         if (scale === 1) {
-            return { orig, next: orig };
+            return { orig, next: orig, paint };
         }
         const next = orig * scale;
         setPresentation(node.attrs, 'stroke-width', fmt(next));
-        return { orig, next: Number(fmt(next)) };
+        return { orig, next: Number(fmt(next)), paint };
     }
 
     if (Number.isNaN(inherited.orig)) {
-        return { orig: Number.NaN, next: Number.NaN };
+        return { orig: Number.NaN, next: Number.NaN, paint };
     }
     const target = inherited.orig * scale;
     const tolerance = 10 ** -precision;
-    if (Math.abs(target - inherited.next) > tolerance) {
+    if (Math.abs(target - inherited.next) > tolerance && isPaintVisible(paint, 'stroke')) {
         setPresentation(node.attrs, 'stroke-width', fmt(target));
-        return { orig: inherited.orig, next: Number(fmt(target)) };
+        return { orig: inherited.orig, next: Number(fmt(target)), paint };
     }
-    return { orig: inherited.orig, next: inherited.next };
+    return { orig: inherited.orig, next: inherited.next, paint };
 }
 
 /** `parentChange` is a matrix in this node's parent coordinates, applied after the node's own transform. */
@@ -115,7 +125,10 @@ function applyInParent(node: SvgNode, parentChange: Matrix, precision: number, i
 
     if (node.kind === "g") {
         const rv = stripNodeMatrix(node);
-        const state = settleStroke(rv, inherited, linearScale(combined), precision);
+        // A group only writes stroke-width when it has its own. Otherwise its children work out their own values.
+        const state = getPresentation(rv.attrs, 'stroke-width') !== undefined
+            ? settleStroke(rv, inherited, linearScale(combined), precision)
+            : { ...inherited, paint: getPresentation(rv.attrs, 'stroke') ?? inherited.paint };
         rv.children = node.children.map((child) => applyInParent(child, combined, precision, state));
         return rv;
     }
