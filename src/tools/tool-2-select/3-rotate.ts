@@ -20,7 +20,8 @@ export const ROTATE_SNAP_DEG = 15;
 /** Tooltip sits this far from the pointer, in screen pixels. */
 export const ROTATE_TOOLTIP_GAP = 16;
 
-export type RotateReadout = { x: number; y: number; label: string };
+/** Small label that follows the pointer during a drag: the rotation angle or the scale. */
+export type DragReadout = { x: number; y: number; label: string };
 
 /**
  * Which rotate cursor class to show (`cursor-rotate-0` … `cursor-rotate-315`) over the band and for the whole drag.
@@ -29,7 +30,10 @@ export type RotateReadout = { x: number; y: number; label: string };
 export const rotateCursorAtom = atom<string | null>(null);
 
 /** Degree label that follows the pointer while a rotation drag is active. */
-export const rotateReadoutAtom = atom<RotateReadout | null>(null);
+export const rotateReadoutAtom = atom<DragReadout | null>(null);
+
+/** Size label (percent of the original size) that follows the pointer while a resize drag is active. */
+export const scaleReadoutAtom = atom<DragReadout | null>(null);
 
 /** Corner and edge grips hide for the duration of a resize or a rotation. */
 export const selectionGripsHiddenAtom = atom(false);

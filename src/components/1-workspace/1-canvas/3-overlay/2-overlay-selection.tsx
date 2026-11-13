@@ -4,7 +4,7 @@ import { type SvgDoc, type Rect, findNode } from "@/svg-core";
 import { nodesDocBBox, useDocSnapshot } from "@/store/3-document";
 import { canvasSizeAtom, hoverNodeIdAtom, rectToScreen, selectionAtom, viewportAtom } from "@/store/4-editor";
 import { type ResizeHandle } from "@/tools/9-types-tool-def";
-import { RESIZE_CURSOR, ROTATE_TOOLTIP_GAP, rotateBandD, rotateReadoutAtom, selectionGripsHiddenAtom } from "@/tools/tool-2-select";
+import { RESIZE_CURSOR, ROTATE_TOOLTIP_GAP, rotateBandD, rotateReadoutAtom, scaleReadoutAtom, selectionGripsHiddenAtom } from "@/tools/tool-2-select";
 import { nodeScreenMatrix, outlineScreenD } from "./8-overlays-math";
 
 const HANDLE = 4; // every grip; rotation starts just outside this square (see ROTATE_INNER_PX)
@@ -44,7 +44,7 @@ export function Overlay_Selection() {
                 {!hideGrips && CORNERS.map(([handle, fx, fy]) => <Grip key={handle} handle={handle} box={box} fx={fx} fy={fy} />)}
             </>)}
 
-            <RotateTooltip />
+            <DragTooltip />
         </g>
     );
 }
@@ -54,9 +54,11 @@ const CORNERS: [ResizeHandle, number, number][] = [['nw', 0, 0], ['ne', 1, 0], [
 
 //---------------------------------------------------------------------------
 
-/** Degrees follow the pointer while a rotation drag is active. The label is 8px and sits 16px from the cursor. */
-function RotateTooltip() {
-    const readout = useAtomValue(rotateReadoutAtom);
+/** The rotation angle or the size percentage follows the pointer during a drag. The label is 8px and sits 16px from the cursor. */
+function DragTooltip() {
+    const rotate = useAtomValue(rotateReadoutAtom);
+    const scale = useAtomValue(scaleReadoutAtom);
+    const readout = rotate ?? scale;
     const canvas = useAtomValue(canvasSizeAtom);
     if (!readout) {
         return null;
