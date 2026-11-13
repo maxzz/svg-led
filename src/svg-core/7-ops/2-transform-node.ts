@@ -3,7 +3,7 @@ import { nodeOwnMatrix } from "../1-model/3-tree";
 import { parseTransform } from "../2-parse/3-parse-transform";
 import { applyMatrix, invert, isAxisAligned, isIdentity, isSimilarity, matrixToString, multiply } from "../4-geometry/1-matrix";
 import { makeFmt } from "../3-serialize/1-format";
-import { getPresentation, setPresentation } from "../8-style/1-presentation";
+import { getPresentation, isPaintVisible, setPresentation } from "../8-style/1-presentation";
 import { transformPathData } from "./1-transform-path";
 
 /**
@@ -22,11 +22,10 @@ export function transformNode(node: SvgNode, m: Matrix, precision: number, paren
 
     const own = nodeOwnMatrix(node);
 
-    // A non-uniform change on a group would skew every child's stroke through the group's transform attribute,
-    // and a move would leave a transform attribute on the group. Push both into the children instead,
-    // so the group carries no transform and the child stroke widths stay as they are.
-    // Uniform scales and rotations keep the group's transform.
-    if (node.kind === 'g' && (!isSimilarity(m) || isTranslation(m))) {
+    // Moves and axis-aligned scales (uniform or not) are pushed into the children, so the group carries no
+    // transform attribute and a non-uniform scale does not skew child strokes. Rotations and skews keep the
+    // group's transform.
+    if (node.kind === 'g' && isAxisAligned(m)) {
         const rv = structuredClone(node);
         delete rv.attrs.transform;
         const childChange = multiply(m, own);
@@ -52,23 +51,22 @@ export function transformNode(node: SvgNode, m: Matrix, precision: number, paren
     return rv;
 }
 
-/** True for a matrix that only moves (no scale, rotation, or skew), within rounding */
-function isTranslation(m: Matrix): boolean {
-    const eps = 1e-9;
-    return Math.abs(m[0] - 1) < eps && Math.abs(m[1]) < eps && Math.abs(m[2]) < eps && Math.abs(m[3] - 1) < eps;
-}
-
 /**
  * Scales a path's stroke width by the size change `m` makes to it, so a resized path keeps its stroke in proportion.
  * `parents` are the groups around the path; an inherited width is read from them. Changes `node` in place and returns it.
- * Rotations and moves do not change the size, so they leave the width alone.
+ * Rotations and moves do not change the size, so they leave the width alone. A path with no visible stroke
+ * gets no stroke-width written.
  */
 export function scalePathStrokeWidth(node: SvgNode, parents: readonly SvgNode[], m: Matrix, precision: number): SvgNode {
     const scale = Math.sqrt(Math.abs(m[0] * m[3] - m[1] * m[2]));
     if (node.kind !== 'path' || Math.abs(scale - 1) < 1e-12) {
         return node;
     }
-    const own = getPresentation(node.attrs, 'stroke-width') ?? inheritedStrokeWidth(parents);
+    const paint = getPresentation(node.attrs, 'stroke') ?? inheritedStrokeWidthOf(parents, 'stroke');
+    if (getPresentation(node.attrs, 'stroke-width') === undefined && !isPaintVisible(paint, 'stroke')) {
+        return node;
+    }
+    const own = getPresentation(node.attrs, 'stroke-width') ?? inheritedStrokeWidthOf(parents, 'stroke-width');
     const width = own === undefined ? 1 : Number.parseFloat(own);
     if (!Number.isFinite(width) || /%|em|ex|rem|vw|vh|in|cm|mm|pt|pc/i.test(own ?? '')) {
         return node; // percentages and other units are not scaled
@@ -77,10 +75,10 @@ export function scalePathStrokeWidth(node: SvgNode, parents: readonly SvgNode[],
     return node;
 }
 
-/** The stroke width inherited from the nearest group that sets one */
-function inheritedStrokeWidth(parents: readonly SvgNode[]): string | undefined {
+/** The value of a presentation property set on the nearest group around the node that sets one */
+function inheritedStrokeWidthOf(parents: readonly SvgNode[], prop: string): string | undefined {
     for (let i = parents.length - 1; i >= 0; i--) {
-        const value = getPresentation(parents[i].attrs, 'stroke-width');
+        const value = getPresentation(parents[i].attrs, prop);
         if (value !== undefined) {
             return value;
         }

@@ -161,8 +161,8 @@ describe("ops", () => {
     });
 
     it("scales the stroke of a path inside a non-uniformly resized group", () => {
-        const inherits = { id: 'p1', kind: 'path' as const, d: 'M0 0 L10 0', attrs: {} };
-        const own = { id: 'p2', kind: 'path' as const, d: 'M0 0 L10 0', attrs: { 'stroke-width': '2' } };
+        const inherits = { id: 'p1', kind: 'path' as const, d: 'M0 0 L10 0', attrs: { stroke: '#000' } };
+        const own = { id: 'p2', kind: 'path' as const, d: 'M0 0 L10 0', attrs: { stroke: '#000', 'stroke-width': '2' } };
         const group = { id: 'g', kind: 'g' as const, attrs: { 'stroke-width': '4' }, children: [inherits, own] as SvgNode[] };
         const next = transformNode(group, [2, 0, 0, 1, 0, 0], 3) as typeof group;
 
@@ -178,7 +178,22 @@ describe("ops", () => {
         expect(scalePathStrokeWidth(path({ 'stroke-width': '10%' }), [], [2, 0, 0, 2, 0, 0], 3).attrs['stroke-width']).toBe('10%');
 
         const group = { id: 'g', kind: 'g' as const, attrs: { 'stroke-width': '4' }, children: [] as SvgNode[] };
-        expect(scalePathStrokeWidth(path({}), [group], [2, 0, 0, 2, 0, 0], 3).attrs['stroke-width']).toBe('8');
+        expect(scalePathStrokeWidth(path({ stroke: '#000' }), [group], [2, 0, 0, 2, 0, 0], 3).attrs['stroke-width']).toBe('8');
+    });
+
+    it("does not add stroke-width to a path with no visible stroke", () => {
+        const plain = { id: 'p', kind: 'path' as const, d: 'M0 0 L10 0', attrs: {} };
+        expect(scalePathStrokeWidth(plain, [], [2, 0, 0, 2, 0, 0], 3).attrs['stroke-width']).toBeUndefined();
+    });
+
+    it("scales a group's children with a uniform resize and leaves no transform on the group", () => {
+        const child = { id: 'r', kind: 'rect' as const, x: 0, y: 0, width: 10, height: 10, rx: 0, ry: 0, attrs: { stroke: '#000', 'stroke-width': '2' } };
+        const group = { id: 'g', kind: 'g' as const, attrs: {}, children: [child] as SvgNode[] };
+        const next = transformNode(group, [2, 0, 0, 2, 0, 0], 3) as GroupNode;
+
+        expect(next.attrs.transform).toBeUndefined();
+        expect(next.children[0]).toMatchObject({ x: 0, y: 0, width: 20, height: 20 });
+        expect(next.children[0].attrs['stroke-width']).toBe('2');
     });
 
     it("fits a rect into a padded box keeping aspect", () => {
