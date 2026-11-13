@@ -22,9 +22,11 @@ export function transformNode(node: SvgNode, m: Matrix, precision: number, paren
 
     const own = nodeOwnMatrix(node);
 
-    // A non-uniform change on a group would skew every child's stroke through the group's transform attribute.
-    // Push the change into the children instead, so their stroke widths stay as they are.
-    if (node.kind === 'g' && !isSimilarity(m)) {
+    // A non-uniform change on a group would skew every child's stroke through the group's transform attribute,
+    // and a move would leave a transform attribute on the group. Push both into the children instead,
+    // so the group carries no transform and the child stroke widths stay as they are.
+    // Uniform scales and rotations keep the group's transform.
+    if (node.kind === 'g' && (!isSimilarity(m) || isTranslation(m))) {
         const rv = structuredClone(node);
         delete rv.attrs.transform;
         const childChange = multiply(m, own);
@@ -48,6 +50,12 @@ export function transformNode(node: SvgNode, m: Matrix, precision: number, paren
         rv.attrs.transform = text;
     }
     return rv;
+}
+
+/** True for a matrix that only moves (no scale, rotation, or skew), within rounding */
+function isTranslation(m: Matrix): boolean {
+    const eps = 1e-9;
+    return Math.abs(m[0] - 1) < eps && Math.abs(m[1]) < eps && Math.abs(m[2]) < eps && Math.abs(m[3] - 1) < eps;
 }
 
 /**

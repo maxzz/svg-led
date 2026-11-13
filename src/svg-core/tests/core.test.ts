@@ -137,8 +137,16 @@ describe("ops", () => {
         expect(scaled.attrs.transform).toBeUndefined();
         expect(scaled).toMatchObject({ x: 0, y: 0, width: 20, height: 20 });
 
-        const kept = transformNode({ ...group, attrs: { transform: 'translate(10 0)' } }, [1, 0, 0, 1, 5, 0], 3);
-        expect(kept.attrs.transform).toBe('translate(15 0)');
+    });
+
+    it("moves a group by pushing the translation into its children, with no transform left on the group", () => {
+        const child = { id: 'r', kind: 'rect' as const, x: 0, y: 0, width: 10, height: 10, rx: 0, ry: 0, attrs: { stroke: '#000', 'stroke-width': '2' } };
+        const group = { id: 'g', kind: 'g' as const, attrs: { transform: 'translate(10 0)' }, children: [child] as SvgNode[] };
+        const next = transformNode(group, [1, 0, 0, 1, 5, 0], 3) as GroupNode;
+
+        expect(next.attrs.transform).toBeUndefined();
+        expect(next.children[0]).toMatchObject({ x: 15, y: 0, width: 10, height: 10 });
+        expect(next.children[0].attrs['stroke-width']).toBe('2');
     });
 
     it("pushes a non-uniform group resize into its children and leaves stroke widths alone", () => {
