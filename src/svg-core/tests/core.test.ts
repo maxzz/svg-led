@@ -141,6 +141,17 @@ describe("ops", () => {
         expect(kept.attrs.transform).toBe('translate(15 0)');
     });
 
+    it("pushes a non-uniform group resize into its children and leaves stroke widths alone", () => {
+        const child = { id: 'r', kind: 'rect' as const, x: 0, y: 0, width: 10, height: 10, rx: 0, ry: 0, attrs: { stroke: '#000', 'stroke-width': '2' } };
+        const group = { id: 'g', kind: 'g' as const, attrs: {}, children: [child] as SvgNode[] };
+        const next = transformNode(group, [2, 0, 0, 1, 0, 0], 3) as typeof group;
+
+        expect(next.attrs.transform).toBeUndefined();
+        expect(next.children[0]).toMatchObject({ x: 0, y: 0, width: 20, height: 10 });
+        expect(next.children[0].attrs['stroke-width']).toBe('2');
+        expect(next.children[0].attrs.transform).toBeUndefined();
+    });
+
     it("fits a rect into a padded box keeping aspect", () => {
         const m = fitRectMatrix({ x: 0, y: 0, width: 10, height: 5 }, { x: 0, y: 0, width: 100, height: 100 }, { padding: uniformPadding(10), keepAspect: true, center: true });
         const tl = applyMatrix(m, { x: 0, y: 0 });

@@ -20,6 +20,17 @@ export function transformNode(node: SvgNode, m: Matrix, precision: number): SvgN
     }
 
     const own = nodeOwnMatrix(node);
+
+    // A non-uniform change on a group would skew every child's stroke through the group's transform attribute.
+    // Push the change into the children instead, so their stroke widths stay as they are.
+    if (node.kind === 'g' && !isSimilarity(m)) {
+        const rv = structuredClone(node);
+        delete rv.attrs.transform;
+        const childChange = multiply(m, own);
+        rv.children = node.children.map((child) => transformNode(child, childChange, precision));
+        return rv;
+    }
+
     const local = multiply(invert(own), multiply(m, own)); // the same change expressed in the node's own coordinates
 
     const baked = bakeGeometry(node, local, precision);
