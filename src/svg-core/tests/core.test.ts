@@ -144,7 +144,7 @@ describe("ops", () => {
     it("pushes a non-uniform group resize into its children and leaves stroke widths alone", () => {
         const child = { id: 'r', kind: 'rect' as const, x: 0, y: 0, width: 10, height: 10, rx: 0, ry: 0, attrs: { stroke: '#000', 'stroke-width': '2' } };
         const group = { id: 'g', kind: 'g' as const, attrs: {}, children: [child] as SvgNode[] };
-        const next = transformNode(group, [2, 0, 0, 1, 0, 0], 3) as typeof group;
+        const next = transformNode(group, [2, 0, 0, 1, 0, 0], 3) as GroupNode;
 
         expect(next.attrs.transform).toBeUndefined();
         expect(next.children[0]).toMatchObject({ x: 0, y: 0, width: 20, height: 10 });
