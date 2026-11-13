@@ -120,6 +120,27 @@ describe("bakeNodeMatrix", () => {
         expect(next.children[1].attrs.transform).toBe("translate(10 0)");
     });
 
+    it("scales stroke widths with a group's scale, keeping inherited widths correct", () => {
+        const next = bakeNodeMatrix(group("g", [
+            rect("own", 0, 0, 10, 10, { "stroke-width": "2" }),
+            rect("inherits", 0, 0, 10, 10),
+            { id: "t", kind: "passthrough", tag: "text", inner: "Hi", attrs: {} },
+        ], { transform: "scale(2)", "stroke-width": "1" }), 3) as GroupNode;
+
+        expect(next.attrs["stroke-width"]).toBe("2");
+        expect(next.children[0].attrs["stroke-width"]).toBe("4");
+        expect(next.children[1].attrs["stroke-width"]).toBeUndefined();
+        expect(next.children[2].attrs["stroke-width"]).toBe("1");
+    });
+
+    it("keeps an inherited width from outside the baked group when its scale changes", () => {
+        const outer = group("outer", [], { "stroke-width": "3" });
+        const next = bakeNodeMatrix(group("g", [rect("r", 0, 0, 10, 10)], { transform: "scale(2)" }), 3, [outer]) as GroupNode;
+
+        expect(next.attrs["stroke-width"]).toBe("6");
+        expect(next.children[0].attrs["stroke-width"]).toBeUndefined();
+    });
+
     it("does not bake a text element, and strip leaves the geometry alone", () => {
         const text: SvgNode = { id: "t", kind: "passthrough", tag: "text", inner: "Hi", attrs: { transform: "translate(5 6)" } };
         expect(canBakeMatrix(text)).toBe(false);
