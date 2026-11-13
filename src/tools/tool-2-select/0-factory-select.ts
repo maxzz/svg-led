@@ -7,7 +7,7 @@ import { type Point, type Rect, type SvgDoc, applyMatrix, findNode, flattenSubpa
 import { type NodeOriginals, applyDocMatrix, captureOriginals, commitHistory, docState, duplicateNodes, nodeDocBBox, nodesDocBBox } from "@/store/3-document";
 import { ToolId, docToScreen, hoverNodeIdAtom, lassoAtom, marqueeAtom, rectToScreen, screenToDoc, selectionAtom, setSelectionAtom, toolGestureActiveAtom, viewportAtom } from "@/store/4-editor";
 import {
-    formatRotation, inRotateBand, rotateCursorAtom, rotateCursorClass, rotateReadoutAtom, selectionGripsHiddenAtom, snapRotation, unwrapAngle,
+    formatRotation, inRotateBand, rotateCursorAtom, rotateCursorClass, rotateReadoutAtom, scaleReadoutAtom, selectionGripsHiddenAtom, snapRotation, unwrapAngle,
 } from "./3-rotate";
 import { enterIsolationAtom, exitIsolationToAtom, getIsolationScope, isHidden, isPickable, isolationRootChildren } from "@/store/6-layers";
 import { appSettings, SelectionMode } from "@/store/1-ui-settings";
@@ -211,7 +211,9 @@ export const selectTool: ToolDef = {
                 } else {
                     clearSnapGuides();
                 }
-                applyDocMatrix(gesture.originals, resizeMatrix(gesture.bbox, gesture.handle, { ...e, doc: point }));
+                const resize = resizeMatrix(gesture.bbox, gesture.handle, { ...e, doc: point });
+                applyDocMatrix(gesture.originals, resize.matrix);
+                set(scaleReadoutAtom, { x: e.screen.x, y: e.screen.y, label: formatScale(gesture.handle, resize.sx, resize.sy) });
                 break;
             case 'rotate':
                 gesture.lastScreen = e.screen;
@@ -243,6 +245,7 @@ export const selectTool: ToolDef = {
         set(resizeCursorAtom, null);
         set(selectionGripsHiddenAtom, false);
         set(rotateReadoutAtom, null);
+        set(scaleReadoutAtom, null);
 
         if (gesture?.type === 'rotate') {
             gesture.moved && Math.abs(gesture.appliedDeg) > 1e-4 && commitHistory();
@@ -289,6 +292,7 @@ export const selectTool: ToolDef = {
         }
         set(selectionGripsHiddenAtom, false);
         set(rotateReadoutAtom, null);
+        set(scaleReadoutAtom, null);
         set(rotateCursorAtom, null);
         set(resizeCursorAtom, null);
     },
@@ -511,7 +515,7 @@ function axisScale(pointer: number, start: number, size: number, dir: number, fr
 
 /**
  * Corners scale both axes (Shift keeps the aspect ratio); edge handles scale only the axis perpendicular to their edge,
- * so Shift has no effect on them.
+ * so Shift has no effect on them. Returns the matrix and the per-axis scale factors that produced it.
  */
 function resizeMatrix(bbox: Rect, handle: ResizeHandle, e: ToolPointerEvent) {
     const fromCenter = isMod(e, M.resizeFromCenter);
@@ -529,7 +533,21 @@ function resizeMatrix(bbox: Rect, handle: ResizeHandle, e: ToolPointerEvent) {
     }
     if (Math.abs(sx) < 1e-6) sx = 1e-6;
     if (Math.abs(sy) < 1e-6) sy = 1e-6;
-    return scaleAround(sx, sy, { x: x.origin, y: y.origin });
+    return { matrix: scaleAround(sx, sy, { x: x.origin, y: y.origin }), sx, sy };
+}
+
+/**
+ * Size label for a resize drag, as a percentage of the original size. A corner shows one value when both axes
+ * match (uniform or aspect-locked), otherwise both; an edge handle shows only the axis it changes.
+ * Negative scale (the drag passed the opposite side) is shown as its magnitude.
+ */
+function formatScale(handle: ResizeHandle, sx: number, sy: number): string {
+    const { dirX, dirY } = handleDirs(handle);
+    const pct = (s: number) => `${Math.round(Math.abs(s) * 100)}%`;
+    if (dirX && dirY) {
+        return Math.abs(Math.abs(sx) - Math.abs(sy)) < 1e-9 ? pct(sx) : `W ${pct(sx)} · H ${pct(sy)}`;
+    }
+    return dirX ? `W ${pct(sx)}` : `H ${pct(sy)}`;
 }
 
 //---------------------------------------------------------------------------
