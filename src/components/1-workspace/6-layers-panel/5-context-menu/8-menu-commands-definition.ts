@@ -6,7 +6,7 @@ import { deleteNodes, docState } from "@/store/3-document";
 import { defsSelectionAtom, selectionAtom, setDefsSelectionAtom, setSelectionAtom } from "@/store/4-editor";
 import { docProxyAtom, enterIsolationAtom, getIsolationScope, isLocked, sameIsolationIds } from "@/store/6-layers";
 import { type LayersMenuTarget, type LayersMenuTargetKind, type LayersMenuTargetOf } from "./1-menu-target";
-import { applyDefsClass, canApplyDefsClass, deleteDefsClass, deleteDefsElement, removeDefsClassRules } from "./2-menu-actions";
+import { applyDefsClass, applyStyleBatchAndRemove, canApplyDefsClass, canApplyStyleBatch, deleteDefsClass, deleteDefsElement, removeDefsClassRules } from "./2-menu-actions";
 
 type CommandSpec<K extends LayersMenuTargetKind> = {
     id: string;
@@ -63,6 +63,19 @@ export const layersMenuCommands: readonly LayersMenuCommand[] = [
     }),
 
     command({
+        id: 'layers.applyStyleAndRemove',
+        label: "Apply and remove",
+        description: (t) => t.kind === 'defs'
+            ? "Copy CSS rules of every class in the <style> elements of this <defs> to matching elements and remove the classes"
+            : "Copy CSS rules of every class of this <style> to matching elements and remove the classes",
+        icon: Eraser,
+        targets: ['defs', 'defs-style'],
+        section: 'edit',
+        enabled: (get, t) => canApplyStyleBatch(docOf(get), t),
+        run: (_get, _set, t) => applyStyleBatchAndRemove(t),
+    }),
+
+    command({
         id: 'layers.removeClassRules',
         label: "Remove CSS rules",
         description: "Remove attributes defined by this class from elements",
@@ -78,7 +91,7 @@ export const layersMenuCommands: readonly LayersMenuCommand[] = [
         label: "Delete",
         description: "Delete this layer from the document",
         icon: Trash,
-        targets: ['element'],
+        targets: ['element', 'defs'],
         section: 'delete',
         destructive: true,
         enabled: (get, t) => canDeleteNode(get, t.id),
@@ -95,7 +108,7 @@ export const layersMenuCommands: readonly LayersMenuCommand[] = [
             ? "Remove this CSS class rule from its <style> block"
             : "Remove this element from <defs>",
         icon: Trash,
-        targets: ['defs-class', 'defs-element'],
+        targets: ['defs-class', 'defs-style', 'defs-element'],
         section: 'delete',
         destructive: true,
         run: (get, set, t) => {

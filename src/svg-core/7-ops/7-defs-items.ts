@@ -179,6 +179,18 @@ export function styleAt(inner: string, index: number, ranges = scanElements(inne
     return open > r.start && close >= open ? { open, close, css: inner.slice(open, close) } : undefined;
 }
 
+/** Indexes of all `<style>` elements of the markup, at any depth, in document order */
+export function styleIndexesOf(inner: string): number[] {
+    const ranges = scanElements(inner);
+    return ranges.flatMap((_, index) => (styleAt(inner, index, ranges) ? [index] : []));
+}
+
+/** Names of the classes of the `<style>` element `styleIndex`, in order; empty when that element is not a style */
+export function classNamesOfStyle(inner: string, styleIndex: number): string[] {
+    const st = styleAt(inner, styleIndex);
+    return st ? classItemsOf(st.css, styleIndex).map((c) => c.name) : [];
+}
+
 //---------------------------------------------------------------------------
 // Changes (return the new inner markup; the same text when nothing changes)
 
