@@ -4,12 +4,15 @@ import { PEN_BADGES } from './2-3-cursor-pen';
 /**
  * Direct selection: the same arrow as the Selection tool, filled white with a 1px black edge,
  * so the two tools stay distinct. `{extra}` is the mark at the lower right (or nothing).
+ * id="w_outer"
+ * black
+ * id="w_inner"
  */
 const directCursor = `
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-    <path fill="#fefefe" d="M-0.01 0.01 L0.333 0.01 L11.583 11.261 L11.71 11.459 L11.529 11.612 L5.304 11.612 L0.306 16.638 L-0.001 16.944 Z"/>
-    <path d="M0.901 2.076 L1.127 2.076 L9.382 10.34 L9.509 10.593 L9.346 10.71 L4.934 10.71 L1.163 14.49 L0.901 14.761 Z"/>
-    <path fill="#fefefe" d="M4.492 9.871 L2.85 11.522 L2.011 12.37 L1.812 12.569 L1.812 4.214 L1.993 4.214 L7.289 9.51 L7.425 9.704 L7.223 9.799 L4.672 9.799 C4.6 9.799 4.555 9.817 4.492 9.862 Z"/>
+    <path fill="#fff" stroke="#fff" stroke-linejoin="round" stroke-width="2px" d="M1,1v13.65l.84-.07,3.65-4.01,4.91.02-.16-.5L1.42,1.16l-.42-.16Z"/>
+    <path d="M1,1v13.65l.84-.07,3.65-4.01,4.91.02-.16-.5L1.42,1.16l-.42-.16Z"/>
+    <polygon fill="#fff" points="2,3.17 8.33,9.58 5.05,9.57 2,12.92 2,3.17" />
     {extra}
 </svg>
 `;
@@ -71,5 +74,5 @@ export const directMoveMark = `
 `;
 
 export function directCursorCss(extra = ''): string {
-    return cursorCss(directCursor.replace('{extra}', extra), 0.98, 2.44);
+    return cursorCss(directCursor.replace('{extra}', extra));
 }
