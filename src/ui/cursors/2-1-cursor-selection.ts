@@ -3,10 +3,9 @@ import { cursorCss } from './8-cursor-css';
 /** Empty canvas, nothing selected: just the arrow */
 export const selectionPointer = `
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-        <!-- white 1px border: a 2px stroke, half of it covered by the black fill -->
-        <path d="M1 1V14.65L1.84 14.58L5.49 10.57L10.4 10.59L10.24 10.09L1.42 1.16Z" fill="#fff" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>
-        <!-- solid arrow -->
-        <path d="M1 1V14.65L1.84 14.58L5.49 10.57L10.4 10.59L10.24 10.09L1.42 1.16Z" fill="#000"/>
+        <path fill="#fff" d="M2.16.27l5.44,5.44,4.05,4.05c.92.92.24,2.33-.8,2.34h-4.55s-2.33,2.35-2.33,2.35l-1.74,1.75c-.33.33-.91.42-1.34.27-.46-.16-.77-.56-.9-1.01V1.24C0,.83.23.44.57.22.9.01,1.39-.04,1.67.03s.49.25.49.25Z"/>
+        <path d="M1.38.75s.1.02.14.04c.03.02.06.04.06.04l5.44,5.44,4.12,4.11c.16.16.25.33.18.56-.04.15-.2.36-.41.36h-4.96s-2.62,2.64-2.62,2.64l-1.74,1.74c-.15.13-.32.17-.52.11-.15-.05-.28-.19-.33-.37V1.14c0-.25.17-.4.42-.41,0,0,.15,0,.22.02Z"/>
+        <path fill="#fefefe" d="M5.54,10.61l-2.44,2.45-1.55,1.56V1.93l8.58,8.58h-4.32c-.11.01-.18.03-.27.1Z"/>
     </svg>
 `;
 
