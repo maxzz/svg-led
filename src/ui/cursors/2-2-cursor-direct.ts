@@ -6,12 +6,12 @@ import { PEN_BADGES } from './2-3-cursor-pen';
  * so the two tools stay distinct. `{extra}` is the mark at the lower right (or nothing).
  */
 const directCursor = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-        <polygon points="0,0 0.167,0.167 11.961,11.961 12.281,12.281 11.898,12.281 5.514,12.281 0.159,17.668 0,17.827 0,0" fill="#fefefe"/>
-        <polygon points="0.797,1.92 10.352,11.484 5.18,11.484 0.797,15.89 0.797,1.92"/>
-        <path fill="#fefefe" d="M4.773 10.766 L2.829 12.719 L1.594 13.962 L1.594 3.849 L8.431 10.687 L4.988 10.687 C4.901 10.695 4.846 10.71 4.773 10.766 Z"/>
-        {extra}
-    </svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+<path fill="#fefefe" d="M4.98,11.3l-1.82,1.83-.93.94-.22.22V4.83l.2.2,5.87,5.87.32.32h-3.22c-.08,0-.13.02-.2.07Z"/>
+<path d="M1 2.41 L1.25 2.66 L10.4 11.82 L10.81 12.23 L10.36 12.23 L5.47 12.23 L1.29 16.42 L1 16.72 L1 2.41 Z"/>
+<path fill="#fefefe" d="M0 0 L0.37 0.37 L12.84 12.84 L13.23 13.23 L12.78 13.23 L5.88 13.23 L0.34 18.8 L0 19.14 L0 0 Z"/>
+    {extra}
+</svg>
 `;
 
 /** Over an object that is not selected yet: the white arrow plus a small square */
@@ -71,5 +71,5 @@ export const directMoveMark = `
 `;
 
 export function directCursorCss(extra = ''): string {
-    return cursorCss(directCursor.replace('{extra}', extra), 0.8, 1.92);
+    return cursorCss(directCursor.replace('{extra}', extra), 0.98, 2.44);
 }
