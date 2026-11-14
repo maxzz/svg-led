@@ -7,9 +7,9 @@ import { PEN_BADGES } from './2-3-cursor-pen';
  */
 const directCursor = `
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-        <!-- white 1px outside the black edge: a 3px white stroke, then a 1px black stroke over a white fill -->
-        <path d="M1 1V14.65L1.84 14.58L5.49 10.57L10.4 10.59L10.24 10.09L1.42 1.16Z" fill="#fff" stroke="#fff" stroke-width="3" stroke-linejoin="round"/>
-        <path d="M1 1V14.65L1.84 14.58L5.49 10.57L10.4 10.59L10.24 10.09L1.42 1.16Z" fill="#fff" stroke="#000" stroke-width="1" stroke-linejoin="round"/>
+        <polygon points="0,0 0.167,0.167 11.961,11.961 12.281,12.281 11.898,12.281 5.514,12.281 0.159,17.668 0,17.827 0,0" fill="#fefefe"/>
+        <polygon points="0.797,1.92 10.352,11.484 5.18,11.484 0.797,15.89 0.797,1.92"/>
+        <path fill="#fefefe" d="M4.773 10.766 L2.829 12.719 L1.594 13.962 L1.594 3.849 L8.431 10.687 L4.988 10.687 C4.901 10.695 4.846 10.71 4.773 10.766 Z"/>
         {extra}
     </svg>
 `;
@@ -71,5 +71,5 @@ export const directMoveMark = `
 `;
 
 export function directCursorCss(extra = ''): string {
-    return cursorCss(directCursor.replace('{extra}', extra), 1, 2.43);
+    return cursorCss(directCursor.replace('{extra}', extra), 0.8, 1.92);
 }

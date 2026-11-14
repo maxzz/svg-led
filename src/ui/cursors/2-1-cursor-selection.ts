@@ -3,9 +3,9 @@ import { cursorCss } from './8-cursor-css';
 /** Empty canvas, nothing selected: just the arrow */
 export const selectionPointer = `
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-        <polygon points="0,0 15.41,15.41 6.92,15.41 0,22.37 0,0" fill="#fefefe"/>
+        <polygon fill="#fff"points="0,0 15.41,15.41 6.92,15.41 0,22.37 0,0"/>
         <polygon points="1,2.41 12.99,14.41 6.5,14.41 1,19.94 1,2.41"/>
-        <path fill="#fefefe" d="M5.99,13.51l-2.44,2.45-1.55,1.56V4.83l8.58,8.58h-4.32c-.11.01-.18.03-.27.1Z"/>
+        <path fill="#fff" d="M5.99,13.51l-2.44,2.45-1.55,1.56V4.83l8.58,8.58h-4.32c-.11.01-.18.03-.27.1Z"/>
     </svg>
 `;
 
