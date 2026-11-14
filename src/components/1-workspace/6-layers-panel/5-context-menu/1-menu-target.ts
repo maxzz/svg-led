@@ -1,16 +1,20 @@
-import { type SvgDoc, defsClassId, findNode, isDefsItemOf, isShapeNode, parseDefsItemId } from "@/svg-core";
+import { type SvgDoc, defsClassId, findNode, isDefsItemOf, isShapeNode, parseDefsItemId, plainName, styleAt } from "@/svg-core";
 
 /**
  * What a layers row stands for, as far as the context menu cares. Commands are registered per kind:
  * - `shape`: a path or a basic shape (rect, circle, ellipse, line, polyline, polygon);
  * - `element`: any other document node (a group, a `<defs>`, text, image, ...);
+ * - `defs`: a `<defs>` element of the document;
  * - `defs-class`: a class of a `<style>` element inside `<defs>`;
- * - `defs-element`: an element inside `<defs>` (a `<style>` included).
+ * - `defs-style`: a `<style>` element inside `<defs>`;
+ * - `defs-element`: any other element inside `<defs>`.
  */
 export type LayersMenuTarget =
     | { kind: 'shape'; id: string; }
     | { kind: 'element'; id: string; }
+    | { kind: 'defs'; id: string; }
     | { kind: 'defs-class'; id: string; defsId: string; styleIndex: number; name: string; }
+    | { kind: 'defs-style'; id: string; defsId: string; index: number; }
     | { kind: 'defs-element'; id: string; defsId: string; index: number; };
 
 export type LayersMenuTargetKind = LayersMenuTarget['kind'];
@@ -46,7 +50,10 @@ export function resolveMenuTarget(doc: SvgDoc, id: string): LayersMenuTarget | u
         if (!node) {
             return undefined;
         }
-        return isShapeNode(node) || node.kind === 'path' ? { kind: 'shape', id } : { kind: 'element', id };
+        if (isShapeNode(node) || node.kind === 'path') {
+            return { kind: 'shape', id };
+        }
+        return node.kind === 'passthrough' && plainName(node.tag).toLowerCase() === 'defs' ? { kind: 'defs', id } : { kind: 'element', id };
     }
 
     if (!isDefsItemOf(doc, id)) {
@@ -54,7 +61,11 @@ export function resolveMenuTarget(doc: SvgDoc, id: string): LayersMenuTarget | u
     }
     const { defsId, part } = parsed;
     const cls = /^(\d+)\.(.+)$/.exec(part);
-    return cls
-        ? { kind: 'defs-class', id, defsId, styleIndex: Number(cls[1]), name: cls[2] }
-        : { kind: 'defs-element', id, defsId, index: Number(part) };
+    if (cls) {
+        return { kind: 'defs-class', id, defsId, styleIndex: Number(cls[1]), name: cls[2] };
+    }
+    const index = Number(part);
+    const defs = findNode(doc, defsId)?.node;
+    const isStyle = defs?.kind === 'passthrough' && !!styleAt(defs.inner, index);
+    return isStyle ? { kind: 'defs-style', id, defsId, index } : { kind: 'defs-element', id, defsId, index };
 }

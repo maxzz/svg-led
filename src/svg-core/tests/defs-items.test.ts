@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { type DefsClassItem, type DefsElementItem, type DefsItem, type SvgDoc, type SvgNode, buildSourceMap, defsClassId, defsElementId, defsIdsForClassesOf, defsItemsOf, isDefsItemOf, parseDefsItemId, setDefsChildrenActiveInMarkup, setDefsClassActiveInMarkup, setDefsDeclActiveInMarkup, setDefsElementActiveInMarkup } from "../index";
+import { type DefsClassItem, type DefsElementItem, type DefsItem, type SvgDoc, type SvgNode, buildSourceMap, classNamesOfStyle, defsClassId, defsElementId, defsIdsForClassesOf, defsItemsOf, isDefsItemOf, styleIndexesOf, parseDefsItemId, setDefsChildrenActiveInMarkup, setDefsClassActiveInMarkup, setDefsDeclActiveInMarkup, setDefsElementActiveInMarkup } from "../index";
 
 const style = (css: string) => `<style>${css}</style>`;
 const defs = (id: string, inner: string, tag = 'defs'): SvgNode => ({ id, kind: 'passthrough', tag, inner, attrs: {} });
@@ -192,5 +192,19 @@ describe("defsIdsForClassesOf", () => {
     it("counts a deactivated class and a deactivated defs, because the element still uses the class", () => {
         const d = doc([defs('d1', style('.deactivated-a{fill:red}'), 'deactivated-defs'), path('p1', 'a')]);
         expect(defsIdsForClassesOf(d, ['p1'])).toEqual(['d1']);
+    });
+});
+
+describe("style batch helpers", () => {
+    it("lists every style element at any depth, in document order", () => {
+        const inner = `${style('.a{fill:red;}')}<g><style>.b{fill:blue;}</style></g><rect/>`;
+        expect(styleIndexesOf(inner)).toEqual([0, 2]);
+        expect(styleIndexesOf('<rect/><g/>')).toEqual([]);
+    });
+
+    it("lists the classes of one style element, in order", () => {
+        const inner = `${style('.cls-1{fill:red;}.cls-2, .cls-3{stroke:blue;}')}<rect/>`;
+        expect(classNamesOfStyle(inner, 0)).toEqual(['cls-1', 'cls-2', 'cls-3']);
+        expect(classNamesOfStyle(inner, 1)).toEqual([]);
     });
 });

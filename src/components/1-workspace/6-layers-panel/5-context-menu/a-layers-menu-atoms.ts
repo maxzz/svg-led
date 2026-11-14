@@ -48,7 +48,7 @@ export const openLayersMenuAtom = atom(
             return false;
         }
 
-        if (target.kind === 'defs-class' || target.kind === 'defs-element') {
+        if (target.kind === 'defs-class' || target.kind === 'defs-style' || target.kind === 'defs-element') {
             !get(defsSelectionAtom).includes(id) && set(setDefsSelectionAtom, [id]);
         } else {
             !get(selectionAtom).includes(id) && set(rowClickAtom, { id, shift: false, ctrl: false });

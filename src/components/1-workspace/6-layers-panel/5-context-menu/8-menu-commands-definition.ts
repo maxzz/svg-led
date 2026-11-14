@@ -6,7 +6,7 @@ import { deleteNodes, docState } from "@/store/3-document";
 import { defsSelectionAtom, selectionAtom, setDefsSelectionAtom, setSelectionAtom } from "@/store/4-editor";
 import { docProxyAtom, enterIsolationAtom, getIsolationScope, isLocked, sameIsolationIds } from "@/store/6-layers";
 import { type LayersMenuTarget, type LayersMenuTargetKind, type LayersMenuTargetOf } from "./1-menu-target";
-import { applyDefsClass, canApplyDefsClass, deleteDefsClass, deleteDefsElement, removeDefsClassRules } from "./2-menu-actions";
+import { applyAndRemoveClasses, applyDefsClass, applyStyleBatchAndRemove, canApplyDefsClass, canApplyStyleBatch, deleteDefsClass, deleteDefsElement, removeDefsClassRules } from "./2-menu-actions";
 
 type CommandSpec<K extends LayersMenuTargetKind> = {
     id: string;
@@ -59,7 +59,20 @@ export const layersMenuCommands: readonly LayersMenuCommand[] = [
         targets: ['defs-class'],
         section: 'edit',
         enabled: classIsInUse,
-        run: (_get, _set, t) => applyDefsClass(t.defsId, t.styleIndex, t.name, { removeClass: true }),
+        run: (get, set, t) => applyAndRemoveClasses(t.defsId, [{ styleIndex: t.styleIndex, name: t.name }]) && afterDefsRemoval(get, set),
+    }),
+
+    command({
+        id: 'layers.applyStyleAndRemove',
+        label: "Apply and remove",
+        description: (t) => t.kind === 'defs'
+            ? "Copy CSS rules of every class in the <style> elements of this <defs> to matching elements and remove the classes"
+            : "Copy CSS rules of every class of this <style> to matching elements and remove the classes",
+        icon: Eraser,
+        targets: ['defs', 'defs-style'],
+        section: 'edit',
+        enabled: (get, t) => canApplyStyleBatch(docOf(get), t),
+        run: (get, set, t) => applyStyleBatchAndRemove(t) && afterDefsRemoval(get, set),
     }),
 
     command({
@@ -78,7 +91,7 @@ export const layersMenuCommands: readonly LayersMenuCommand[] = [
         label: "Delete",
         description: "Delete this layer from the document",
         icon: Trash,
-        targets: ['element'],
+        targets: ['element', 'defs'],
         section: 'delete',
         destructive: true,
         enabled: (get, t) => canDeleteNode(get, t.id),
@@ -95,7 +108,7 @@ export const layersMenuCommands: readonly LayersMenuCommand[] = [
             ? "Remove this CSS class rule from its <style> block"
             : "Remove this element from <defs>",
         icon: Trash,
-        targets: ['defs-class', 'defs-element'],
+        targets: ['defs-class', 'defs-style', 'defs-element'],
         section: 'delete',
         destructive: true,
         run: (get, set, t) => {
@@ -128,6 +141,13 @@ function docOf(get: Getter): SvgDoc {
 /** The class commands need declarations in effect and elements that use the class */
 function classIsInUse(get: Getter, t: LayersMenuTargetOf<'defs-class'>): boolean {
     return canApplyDefsClass(docOf(get), t.defsId, t.styleIndex, t.name);
+}
+
+/** After a removal of `<defs>` items or of a `<defs>` element: item ids are positions, and a removed node leaves the selection */
+function afterDefsRemoval(get: Getter, set: Setter): true {
+    get(defsSelectionAtom).length && set(setDefsSelectionAtom, []);
+    set(setSelectionAtom, get(selectionAtom).filter((id) => findNode(docState.doc, id)));
+    return true;
 }
 
 /** A locked layer (or one in a locked group) stays, and so does the isolated object itself */
