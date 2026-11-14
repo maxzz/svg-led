@@ -71,5 +71,5 @@ export const directMoveMark = `
 `;
 
 export function directCursorCss(extra = ''): string {
-    return cursorCss(directCursor.replace('{extra}', extra));
+    return cursorCss(directCursor.replace('{extra}', extra), 1, 2.43);
 }
