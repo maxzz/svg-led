@@ -10,7 +10,7 @@ import { canvasMenuKindAtom } from "./9-context-menu-atoms";
 
 import { type SvgDoc, type SvgNode, findNode, isCompoundPath, isShapeNode } from "@/svg-core";
 import { docState, isPointEditable } from "@/store/3-document";
-import { ToolId, copiedStyleAtom, selectedAnchorsAtom, selectionAtom, setActiveToolAtom } from "@/store/4-editor";
+import { ToolId, copiedStyleAtom, selectedAnchorsAtom, selectionAtom, setActiveToolAtom, setMenuHintAtom } from "@/store/4-editor";
 import { canIsolateSelectionAtom } from "@/store/6-layers";
 import { deleteSelectedAnchors, toggleSelectedAnchors } from "@/tools/tool-3-points";
 
@@ -19,8 +19,10 @@ import { deleteSelectedAnchors, toggleSelectedAnchors } from "@/tools/tool-3-poi
  * Radix then opens the content, which renders the entries for that kind.
  */
 export function CanvasContextMenu({ children }: { children: ReactNode; }) {
+    const setMenuHint = useSetAtom(setMenuHintAtom);
+
     return (
-        <ContextMenu>
+        <ContextMenu onOpenChange={(open) => !open && setMenuHint(null)}>
             <ContextMenuTrigger className="absolute inset-0">
                 {children}
             </ContextMenuTrigger>
@@ -54,7 +56,7 @@ function Entries_Canvas() {
 
         <CommandItem id="file.pasteSvg" label="Paste" icon={<ClipboardPaste className={iconClasses} />} />,
         <CommandItem id="edit.copyDrawingPng" icon={<ImageDown className={iconClasses} />} />,
-        <CommandItem id="edit.copySvg" icon={<FileCode className={iconClasses} />} />,
+        <CommandItem id="edit.copySvg" description="Copy the whole drawing as SVG to the clipboard" icon={<FileCode className={iconClasses} />} />,
         <CommandItem id="file.copySource" label="Copy SVG source" icon={<Copy className={iconClasses} />} />,
         SEP,
 
@@ -95,7 +97,7 @@ function Entries_ToolSelection() {
         <CommandItem id="edit.copy" icon={<Copy className={iconClasses} />} />,
         <CommandItem id="file.pasteSvg" label="Paste" icon={<ClipboardPaste className={iconClasses} />} />,
         <CommandItem id="edit.copyPng" icon={<ImageDown className={iconClasses} />} />,
-        <CommandItem id="edit.copySvg" icon={<FileCode className={iconClasses} />} />,
+        <CommandItem id="edit.copySvg" description="Copy the selected elements as SVG to the clipboard" icon={<FileCode className={iconClasses} />} />,
         SEP,
 
         <CommandItem id="edit.copyStyle" icon={<Pipette className={iconClasses} />} />,
@@ -116,6 +118,7 @@ function Entries_ToolSelection() {
         <SubMenu
             icon={<Layers className={iconClasses} />}
             label="Arrange"
+            description="Change stacking order of selected elements"
             items={[
                 <CommandItem id="object.front" icon={<ArrowUpToLine className={iconClasses} />} />,
                 <CommandItem id="object.forward" icon={<ArrowUp className={iconClasses} />} />,
@@ -155,6 +158,7 @@ function Entries_ToolPoints() {
                 icon={<Trash className={iconClasses} />}
                 label="Delete points"
                 shortcut="Del"
+                description="Delete the selected anchor points from the path"
                 variant="destructive"
                 onSelect={() => { deleteSelectedAnchors(anchors); setAnchors([]); }}
             />
@@ -163,6 +167,7 @@ function Entries_ToolPoints() {
             <ActionItem
                 icon={<Spline className={iconClasses} />}
                 label="Smooth / corner"
+                description="Toggle the selected anchor points between smooth and corner"
                 onSelect={() => toggleSelectedAnchors(anchors)}
             />
         ),
@@ -176,6 +181,7 @@ function Entries_ToolPoints() {
             icon={<MousePointer2 className={iconClasses} />}
             label="Back to selection"
             shortcut="Esc"
+            description="Switch back to the Selection tool"
             onSelect={() => setTool(ToolId.select)}
         />,
     ]);

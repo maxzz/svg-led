@@ -3,7 +3,7 @@ import { useAtomValue, useSetAtom, useStore } from "jotai";
 import { ContextMenuCheckboxItem, ContextMenuItem, ContextMenuSeparator, ContextMenuShortcut, ContextMenuSub, ContextMenuSubContent, ContextMenuSubTrigger } from "@/ui/shadcn/context-menu";
 
 import { displayShortcut, getCommand, runCommandAtom } from "@/commands";
-import { selectionAtom } from "@/store/4-editor";
+import { clearMenuHintIfAtom, selectionAtom, setMenuHintAtom } from "@/store/4-editor";
 
 /** Separator marker in an entry list */
 export const SEP = { separator: true } as const;
@@ -41,17 +41,34 @@ function isSeparator(entry: MenuEntry): entry is typeof SEP {
     return entry === SEP;
 }
 
+function useMenuItemHint(description: string | undefined) {
+    const setMenuHint = useSetAtom(setMenuHintAtom);
+    const clearMenuHintIf = useSetAtom(clearMenuHintIfAtom);
+
+    if (!description) {
+        return undefined;
+    }
+    return {
+        onPointerEnter: () => setMenuHint(description),
+        onPointerLeave: () => clearMenuHintIf(description),
+        onFocus: () => setMenuHint(description),
+        onBlur: () => clearMenuHintIf(description),
+    };
+}
+
 /** Plain item with an action, icon and optional shortcut text */
-export function ActionItem({ icon, label, shortcut, variant, disabled, onSelect }: {
+export function ActionItem({ icon, label, shortcut, description, variant, disabled, onSelect }: {
     icon?: ReactNode;
     label: string;
     shortcut?: string;
+    description?: string;
     variant?: 'default' | 'destructive';
     disabled?: boolean;
     onSelect: () => void;
 }) {
+    const hintProps = useMenuItemHint(description);
     return (
-        <ContextMenuItem variant={variant} disabled={disabled} onSelect={onSelect}>
+        <ContextMenuItem variant={variant} disabled={disabled} onSelect={onSelect} {...hintProps}>
             {icon}
             {label}
             {shortcut && <ContextMenuShortcut>{shortcut}</ContextMenuShortcut>}
@@ -61,8 +78,8 @@ export function ActionItem({ icon, label, shortcut, variant, disabled, onSelect 
 
 //---------------------------------------------------------------------------
 
-/** Item bound to a command: label, shortcut and enabled state come from the command registry */
-export function CommandItem({ id, label, icon, variant }: { id: string; label?: string; icon?: ReactNode; variant?: 'default' | 'destructive'; }) {
+/** Item bound to a command: label, shortcut, description and enabled state come from the command registry */
+export function CommandItem({ id, label, description, icon, variant }: { id: string; label?: string; description?: string; icon?: ReactNode; variant?: 'default' | 'destructive'; }) {
     useAtomValue(selectionAtom); // re-evaluate enabled state when the selection changes while the menu is open
     const store = useStore();
     const run = useSetAtom(runCommandAtom);
@@ -78,6 +95,7 @@ export function CommandItem({ id, label, icon, variant }: { id: string; label?: 
             icon={icon}
             label={label ?? cmd.label}
             shortcut={cmd.shortcut && displayShortcut(cmd.shortcut)}
+            description={description ?? cmd.description}
             variant={variant}
             disabled={!enabled}
             onSelect={() => run(id)}
@@ -86,10 +104,13 @@ export function CommandItem({ id, label, icon, variant }: { id: string; label?: 
 }
 
 /** Checkbox item bound to a toggle command; `checked` is the current state, read by the caller */
-export function CommandCheckItem({ id, label, checked }: { id: string; label: string; checked: boolean; }) {
+export function CommandCheckItem({ id, label, description, checked }: { id: string; label: string; description?: string; checked: boolean; }) {
     const run = useSetAtom(runCommandAtom);
+    const cmd = getCommand(id);
+    const hintProps = useMenuItemHint(description ?? cmd?.description);
+
     return (
-        <ContextMenuCheckboxItem checked={checked} onCheckedChange={() => run(id)}>
+        <ContextMenuCheckboxItem checked={checked} onCheckedChange={() => run(id)} {...hintProps}>
             {label}
         </ContextMenuCheckboxItem>
     );
@@ -97,10 +118,11 @@ export function CommandCheckItem({ id, label, checked }: { id: string; label: st
 
 //---------------------------------------------------------------------------
 
-export function SubMenu({ icon, label, items }: { icon: ReactNode; label: string; items: MenuEntry[]; }) {
+export function SubMenu({ icon, label, description, items }: { icon: ReactNode; label: string; description?: string; items: MenuEntry[]; }) {
+    const hintProps = useMenuItemHint(description);
     return (
         <ContextMenuSub>
-            <ContextMenuSubTrigger>
+            <ContextMenuSubTrigger {...hintProps}>
                 {icon}
                 {label}
             </ContextMenuSubTrigger>

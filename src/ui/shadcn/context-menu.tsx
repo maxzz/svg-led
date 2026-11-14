@@ -93,7 +93,7 @@ data-[variant=destructive]:focus:bg-destructive/10 \
 data-[variant=destructive]:focus:text-destructive \
 \
 dark:data-[variant=destructive]:focus:bg-destructive/20 \
-data-disabled:pointer-events-none data-disabled:opacity-50 \
+data-disabled:opacity-50 \
 \
 [&_svg]:pointer-events-none \
 [&_svg]:shrink-0 \
@@ -205,7 +205,6 @@ focus:bg-accent \
 focus:text-accent-foreground \
 \
 data-inset:pl-7 \
-data-disabled:pointer-events-none \
 data-disabled:opacity-50 \
 \
 [&_svg]:pointer-events-none \
@@ -243,7 +242,6 @@ focus:bg-accent \
 focus:text-accent-foreground \
 \
 data-inset:pl-7 \
-data-disabled:pointer-events-none \
 data-disabled:opacity-50 \
 \
 [&_svg]:pointer-events-none \
