@@ -5,7 +5,7 @@ import { MousePointer2 } from "lucide-react";
 import { type ResizeHandle, type ToolDef, type ToolPointerEvent } from "../9-types-tool-def";
 import { type Point, type Rect, type SvgDoc, applyMatrix, findNode, flattenSubpaths, nodeCtm, nodeOutline, rectContainsRect, rectFromCorners, rectsIntersect, rotateMatrix, scaleAround, walkNodes } from "@/svg-core";
 import { type NodeOriginals, applyDocMatrix, captureOriginals, commitHistory, docState, duplicateNodes, nodeDocBBox, nodesDocBBox } from "@/store/3-document";
-import { ToolId, docToScreen, hoverNodeIdAtom, lassoAtom, marqueeAtom, rectToScreen, screenToDoc, selectionAtom, setSelectionAtom, toolGestureActiveAtom, viewportAtom } from "@/store/4-editor";
+import { ToolId, docToScreen, heldKeysOf, hoverNodeIdAtom, lassoAtom, marqueeAtom, rectToScreen, screenToDoc, selectionAtom, setSelectionAtom, toolGestureActiveAtom, viewportAtom } from "@/store/4-editor";
 import {
     formatRotation, inRotateBand, rotateCursorAtom, rotateCursorClass, rotateReadoutAtom, scaleReadoutAtom, selectionGripsHiddenAtom, snapRotation, unwrapAngle,
 } from "./3-rotate";
@@ -180,7 +180,7 @@ export const selectTool: ToolDef = {
         gesture = {
             type: 'marquee', origin, startScreen: origin, base: additive ? selection : [], bboxes, doc,
             trail: isMod(e, M.lassoSelect) ? [origin] : null,
-            picks: [], outlines: new Map(),
+            picks: [], outlines: new Map(), last: null,
         };
     },
 
@@ -265,17 +265,19 @@ export const selectTool: ToolDef = {
         syncRotateCursor(get, set, e.screen, null);
     },
 
-    onKeyDown({ set }, e) {
+    onKeyDown({ get, set }, e) {
         if (gesture?.type === 'move' && moveAltKey(gesture.move, e, true, e.ctrlKey || e.metaKey)) {
             return true;
         }
+        refreshMarquee(get, set, e);
         return onRotateShift(set, e, true);
     },
 
-    onKeyUp({ set }, e) {
+    onKeyUp({ get, set }, e) {
         if (gesture?.type === 'move' && moveAltKey(gesture.move, e, false, e.ctrlKey || e.metaKey)) {
             return true;
         }
+        refreshMarquee(get, set, e);
         return onRotateShift(set, e, false);
     },
 
@@ -382,6 +384,7 @@ type AreaGesture = {
     trail: Point[] | null;              // lasso points in screen coordinates; null while the rubber band is active
     picks: string[];
     outlines: Map<string, Polyline[]>;  // document-space outlines, computed when the lasso first reaches an element
+    last: ToolPointerEvent | null;      // last pointer event, so a modifier key pressed or released without moving can re-run the selection
 };
 
 let gesture: Gesture | null = null;
@@ -393,6 +396,7 @@ let gesture: Gesture | null = null;
  * and the selection carries over, as in Excalidraw.
  */
 function updateArea(get: Getter, set: Setter, g: AreaGesture, e: ToolPointerEvent) {
+    g.last = e;
     const lasso = isMod(e, M.lassoSelect);
     if (lasso !== (g.trail !== null)) {
         if (g.trail) {
@@ -446,6 +450,19 @@ function updateArea(get: Getter, set: Setter, g: AreaGesture, e: ToolPointerEven
     }
 
     set(selectionAtom, [...new Set([...g.base, ...g.picks])]);
+}
+
+/**
+ * Ctrl, Alt or Shift pressed or released during a marquee or lasso drag changes what it selects (Ctrl flips the
+ * selection mode, Alt switches to the lasso). Re-runs the selection from the last pointer position, so the change
+ * shows without moving the mouse.
+ */
+function refreshMarquee(get: Getter, set: Setter, e: KeyboardEvent) {
+    if (gesture?.type !== 'marquee' || !gesture.last) {
+        return;
+    }
+    const held = heldKeysOf(e);
+    updateArea(get, set, gesture, { ...gesture.last, shift: held.shift, alt: held.alt, ctrl: held.ctrl });
 }
 
 /**
