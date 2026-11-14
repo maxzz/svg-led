@@ -68,7 +68,9 @@ export const selectTool: ToolDef = {
         if (!hover) {
             return 'cursor-solid-ptr'; // not over any object
         }
-        return get(selectionAtom).includes(hover)
+        // the hover is the element under the pointer; a click on it selects its group, so the cursor follows that unit
+        const unit = selectionUnitId(docState.doc, hover, getIsolationScope(get));
+        return get(selectionAtom).includes(unit)
             ? 'cursor-solid-move' // over a selected object
             : 'cursor-solid-hover'; // over an object that is not selected yet
     },
