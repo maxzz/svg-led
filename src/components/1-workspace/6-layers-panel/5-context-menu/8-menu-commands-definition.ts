@@ -6,7 +6,7 @@ import { deleteNodes, docState } from "@/store/3-document";
 import { defsSelectionAtom, selectionAtom, setDefsSelectionAtom, setSelectionAtom } from "@/store/4-editor";
 import { docProxyAtom, enterIsolationAtom, getIsolationScope, isLocked, sameIsolationIds } from "@/store/6-layers";
 import { type LayersMenuTarget, type LayersMenuTargetKind, type LayersMenuTargetOf } from "./1-menu-target";
-import { applyDefsClass, applyStyleBatchAndRemove, canApplyDefsClass, canApplyStyleBatch, deleteDefsClass, deleteDefsElement, removeDefsClassRules } from "./2-menu-actions";
+import { applyAndRemoveClasses, applyDefsClass, applyStyleBatchAndRemove, canApplyDefsClass, canApplyStyleBatch, deleteDefsClass, deleteDefsElement, removeDefsClassRules } from "./2-menu-actions";
 
 type CommandSpec<K extends LayersMenuTargetKind> = {
     id: string;
@@ -59,7 +59,7 @@ export const layersMenuCommands: readonly LayersMenuCommand[] = [
         targets: ['defs-class'],
         section: 'edit',
         enabled: classIsInUse,
-        run: (_get, _set, t) => applyDefsClass(t.defsId, t.styleIndex, t.name, { removeClass: true }),
+        run: (get, set, t) => applyAndRemoveClasses(t.defsId, [{ styleIndex: t.styleIndex, name: t.name }]) && afterDefsRemoval(get, set),
     }),
 
     command({
@@ -72,7 +72,7 @@ export const layersMenuCommands: readonly LayersMenuCommand[] = [
         targets: ['defs', 'defs-style'],
         section: 'edit',
         enabled: (get, t) => canApplyStyleBatch(docOf(get), t),
-        run: (_get, _set, t) => applyStyleBatchAndRemove(t),
+        run: (get, set, t) => applyStyleBatchAndRemove(t) && afterDefsRemoval(get, set),
     }),
 
     command({
@@ -141,6 +141,13 @@ function docOf(get: Getter): SvgDoc {
 /** The class commands need declarations in effect and elements that use the class */
 function classIsInUse(get: Getter, t: LayersMenuTargetOf<'defs-class'>): boolean {
     return canApplyDefsClass(docOf(get), t.defsId, t.styleIndex, t.name);
+}
+
+/** After a removal of `<defs>` items or of a `<defs>` element: item ids are positions, and a removed node leaves the selection */
+function afterDefsRemoval(get: Getter, set: Setter): true {
+    get(defsSelectionAtom).length && set(setDefsSelectionAtom, []);
+    set(setSelectionAtom, get(selectionAtom).filter((id) => findNode(docState.doc, id)));
+    return true;
 }
 
 /** A locked layer (or one in a locked group) stays, and so does the isolated object itself */

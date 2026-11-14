@@ -1,4 +1,4 @@
-import { type SvgDoc, type SvgNode, activeClassDecls, applyClassDecls, classNamesOfStyle, deleteDefsClassMarkup, deleteDefsElementMarkup, findNode, hasClassToken, removeClassDecls, removeClassToken, styleIndexesOf, walkNodes } from "@/svg-core";
+import { type SvgDoc, type SvgNode, activeClassDecls, applyClassDecls, classNamesOfStyle, deleteDefsClassMarkup, deleteDefsElementMarkup, findNode, hasClassToken, removeClassDecls, removeClassToken, styleAt, styleIndexesOf, walkNodes } from "@/svg-core";
 import { commitHistory, docState, getNodeProxy } from "@/store/3-document";
 
 /**
@@ -92,12 +92,44 @@ export function canApplyStyleBatch(doc: SvgDoc, target: StyleBatchTarget): boole
 /** "Apply and remove" for every class of the batch, in order; one history step */
 export function applyStyleBatchAndRemove(target: StyleBatchTarget): boolean {
     const { defsId, styleIndexes } = styleBatchOf(docState.doc, target);
-    let changed = false;
-    for (const { styleIndex, name } of batchClasses(docState.doc, defsId, styleIndexes)) {
-        changed = applyClassInDoc(defsId, styleIndex, name, true) || changed;
+    return applyAndRemoveClasses(defsId, batchClasses(docState.doc, defsId, styleIndexes));
+}
+
+/**
+ * "Apply and remove" for the given classes of a `<defs>` element, one history step:
+ * - the declarations go onto the elements that use each class (`applyClassInDoc`);
+ * - the rules of the applied classes leave their `<style>` elements;
+ * - a `<style>` left without CSS goes, and so does the `<defs>` element when nothing is left in it.
+ */
+export function applyAndRemoveClasses(defsId: string, classes: readonly { styleIndex: number; name: string; }[]): boolean {
+    const applied: { styleIndex: number; name: string; }[] = [];
+    for (const c of classes) {
+        applyClassInDoc(defsId, c.styleIndex, c.name, true) && applied.push(c);
     }
-    changed && commitHistory();
-    return changed;
+    if (!applied.length) {
+        return false;
+    }
+
+    for (const { styleIndex, name } of applied) {
+        changeDefsMarkup(defsId, (inner) => deleteDefsClassMarkup(inner, styleIndex, name));
+    }
+
+    // from the last style to the first, so the indexes of the styles before it stay valid
+    const styleIndexes = [...new Set(applied.map((c) => c.styleIndex))].sort((a, b) => b - a);
+    for (const styleIndex of styleIndexes) {
+        changeDefsMarkup(defsId, (inner) => {
+            const st = styleAt(inner, styleIndex);
+            return st && !st.css.trim() ? deleteDefsElementMarkup(inner, styleIndex) : inner;
+        });
+    }
+
+    const loc = findNode(docState.doc, defsId);
+    if (loc?.node.kind === 'passthrough' && !loc.node.inner.trim()) {
+        loc.siblings.splice(loc.index, 1);
+    }
+
+    commitHistory();
+    return true;
 }
 
 //---------------------------------------------------------------------------
@@ -134,6 +166,13 @@ export function deleteDefsElement(defsId: string, index: number): boolean {
 }
 
 function writeDefsMarkup(defsId: string, change: (inner: string) => string): boolean {
+    const done = changeDefsMarkup(defsId, change);
+    done && commitHistory();
+    return done;
+}
+
+/** Changes the inner markup of a `<defs>` element without a history step; the caller commits */
+function changeDefsMarkup(defsId: string, change: (inner: string) => string): boolean {
     const node = getNodeProxy(defsId);
     if (node?.kind !== 'passthrough') {
         return false;
@@ -143,7 +182,6 @@ function writeDefsMarkup(defsId: string, change: (inner: string) => string): boo
         return false;
     }
     node.inner = inner;
-    commitHistory();
     return true;
 }
 
