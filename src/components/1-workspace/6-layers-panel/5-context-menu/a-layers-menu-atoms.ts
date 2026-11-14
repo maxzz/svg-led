@@ -17,14 +17,18 @@ export const layersMenuTargetAtom = atom(
     }
 );
 
-export type LayersMenuItem = { command: LayersMenuCommand; enabled: boolean; };
+export type LayersMenuItem = { command: LayersMenuCommand; description: string; enabled: boolean; };
 
-/** Commands registered for the kind of the target, with their enabled state */
+/** Commands registered for the kind of the target, with their description and enabled state */
 export const layersMenuItemsAtom = atom(
     (get): LayersMenuItem[] => {
         const target = get(layersMenuTargetAtom);
         return target
-            ? commandsFor(target).map((command) => ({ command, enabled: !command.enabled || command.enabled(get, target) }))
+            ? commandsFor(target).map((command) => ({
+                command,
+                description: typeof command.description === 'function' ? command.description(target) : command.description,
+                enabled: !command.enabled || command.enabled(get, target),
+            }))
             : [];
     }
 );

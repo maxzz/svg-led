@@ -11,6 +11,7 @@ import { applyDefsClass, canApplyDefsClass, deleteDefsClass, deleteDefsElement, 
 type CommandSpec<K extends LayersMenuTargetKind> = {
     id: string;
     label: string;
+    description: string | ((target: LayersMenuTargetOf<K>) => string);
     icon: LucideIcon;
     /** Kinds of rows the command is listed for */
     targets: readonly K[];
@@ -31,6 +32,7 @@ export const layersMenuCommands: readonly LayersMenuCommand[] = [
     command({
         id: 'layers.isolate',
         label: "Isolation Mode",
+        description: "Focus on this element and dim everything outside it",
         icon: Scan,
         targets: ['shape'],
         section: 'view',
@@ -41,6 +43,7 @@ export const layersMenuCommands: readonly LayersMenuCommand[] = [
     command({
         id: 'layers.applyClass',
         label: "Apply",
+        description: "Copy CSS rules to matching elements and keep the class",
         icon: PaintBucket,
         targets: ['defs-class'],
         section: 'edit',
@@ -51,6 +54,7 @@ export const layersMenuCommands: readonly LayersMenuCommand[] = [
     command({
         id: 'layers.applyClassAndRemove',
         label: "Apply and remove",
+        description: "Copy CSS rules to matching elements and remove the class",
         icon: Eraser,
         targets: ['defs-class'],
         section: 'edit',
@@ -61,6 +65,7 @@ export const layersMenuCommands: readonly LayersMenuCommand[] = [
     command({
         id: 'layers.removeClassRules',
         label: "Remove CSS rules",
+        description: "Remove attributes defined by this class from elements",
         icon: ListX,
         targets: ['defs-class'],
         section: 'edit',
@@ -71,6 +76,7 @@ export const layersMenuCommands: readonly LayersMenuCommand[] = [
     command({
         id: 'layers.delete',
         label: "Delete",
+        description: "Delete this layer from the document",
         icon: Trash,
         targets: ['element'],
         section: 'delete',
@@ -85,6 +91,9 @@ export const layersMenuCommands: readonly LayersMenuCommand[] = [
     command({
         id: 'layers.deleteDefsItem',
         label: "Delete",
+        description: (t) => t.kind === 'defs-class'
+            ? "Remove this CSS class rule from its <style> block"
+            : "Remove this element from <defs>",
         icon: Trash,
         targets: ['defs-class', 'defs-element'],
         section: 'delete',

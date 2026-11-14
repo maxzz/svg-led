@@ -7,6 +7,7 @@ export type CommandContext = { get: Getter; set: Setter; };
 export type Command = {
     id: string;
     label: string;
+    description?: string;
     group: CommandGroup;
     /** Display and matching form, e.g. "Ctrl+Shift+S"; Ctrl also matches Cmd on macOS */
     shortcut?: string;

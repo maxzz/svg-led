@@ -76,3 +76,25 @@ export const penDraftAtom = atom<PenDraft | null>(null);
 
 /** Snap guide shown while dragging (document coordinates) */
 export const snapPointAtom = atom<Point | null>(null);
+
+//---------------------------------------------------------------------------
+
+/** Description of the hovered or focused context menu item, shown in the hint area */
+export const menuHintAtom = atom<string | null>(null);
+
+export const setMenuHintAtom = atom(
+    null,
+    (_get, set, text: string | null) => {
+        set(menuHintAtom, text);
+    }
+);
+
+/** Clears the menu hint only when it still matches `text`, so an item leaving does not erase the next item's hint */
+export const clearMenuHintIfAtom = atom(
+    null,
+    (get, set, text: string) => {
+        if (get(menuHintAtom) === text) {
+            set(menuHintAtom, null);
+        }
+    }
+);

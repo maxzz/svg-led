@@ -1,6 +1,7 @@
 import { type ReactNode } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { ContextMenu, ContextMenuContent, ContextMenuTrigger } from "@/ui/shadcn/context-menu";
+import { setMenuHintAtom } from "@/store/4-editor";
 
 import { ActionItem, type MenuEntry, SEP, renderEntries } from "../../1-canvas/4-context-menu/8-context-menu-ui";
 import { layersMenuItemsAtom, openLayersMenuAtom, runLayersMenuCommandAtom } from "./a-layers-menu-atoms";
@@ -11,8 +12,10 @@ import { layersMenuItemsAtom, openLayersMenuAtom, runLayersMenuCommandAtom } fro
  */
 export function LayersContextMenu({ children }: { children: ReactNode; }) {
     const open = useSetAtom(openLayersMenuAtom);
+    const setMenuHint = useSetAtom(setMenuHintAtom);
+
     return (
-        <ContextMenu>
+        <ContextMenu onOpenChange={(isOpen) => !isOpen && setMenuHint(null)}>
             <ContextMenuTrigger asChild>
                 <div onContextMenu={(e) => { !open(e.target as Element) && e.preventDefault(); }}>
                     {children}
@@ -33,13 +36,14 @@ function LayersMenuItems() {
 
     const entries: MenuEntry[] = [];
     items.forEach(
-        ({ command: { id, label, icon: Icon, section, destructive }, enabled }, i) => {
+        ({ command: { id, label, icon: Icon, section, destructive }, description, enabled }, i) => {
             i > 0 && items[i - 1].command.section !== section && entries.push(SEP);
 
             entries.push(
                 <ActionItem
                     icon={<Icon className="size-4" />}
                     label={label}
+                    description={description}
                     variant={destructive ? 'destructive' : 'default'}
                     disabled={!enabled}
                     onSelect={() => run(id)}
