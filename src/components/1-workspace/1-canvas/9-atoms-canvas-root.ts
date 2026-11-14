@@ -10,7 +10,7 @@ import {
     heldKeysOf, screenToDoc, setHeldKeysAtom, setSelectionAtom, spaceHeldAtom, toolGestureActiveAtom, viewportAtom, zoomByAtom, zoomToFitAtom,
 } from "@/store/4-editor";
 import { type Point } from "@/svg-core";
-import { type ToolPointerEvent, getTool, resolveTarget, selectionUnitId } from "@/tools";
+import { type ToolPointerEvent, getTool, resolveTarget } from "@/tools";
 import { docTolerance, hitTestOutlines } from "@/tools/0-shared/2-tool-helpers";
 import { toolSpringActiveAtom } from "@/tools/3-core-points-prev-tool-spring";
 import { PROPERTIES_POPUP_RIGHT_EDGE_PX } from "@/components/1-workspace/2-props-panel/9-atoms-properties-popup";
@@ -102,11 +102,12 @@ export const canvasPointerDownAtom = atom(
     }
 );
 
-/** Sets the hovered element from what is under the pointer */
+/**
+ * Sets the hovered element from what is under the pointer. The hover is the element itself, not the group it belongs to,
+ * so only that element is highlighted; a click still selects the group (see the select tool).
+ */
 function updateHover(get: Getter, set: Setter, t: ToolPointerEvent['target']) {
-    const hover = t.type === 'node'
-        ? (get(activeToolIdAtom) === ToolId.points ? t.leafId : selectionUnitId(docState.doc, t.leafId, getIsolationScope(get)))
-        : null;
+    const hover = t.type === 'node' ? t.leafId : null;
     if (get(hoverNodeIdAtom) !== hover) {
         set(hoverNodeIdAtom, hover);
     }
