@@ -5,7 +5,7 @@ import { atomWithDialogOptions } from "@/store/2-persist";
 import { buildSvgExportText, docState, downloadBlob } from "@/store/3-document";
 import { selectionAtom } from "@/store/4-editor";
 import { sourceTextForSave } from "@/store/5-controllers";
-import { type ExportOptions, type ExportResult, type ExportScope, ExportFormatId, getExportFormat, runExport } from "@/transforms/2-export";
+import { type ExportOptions, type ExportResult, type ExportScope, ExportFormatId, getExportFormat, runExport, svgIntrinsicSize } from "@/transforms/2-export";
 
 export const isOpenExportDialogAtom = atom(false);
 
@@ -72,6 +72,29 @@ const exportResultAsyncAtom = atom(async (get): Promise<ExportResult> => {
 
 /** The latest finished export; the previous one stays while a PNG renders. Null before the first one is ready. */
 export const exportResultAtom = unwrap(exportResultAsyncAtom, (prev) => prev ?? null);
+
+/** The size of the exported image, known before rendering: the viewBox, times the PNG scale for PNG */
+export type ExportFrame = { width: number; height: number; label: string; };
+
+export const exportFrameAtom = atom((get): ExportFrame | null => {
+    const source = get(exportSourceAtom);
+    if (!source.ok) {
+        return null;
+    }
+    const size = svgIntrinsicSize(source.text);
+    if (!size) {
+        return null;
+    }
+    if (get(exportFormatAtom).id === ExportFormatId.png) {
+        const { pngScale } = get(exportOptionsAtom);
+        const width = Math.max(1, Math.round(size.width * pngScale));
+        const height = Math.max(1, Math.round(size.height * pngScale));
+        return { width, height, label: `${width} × ${height} px` };
+    }
+    const width = Math.round(size.width);
+    const height = Math.round(size.height);
+    return { width: size.width, height: size.height, label: `viewBox ${width} × ${height}` };
+});
 
 /** Image of the exported drawing: the PNG itself, or the source SVG for the text formats */
 export const exportPreviewImageAtom = atom((get): string | null => {
