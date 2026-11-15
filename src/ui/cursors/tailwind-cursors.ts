@@ -1,5 +1,5 @@
 import type { PluginAPI } from 'tailwindcss/plugin';
-import { cursorCss, cursorMoveMark } from './2-0-shared';
+import { cursorCssAsUri, cursorMoveMark } from './2-0-shared';
 import { rotateCursorAt } from './1-2-cursor-rotate';
 import { ROTATE_CURSOR_IMAGE_DEGREES, ROTATE_GLYPH } from './8-rotate-glyph';
 import { resizeHorizontal, resizeVertical, resizeNwSe, resizeNeSw } from './1-1-cursor-resize';
@@ -11,18 +11,18 @@ export function cursorsPlugin({ addUtilities }: PluginAPI): void {
     // Rotate cursor: one class per image. The class names are built from numbers, so index.css lists them with @source inline.
     addUtilities(
         Object.fromEntries(ROTATE_CURSOR_IMAGE_DEGREES.map(
-            (deg) => [`.cursor-rotate-${deg}`, { cursor: cursorCss(rotateCursorAt(deg), ROTATE_GLYPH.hotX, ROTATE_GLYPH.hotY) }]
+            (deg) => [`.cursor-rotate-${deg}`, { cursor: cursorCssAsUri(rotateCursorAt(deg), ROTATE_GLYPH.hotX, ROTATE_GLYPH.hotY) }]
         ))
     );
 
     addUtilities({
         // Resize cursor
-        '.cursor-resize-ew': { cursor: cursorCss(resizeHorizontal, 12, 12) },
-        '.cursor-resize-ns': { cursor: cursorCss(resizeVertical, 12, 12) },
-        '.cursor-resize-nw': { cursor: cursorCss(resizeNwSe, 12, 12) },
-        '.cursor-resize-se': { cursor: cursorCss(resizeNwSe, 12, 12) },
-        '.cursor-resize-ne': { cursor: cursorCss(resizeNeSw, 12, 12) },
-        '.cursor-resize-sw': { cursor: cursorCss(resizeNeSw, 12, 12) },
+        '.cursor-resize-ew': { cursor: cursorCssAsUri(resizeHorizontal, 12, 12) },
+        '.cursor-resize-ns': { cursor: cursorCssAsUri(resizeVertical, 12, 12) },
+        '.cursor-resize-nw': { cursor: cursorCssAsUri(resizeNwSe, 12, 12) },
+        '.cursor-resize-se': { cursor: cursorCssAsUri(resizeNwSe, 12, 12) },
+        '.cursor-resize-ne': { cursor: cursorCssAsUri(resizeNeSw, 12, 12) },
+        '.cursor-resize-sw': { cursor: cursorCssAsUri(resizeNeSw, 12, 12) },
 
         // Selection cursor
         '.cursor-solid-ptr': { cursor: selectionCursorCss() },
