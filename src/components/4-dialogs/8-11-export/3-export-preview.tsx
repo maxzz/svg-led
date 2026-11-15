@@ -5,21 +5,20 @@ import { type ExportFrame, exportFrameAtom, exportPreviewImageAtom, exportResult
 
 const ExportCodeEditor = lazy(() => import("./4-export-code-editor"));
 
-/** Right column: the exported drawing as an image, and the exported text */
-export function ExportPreview() {
+/** Bottom of the left column: the exported drawing as an image, with its file name and size */
+export function ExportImagePreview() {
     const result = useAtomValue(exportResultAtom);
     const image = useAtomValue(exportPreviewImageAtom);
     const frame = useAtomValue(exportFrameAtom);
     const output = result?.ok ? result.output : undefined;
-    const isImage = output?.kind === 'image';
 
     return (
-        <div className="min-w-0 min-h-0 flex flex-1 flex-col">
-            <div className={cn("relative flex items-center justify-center p-6 bg-muted/40", isImage ? "flex-1" : "shrink-0", !isImage && "h-40", "min-h-0 border-b")} style={FRAME_AREA}>
+        <div className="min-w-0 min-h-0 flex flex-1 flex-col border-t">
+            <div className="relative flex flex-1 min-h-0 items-center justify-center p-6 bg-muted/40" style={FRAME_AREA}>
                 {image && frame && <ExportFrameView frame={frame} image={image} />}
             </div>
 
-            <div className="shrink-0 px-3 py-1.5 text-[10px] text-muted-foreground border-b flex items-center gap-2">
+            <div className="shrink-0 px-3 py-1.5 text-[10px] text-muted-foreground border-t flex items-center gap-2">
                 {!result && <span>Rendering...</span>}
                 {result && !result.ok && <span className="text-destructive">{result.error}</span>}
                 {output && <>
@@ -28,16 +27,34 @@ export function ExportPreview() {
                     <span className="ml-auto tabular-nums">{formatSize(output.kind === 'image' ? output.blob.size : new Blob([output.text]).size)}</span>
                 </>}
             </div>
-
-            {output?.kind === 'text' && (
-                <div className="min-h-0 flex-1">
-                    <Suspense fallback={<div className="p-3 text-xs text-muted-foreground">Loading preview...</div>}>
-                        <ExportCodeEditor text={output.text} language={output.language} />
-                    </Suspense>
-                </div>
-            )}
         </div>
     );
+}
+
+/** Right column, below the options: the exported text. Bitmap output has no text to show. */
+export function ExportCodeView() {
+    const result = useAtomValue(exportResultAtom);
+    const output = result?.ok ? result.output : undefined;
+
+    if (output?.kind === 'image') {
+        return (
+            <div className="min-h-0 flex-1 flex items-center justify-center p-6 text-xs text-muted-foreground">
+                Bitmap image: the preview is at the left.
+            </div>
+        );
+    }
+
+    if (output?.kind === 'text') {
+        return (
+            <div className="min-h-0 flex-1">
+                <Suspense fallback={<div className="p-3 text-xs text-muted-foreground">Loading preview...</div>}>
+                    <ExportCodeEditor text={output.text} language={output.language} />
+                </Suspense>
+            </div>
+        );
+    }
+
+    return <div className="min-h-0 flex-1" />;
 }
 
 /**

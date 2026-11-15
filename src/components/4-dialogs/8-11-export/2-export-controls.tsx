@@ -1,24 +1,62 @@
-import { type ComponentType, type ReactNode, useId } from "react";
-import { useAtom } from "jotai";
+import { type ReactNode, useId } from "react";
+import { useAtom, useAtomValue } from "jotai";
 import { Checkbox } from "@/ui/shadcn/checkbox";
-import { Input } from "@/ui/shadcn/input";
 import { Label } from "@/ui/shadcn/label";
 import { TabSelect } from "@/ui/local-ui/5-tab-select";
-import { type ExportControlId, componentNameFor } from "@/transforms/2-export";
-import { exportBaseName, exportOptionsAtom } from "./9-atoms-export";
+import { topLevelIds } from "@/store/3-document";
+import { type ExportBounds, type ExportScope } from "@/transforms/2-export";
+import { exportOptionsAtom, exportScopeAtom, exportSelectedCountAtom } from "./9-atoms-export";
 
-/** Option controls by id; a format lists the ids it needs in `controls` */
-export const EXPORT_CONTROLS: Record<ExportControlId, ComponentType> = {
-    tailwind: TailwindControl,
-    pngScale: PngScaleControl,
-    pngBackground: PngBackgroundControl,
-    componentName: ComponentNameControl,
-    dataUriEncoding: DataUriEncodingControl,
-};
+/** Option rows shared by the per-format option files: Elements, Bounds, and the checkbox and label helpers */
 
-//---------------------------------------------------------------------------
+export function ExportScopeRow() {
+    const [, setOptions] = useAtom(exportOptionsAtom);
+    const scope = useAtomValue(exportScopeAtom);
+    const selectedCount = useAtomValue(exportSelectedCountAtom);
 
-function TailwindControl() {
+    const scopes = [
+        { value: 'selection', label: `Selected (${selectedCount})`, disabled: !selectedCount },
+        { value: 'all', label: `All (${topLevelIds().length})` },
+    ] as const;
+
+    return (
+        <OptionRow label="Elements">
+            <TabSelect<ExportScope>
+                className="p-0.5 bg-muted rounded-md"
+                itemClassName="py-1"
+                items={scopes}
+                value={scope}
+                onValueChange={(value) => setOptions({ scope: value })}
+                orientation="horizontal"
+                aria-label="Elements to export"
+            />
+        </OptionRow>
+    );
+}
+
+const BOUNDS = [
+    { value: 'viewBox', label: 'ViewBox' },
+    { value: 'content', label: 'Fit content' },
+] as const;
+
+export function ExportBoundsRow() {
+    const [options, setOptions] = useAtom(exportOptionsAtom);
+    return (
+        <OptionRow label="Bounds">
+            <TabSelect<ExportBounds>
+                className="p-0.5 bg-muted rounded-md"
+                itemClassName="py-1"
+                items={BOUNDS}
+                value={options.bounds}
+                onValueChange={(bounds) => setOptions({ bounds })}
+                orientation="horizontal"
+                aria-label="Export bounds"
+            />
+        </OptionRow>
+    );
+}
+
+export function ExportTailwindRow() {
     const [options, setOptions] = useAtom(exportOptionsAtom);
     return (
         <CheckboxRow checked={options.tailwind} onChange={(tailwind) => setOptions({ tailwind })}>
@@ -27,76 +65,10 @@ function TailwindControl() {
     );
 }
 
-function DataUriEncodingControl() {
-    const [options, setOptions] = useAtom(exportOptionsAtom);
-    return (<>
-        <CheckboxRow checked={options.dataUriBase64} onChange={(dataUriBase64) => setOptions({ dataUriBase64 })}>
-            Base64 encoding
-        </CheckboxRow>
-        <CheckboxRow checked={options.dataUriCss} onChange={(dataUriCss) => setOptions({ dataUriCss })}>
-            As CSS background-image
-        </CheckboxRow>
-    </>);
-}
-
-function PngScaleControl() {
-    const [options, setOptions] = useAtom(exportOptionsAtom);
-    return (
-        <ControlRow label="Scale">
-            <TabSelect<string>
-                className="p-0.5 bg-muted rounded-md"
-                itemClassName="py-1 tabular-nums"
-                items={PNG_SCALES.map((n) => ({ value: String(n), label: `${n}x` }))}
-                value={String(options.pngScale)}
-                onValueChange={(v) => setOptions({ pngScale: Number(v) })}
-                orientation="horizontal"
-                aria-label="PNG scale"
-            />
-        </ControlRow>
-    );
-}
-
-const PNG_SCALES = [1, 2, 3, 4];
-
-function PngBackgroundControl() {
-    const [options, setOptions] = useAtom(exportOptionsAtom);
-    const id = useId();
-    return (
-        <ControlRow label="Background" htmlFor={id}>
-            <Input
-                className="h-7 w-28 text-xs"
-                id={id}
-                value={options.pngBackground}
-                onChange={(e) => setOptions({ pngBackground: e.currentTarget.value })}
-                placeholder="transparent"
-                spellCheck={false}
-                autoComplete="off"
-            />
-        </ControlRow>
-    );
-}
-
-function ComponentNameControl() {
-    const [options, setOptions] = useAtom(exportOptionsAtom);
-    const id = useId();
-    return (
-        <ControlRow label="Name" htmlFor={id}>
-            <Input
-                className="min-w-0 h-7 text-xs flex-1"
-                id={id}
-                value={options.componentName}
-                onChange={(e) => setOptions({ componentName: e.currentTarget.value })}
-                placeholder={componentNameFor('', exportBaseName())}
-                spellCheck={false}
-                autoComplete="off"
-            />
-        </ControlRow>
-    );
-}
-
 //---------------------------------------------------------------------------
 
-function ControlRow({ label, htmlFor, children }: { label: string; htmlFor?: string; children: ReactNode; }) {
+/** A labeled row: fixed-width label, then the control */
+export function OptionRow({ label, htmlFor, children }: { label: string; htmlFor?: string; children: ReactNode; }) {
     return (
         <div className="flex items-center gap-2">
             <Label className="shrink-0 w-16 text-xs font-normal text-muted-foreground" htmlFor={htmlFor}>{label}</Label>
@@ -105,7 +77,7 @@ function ControlRow({ label, htmlFor, children }: { label: string; htmlFor?: str
     );
 }
 
-function CheckboxRow({ checked, onChange, children }: { checked: boolean; onChange: (checked: boolean) => void; children: ReactNode; }) {
+export function CheckboxRow({ checked, onChange, children }: { checked: boolean; onChange: (checked: boolean) => void; children: ReactNode; }) {
     const id = useId();
     return (
         <div className="flex items-center gap-2">
