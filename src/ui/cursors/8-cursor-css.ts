@@ -4,9 +4,13 @@
 // Rules: every black shape has a white border at least 1px wide, and every line or dot is at least 1px thick.
 // Lines are centered on pixel centers (x.5) so a 1px stroke covers exactly one pixel.
 
+/** Removes HTML/SVG comments (`<!-- ... -->`). They are for maintainers only and must not ship with the cursor. */
+export function removeSvgComments(svg: string): string {
+    return svg.replace(/<!--[\s\S]*?-->/g, '');
+}
+
 function svgToDataUri(svg: string): string {
-    // HTML comments are for maintainers only; strip them so they are not exported with the cursor
-    const markup = svg.replace(/<!--[\s\S]*?-->/g, '').replace(/\s+/g, ' ').trim();
+    const markup = removeSvgComments(svg).replace(/\s+/g, ' ').trim();
     return `data:image/svg+xml,${encodeURIComponent(markup)}`;
 }
 

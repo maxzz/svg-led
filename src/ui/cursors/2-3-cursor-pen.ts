@@ -1,4 +1,4 @@
-import { cursorCss } from './8-cursor-css';
+import { cursorCss, removeSvgComments } from './8-cursor-css';
 
 /**
  * Pen: a nib pointing to the upper left; the hotspot is the tip at (2, 2).
@@ -49,5 +49,5 @@ export const PEN_BADGES = {
 };
 
 export function penCursorCss(badge?: keyof typeof PEN_BADGES): string {
-    return cursorCss(penCursor.replace('{badge}', badge ? PEN_BADGES[badge] : ''), 2, 2);
+    return cursorCss(removeSvgComments(penCursor.replace('{badge}', badge ? PEN_BADGES[badge] : '')), 2, 2);
 }

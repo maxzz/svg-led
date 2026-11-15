@@ -1,4 +1,4 @@
-import { cursorCss } from './8-cursor-css';
+import { cursorCss, removeSvgComments } from './8-cursor-css';
 import { arrowCursorMark } from './2-0-shared';
 
 /** Empty canvas, nothing selected: just the arrow */
@@ -19,5 +19,5 @@ export const selectionPointerHoverMark = `
 `;
 
 export function selectionCursorCss(extra = ''): string {
-    return cursorCss(selectionPointer.replace('{extra}', extra));
+    return cursorCss(removeSvgComments(selectionPointer.replace('{extra}', extra)));
 }

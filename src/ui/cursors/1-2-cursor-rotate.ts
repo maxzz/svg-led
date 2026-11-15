@@ -1,4 +1,5 @@
 import { ROTATE_GLYPH } from './8-rotate-glyph';
+import { removeSvgComments } from './8-cursor-css';
 
 /**
  * Rotate cursor at 0°: a quarter-circle bulging right, with an arrowhead at each end.
@@ -23,13 +24,13 @@ const rotateCursor = `
 /** Same drawing, turned clockwise around the hotspot. Angle 0 is the constant above. */
 export function rotateCursorAt(deg: number): string {
     if (!deg) {
-        return rotateCursor;
+        return removeSvgComments(rotateCursor);
     }
     const { hotX, hotY } = ROTATE_GLYPH;
 
     const withGroup = rotateCursor.replace(/<svg\b([^>]*)>/, `<svg$1><g transform="rotate(${deg} ${hotX} ${hotY})">`);
 
     const end = withGroup.lastIndexOf('</svg>');
-    return `${withGroup.slice(0, end)}</g></svg>`;
+    return removeSvgComments(`${withGroup.slice(0, end)}</g></svg>`);
 }
 

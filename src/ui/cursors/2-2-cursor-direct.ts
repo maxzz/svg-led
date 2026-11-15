@@ -1,4 +1,4 @@
-import { cursorCss } from './8-cursor-css';
+import { cursorCss, removeSvgComments } from './8-cursor-css';
 import { PEN_BADGES } from './2-3-cursor-pen';
 import { arrowCursorMark, cursorMoveMark, pointsInnerMark } from './2-0-shared';
 
@@ -27,5 +27,5 @@ export const directPointMark = `
 `;
 
 export function directCursorCss(extra = ''): string {
-    return cursorCss(directCursor.replace('{extra}', extra));
+    return cursorCss(removeSvgComments(directCursor.replace('{extra}', extra)));
 }
