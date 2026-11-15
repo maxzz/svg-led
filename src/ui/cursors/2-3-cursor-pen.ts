@@ -1,4 +1,4 @@
-import { cursorCssAsUri, removeSvgComments } from './2-0-shared';
+import { cursorCssAsUri } from './2-0-shared';
 
 /**
  * Pen: a nib pointing to the upper left; the hotspot is the tip at (2, 2).
@@ -49,5 +49,5 @@ export const PEN_BADGES = {
 };
 
 export function penCursorCss(badge?: keyof typeof PEN_BADGES): string {
-    return cursorCssAsUri(removeSvgComments(penCursor.replace('{badge}', badge ? PEN_BADGES[badge] : '')), 2, 2);
+    return cursorCssAsUri(penCursor.replace('{badge}', badge ? PEN_BADGES[badge] : ''), 2, 2);
 }

@@ -1,4 +1,4 @@
-import { arrowCursorMark, cursorCssAsUri, pointsInnerMark, removeSvgComments } from './2-0-shared';
+import { arrowCursorMark, cursorCssAsUri, pointsInnerMark } from './2-0-shared';
 
 /**
  * Direct selection: the same arrow as the Selection tool, filled white with a 1px black edge,
@@ -25,5 +25,5 @@ export const directPointMark = `
 `;
 
 export function directCursorCss(extra = ''): string {
-    return cursorCssAsUri(removeSvgComments(directCursor.replace('{extra}', extra)));
+    return cursorCssAsUri(directCursor.replace('{extra}', extra));
 }
