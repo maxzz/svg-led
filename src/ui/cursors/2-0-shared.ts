@@ -16,3 +16,23 @@ export const cursorMoveMark = `
     <path fill="#000000" d="M7.854 18.457 L7.854 18.273 C7.854 17.854 8.156 17.503 8.558 17.428 L8.558 15.922 L8.165 15.528 C7.829 15.194 7.829 14.65 8.165 14.315 L8.29 14.181 C8.625 13.846 9.169 13.846 9.503 14.181 L10.047 14.725 L12.482 14.725 L12.482 14.691 C12.482 14.248 12.85 13.879 13.294 13.879 C13.77 13.879 14.147 14.256 14.147 14.725 L16.54 14.725 C16.54 14.725 16.557 14.708 16.557 14.708 L17.159 14.165 C17.511 13.846 18.056 13.871 18.373 14.231 L18.491 14.366 C18.808 14.716 18.783 15.261 18.431 15.578 L18.021 15.947 L18.021 17.537 C18.431 17.595 18.75 17.955 18.75 18.382 L18.75 18.565 C18.75 19.001 18.431 19.352 18.021 19.41 L18.021 20.9 L18.557 21.494 C18.875 21.846 18.85 22.39 18.491 22.708 L18.356 22.834 C18.005 23.151 17.461 23.126 17.143 22.766 L16.599 22.163 C16.599 22.163 16.557 22.113 16.54 22.088 L14.139 22.088 C14.131 22.557 13.754 22.934 13.285 22.934 C12.817 22.934 12.474 22.565 12.474 22.122 L12.474 22.097 L10.189 22.097 C10.147 22.163 10.097 22.214 10.047 22.273 L9.445 22.817 C9.093 23.134 8.55 23.109 8.231 22.749 L8.106 22.616 C7.788 22.264 7.813 21.72 8.173 21.403 L8.558 21.059 L8.558 19.31 C8.156 19.236 7.854 18.884 7.854 18.465 Z M9.352 21.293 L17.227 21.293 L17.227 15.52 L9.344 15.52 L9.344 21.293 Z"/>
 </g>
 `;
+
+// Cursor artwork is plain SVG markup, kept literal so it can be edited in an external editor and pasted back.
+// Drawn on a 24x24 grid (one unit = one CSS pixel).
+// Rules: every black shape has a white border at least 1px wide, and every line or dot is at least 1px thick.
+// Lines are centered on pixel centers (x.5) so a 1px stroke covers exactly one pixel.
+
+/** Removes HTML/SVG comments (`<!-- ... -->`). They are for maintainers only and must not ship with the cursor. */
+export function removeSvgComments(svg: string): string {
+    return svg.replace(/<!--[\s\S]*?-->/g, '');
+}
+
+function svgToDataUri(svg: string): string {
+    const markup = removeSvgComments(svg).replace(/\s+/g, ' ').trim();
+    return `data:image/svg+xml,${encodeURIComponent(markup)}`;
+}
+
+/** Hotspot defaults to the selection-arrow tip at (1, 1). Resize cursors pass the center of the glyph. */
+export function cursorCss(svg: string, hotX = 1, hotY = 1): string {
+    return `url("${svgToDataUri(svg)}") ${hotX} ${hotY}, default`;
+}

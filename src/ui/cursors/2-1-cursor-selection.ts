@@ -1,5 +1,4 @@
-import { cursorCss, removeSvgComments } from './8-cursor-css';
-import { arrowCursorMark } from './2-0-shared';
+import { arrowCursorMark, cursorCss, removeSvgComments } from './2-0-shared';
 
 /** Empty canvas, nothing selected: just the arrow */
 export const selectionPointer = `

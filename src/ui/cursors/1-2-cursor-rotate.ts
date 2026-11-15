@@ -1,5 +1,5 @@
 import { ROTATE_GLYPH } from './8-rotate-glyph';
-import { removeSvgComments } from './8-cursor-css';
+import { removeSvgComments } from './2-0-shared';
 
 /**
  * Rotate cursor at 0°: a quarter-circle bulging right, with an arrowhead at each end.

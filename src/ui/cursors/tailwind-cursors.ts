@@ -1,23 +1,17 @@
 import type { PluginAPI } from 'tailwindcss/plugin';
-import { cursorCss } from './8-cursor-css';
+import { cursorCss, cursorMoveMark } from './2-0-shared';
 import { rotateCursorAt } from './1-2-cursor-rotate';
 import { ROTATE_CURSOR_IMAGE_DEGREES, ROTATE_GLYPH } from './8-rotate-glyph';
 import { resizeHorizontal, resizeVertical, resizeNwSe, resizeNeSw } from './1-1-cursor-resize';
 import { selectionPointerHoverMark, selectionCursorCss } from './2-1-cursor-selection';
 import { directCursorCss, directHoverMark, directPointMark } from './2-2-cursor-direct';
-import { cursorMoveMark } from './2-0-shared';
 import { PEN_BADGES, penCursorCss } from './2-3-cursor-pen';
-
-//---------------------------------------------------------------------------
 
 export function cursorsPlugin({ addUtilities }: PluginAPI): void {
     // Rotate cursor: one class per image. The class names are built from numbers, so index.css lists them with @source inline.
     addUtilities(
         Object.fromEntries(ROTATE_CURSOR_IMAGE_DEGREES.map(
-            (deg) => [
-                `.cursor-rotate-${deg}`,
-                { cursor: cursorCss(rotateCursorAt(deg), ROTATE_GLYPH.hotX, ROTATE_GLYPH.hotY) },
-            ]
+            (deg) => [`.cursor-rotate-${deg}`, { cursor: cursorCss(rotateCursorAt(deg), ROTATE_GLYPH.hotX, ROTATE_GLYPH.hotY) }]
         ))
     );
 
