@@ -3,8 +3,9 @@ import { cursorCss } from './8-cursor-css';
 import { rotateCursorAt } from './1-2-cursor-rotate';
 import { ROTATE_CURSOR_IMAGE_DEGREES, ROTATE_GLYPH } from './8-rotate-glyph';
 import { resizeHorizontal, resizeVertical, resizeNwSe, resizeNeSw } from './1-1-cursor-resize';
-import { selectionMove, selectionPointer, selectionPointerHover } from './2-1-cursor-selection';
-import { directCursorCss, directHoverMark, directPointMark, directMoveMark } from './2-2-cursor-direct';
+import { selectionMove, selectionPointerHoverMark, selectionCursorCss } from './2-1-cursor-selection';
+import { directCursorCss, directHoverMark, directPointMark } from './2-2-cursor-direct';
+import { cursorMoveMark } from './2-0-shared';
 import { PEN_BADGES, penCursorCss } from './2-3-cursor-pen';
 
 //---------------------------------------------------------------------------
@@ -26,14 +27,14 @@ export function cursorsPlugin({ addUtilities }: PluginAPI): void {
         '.cursor-resize-sw': { cursor: cursorCss(resizeNeSw, 12, 12) },
 
         // Selection cursor
-        '.cursor-solid-ptr': { cursor: cursorCss(selectionPointer) },
-        '.cursor-solid-hover': { cursor: cursorCss(selectionPointerHover) },
+        '.cursor-solid-ptr': { cursor: selectionCursorCss() },
+        '.cursor-solid-hover': { cursor: selectionCursorCss(selectionPointerHoverMark) },
         '.cursor-solid-move': { cursor: cursorCss(selectionMove) },
 
         // Direct selection cursor
         '.cursor-direct-ptr': { cursor: directCursorCss() },
         '.cursor-direct-hover': { cursor: directCursorCss(directHoverMark) },
-        '.cursor-direct-move': { cursor: directCursorCss(directMoveMark) },
+        '.cursor-direct-move': { cursor: directCursorCss(cursorMoveMark) },
 
         '.cursor-direct-point': { cursor: directCursorCss(directPointMark) },
         '.cursor-direct-add': { cursor: directCursorCss(PEN_BADGES.add) },
