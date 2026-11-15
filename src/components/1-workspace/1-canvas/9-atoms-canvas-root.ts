@@ -4,7 +4,8 @@ import { toast } from "sonner";
 import { jotaiStore } from "@/store/8-jotai-store";
 import { appSettings } from "@/store/1-ui-settings";
 import { docState, loadSvgFile } from "@/store/3-document";
-import { exitIsolationToAtom, filterTarget, getIsolationScope, insertMarkupAtTop } from "@/store/6-layers";
+import { exitIsolationToAtom, filterTarget, getIsolationScope } from "@/store/6-layers";
+import { doPasteMarkupAtom } from "@/transforms/1-paste";
 import {
     ToolId, activeToolIdAtom, canvasSizeAtom, hoverNodeIdAtom, isPanningAtom, panByAtom, pointerDocAtom, pruneSelectionAtom,
     heldKeysOf, screenToDoc, setHeldKeysAtom, setSelectionAtom, spaceHeldAtom, toolGestureActiveAtom, viewportAtom, zoomByAtom, zoomToFitAtom,
@@ -212,8 +213,7 @@ export const canvasDropAtom = atom(
         }
         const text = e.dataTransfer.getData('text/plain');
         if (text.includes('<')) {
-            const ids = insertMarkupAtTop(get, text);
-            ids ? set(setSelectionAtom, ids) : toast.error('Dropped text is not SVG markup');
+            set(doPasteMarkupAtom, text) || toast.error('Dropped text is not SVG markup');
             set(pruneSelectionAtom);
         }
     }

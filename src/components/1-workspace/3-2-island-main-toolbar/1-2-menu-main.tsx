@@ -1,5 +1,5 @@
 import { useSetAtom } from "jotai";
-import { Download, FolderOpen, GitFork, CircleQuestionMark, ImageDown, Menu, Save, Settings2, ClipboardPaste, Trash } from "lucide-react";
+import { Download, FileOutput, FolderOpen, GitFork, CircleQuestionMark, ImageDown, Menu, Save, Settings2, ClipboardPaste, Trash } from "lucide-react";
 import {
     DropdownMenu, DropdownMenuContent, DropdownMenuItem,
     DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger,
@@ -23,6 +23,7 @@ export function Island_MainMenu() {
                 <CommandMenuItem id="file.open" icon={<FolderOpen className={icClasses} />} />
                 <CommandMenuItem id="file.save" icon={<Save className={icClasses} />} />
                 <CommandMenuItem id="file.saveAs" icon={<Download className={icClasses} />} />
+                <CommandMenuItem id="file.export" icon={<FileOutput className={icClasses} />} />
 
                 <DropdownMenuSub>
                     <DropdownMenuSubTrigger>

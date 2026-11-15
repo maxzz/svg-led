@@ -7,6 +7,7 @@ import { CommandPalette } from "@/components/4-dialogs/8-7-command-palette/0-com
 import { FindOnCanvasDialog } from "@/components/4-dialogs/8-8-find-on-canvas/0-find-on-canvas";
 import { ScrapsDialog } from "@/components/4-dialogs/8-9-scraps/0-scraps-dialog";
 import { OffsetPathDialog } from "@/components/4-dialogs/8-10-offset-path/0-offset-path-dialog";
+import { ExportDialog } from "@/components/4-dialogs/8-11-export/0-export-dialog";
 
 export function AllDialogs() {
     return (<>
@@ -19,5 +20,6 @@ export function AllDialogs() {
         <FindOnCanvasDialog />
         <ScrapsDialog />
         <OffsetPathDialog />
+        <ExportDialog />
     </>);
 }

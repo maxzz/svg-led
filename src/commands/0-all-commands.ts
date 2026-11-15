@@ -13,11 +13,12 @@ import {
     zoomResetAtom, zoomToFitAtom, zoomToSelectionAtom,
 } from "@/store/4-editor";
 import {
-    exitIsolationToAtom, getIsolationScope, hasHidden, hasLocked, hideSelectionAtom, insertMarkupAtTop, isPickable, isolateSelectionAtom,
+    exitIsolationToAtom, getIsolationScope, hasHidden, hasLocked, hideSelectionAtom, isPickable, isolateSelectionAtom,
     isolationRootChildren, lockSelectionAtom, selectionCanIsolate, showAllAtom, unlockAllAtom,
 } from "@/store/6-layers";
 import { TOOLS } from "@/tools";
 import { sourceTextForSave } from "@/store/5-controllers";
+import { doPasteMarkupAtom } from "@/transforms/1-paste";
 import { doAsyncExecuteConfirmDialogAtom } from "@/components/4-dialogs/8-1-confirmation/9-types-confirmation";
 import { fitViewBoxDialogAtom } from "@/components/4-dialogs/8-4-fit-viewbox/9-types-fit-viewbox";
 import { isOpenViewBoxSettingsDialogAtom } from "@/components/4-dialogs/8-5-viewbox-settings/a-types-viewbox-settings";
@@ -27,6 +28,7 @@ import { isOpenFindOnCanvasAtom } from "@/components/4-dialogs/8-8-find-on-canva
 import { isOpenOptionsDialogAtom } from "@/components/4-dialogs/8-3-options/9-types-options";
 import { isOpenScrapsDialogAtom } from "@/components/4-dialogs/8-9-scraps/9-types-scraps";
 import { openOffsetPathDialogAtom } from "@/components/4-dialogs/8-10-offset-path/9-atoms-offset-path";
+import { openExportDialogAtom } from "@/components/4-dialogs/8-11-export/9-atoms-export";
 import { PROPERTIES_POPUP_RIGHT_EDGE_PX } from "@/components/1-workspace/2-props-panel/9-atoms-properties-popup";
 import { renameSelectionAtom } from "@/components/1-workspace/6-layers-panel/3-rename/9-atoms-rename";
 import { type Command } from "./9-command-types";
@@ -56,6 +58,11 @@ const FILE: Command[] = [
     },
     { id: 'file.save', label: 'Save', group: 'file', shortcut: 'Ctrl+S', description: 'Save changes to the current SVG file', run: async () => reportFile(await saveSvgFile(sourceTextForSave()), 'Saved') },
     { id: 'file.saveAs', label: 'Save as...', group: 'file', shortcut: 'Ctrl+Shift+S', description: 'Save the SVG document to a new file', run: async () => reportFile(await saveSvgFileAs(sourceTextForSave()), 'Saved') },
+    {
+        id: 'file.export', label: 'Export...', group: 'file', keywords: 'svg png react tsx jsx component data uri css tailwind copy clipboard download',
+        description: 'Export the drawing or the selection as SVG, PNG, a React component, or a data URI, with a preview',
+        run: ({ set }) => set(openExportDialogAtom),
+    },
     { id: 'file.exportSvg', label: 'Export SVG', group: 'file', description: 'Download the drawing as an SVG file', run: () => exportSvgDownload(sourceTextForSave()) },
     { id: 'file.exportPng1', label: 'Export PNG (1x)', group: 'file', shortcut: 'Ctrl+Shift+E', description: 'Export the drawing as a 1x PNG image', run: async () => reportFile(await exportPng(1)) },
     { id: 'file.exportPng2', label: 'Export PNG (2x)', group: 'file', description: 'Export the drawing as a 2x PNG image', run: async () => reportFile(await exportPng(2)) },
@@ -69,12 +76,11 @@ const FILE: Command[] = [
         },
     },
     {
-        id: 'file.pasteSvg', label: 'Paste SVG from clipboard', group: 'file', keywords: 'import insert',
-        description: 'Insert SVG markup from the clipboard onto the canvas',
-        run: async ({ get, set }) => {
+        id: 'file.pasteSvg', label: 'Paste SVG from clipboard', group: 'file', keywords: 'import insert react jsx tsx component',
+        description: 'Insert SVG markup or a React SVG component from the clipboard onto the canvas',
+        run: async ({ set }) => {
             try {
-                const ids = insertMarkupAtTop(get, await navigator.clipboard.readText());
-                ids ? set(setSelectionAtom, ids) : toast.error('The clipboard does not contain SVG markup');
+                set(doPasteMarkupAtom, await navigator.clipboard.readText()) || toast.error('The clipboard does not contain SVG markup');
             } catch (e) {
                 toast.error(String(e));
             }

@@ -1,10 +1,10 @@
 import { type JotaiStore } from "../8-jotai-store";
 import { deleteNodes, nodesToText } from "../3-document";
 import { selectionAtom, setSelectionAtom } from "../4-editor";
-import { insertMarkupAtTop } from "../6-layers";
 import { isEditableTarget } from "@/commands";
+import { doPasteMarkupAtom } from "@/transforms/1-paste";
 
-/** Copy, cut and paste of elements as SVG markup, so they can be pasted into other apps and back */
+/** Copy, cut and paste of elements as SVG markup, so they can be pasted into other apps and back. Paste also takes React JSX (see transforms/1-paste). */
 export function installClipboardController(store: JotaiStore): () => void {
 
     function onCopy(e: ClipboardEvent, cut: boolean) {
@@ -32,10 +32,8 @@ export function installClipboardController(store: JotaiStore): () => void {
         if (isEditableTarget(e.target) || !text.includes('<')) {
             return;
         }
-        const ids = insertMarkupAtTop(store.get, text);
-        if (ids) {
+        if (store.set(doPasteMarkupAtom, text)) {
             e.preventDefault();
-            store.set(setSelectionAtom, ids);
         }
     };
 
