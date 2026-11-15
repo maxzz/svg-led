@@ -63,7 +63,7 @@ export function ExportCodeView() {
  */
 function ExportFrameView({ frame, image }: { frame: ExportFrame; image: string; }) {
     return (
-        <div className="relative shadow-sm ring-1 ring-foreground/25" style={frameStyle(frame)}>
+        <div className="relative shadow-md border border-foreground/20 border-dotted" style={frameStyle(frame)}>
             <span className="absolute bottom-full left-0 mb-1 text-[10px] leading-none tabular-nums whitespace-nowrap text-muted-foreground">
                 {frame.label}
             </span>
