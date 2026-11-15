@@ -1,5 +1,3 @@
-import { cursorCss } from './8-cursor-css';
-
 /**
  * Horizontal resize. Double arrow centered on the 24×24 grid; the hotspot is that center.
  * White shape is the black arrow with a 2px stroke, so 1px of white shows around it.

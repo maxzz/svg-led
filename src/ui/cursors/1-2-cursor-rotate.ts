@@ -26,10 +26,9 @@ export function rotateCursorAt(deg: number): string {
         return rotateCursor;
     }
     const { hotX, hotY } = ROTATE_GLYPH;
-    const withGroup = rotateCursor.replace(
-        /<svg\b([^>]*)>/,
-        `<svg$1><g transform="rotate(${deg} ${hotX} ${hotY})">`,
-    );
+
+    const withGroup = rotateCursor.replace(/<svg\b([^>]*)>/, `<svg$1><g transform="rotate(${deg} ${hotX} ${hotY})">`);
+
     const end = withGroup.lastIndexOf('</svg>');
     return `${withGroup.slice(0, end)}</g></svg>`;
 }
