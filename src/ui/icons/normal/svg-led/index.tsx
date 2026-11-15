@@ -1,5 +1,8 @@
 export * from "./app-logo";
 
+export * from "./pointer-1-1-selection";
+export * from "./pointer-1-2-direct";
+
 export * from "./cc-1-1-cap-butt";
 export * from "./cc-1-2-cap-round";
 export * from "./cc-1-3-cap-square";

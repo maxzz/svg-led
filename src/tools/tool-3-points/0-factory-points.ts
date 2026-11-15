@@ -1,6 +1,6 @@
 import { type Getter, type Setter } from "jotai";
 import { snapshot } from "valtio";
-import { MousePointer } from "lucide-react";
+import { IconPointer_1_2_Direct } from "@/ui/icons/normal/svg-led";
 import { toast } from "sonner";
 
 import {
@@ -32,7 +32,7 @@ export const pointsTool: ToolDef = {
     label: 'Direct selection',
     shortcut: 'a',
     altShortcut: '2',
-    icon: MousePointer,
+    icon: IconPointer_1_2_Direct,
     hint: ({ held, dragging }) => (
         dragging
             ? 'Release to finish'

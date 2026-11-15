@@ -1,6 +1,6 @@
 import { snapshot } from "valtio";
 import { type Getter, type Setter, atom } from "jotai";
-import { MousePointer2 } from "lucide-react";
+import { IconPointer_1_1_Selection } from "@/ui/icons/normal/svg-led";
 
 import { type ResizeHandle, type ToolDef, type ToolPointerEvent } from "../9-types-tool-def";
 import { type Point, type Rect, type SvgDoc, applyMatrix, findNode, flattenSubpaths, nodeCtm, nodeOutline, rectContainsRect, rectFromCorners, rectsIntersect, rotateMatrix, scaleAround, walkNodes } from "@/svg-core";
@@ -40,7 +40,7 @@ export const selectTool: ToolDef = {
     label: 'Selection',
     shortcut: 'v',
     altShortcut: '1',
-    icon: MousePointer2,
+    icon: IconPointer_1_1_Selection,
     hint: ({ held, dragging }) => (
         dragging
             ? '' //'Release to finish'
