@@ -3,7 +3,7 @@ import { cursorCss } from './8-cursor-css';
 import { rotateCursorAt } from './1-2-cursor-rotate';
 import { ROTATE_CURSOR_IMAGE_DEGREES, ROTATE_GLYPH } from './8-rotate-glyph';
 import { resizeHorizontal, resizeVertical, resizeNwSe, resizeNeSw } from './1-1-cursor-resize';
-import { selectionMove, selectionPointerHoverMark, selectionCursorCss } from './2-1-cursor-selection';
+import { selectionPointerHoverMark, selectionCursorCss } from './2-1-cursor-selection';
 import { directCursorCss, directHoverMark, directPointMark } from './2-2-cursor-direct';
 import { cursorMoveMark } from './2-0-shared';
 import { PEN_BADGES, penCursorCss } from './2-3-cursor-pen';
@@ -29,7 +29,7 @@ export function cursorsPlugin({ addUtilities }: PluginAPI): void {
         // Selection cursor
         '.cursor-solid-ptr': { cursor: selectionCursorCss() },
         '.cursor-solid-hover': { cursor: selectionCursorCss(selectionPointerHoverMark) },
-        '.cursor-solid-move': { cursor: cursorCss(selectionMove) },
+        '.cursor-solid-move': { cursor: selectionCursorCss(cursorMoveMark) },
 
         // Direct selection cursor
         '.cursor-direct-ptr': { cursor: directCursorCss() },
