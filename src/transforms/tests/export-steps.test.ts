@@ -3,6 +3,7 @@ import { parseMarkup, printSvgMarkup } from "../0-markup/1-markup-tree";
 import { attrsToTailwind, tailwindClass } from "../2-export/1-tailwind-classes";
 import { componentNameFor, svgToReactComponent } from "../2-export/2-svg-to-jsx";
 import { minifySvg, svgToDataUri } from "../2-export/3-data-uri";
+import { svgViewportSize } from "../2-export/5-svg-viewport";
 import { runPastePipeline } from "../1-paste/0-paste-pipeline";
 
 const ICON = [
@@ -77,6 +78,24 @@ describe("React component", () => {
         expect(componentNameFor('', 'arrow-left')).toBe('IconArrowLeft');
         expect(componentNameFor('my icon', 'x')).toBe('MyIcon');
         expect(componentNameFor('2x', 'x')).toBe('Icon2x');
+    });
+});
+
+describe("svg viewport", () => {
+    it("uses the viewBox when width and height are missing", () => {
+        expect(svgViewportSize('<svg viewBox="0 0 24 24"><rect x="2" y="4" width="8" height="8"/></svg>')).toEqual({ width: 24, height: 24 });
+        expect(svgViewportSize('<svg viewBox="0,0,10,20"/>')).toEqual({ width: 10, height: 20 });
+    });
+
+    it("uses absolute width and height, even when the viewBox has another aspect", () => {
+        expect(svgViewportSize('<svg width="200" height="100" viewBox="0 0 24 24"/>')).toEqual({ width: 200, height: 100 });
+        expect(svgViewportSize('<svg width="2in" height="1in" viewBox="0 0 24 24"/>')).toEqual({ width: 192, height: 96 });
+    });
+
+    it("derives the missing side from the viewBox and ignores percentages", () => {
+        expect(svgViewportSize('<svg width="50" viewBox="0 0 24 12"/>')).toEqual({ width: 50, height: 25 });
+        expect(svgViewportSize('<svg width="100%" height="100%" viewBox="0 0 8 4"/>')).toEqual({ width: 8, height: 4 });
+        expect(svgViewportSize('<svg/>')).toBeNull();
     });
 });
 
