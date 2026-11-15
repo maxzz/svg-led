@@ -59,12 +59,12 @@ const FILE: Command[] = [
     { id: 'file.save', label: 'Save', group: 'file', shortcut: 'Ctrl+S', description: 'Save changes to the current SVG file', run: async () => reportFile(await saveSvgFile(sourceTextForSave()), 'Saved') },
     { id: 'file.saveAs', label: 'Save as...', group: 'file', shortcut: 'Ctrl+Shift+S', description: 'Save the SVG document to a new file', run: async () => reportFile(await saveSvgFileAs(sourceTextForSave()), 'Saved') },
     {
-        id: 'file.export', label: 'Export...', group: 'file', keywords: 'svg png react tsx jsx component data uri css tailwind copy clipboard download',
+        id: 'file.export', label: 'Export...', group: 'file', shortcut: 'Ctrl+Shift+E', keywords: 'svg png react tsx jsx component data uri css tailwind copy clipboard download',
         description: 'Export the drawing or the selection as SVG, PNG, a React component, or a data URI, with a preview',
         run: ({ set }) => set(openExportDialogAtom),
     },
     { id: 'file.exportSvg', label: 'Export SVG', group: 'file', description: 'Download the drawing as an SVG file', run: () => exportSvgDownload(sourceTextForSave()) },
-    { id: 'file.exportPng1', label: 'Export PNG (1x)', group: 'file', shortcut: 'Ctrl+Shift+E', description: 'Export the drawing as a 1x PNG image', run: async () => reportFile(await exportPng(1)) },
+    { id: 'file.exportPng1', label: 'Export PNG (1x)', group: 'file', description: 'Export the drawing as a 1x PNG image', run: async () => reportFile(await exportPng(1)) },
     { id: 'file.exportPng2', label: 'Export PNG (2x)', group: 'file', description: 'Export the drawing as a 2x PNG image', run: async () => reportFile(await exportPng(2)) },
     { id: 'file.exportPng4', label: 'Export PNG (4x)', group: 'file', description: 'Export the drawing as a 4x PNG image', run: async () => reportFile(await exportPng(4)) },
     {

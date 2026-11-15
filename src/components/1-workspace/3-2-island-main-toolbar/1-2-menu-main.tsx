@@ -1,8 +1,8 @@
 import { useSetAtom } from "jotai";
-import { Download, FileOutput, FolderOpen, GitFork, CircleQuestionMark, ImageDown, Menu, Save, Settings2, ClipboardPaste, Trash } from "lucide-react";
+import { Download, FileOutput, FolderOpen, GitFork, CircleQuestionMark, Menu, Save, Settings2, ClipboardPaste, Trash } from "lucide-react";
 import {
     DropdownMenu, DropdownMenuContent, DropdownMenuItem,
-    DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger,
+    DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/ui/shadcn/dropdown-menu";
 import { islandButtonClasses } from "@/ui/local-ui/9-island";
 import { CommandMenuItem } from "./1-8-menu-item-as-command";
@@ -24,21 +24,6 @@ export function Island_MainMenu() {
                 <CommandMenuItem id="file.save" icon={<Save className={icClasses} />} />
                 <CommandMenuItem id="file.saveAs" icon={<Download className={icClasses} />} />
                 <CommandMenuItem id="file.export" icon={<FileOutput className={icClasses} />} />
-
-                <DropdownMenuSub>
-                    <DropdownMenuSubTrigger>
-                        <ImageDown className={icClasses} />
-                        Export image
-                    </DropdownMenuSubTrigger>
-                    <DropdownMenuSubContent>
-                        <CommandMenuItem id="file.exportSvg" />
-                        <CommandMenuItem id="file.exportPng1" />
-                        <CommandMenuItem id="file.exportPng2" />
-                        <CommandMenuItem id="file.exportPng4" />
-                        <DropdownMenuSeparator />
-                        <CommandMenuItem id="file.copySource" />
-                    </DropdownMenuSubContent>
-                </DropdownMenuSub>
 
                 {/* <CommandMenuItem id="file.pasteSvg" icon={<ClipboardPaste className={ic} />} /> */}
 
