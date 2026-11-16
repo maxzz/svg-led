@@ -1,21 +1,31 @@
 import { type CSSProperties, lazy, Suspense } from "react";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
+import { ZoomIn, ZoomOut } from "lucide-react";
+import { Slider } from "@/ui/shadcn/slider";
 
-import { type ExportFrame, exportFrameAtom, exportPreviewImageAtom, exportResultAtom } from "./9-atoms-export";
+import { type ExportFrame, EXPORT_PREVIEW_ZOOM_MAX, EXPORT_PREVIEW_ZOOM_MIN, exportFrameAtom, exportPreviewImageAtom, exportPreviewZoomAtom, exportResultAtom } from "./9-atoms-export";
 
 const ExportCodeEditor = lazy(() => import("./4-export-code-editor"));
 
-/** Bottom of the left column: the exported drawing as an image, with its file name and size */
+/** Bottom of the left column: the exported drawing as an image, with its zoom, file name and size */
 export function ExportImagePreview() {
     const result = useAtomValue(exportResultAtom);
     const image = useAtomValue(exportPreviewImageAtom);
     const frame = useAtomValue(exportFrameAtom);
+    const zoom = useAtomValue(exportPreviewZoomAtom);
+    const setZoom = useSetAtom(exportPreviewZoomAtom);
     const output = result?.ok ? result.output : undefined;
 
     return (
         <div className="min-w-0 min-h-0 flex flex-1 flex-col border-t">
-            <div className="relative flex flex-1 min-h-0 items-center justify-center p-6 bg-muted/40" style={FRAME_AREA}>
-                {image && frame && <ExportFrameView frame={frame} image={image} />}
+            <div className="relative flex flex-1 min-h-0 p-6 bg-muted/40 overflow-auto" style={FRAME_AREA}>
+                {image && frame && <ExportFrameView frame={frame} image={image} zoom={zoom} />}
+            </div>
+
+            <div className="shrink-0 px-3 py-1 border-t flex items-center gap-2 text-muted-foreground">
+                <ZoomOut className="size-3 shrink-0" aria-label="Zoom out" />
+                <Slider className="w-32" min={EXPORT_PREVIEW_ZOOM_MIN} max={EXPORT_PREVIEW_ZOOM_MAX} step={1} value={[zoom]} onValueChange={(v) => setZoom(v[0])} aria-label="Preview zoom" />
+                <ZoomIn className="size-3 shrink-0" aria-label="Zoom in" />
             </div>
 
             <div className="shrink-0 px-3 py-1.5 text-[10px] text-muted-foreground border-t flex items-center gap-2">
@@ -61,9 +71,9 @@ export function ExportCodeView() {
  * The export's frame at its true aspect ratio, as large as the preview area allows. The image fills the frame exactly,
  * so the drawing sits where the export puts it: the viewBox is the frame, and the content is positioned inside it.
  */
-function ExportFrameView({ frame, image }: { frame: ExportFrame; image: string; }) {
+function ExportFrameView({ frame, image, zoom }: { frame: ExportFrame; image: string; zoom: number; }) {
     return (
-        <div className="relative shadow-md border border-foreground/20 border-dotted" style={frameStyle(frame)}>
+        <div className="relative m-auto shadow-md border border-foreground/20 border-dotted" style={frameStyle(frame, zoom)}>
             <span className="absolute bottom-full left-0 mb-1 text-[10px] leading-none tabular-nums whitespace-nowrap text-muted-foreground">
                 {frame.label}
             </span>
@@ -74,13 +84,15 @@ function ExportFrameView({ frame, image }: { frame: ExportFrame; image: string; 
 
 /**
  * Width is the largest that keeps the aspect ratio inside the container, which is sized with container query units.
- * A bitmap is never wider than its pixel width, so it is not scaled up (that would blur it).
+ * A bitmap is never wider than its pixel width, so it is not scaled up (that would blur it). The zoom is applied on top
+ * of that; when zoomed past the area, the area scrolls.
  */
-function frameStyle({ width, height, oneToOne }: ExportFrame): CSSProperties {
+function frameStyle({ width, height, oneToOne }: ExportFrame, zoom: number): CSSProperties {
     const ratio = width / height;
     const fit = `min(100cqw, calc(100cqh * ${ratio}))`;
+    const base = oneToOne ? `min(${width}px, ${fit})` : fit;
     return {
-        width: oneToOne ? `min(${width}px, ${fit})` : fit,
+        width: zoom === 100 ? base : `calc(${base} * ${zoom / 100})`,
         aspectRatio: `${width} / ${height}`,
         ...CHECKERBOARD,
     };

@@ -93,6 +93,12 @@ export const exportResultAtom = unwrap(exportResultAsyncAtom, (prev) => prev ?? 
 
 //---------------------------------------------------------------------------
 
+/** Zoom of the preview only, in percent of its fitted size. Not in the export options, so it never changes the exported file. */
+export const exportPreviewZoomAtom = atom(100);
+
+export const EXPORT_PREVIEW_ZOOM_MIN = 25;
+export const EXPORT_PREVIEW_ZOOM_MAX = 400;
+
 /** The size of the exported image, known before rendering: the viewBox, times the PNG scale for PNG */
 export type ExportFrame = {
     width: number;
