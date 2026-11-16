@@ -61,7 +61,12 @@ const pngFormat: ExportFormat = {
 //---------------------------------------------------------------------------
 
 /** Formats in the order the Export dialog lists them */
-export const EXPORT_FORMATS: readonly ExportFormat[] = [svgFormat, tsxFormat, dataUriFormat, pngFormat];
+export const EXPORT_FORMATS: readonly ExportFormat[] = [
+    svgFormat, 
+    tsxFormat, 
+    dataUriFormat, 
+    pngFormat,
+];
 
 export function getExportFormat(id: ExportFormatId): ExportFormat {
     return EXPORT_FORMATS.find((f) => f.id === id) ?? svgFormat;

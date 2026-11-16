@@ -43,6 +43,8 @@ export async function rasterizeSvg(svg: string, scale: number, background: strin
     }
 }
 
+//---------------------------------------------------------------------------
+
 /** Size of the SVG text in its own units: the viewBox, or the width and height without one. Pure, so the dialog can use it too. */
 export function svgIntrinsicSize(svg: string): { width: number; height: number; } | undefined {
     const nodes = parseMarkup(svg);

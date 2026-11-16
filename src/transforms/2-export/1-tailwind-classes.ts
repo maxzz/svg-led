@@ -2,18 +2,14 @@ import { type MarkupElement, getAttr, parseMarkup, printSvgMarkup, setAttr, walk
 import { isPlainNumber } from "../0-markup/3-style-object";
 import { type ExportStep } from "./9-export-types";
 
-/** Presentation attributes moved into Tailwind arbitrary properties, e.g. `[stroke-linecap:round]` */
-const ARBITRARY_PROPS = new Set([
-    'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'stroke-dasharray', 'stroke-dashoffset', 'stroke-opacity',
-    'fill-opacity', 'fill-rule', 'clip-rule', 'paint-order', 'vector-effect', 'shape-rendering',
-]);
-
 export const tailwindClassesStep: ExportStep = {
     id: 'tailwind-classes',
     label: 'Presentation attributes as Tailwind classes',
     enabled: (options) => options.tailwind,
     apply: (svg) => attrsToTailwind(svg) ?? svg,
 };
+
+//---------------------------------------------------------------------------
 
 /** Moves fill, stroke, opacity and the other presentation attributes of every element into its class; undefined when the SVG is not well-formed */
 export function attrsToTailwind(svg: string): string | undefined {
@@ -40,6 +36,8 @@ function moveToClasses(el: MarkupElement): void {
     }
 }
 
+//---------------------------------------------------------------------------
+
 /** The Tailwind class for a presentation attribute; undefined for attributes that stay attributes */
 export function tailwindClass(name: string, value: string): string | undefined {
     const v = value.trim();
@@ -65,6 +63,14 @@ export function tailwindClass(name: string, value: string): string | undefined {
     }
     return ARBITRARY_PROPS.has(name) ? `[${name}:${arbitrary(v)}]` : undefined;
 }
+
+/** Presentation attributes moved into Tailwind arbitrary properties, e.g. `[stroke-linecap:round]` */
+const ARBITRARY_PROPS = new Set([
+    'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'stroke-dasharray', 'stroke-dashoffset', 'stroke-opacity',
+    'fill-opacity', 'fill-rule', 'clip-rule', 'paint-order', 'vector-effect', 'shape-rendering',
+]);
+
+//---------------------------------------------------------------------------
 
 function paintValue(v: string): string {
     switch (v.toLowerCase()) {
