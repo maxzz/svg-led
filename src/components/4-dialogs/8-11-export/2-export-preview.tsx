@@ -72,11 +72,15 @@ function ExportFrameView({ frame, image }: { frame: ExportFrame; image: string; 
     );
 }
 
-/** Width is the largest that keeps the aspect ratio inside the container, which is sized with container query units */
-function frameStyle({ width, height }: ExportFrame): CSSProperties {
+/**
+ * Width is the largest that keeps the aspect ratio inside the container, which is sized with container query units.
+ * A bitmap is never wider than its pixel width, so it is not scaled up (that would blur it).
+ */
+function frameStyle({ width, height, oneToOne }: ExportFrame): CSSProperties {
     const ratio = width / height;
+    const fit = `min(100cqw, calc(100cqh * ${ratio}))`;
     return {
-        width: `min(100cqw, calc(100cqh * ${ratio}))`,
+        width: oneToOne ? `min(${width}px, ${fit})` : fit,
         aspectRatio: `${width} / ${height}`,
         ...CHECKERBOARD,
     };

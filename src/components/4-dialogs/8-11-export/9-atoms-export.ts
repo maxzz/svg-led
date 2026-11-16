@@ -94,7 +94,13 @@ export const exportResultAtom = unwrap(exportResultAsyncAtom, (prev) => prev ?? 
 //---------------------------------------------------------------------------
 
 /** The size of the exported image, known before rendering: the viewBox, times the PNG scale for PNG */
-export type ExportFrame = { width: number; height: number; label: string; };
+export type ExportFrame = {
+    width: number;
+    height: number;
+    label: string;
+    /** True for a bitmap: it is shown at its pixel size, and only scaled down when the preview area is too small */
+    oneToOne: boolean;
+};
 
 export const exportFrameAtom = atom(
     (get): ExportFrame | null => {
@@ -110,11 +116,11 @@ export const exportFrameAtom = atom(
             const { pngScale } = get(exportOptionsAtom);
             const width = Math.max(1, Math.round(size.width * pngScale));
             const height = Math.max(1, Math.round(size.height * pngScale));
-            return { width, height, label: `${width} × ${height} px` };
+            return { width, height, label: `${width} × ${height} px`, oneToOne: true };
         }
         const width = Math.round(size.width);
         const height = Math.round(size.height);
-        return { width: size.width, height: size.height, label: `viewBox ${width} × ${height}` };
+        return { width: size.width, height: size.height, label: `viewBox ${width} × ${height}`, oneToOne: false };
     }
 );
 
