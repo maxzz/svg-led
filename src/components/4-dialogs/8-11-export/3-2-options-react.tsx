@@ -1,14 +1,15 @@
 import { useId } from "react";
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { Input } from "@/ui/shadcn/input";
 
 import { componentNameFor } from "@/transforms/2-export";
 import { ExportBoundsRow, ExportScopeRow, ExportTailwindRow, OptionRow } from "./7-export-shared-controls";
-import { exportBaseName, exportOptionsAtom } from "./9-atoms-export";
+import { exportBaseNameAtom, exportOptionsAtom } from "./9-atoms-export";
 
 /** Options of the React export */
 export function ReactOptions() {
     const [options, setOptions] = useAtom(exportOptionsAtom);
+    const baseName = useAtomValue(exportBaseNameAtom);
     const id = useId();
 
     return (<>
@@ -21,7 +22,7 @@ export function ReactOptions() {
                 id={id}
                 value={options.componentName}
                 onChange={(e) => setOptions({ componentName: e.currentTarget.value })}
-                placeholder={componentNameFor('', exportBaseName())}
+                placeholder={componentNameFor('', baseName)}
                 spellCheck={false}
                 autoComplete="off"
             />

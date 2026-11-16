@@ -5,7 +5,7 @@ import { Label } from "@/ui/shadcn/label";
 import { TabSelect } from "@/ui/local-ui/5-tab-select";
 import { topLevelIds } from "@/store/3-document";
 import { type ExportBounds, type ExportScope } from "@/transforms/2-export";
-import { exportOptionsAtom, exportScopeAtom, exportSelectedCountAtom } from "./9-atoms-export";
+import { exportFrameAtom, exportOptionsAtom, exportScopeAtom, exportSelectedCountAtom } from "./9-atoms-export";
 
 /** Option rows shared by the per-format option files: Elements, Bounds, and the checkbox and label helpers */
 
@@ -40,6 +40,7 @@ export function ExportScopeRow() {
 
 export function ExportBoundsRow() {
     const [options, setOptions] = useAtom(exportOptionsAtom);
+    const frame = useAtomValue(exportFrameAtom);
     return (
         <OptionRow label="Bounds">
             <TabSelect<ExportBounds>
@@ -51,6 +52,7 @@ export function ExportBoundsRow() {
                 orientation="horizontal"
                 aria-label="Export bounds"
             />
+            {frame && <span className="ml-auto text-[10px] whitespace-nowrap tabular-nums text-muted-foreground">{frame.label}</span>}
         </OptionRow>
     );
 }

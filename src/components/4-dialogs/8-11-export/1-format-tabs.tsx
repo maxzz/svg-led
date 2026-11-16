@@ -22,11 +22,6 @@ export function ExportFormatList() {
 const FORMAT_ITEMS = EXPORT_FORMATS.map(
     (f) => ({
         value: f.id,
-        label: (
-            <span className="flex flex-col">
-                <span className="font-medium">{f.label}</span>
-                <span className="text-[10px] text-muted-foreground">{f.description}</span>
-            </span>
-        ),
+        label: f.label,
     })
 );

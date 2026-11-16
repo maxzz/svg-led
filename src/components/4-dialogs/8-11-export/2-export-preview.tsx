@@ -7,14 +7,12 @@ import { type ExportFrame, EXPORT_PREVIEW_ZOOM_MAX, EXPORT_PREVIEW_ZOOM_MIN, exp
 
 const ExportCodeEditor = lazy(() => import("./4-export-code-editor"));
 
-/** Bottom of the left column: the exported drawing as an image, with its zoom, file name and size */
+/** Bottom of the left column: the exported drawing as an image, with its zoom control */
 export function ExportImagePreview() {
-    const result = useAtomValue(exportResultAtom);
     const image = useAtomValue(exportPreviewImageAtom);
     const frame = useAtomValue(exportFrameAtom);
     const zoom = useAtomValue(exportPreviewZoomAtom);
     const setZoom = useSetAtom(exportPreviewZoomAtom);
-    const output = result?.ok ? result.output : undefined;
 
     return (
         <div className="min-w-0 min-h-0 flex flex-1 flex-col border-t">
@@ -26,16 +24,6 @@ export function ExportImagePreview() {
                 <ZoomOut className="size-3 shrink-0" aria-label="Zoom out" />
                 <Slider className="w-32" min={EXPORT_PREVIEW_ZOOM_MIN} max={EXPORT_PREVIEW_ZOOM_MAX} step={1} value={[zoom]} onValueChange={(v) => setZoom(v[0])} aria-label="Preview zoom" />
                 <ZoomIn className="size-3 shrink-0" aria-label="Zoom in" />
-            </div>
-
-            <div className="shrink-0 px-3 py-1.5 text-[10px] text-muted-foreground border-t flex items-center gap-2">
-                {!result && <span>Rendering...</span>}
-                {result && !result.ok && <span className="text-destructive">{result.error}</span>}
-                {output && <>
-                    <span className="font-medium text-foreground truncate">{output.fileName}</span>
-                    {output.kind === 'image' && <span className="tabular-nums">{output.width} × {output.height} px</span>}
-                    <span className="ml-auto tabular-nums">{formatSize(output.kind === 'image' ? output.blob.size : new Blob([output.text]).size)}</span>
-                </>}
             </div>
         </div>
     );
@@ -74,9 +62,6 @@ export function ExportCodeView() {
 function ExportFrameView({ frame, image, zoom }: { frame: ExportFrame; image: string; zoom: number; }) {
     return (
         <div className="relative m-auto shadow-md border border-foreground/20 border-dotted" style={frameStyle(frame, zoom)}>
-            <span className="absolute bottom-full left-0 mb-1 text-[10px] leading-none tabular-nums whitespace-nowrap text-muted-foreground">
-                {frame.label}
-            </span>
             <img className="absolute inset-0 size-full" src={image} alt="Export preview" draggable={false} />
         </div>
     );
@@ -98,7 +83,7 @@ function frameStyle({ width, height, oneToOne }: ExportFrame, zoom: number): CSS
     };
 }
 
-function formatSize(bytes: number): string {
+export function formatSize(bytes: number): string {
     return bytes < 1024 ? `${bytes} B` : `${(bytes / 1024).toFixed(1)} KB`;
 }
 

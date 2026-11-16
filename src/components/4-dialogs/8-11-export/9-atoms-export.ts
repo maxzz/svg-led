@@ -32,6 +32,7 @@ export const openExportDialogAtom = atom(
     null,
     (get, set) => {
         set(exportTargetIdsAtom, get(selectionAtom));
+        set(exportBaseOverrideAtom, null);
         set(exportOpenCountAtom, (n) => n + 1);
         set(isOpenExportDialogAtom, true);
     }
@@ -54,9 +55,26 @@ export const exportFormatAtom = atom(
 
 type ExportSource = { ok: true; text: string; } | { ok: false; error: string; };
 
-export function exportBaseName(): string {
+/** The file name without extension, as the document names it */
+function defaultBaseName(): string {
     return docState.fileName.replace(/\.svg$/i, '') || 'untitled';
 }
+
+/** The base name the user typed in the file row; null means the document's name */
+const exportBaseOverrideAtom = atom<string | null>(null);
+
+/** Base name for the export file names: the user's, without characters a file name cannot hold, or the document's */
+export const exportBaseNameAtom = atom((get) => {
+    const override = get(exportBaseOverrideAtom);
+    const name = (override ?? defaultBaseName()).replace(/[\\/:*?"<>|]/g, '').trim();
+    return name || defaultBaseName();
+});
+
+/** The text in the file row: the user's base name as typed, or the document's name */
+export const exportBaseInputAtom = atom(
+    (get) => get(exportBaseOverrideAtom) ?? defaultBaseName(),
+    (_get, set, value: string) => set(exportBaseOverrideAtom, value),
+);
 
 //---------------------------------------------------------------------------
 
@@ -84,7 +102,7 @@ const exportResultAsyncAtom = atom(
         if (!source.ok) {
             return source;
         }
-        return runExport(get(exportFormatAtom), source.text, get(exportOptionsAtom), { baseName: exportBaseName() });
+        return runExport(get(exportFormatAtom), source.text, get(exportOptionsAtom), { baseName: get(exportBaseNameAtom) });
     }
 );
 
