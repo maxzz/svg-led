@@ -1,4 +1,4 @@
-import { ExportBoundsRow, ExportScopeRow, ExportTailwindRow } from "./2-export-controls";
+import { ExportBoundsRow, ExportScopeRow, ExportTailwindRow } from "./7-export-shared-controls";
 
 /** Options of the SVG export */
 export function SvgOptions() {

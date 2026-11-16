@@ -59,7 +59,7 @@ const FILE: Command[] = [
     { id: 'file.save', label: 'Save', group: 'file', shortcut: 'Ctrl+S', description: 'Save changes to the current SVG file', run: async () => reportFile(await saveSvgFile(sourceTextForSave()), 'Saved') },
     { id: 'file.saveAs', label: 'Save as...', group: 'file', shortcut: 'Ctrl+Shift+S', description: 'Save the SVG document to a new file', run: async () => reportFile(await saveSvgFileAs(sourceTextForSave()), 'Saved') },
     {
-        id: 'file.export', label: 'Export...', group: 'file', shortcut: 'Ctrl+Shift+E', keywords: 'svg png react tsx jsx component data uri css tailwind copy clipboard download',
+        id: 'file.export', label: 'Export...', group: 'file', shortcut: 'Ctrl+E', keywords: 'svg png react tsx jsx component data uri css tailwind copy clipboard download',
         description: 'Export the drawing or the selection as SVG, PNG, a React component, or a data URI, with a preview',
         run: ({ set }) => set(openExportDialogAtom),
     },
@@ -86,7 +86,7 @@ const FILE: Command[] = [
             }
         },
     },
-    { id: 'file.scraps', label: 'Scraps...', group: 'file', shortcut: 'Ctrl+E', keywords: 'saved snippets library storage load', description: 'Open the saved SVG scraps library', run: ({ set }) => set(isOpenScrapsDialogAtom, true) },
+    { id: 'file.scraps', label: 'Scraps...', group: 'file', shortcut: 'Ctrl+Shift+E', keywords: 'saved snippets library storage load', description: 'Open the saved SVG scraps library', run: ({ set }) => set(isOpenScrapsDialogAtom, true) },
     {
         id: 'file.reset', label: 'Reset the canvas', group: 'file', keywords: 'new clear',
         description: 'Clear the canvas and start a new empty document',

@@ -2,7 +2,8 @@ import { useId } from "react";
 import { useAtom } from "jotai";
 import { Input } from "@/ui/shadcn/input";
 import { TabSelect } from "@/ui/local-ui/5-tab-select";
-import { ExportBoundsRow, ExportScopeRow, OptionRow } from "./2-export-controls";
+
+import { ExportBoundsRow, ExportScopeRow, OptionRow } from "./7-export-shared-controls";
 import { exportOptionsAtom } from "./9-atoms-export";
 
 const PNG_SCALES = [1, 2, 3, 4];

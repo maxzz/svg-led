@@ -1,8 +1,9 @@
 import { useId } from "react";
 import { useAtom } from "jotai";
 import { Input } from "@/ui/shadcn/input";
+
 import { componentNameFor } from "@/transforms/2-export";
-import { ExportBoundsRow, ExportScopeRow, ExportTailwindRow, OptionRow } from "./2-export-controls";
+import { ExportBoundsRow, ExportScopeRow, ExportTailwindRow, OptionRow } from "./7-export-shared-controls";
 import { exportBaseName, exportOptionsAtom } from "./9-atoms-export";
 
 /** Options of the React export */

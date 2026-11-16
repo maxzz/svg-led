@@ -4,6 +4,8 @@ import { componentNameFor, svgToReactComponent } from "./2-svg-to-jsx";
 import { dataUriAsCss, svgToDataUri } from "./3-data-uri";
 import { rasterizeSvg } from "./4-rasterize-png";
 
+//---------------------------------------------------------------------------
+
 const svgFormat: ExportFormat = {
     id: Id.svg,
     label: 'SVG',
@@ -11,19 +13,6 @@ const svgFormat: ExportFormat = {
     controls: ['tailwind'],
     steps: [tailwindClassesStep],
     write: (svg, _options, ctx) => ({ kind: 'text', text: svg, language: 'xml', mime: 'image/svg+xml', fileName: `${ctx.baseName}.svg` }),
-};
-
-const pngFormat: ExportFormat = {
-    id: Id.png,
-    label: 'PNG',
-    description: 'Bitmap image of the viewBox area',
-    controls: ['pngScale', 'pngBackground'],
-    steps: [],
-    write: async (svg, options, ctx) => {
-        const image = await rasterizeSvg(svg, options.pngScale, options.pngBackground);
-        const suffix = options.pngScale !== 1 ? `@${options.pngScale}x` : '';
-        return { kind: 'image', ...image, mime: 'image/png', fileName: `${ctx.baseName}${suffix}.png` };
-    },
 };
 
 const tsxFormat: ExportFormat = {
@@ -56,12 +45,29 @@ const dataUriFormat: ExportFormat = {
     },
 };
 
+const pngFormat: ExportFormat = {
+    id: Id.png,
+    label: 'PNG',
+    description: 'Bitmap image of the viewBox area',
+    controls: ['pngScale', 'pngBackground'],
+    steps: [],
+    write: async (svg, options, ctx) => {
+        const image = await rasterizeSvg(svg, options.pngScale, options.pngBackground);
+        const suffix = options.pngScale !== 1 ? `@${options.pngScale}x` : '';
+        return { kind: 'image', ...image, mime: 'image/png', fileName: `${ctx.baseName}${suffix}.png` };
+    },
+};
+
+//---------------------------------------------------------------------------
+
 /** Formats in the order the Export dialog lists them */
-export const EXPORT_FORMATS: readonly ExportFormat[] = [svgFormat, pngFormat, tsxFormat, dataUriFormat];
+export const EXPORT_FORMATS: readonly ExportFormat[] = [svgFormat, tsxFormat, dataUriFormat, pngFormat];
 
 export function getExportFormat(id: ExportFormatId): ExportFormat {
     return EXPORT_FORMATS.find((f) => f.id === id) ?? svgFormat;
 }
+
+//---------------------------------------------------------------------------
 
 export type ExportResult = { ok: true; output: ExportOutput; } | { ok: false; error: string; };
 

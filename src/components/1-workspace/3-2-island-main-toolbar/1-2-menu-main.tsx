@@ -44,7 +44,7 @@ export function Island_MainMenu() {
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator />
-                <CommandMenuItem id="help.options" icon={<Settings2 className={icClasses} />} label="More options..." />
+                <CommandMenuItem id="help.options" icon={<Settings2 className={icClasses} />} label="Options..." />
             </DropdownMenuContent>
         </DropdownMenu>
     );

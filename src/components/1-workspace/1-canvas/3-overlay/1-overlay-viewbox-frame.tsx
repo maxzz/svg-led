@@ -26,7 +26,7 @@ export function Overlay_ViewBoxFrame() {
             <path d={outside} fillRule="evenodd" className="fill-foreground/5" />
 
             {/* Stroke around the viewBox */}
-            <rect x={r.x} y={r.y} width={r.width} height={r.height} fill="none" className="stroke-(--editor-accent)/50" strokeWidth={1} strokeDasharray="3 2" />
+            <rect x={r.x} y={r.y} width={r.width} height={r.height} fill="none" className="stroke-foreground/20" strokeWidth={1} strokeDasharray="1 1" />
         </g>
     );
 }
