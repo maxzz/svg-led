@@ -7,8 +7,11 @@ export const ExportFormatId = {
 
 export type ExportFormatId = typeof ExportFormatId[keyof typeof ExportFormatId];
 
-/** Which elements are exported */
-export type ExportScope = 'selection' | 'all';
+/**
+ * Which elements are exported: the selected ones; the visible ones (hidden elements left out); or the editor's text as it is
+ * (SVG only, no filtering or rewriting at all)
+ */
+export type ExportScope = 'selection' | 'visible' | 'editor';
 
 /** The coordinate system of the exported <svg>: the document viewBox, or a viewBox fitted around the exported elements */
 export type ExportBounds = 'viewBox' | 'content';
@@ -25,6 +28,11 @@ export type ExportOptions = {
     dataUriBase64: boolean;      // Data URI: base64 instead of URL encoding
     dataUriCss: boolean;         // Data URI: wrapped as a CSS background-image declaration
 };
+
+/** True when the output is the editor's text as it is: no step may change it */
+export function isEditorSource(options: ExportOptions): boolean {
+    return options.format === ExportFormatId.svg && options.scope === 'editor';
+}
 
 export type ExportContext = {
     baseName: string;            // document file name without extension

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { parseMarkup, printSvgMarkup } from "../0-markup/1-markup-tree";
 import { stripInternalStates } from "../2-export/0-internal-states";
+import { stripHiddenElements } from "../2-export/5-hidden-elements";
 import { attrsToTailwind, tailwindClass } from "../2-export/1-tailwind-classes";
 import { componentNameFor, svgToReactComponent } from "../2-export/2-svg-to-jsx";
 import { minifySvg, svgToDataUri } from "../2-export/3-data-uri";
@@ -111,6 +112,17 @@ describe("editor states", () => {
             '</svg>',
             '',
         ].join('\n'));
+    });
+});
+
+describe("visible elements", () => {
+    it("removes hidden elements from an attribute or a style, with their content", () => {
+        const svg = '<svg><g display="none"><path d="M0 0"/></g><rect style="display: none"/><circle display="inline"/></svg>';
+        expect(stripHiddenElements(svg)).toBe('<svg>\n    <circle display="inline"/>\n</svg>\n');
+    });
+
+    it("keeps the text as it was when nothing is hidden", () => {
+        expect(stripHiddenElements(ICON)).toBe(ICON);
     });
 });
 

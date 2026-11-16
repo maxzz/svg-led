@@ -3,9 +3,8 @@ import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { Checkbox } from "@/ui/shadcn/checkbox";
 import { Label } from "@/ui/shadcn/label";
 import { TabSelect } from "@/ui/local-ui/5-tab-select";
-import { topLevelIds } from "@/store/3-document";
 import { type ExportBounds, type ExportScope } from "@/transforms/2-export";
-import { exportFrameAtom, exportOptionsAtom, exportScopeAtom, exportSelectedCountAtom } from "./9-atoms-export";
+import { exportFrameAtom, exportOptionsAtom, exportScopeAtom, exportSelectedCountAtom, visibleTopLevelIds } from "./9-atoms-export";
 
 /** Option rows shared by the per-format option files: Elements, Bounds, and the checkbox and label helpers */
 
@@ -18,7 +17,8 @@ export function ExportScopeRow() {
 
     const scopes = [
         { value: 'selection', label: `Selected (${selectedCount})`, disabled: !selectedCount },
-        { value: 'all', label: `All (${topLevelIds().length})` },
+        { value: 'visible', label: `Visible (${visibleTopLevelIds().length})` },
+        { value: 'editor', label: 'Editor' },
     ] as const;
 
     return (

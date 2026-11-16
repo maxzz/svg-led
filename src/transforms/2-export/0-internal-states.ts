@@ -1,6 +1,6 @@
 import { isDeactivatedName } from "@/svg-core";
 import { type MarkupElement, type MarkupNode, parseMarkup, printSvgMarkup } from "../0-markup/1-markup-tree";
-import { type ExportStep } from "./9-export-types";
+import { type ExportStep, isEditorSource } from "./9-export-types";
 
 /** Editor-only attribute that marks a locked element (see `LOCKED_ATTR` in the store); it has no meaning in an export */
 const LOCKED_ATTR = 'data-locked';
@@ -9,6 +9,7 @@ const LOCKED_ATTR = 'data-locked';
 export const internalStatesStep: ExportStep = {
     id: 'internal-states',
     label: 'Editor states removed (deactivated elements, lock marks)',
+    enabled: (options) => !isEditorSource(options),
     apply: (svg) => stripInternalStates(svg),
 };
 

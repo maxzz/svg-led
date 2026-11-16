@@ -3,10 +3,11 @@ import { unwrap } from "jotai/utils";
 import { toast } from "sonner";
 
 import { atomWithDialogOptions } from "@/store/2-persist";
+import { getPresentation } from "@/svg-core";
 import { buildSvgExportText, docState, downloadBlob } from "@/store/3-document";
 import { selectionAtom } from "@/store/4-editor";
-import { sourceTextForSave } from "@/store/5-controllers";
-import { type ExportOptions, type ExportResult, type ExportScope, ExportFormatId, getExportFormat, runExport, svgIntrinsicSize } from "@/transforms/2-export";
+import { editorTextForExport, sourceTextForSave } from "@/store/5-controllers";
+import { type ExportOptions, type ExportResult, type ExportScope, ExportFormatId, getExportFormat, runExport, stripHiddenElements, svgIntrinsicSize } from "@/transforms/2-export";
 
 export const isOpenExportDialogAtom = atom(false);
 
@@ -44,10 +45,21 @@ export const exportSelectedCountAtom = atom(
     (get) => get(exportTargetIdsAtom).length
 );
 
-/** The stored scope, or all elements when nothing was selected */
-export const exportScopeAtom = atom<ExportScope>(
-    (get) => get(exportOptionsAtom).scope === 'selection' && get(exportTargetIdsAtom).length ? 'selection' : 'all'
-);
+/** Top-level elements the panel shows (not hidden with display none) */
+export function visibleTopLevelIds(): string[] {
+    return docState.doc.children.filter((n) => getPresentation(n.attrs, 'display')?.trim() !== 'none').map((n) => n.id);
+}
+
+/**
+ * The stored scope, resolved for the current state: the selection when there is one, the editor's text only for SVG
+ * (a stored choice falls back otherwise), and the visible elements in all other cases (also what an old "all" becomes).
+ */
+export const exportScopeAtom = atom<ExportScope>((get) => {
+    const { scope, format } = get(exportOptionsAtom);
+    if (scope === 'selection' && get(exportTargetIdsAtom).length) return 'selection';
+    if (scope === 'editor' && format === ExportFormatId.svg) return 'editor';
+    return 'visible';
+});
 
 export const exportFormatAtom = atom(
     (get) => getExportFormat(get(exportOptionsAtom).format)
@@ -87,10 +99,22 @@ export const exportSourceAtom = atom(
         get(exportOpenCountAtom);
         const { bounds } = get(exportOptionsAtom);
         const scope = get(exportScopeAtom);
-        if (scope === 'all' && bounds === 'viewBox') {
-            return { ok: true, text: sourceTextForSave() };
+        if (scope === 'editor') {
+            const text = editorTextForExport();
+            return text.trim() ? { ok: true, text } : { ok: false, error: 'The editor is empty' };
         }
-        return buildSvgExportText(scope === 'selection' ? get(exportTargetIdsAtom) : [], { useViewBox: bounds === 'viewBox' });
+        if (scope === 'visible' && bounds === 'viewBox') {
+            return { ok: true, text: stripHiddenElements(sourceTextForSave()) };
+        }
+        if (scope === 'visible') {
+            const ids = visibleTopLevelIds();
+            if (!ids.length) {
+                return { ok: false, error: 'Nothing to export' };
+            }
+            const rv = buildSvgExportText(ids, { useViewBox: false });
+            return rv.ok ? { ok: true, text: stripHiddenElements(rv.text) } : rv;
+        }
+        return buildSvgExportText(get(exportTargetIdsAtom), { useViewBox: bounds === 'viewBox' });
     }
 );
 

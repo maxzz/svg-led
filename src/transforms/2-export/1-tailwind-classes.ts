@@ -1,11 +1,11 @@
 import { type MarkupElement, getAttr, parseMarkup, printSvgMarkup, setAttr, walkElements } from "../0-markup/1-markup-tree";
 import { isPlainNumber } from "../0-markup/3-style-object";
-import { type ExportStep } from "./9-export-types";
+import { type ExportStep, isEditorSource } from "./9-export-types";
 
 export const tailwindClassesStep: ExportStep = {
     id: 'tailwind-classes',
     label: 'Presentation attributes as Tailwind classes',
-    enabled: (options) => options.tailwind,
+    enabled: (options) => options.tailwind && !isEditorSource(options),
     apply: (svg) => attrsToTailwind(svg) ?? svg,
 };
 
