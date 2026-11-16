@@ -1,5 +1,5 @@
 import { type ReactNode, useId } from "react";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { Checkbox } from "@/ui/shadcn/checkbox";
 import { Label } from "@/ui/shadcn/label";
 import { TabSelect } from "@/ui/local-ui/5-tab-select";
@@ -9,10 +9,12 @@ import { exportOptionsAtom, exportScopeAtom, exportSelectedCountAtom } from "./9
 
 /** Option rows shared by the per-format option files: Elements, Bounds, and the checkbox and label helpers */
 
+//---------------------------------------------------------------------------
+
 export function ExportScopeRow() {
-    const [, setOptions] = useAtom(exportOptionsAtom);
     const scope = useAtomValue(exportScopeAtom);
     const selectedCount = useAtomValue(exportSelectedCountAtom);
+    const setOptions = useSetAtom(exportOptionsAtom);
 
     const scopes = [
         { value: 'selection', label: `Selected (${selectedCount})`, disabled: !selectedCount },
@@ -34,10 +36,7 @@ export function ExportScopeRow() {
     );
 }
 
-const BOUNDS = [
-    { value: 'viewBox', label: 'ViewBox' },
-    { value: 'content', label: 'Fit content' },
-] as const;
+//---------------------------------------------------------------------------
 
 export function ExportBoundsRow() {
     const [options, setOptions] = useAtom(exportOptionsAtom);
@@ -55,6 +54,13 @@ export function ExportBoundsRow() {
         </OptionRow>
     );
 }
+
+const BOUNDS = [
+    { value: 'viewBox', label: 'ViewBox' },
+    { value: 'content', label: 'Fit content' },
+] as const;
+
+//---------------------------------------------------------------------------
 
 export function ExportTailwindRow() {
     const [options, setOptions] = useAtom(exportOptionsAtom);
