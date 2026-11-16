@@ -19,30 +19,40 @@ const OPTIONS_BY_FORMAT: Record<ExportFormatId, ComponentType> = {
     [ExportFormatId.dataUri]: DataUriOptions,
 };
 
-/** Controls of the dialog, top right: the format's hint, its options, then the file row above the source */
+/** Controls of the dialog, top right: the format's hint, its options, then the file row above the source. Separated by rules. */
 export function ExportOptions() {
     const format = useAtomValue(exportFormatAtom);
     const Options = OPTIONS_BY_FORMAT[format.id];
 
     return (
-        <div className="shrink-0 px-3 py-3 border-b flex flex-col gap-2.5">
-            <p className="text-[10px] leading-snug text-muted-foreground">{format.description}</p>
-            <Options />
-            <ExportFileRow />
+        <div className="shrink-0 flex flex-col">
+            <div className="px-3 py-2 border-b">
+                <p className="text-[10px] leading-snug text-muted-foreground">{format.description}</p>
+            </div>
+            <div className="px-3 py-3 border-b flex flex-col gap-2.5">
+                <Options />
+            </div>
+            <div className="px-3 py-2.5 border-b">
+                <ExportFileRow />
+            </div>
         </div>
     );
 }
 
-/** The file name, which can be changed, its extension, and the size of the output. Shows the status while rendering. */
+/** The file name, which can be changed, with its extension inside the field, and the size of the output. Shows the status while rendering. */
 function ExportFileRow() {
     const result = useAtomValue(exportResultAtom);
     const [baseInput, setBaseInput] = useAtom(exportBaseInputAtom);
     const baseName = useAtomValue(exportBaseNameAtom);
     const output = result?.ok ? result.output : undefined;
 
+    // Same left edge as the controls of the option rows: after their fixed-width label column
+    const indent = <div className="w-16 shrink-0" />;
+
     if (!output) {
         return (
             <div className="flex items-center gap-2 min-w-0 h-7">
+                {indent}
                 <span className={result && !result.ok ? "text-[10px] text-destructive" : "text-[10px] text-muted-foreground"}>
                     {result ? (result.ok ? '' : result.error) : 'Rendering...'}
                 </span>
@@ -57,17 +67,20 @@ function ExportFileRow() {
 
     return (
         <div className="flex items-center gap-2 min-w-0">
-            <Input
-                className="h-7 min-w-0 flex-1 text-xs"
-                value={baseInput}
-                onChange={(e) => setBaseInput(e.currentTarget.value)}
-                placeholder={baseName}
-                spellCheck={false}
-                autoComplete="off"
-                aria-label="File name"
-            />
-            <span className="shrink-0 text-xs text-muted-foreground whitespace-nowrap">{suffix}</span>
-            <span className="shrink-0 ml-auto text-[10px] tabular-nums text-muted-foreground">
+            {indent}
+            <div className="relative w-48 shrink-0">
+                <Input
+                    className="h-7 pr-14 text-xs"
+                    value={baseInput}
+                    onChange={(e) => setBaseInput(e.currentTarget.value)}
+                    placeholder={baseName}
+                    spellCheck={false}
+                    autoComplete="off"
+                    aria-label="File name"
+                />
+                <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-muted-foreground">{suffix}</span>
+            </div>
+            <span className="ml-auto text-[10px] tabular-nums text-muted-foreground">
                 {formatSize(output.kind === 'image' ? output.blob.size : new Blob([output.text]).size)}
             </span>
         </div>

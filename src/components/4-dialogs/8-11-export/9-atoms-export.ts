@@ -136,17 +136,21 @@ export const exportFrameAtom = atom(
         if (!size) {
             return null;
         }
+        const viewBox = `viewBox ${[size.x, size.y, size.width, size.height].map(fmtNum).join(' ')}`;
         if (get(exportFormatAtom).id === ExportFormatId.png) {
             const { pngScale } = get(exportOptionsAtom);
             const width = Math.max(1, Math.round(size.width * pngScale));
             const height = Math.max(1, Math.round(size.height * pngScale));
-            return { width, height, label: `${width} × ${height} px`, oneToOne: true };
+            return { width, height, label: `${viewBox} · ${width} × ${height} px`, oneToOne: true };
         }
-        const width = Math.round(size.width);
-        const height = Math.round(size.height);
-        return { width: size.width, height: size.height, label: `viewBox ${width} × ${height}`, oneToOne: false };
+        return { width: size.width, height: size.height, label: viewBox, oneToOne: false };
     }
 );
+
+/** A number for a label: whole when it is whole, else up to two decimals */
+function fmtNum(n: number): string {
+    return String(Number(n.toFixed(2)));
+}
 
 //---------------------------------------------------------------------------
 

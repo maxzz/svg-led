@@ -1,6 +1,7 @@
 import { type CSSProperties, lazy, Suspense } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { ZoomIn, ZoomOut } from "lucide-react";
+import { Button } from "@/ui/shadcn/button";
 import { Slider } from "@/ui/shadcn/slider";
 
 import { type ExportFrame, EXPORT_PREVIEW_ZOOM_MAX, EXPORT_PREVIEW_ZOOM_MIN, exportFrameAtom, exportPreviewImageAtom, exportPreviewZoomAtom, exportResultAtom } from "./9-atoms-export";
@@ -20,10 +21,17 @@ export function ExportImagePreview() {
                 {image && frame && <ExportFrameView frame={frame} image={image} zoom={zoom} />}
             </div>
 
+            {/* The slider is centered: the side items have the same width */}
             <div className="shrink-0 px-3 py-1 border-t flex items-center gap-2 text-muted-foreground">
-                <ZoomOut className="size-3 shrink-0" aria-label="Zoom out" />
-                <Slider className="w-32" min={EXPORT_PREVIEW_ZOOM_MIN} max={EXPORT_PREVIEW_ZOOM_MAX} step={1} value={[zoom]} onValueChange={(v) => setZoom(v[0])} aria-label="Preview zoom" />
-                <ZoomIn className="size-3 shrink-0" aria-label="Zoom in" />
+                <Button variant="ghost" size="sm" className="w-12 h-6 px-0 text-[10px] tabular-nums" onClick={() => setZoom(100)} aria-label="Reset zoom to 1:1">
+                    1:1
+                </Button>
+                <div className="flex flex-1 items-center justify-center gap-2">
+                    <ZoomOut className="size-3 shrink-0" aria-label="Zoom out" />
+                    <Slider className="w-32" min={EXPORT_PREVIEW_ZOOM_MIN} max={EXPORT_PREVIEW_ZOOM_MAX} step={1} value={[zoom]} onValueChange={(v) => setZoom(v[0])} aria-label="Preview zoom" />
+                    <ZoomIn className="size-3 shrink-0" aria-label="Zoom in" />
+                </div>
+                <span className="w-12 shrink-0 text-right text-[10px] tabular-nums">{zoom}%</span>
             </div>
         </div>
     );

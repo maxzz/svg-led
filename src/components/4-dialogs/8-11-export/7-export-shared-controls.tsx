@@ -52,7 +52,7 @@ export function ExportBoundsRow() {
                 orientation="horizontal"
                 aria-label="Export bounds"
             />
-            {frame && <span className="ml-auto text-[10px] whitespace-nowrap tabular-nums text-muted-foreground">{frame.label}</span>}
+            {frame && <span className="text-[10px] whitespace-nowrap tabular-nums text-muted-foreground">{frame.label}</span>}
         </OptionRow>
     );
 }

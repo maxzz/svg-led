@@ -46,18 +46,21 @@ export async function rasterizeSvg(svg: string, scale: number, background: strin
 //---------------------------------------------------------------------------
 
 /** Size of the SVG text in its own units: the viewBox, or the width and height without one. Pure, so the dialog can use it too. */
-export function svgIntrinsicSize(svg: string): { width: number; height: number; } | undefined {
+export function svgIntrinsicSize(svg: string): SvgBox | undefined {
     const nodes = parseMarkup(svg);
     const root = nodes && rootElement(nodes);
     return root ? intrinsicSize(root) : undefined;
 }
 
-function intrinsicSize(root: MarkupElement): { width: number; height: number; } | undefined {
+/** The viewBox as four numbers: the origin and the size. Without a viewBox the origin is 0, 0. */
+export type SvgBox = { x: number; y: number; width: number; height: number; };
+
+function intrinsicSize(root: MarkupElement): SvgBox | undefined {
     const vb = (getAttr(root, 'viewBox') ?? '').trim().split(/[\s,]+/).map(Number);
     if (vb.length === 4 && vb.every(Number.isFinite) && vb[2] > 0 && vb[3] > 0) {
-        return { width: vb[2], height: vb[3] };
+        return { x: vb[0], y: vb[1], width: vb[2], height: vb[3] };
     }
     const width = parseFloat(getAttr(root, 'width') ?? '');
     const height = parseFloat(getAttr(root, 'height') ?? '');
-    return width > 0 && height > 0 ? { width, height } : undefined;
+    return width > 0 && height > 0 ? { x: 0, y: 0, width, height } : undefined;
 }
