@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { parseMarkup, printSvgMarkup } from "../0-markup/1-markup-tree";
+import { stripInternalStates } from "../2-export/0-internal-states";
+import { stripHiddenElements } from "../2-export/5-hidden-elements";
 import { attrsToTailwind, tailwindClass } from "../2-export/1-tailwind-classes";
 import { componentNameFor, svgToReactComponent } from "../2-export/2-svg-to-jsx";
 import { minifySvg, svgToDataUri } from "../2-export/3-data-uri";
@@ -77,6 +79,50 @@ describe("React component", () => {
         expect(componentNameFor('', 'arrow-left')).toBe('IconArrowLeft');
         expect(componentNameFor('my icon', 'x')).toBe('MyIcon');
         expect(componentNameFor('2x', 'x')).toBe('Icon2x');
+    });
+});
+
+describe("editor states", () => {
+    it("keeps the text as it was when there are no editor states", () => {
+        expect(stripInternalStates(ICON)).toBe(ICON);
+    });
+
+    it("removes deactivated elements with everything nested in them", () => {
+        const svg = '<svg><deactivated-linearGradient id="g"><stop/></deactivated-linearGradient><rect/></svg>';
+        expect(stripInternalStates(svg)).toBe('<svg>\n    <rect/>\n</svg>\n');
+    });
+
+    it("removes a parent that held only deactivated elements, and keeps the root", () => {
+        const svg = '<svg><defs><deactivated-style>.a{fill:red}</deactivated-style></defs><path d="M0 0"/></svg>';
+        expect(stripInternalStates(svg)).toBe('<svg>\n    <path d="M0 0"/>\n</svg>\n');
+        expect(stripInternalStates('<svg><defs><deactivated-style/></defs></svg>')).toBe('<svg/>\n');
+    });
+
+    it("keeps a parent that also holds visible content", () => {
+        const svg = '<svg><defs><deactivated-style/><style>.b{fill:red}</style></defs></svg>';
+        expect(stripInternalStates(svg)).toBe('<svg>\n    <defs>\n        <style>.b{fill:red}</style>\n    </defs>\n</svg>\n');
+    });
+
+    it("strips data-locked attributes and keeps the rest", () => {
+        expect(stripInternalStates('<svg><g data-locked="true" id="a"><path data-locked="true" d="M0 0"/></g></svg>')).toBe([
+            '<svg>',
+            '    <g id="a">',
+            '        <path d="M0 0"/>',
+            '    </g>',
+            '</svg>',
+            '',
+        ].join('\n'));
+    });
+});
+
+describe("visible elements", () => {
+    it("removes hidden elements from an attribute or a style, with their content", () => {
+        const svg = '<svg><g display="none"><path d="M0 0"/></g><rect style="display: none"/><circle display="inline"/></svg>';
+        expect(stripHiddenElements(svg)).toBe('<svg>\n    <circle display="inline"/>\n</svg>\n');
+    });
+
+    it("keeps the text as it was when nothing is hidden", () => {
+        expect(stripHiddenElements(ICON)).toBe(ICON);
     });
 });
 

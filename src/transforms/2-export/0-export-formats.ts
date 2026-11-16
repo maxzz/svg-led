@@ -1,4 +1,5 @@
 import { type ExportContext, type ExportFormat, type ExportFormatId, type ExportOptions, type ExportOutput, ExportFormatId as Id } from "./9-export-types";
+import { internalStatesStep } from "./0-internal-states";
 import { tailwindClassesStep } from "./1-tailwind-classes";
 import { componentNameFor, svgToReactComponent } from "./2-svg-to-jsx";
 import { dataUriAsCss, svgToDataUri } from "./3-data-uri";
@@ -11,7 +12,7 @@ const svgFormat: ExportFormat = {
     label: 'SVG',
     description: 'SVG file as the source panel shows it',
     controls: ['tailwind'],
-    steps: [tailwindClassesStep],
+    steps: [internalStatesStep, tailwindClassesStep],
     write: (svg, _options, ctx) => ({ kind: 'text', text: svg, language: 'xml', mime: 'image/svg+xml', fileName: `${ctx.baseName}.svg` }),
 };
 
@@ -20,7 +21,7 @@ const tsxFormat: ExportFormat = {
     label: 'React',
     description: 'React TSX component with props spread onto the <svg>',
     controls: ['componentName', 'tailwind'],
-    steps: [tailwindClassesStep],
+    steps: [internalStatesStep, tailwindClassesStep],
     write: (svg, options, ctx) => {
         const name = componentNameFor(options.componentName, ctx.baseName);
         const text = svgToReactComponent(svg, name);
@@ -36,7 +37,7 @@ const dataUriFormat: ExportFormat = {
     label: 'Data URI',
     description: 'Inline image URL for CSS or an <img> src',
     controls: ['dataUriEncoding'],
-    steps: [],
+    steps: [internalStatesStep],
     write: (svg, options, ctx) => {
         const uri = svgToDataUri(svg, options.dataUriBase64);
         return options.dataUriCss

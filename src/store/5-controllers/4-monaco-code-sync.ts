@@ -263,9 +263,14 @@ export function applyCodeToCanvas(): boolean {
  * current document, otherwise the canonical serialization of the document.
  */
 export function sourceTextForSave(): string {
-    const text = codeSyncCommands ? codeSyncCommands.text() : jotaiStore.get(codeTextAtom);
+    const text = editorTextForExport();
     const canonical = docToText();
     return text && equivalentDocText(text, canonical) ? text : canonical;
+}
+
+/** The editor's text exactly as it is in Monaco: no check against the document, no change of any kind */
+export function editorTextForExport(): string {
+    return codeSyncCommands ? codeSyncCommands.text() : jotaiStore.get(codeTextAtom);
 }
 
 /** Replaces the editor text with the current document */
