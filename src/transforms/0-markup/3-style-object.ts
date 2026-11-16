@@ -1,23 +1,3 @@
-/** CSS properties that React writes without `px` when given a number */
-const UNITLESS = new Set([
-    'opacity', 'fill-opacity', 'stroke-opacity', 'stop-opacity', 'flood-opacity', 'stroke-width', 'stroke-miterlimit', 'stroke-dashoffset',
-    'z-index', 'line-height', 'font-weight', 'flex', 'flex-grow', 'flex-shrink', 'order', 'zoom', 'scale',
-]);
-
-export function cssPropToCamel(prop: string): string {
-    if (prop.startsWith('--')) {
-        return prop;
-    }
-    return prop.replace(/^-ms-/, 'ms-').replace(/-([a-z])/g, (_, c: string) => c.toUpperCase());
-}
-
-export function camelToCssProp(key: string): string {
-    if (key.startsWith('--')) {
-        return key;
-    }
-    return key.replace(/^(Webkit|Moz|O)(?=[A-Z])/, (m) => '-' + m.toLowerCase()).replace(/^ms(?=[A-Z])/, '-ms').replace(/[A-Z]/g, (c) => '-' + c.toLowerCase());
-}
-
 //---------------------------------------------------------------------------
 
 /** `fill: red; stroke-width: 2` as the JSX style object source `{ fill: "red", strokeWidth: 2 }` */
@@ -65,6 +45,26 @@ export function styleObjectToCss(source: string): string {
         }
     }
     return decls.join(';');
+}
+
+/** CSS properties that React writes without `px` when given a number */
+const UNITLESS = new Set([
+    'opacity', 'fill-opacity', 'stroke-opacity', 'stop-opacity', 'flood-opacity', 'stroke-width', 'stroke-miterlimit', 'stroke-dashoffset',
+    'z-index', 'line-height', 'font-weight', 'flex', 'flex-grow', 'flex-shrink', 'order', 'zoom', 'scale',
+]);
+
+export function cssPropToCamel(prop: string): string {
+    if (prop.startsWith('--')) {
+        return prop;
+    }
+    return prop.replace(/^-ms-/, 'ms-').replace(/-([a-z])/g, (_, c: string) => c.toUpperCase());
+}
+
+export function camelToCssProp(key: string): string {
+    if (key.startsWith('--')) {
+        return key;
+    }
+    return key.replace(/^(Webkit|Moz|O)(?=[A-Z])/, (m) => '-' + m.toLowerCase()).replace(/^ms(?=[A-Z])/, '-ms').replace(/[A-Z]/g, (c) => '-' + c.toLowerCase());
 }
 
 //---------------------------------------------------------------------------
