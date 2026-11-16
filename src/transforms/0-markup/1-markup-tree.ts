@@ -30,8 +30,7 @@ export function parseMarkup(source: string): MarkupNode[] | null {
     }
 }
 
-const NAME_RE = /[^\s=/>"'<]+/y;
-const CLOSE_RE = /<\/([^\s>]+)\s*>/y;
+//---------------------------------------------------------------------------
 
 function parseNodes(s: string, pos: number, closing: string | undefined): { nodes: MarkupNode[]; end: number; } {
     const nodes: MarkupNode[] = [];
@@ -83,6 +82,10 @@ function parseNodes(s: string, pos: number, closing: string | undefined): { node
     return { nodes, end: pos };
 }
 
+const CLOSE_RE = /<\/([^\s>]+)\s*>/y;
+
+//---------------------------------------------------------------------------
+
 function parseOpenTag(s: string, pos: number): { el: MarkupElement; selfClosing: boolean; end: number; } {
     NAME_RE.lastIndex = pos + 1;
     const nameMatch = NAME_RE.exec(s);
@@ -92,7 +95,7 @@ function parseOpenTag(s: string, pos: number): { el: MarkupElement; selfClosing:
     const el: MarkupElement = { kind: 'el', name: nameMatch[0], attrs: [], children: [] };
 
     let i = NAME_RE.lastIndex;
-    for (;;) {
+    for (; ;) {
         i = skipSpaces(s, i);
         if (i >= s.length) {
             throw new Error('unclosed start tag');
@@ -123,6 +126,10 @@ function parseOpenTag(s: string, pos: number): { el: MarkupElement; selfClosing:
     }
 }
 
+const NAME_RE = /[^\s=/>"'<]+/y;
+
+//---------------------------------------------------------------------------
+
 function declarationEnd(s: string, pos: number): number {
     let depth = 0;
     for (let i = pos + 2; i < s.length; i++) {
@@ -150,18 +157,20 @@ function skipSpaces(s: string, i: number): number {
 //---------------------------------------------------------------------------
 // Entities
 
-const NAMED_ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" };
-
 /** Decodes the XML entities and character references; other named entities (from a DOCTYPE) stay as written */
 export function decodeEntities(text: string): string {
-    return text.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (m, ref: string) => {
-        if (ref[0] === '#') {
-            const code = ref[1] === 'x' || ref[1] === 'X' ? parseInt(ref.slice(2), 16) : parseInt(ref.slice(1), 10);
-            return Number.isFinite(code) ? String.fromCodePoint(code) : m;
+    return text.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi,
+        (m, ref: string) => {
+            if (ref[0] === '#') {
+                const code = ref[1] === 'x' || ref[1] === 'X' ? parseInt(ref.slice(2), 16) : parseInt(ref.slice(1), 10);
+                return Number.isFinite(code) ? String.fromCodePoint(code) : m;
+            }
+            return NAMED_ENTITIES[ref] ?? m;
         }
-        return NAMED_ENTITIES[ref] ?? m;
-    });
+    );
 }
+
+const NAMED_ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" };
 
 export function escapeXmlText(text: string): string {
     return text.replace(/&(?!(#x[0-9a-f]+|#\d+|[a-z][\w.-]*);)/gi, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -217,9 +226,11 @@ export function printSvgMarkup(nodes: readonly MarkupNode[], options: PrintSvgOp
     const indent = options.indent ?? '    ';
     const quote = options.quote ?? '"';
     const lines: string[] = [];
+
     for (const node of nodes) {
         printNode(node, 0);
     }
+
     return indent ? lines.join('\n') + '\n' : lines.join('');
 
     function printNode(node: MarkupNode, depth: number): void {

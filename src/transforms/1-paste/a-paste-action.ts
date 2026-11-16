@@ -37,9 +37,11 @@ export const doPasteMarkupAtom = atom(
         }
 
         set(setSelectionAtom, ids);
+
         for (const block of rv.applied) {
             block.notice && toast.info(block.notice);
         }
+        
         return ids;
     }
 );

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { extractMarkup } from "../1-paste/1-extract-markup";
-import { jsxToSvg, looksLikeJsx } from "../1-paste/2-jsx-to-svg";
+import { extractMarkup } from "../1-paste/1-block-extract-markup";
+import { jsxToSvg, looksLikeJsx } from "../1-paste/2-block-jsx-to-svg";
 import { runPastePipeline } from "../1-paste/0-paste-pipeline";
 import { type PasteContext } from "../1-paste/9-paste-types";
 
