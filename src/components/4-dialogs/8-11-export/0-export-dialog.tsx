@@ -3,9 +3,9 @@ import { Copy, Download } from "lucide-react";
 import { Button } from "@/ui/shadcn/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/ui/shadcn/dialog";
 import { doCopyExportAtom, doDownloadExportAtom, exportResultAtom, isOpenExportDialogAtom } from "./9-atoms-export";
-import { ExportFormatList } from "./1-export-settings";
-import { ExportImagePreview, ExportCodeView } from "./3-export-preview";
-import { ExportOptions } from "./5-export-options";
+import { ExportFormatList } from "./1-format-tabs";
+import { ExportImagePreview, ExportCodeView } from "./2-export-preview";
+import { ExportOptions } from "./3-0-export-options";
 
 /** One dialog for every export target: pick a format, check the preview, then download it or copy it to the clipboard */
 export function ExportDialog() {

@@ -1,5 +1,5 @@
 import { useAtom } from "jotai";
-import { ExportBoundsRow, ExportScopeRow, CheckboxRow } from "./2-export-controls";
+import { ExportBoundsRow, ExportScopeRow, CheckboxRow } from "./7-export-shared-controls";
 import { exportOptionsAtom } from "./9-atoms-export";
 
 /** Options of the Data URI export */
