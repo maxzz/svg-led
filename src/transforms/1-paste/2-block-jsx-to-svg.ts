@@ -8,7 +8,7 @@ import { type PasteBlock } from "./9-paste-types";
  * a style object becomes CSS text, and className becomes class. Spreads, event handlers, dynamic values and
  * conditional children such as `{title && <title>{title}</title>}` are dropped.
  */
-export const jsxToSvgBlock: PasteBlock = {
+export const Block_jsxToSvg: PasteBlock = {
     id: 'jsx-to-svg',
     label: 'React JSX to SVG',
     notice: 'Converted the React component to SVG',
@@ -20,6 +20,8 @@ export const jsxToSvgBlock: PasteBlock = {
         return svg ? { ...data, text: svg } : undefined;
     },
 };
+
+//---------------------------------------------------------------------------
 
 const JSX_MARKERS: readonly RegExp[] = [
     /=\s*\{/,                                       // prop={value}

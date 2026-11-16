@@ -5,7 +5,7 @@ import { type PasteBlock } from "./9-paste-types";
  * Cuts the markup out of the code around it: a whole component file (`export function Icon() { return (<svg>...</svg>); }`),
  * a Markdown code fence, or a sentence with an SVG in it. Text that already is markup from start to end is left alone.
  */
-export const extractMarkupBlock: PasteBlock = {
+export const Block_extractMarkup: PasteBlock = {
     id: 'extract-markup',
     label: 'Extract markup from code',
     apply: (data) => {
@@ -18,6 +18,9 @@ export const extractMarkupBlock: PasteBlock = {
     },
 };
 
+//---------------------------------------------------------------------------
+
+/** Extracts the SVG markup from the text, or undefined if there is no SVG */
 export function extractMarkup(text: string): string | undefined {
     const svgStart = /<svg[\s>/]/i.exec(text);
     if (svgStart) {

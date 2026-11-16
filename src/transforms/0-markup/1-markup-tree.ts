@@ -157,8 +157,6 @@ function skipSpaces(s: string, i: number): number {
 //---------------------------------------------------------------------------
 // Entities
 
-const NAMED_ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" };
-
 /** Decodes the XML entities and character references; other named entities (from a DOCTYPE) stay as written */
 export function decodeEntities(text: string): string {
     return text.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi,
@@ -171,6 +169,8 @@ export function decodeEntities(text: string): string {
         }
     );
 }
+
+const NAMED_ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" };
 
 export function escapeXmlText(text: string): string {
     return text.replace(/&(?!(#x[0-9a-f]+|#\d+|[a-z][\w.-]*);)/gi, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
