@@ -6,6 +6,7 @@ import { attrsToTailwind, tailwindClass } from "../2-export/1-tailwind-classes";
 import { componentNameFor, svgToReactComponent } from "../2-export/2-svg-to-jsx";
 import { minifySvg, svgToDataUri } from "../2-export/3-data-uri";
 import { formatSvgStep } from "../2-export/1-format-svg";
+import { classFirst } from "../2-export/1-class-first";
 import { type ExportOptions } from "../2-export/9-export-types";
 import { runPastePipeline } from "../1-paste/0-paste-pipeline";
 
@@ -139,6 +140,33 @@ describe("visible elements", () => {
 
     it("keeps the text as it was when nothing is hidden", () => {
         expect(stripHiddenElements(ICON)).toBe(ICON);
+    });
+});
+
+describe("class attribute first", () => {
+    it("moves class to the front, then id, then the other attributes in their order", () => {
+        expect(classFirst('<svg viewBox="0 0 1 1"><path d="M0 0" stroke="red" id="p" class="a"/></svg>')).toBe([
+            '<svg viewBox="0 0 1 1">',
+            '    <path class="a" id="p" d="M0 0" stroke="red"/>',
+            '</svg>',
+            '',
+        ].join('\n'));
+    });
+
+    it("keeps the text as it was when class and id are already in order or absent", () => {
+        const svg = '<svg><path class="a" id="p" d="M0 0"/><rect id="r" x="1"/><g d="x"/></svg>';
+        expect(classFirst(svg)).toBe(svg);
+    });
+
+    it("puts a class that Tailwind adds at the end in front", () => {
+        const svg = '<svg viewBox="0 0 1 1" fill="none"><path d="M0 0" stroke="red"/></svg>';
+        const tailwind = attrsToTailwind(svg)!;
+        expect(classFirst(tailwind)).toBe('<svg class="fill-none" viewBox="0 0 1 1">\n    <path class="stroke-[red]" d="M0 0"/>\n</svg>\n');
+    });
+
+    it("gives the React component a class first among the props", () => {
+        const tsx = svgToReactComponent(classFirst('<svg viewBox="0 0 1 1"><path d="M0 0" class="a"/></svg>'), 'IconA')!;
+        expect(tsx).toContain('<path className="a" d="M0 0" />');
     });
 });
 
