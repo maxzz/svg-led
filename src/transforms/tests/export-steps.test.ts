@@ -147,7 +147,17 @@ describe("class attribute first", () => {
     it("moves class to the front, then id, then the other attributes in their order", () => {
         expect(classFirst('<svg viewBox="0 0 1 1"><path d="M0 0" stroke="red" id="p" class="a"/></svg>')).toBe([
             '<svg viewBox="0 0 1 1">',
-            '    <path class="a" id="p" d="M0 0" stroke="red"/>',
+            '    <path class="a" id="p" stroke="red" d="M0 0"/>',
+            '</svg>',
+            '',
+        ].join('\n'));
+    });
+
+    it("puts d last on a path, and leaves d alone on other elements", () => {
+        expect(classFirst('<svg><path d="M0 0" stroke="red" id="p"/><rect d="x" stroke="red"/></svg>')).toBe([
+            '<svg>',
+            '    <path id="p" stroke="red" d="M0 0"/>',
+            '    <rect d="x" stroke="red"/>',
             '</svg>',
             '',
         ].join('\n'));
