@@ -73,13 +73,24 @@ const ARBITRARY_PROPS = new Set([
 //---------------------------------------------------------------------------
 
 function paintValue(v: string): string {
-    switch (v.toLowerCase()) {
+    const lower = v.toLowerCase();
+    switch (lower) {
         case 'currentcolor': return 'current';
         case 'none': return 'none';
         case 'transparent': return 'transparent';
     }
+    const named = PALETTE_HEX.get(lower);
+    if (named) {
+        return named;
+    }
     return `[${arbitrary(v)}]`;
 }
+
+/** Hex colors that have a Tailwind palette name (default theme), e.g. `#fff` -> `white` */
+const PALETTE_HEX = new Map<string, string>([
+    ['#fff', 'white'], ['#ffffff', 'white'],
+    ['#000', 'black'], ['#000000', 'black'],
+]);
 
 /** Arbitrary values write spaces as underscores (and escape literal underscores) */
 function arbitrary(v: string): string {
