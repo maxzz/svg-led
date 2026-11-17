@@ -2,8 +2,7 @@ import { isDeactivatedName } from "@/svg-core";
 import { type MarkupElement, type MarkupNode, parseMarkup, printSvgMarkup } from "../0-markup/1-markup-tree";
 import { type ExportStep, isEditorSource } from "./9-export-types";
 
-/** Editor-only attribute that marks a locked element (see `LOCKED_ATTR` in the store); it has no meaning in an export */
-const LOCKED_ATTR = 'data-locked';
+//---------------------------------------------------------------------------
 
 /** Editor states are not part of the drawing: deactivated elements and lock marks are removed from the export */
 export const internalStatesStep: ExportStep = {
@@ -65,6 +64,9 @@ function cleanNodes(nodes: readonly MarkupNode[], state: { changed: boolean; }, 
     }
     return { nodes: out, dropped };
 }
+
+/** Editor-only attribute that marks a locked element (see `LOCKED_ATTR` in the store); it has no meaning in an export */
+const LOCKED_ATTR = 'data-locked';
 
 /** True when an element has something to show: an element, a CDATA section, or non-blank text */
 function hasContent(el: MarkupElement): boolean {

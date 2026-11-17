@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { parseMarkup, printSvgMarkup } from "../0-markup/1-markup-tree";
-import { stripInternalStates } from "../2-export/0-internal-states";
+import { stripInternalStates } from "../2-export/1-1-step-internal-states";
 import { stripHiddenElements } from "../2-export/5-hidden-elements";
-import { attrsToTailwind, tailwindClass } from "../2-export/1-tailwind-classes";
+import { attrsToTailwind, tailwindClass } from "../2-export/1-2-step-tailwind-classes";
 import { componentNameFor, svgToReactComponent } from "../2-export/2-svg-to-jsx";
 import { minifySvg, svgToDataUri } from "../2-export/3-data-uri";
-import { formatSvgStep } from "../2-export/1-format-svg";
-import { classFirst } from "../2-export/1-class-first";
+import { formatSvgStep } from "../2-export/1-8-step-format-svg";
+import { classFirst } from "../2-export/1-3-step-class-first";
 import { type ExportOptions } from "../2-export/9-export-types";
 import { runPastePipeline } from "../1-paste/0-paste-pipeline";
 
@@ -147,7 +147,18 @@ describe("class attribute first", () => {
     it("moves class to the front, then id, then the other attributes in their order", () => {
         expect(classFirst('<svg viewBox="0 0 1 1"><path d="M0 0" stroke="red" id="p" class="a"/></svg>')).toBe([
             '<svg viewBox="0 0 1 1">',
-            '    <path class="a" id="p" d="M0 0" stroke="red"/>',
+            '    <path class="a" id="p" stroke="red" d="M0 0"/>',
+            '</svg>',
+            '',
+        ].join('\n'));
+    });
+
+    it("puts long-string attributes last on any element", () => {
+        expect(classFirst('<svg><path d="M0 0" stroke="red" id="p"/><polygon style="fill:red" points="0,0 1,1" fill="blue"/><animate values="0;1" attributeName="x"/></svg>')).toBe([
+            '<svg>',
+            '    <path id="p" stroke="red" d="M0 0"/>',
+            '    <polygon fill="blue" style="fill:red" points="0,0 1,1"/>',
+            '    <animate attributeName="x" values="0;1"/>',
             '</svg>',
             '',
         ].join('\n'));

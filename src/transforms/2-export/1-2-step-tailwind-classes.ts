@@ -2,6 +2,8 @@ import { type MarkupElement, getAttr, parseMarkup, printSvgMarkup, setAttr, walk
 import { isPlainNumber } from "../0-markup/3-style-object";
 import { type ExportStep, isEditorSource } from "./9-export-types";
 
+//---------------------------------------------------------------------------
+
 export const tailwindClassesStep: ExportStep = {
     id: 'tailwind-classes',
     label: 'Presentation attributes as Tailwind classes',
@@ -23,6 +25,7 @@ export function attrsToTailwind(svg: string): string | undefined {
 
 function moveToClasses(el: MarkupElement): void {
     const classes: string[] = [];
+
     for (const { name, value } of [...el.attrs]) {
         const cls = tailwindClass(name, value);
         if (cls) {
@@ -30,6 +33,7 @@ function moveToClasses(el: MarkupElement): void {
             setAttr(el, name, undefined);
         }
     }
+
     if (classes.length) {
         const existing = getAttr(el, 'class')?.trim();
         setAttr(el, 'class', [existing, ...classes].filter(Boolean).join(' '));
@@ -44,15 +48,18 @@ export function tailwindClass(name: string, value: string): string | undefined {
     if (!v) {
         return undefined;
     }
+
     switch (name) {
         case 'fill':
-        case 'stroke':
+        case 'stroke': {
             return `${name}-${paintValue(v)}`;
-        case 'stroke-width':
+        }
+        case 'stroke-width': {
             if (/^\d+$/.test(v)) {
                 return `stroke-${v}`;
             }
             return isPlainNumber(v) ? `stroke-[${v}]` : `[stroke-width:${arbitrary(v)}]`;
+        }
         case 'opacity': {
             const pct = v.endsWith('%') ? parseFloat(v) : parseFloat(v) * 100;
             if (Number.isFinite(pct) && Number.isInteger(Math.round(pct * 1e6) / 1e6)) {
@@ -73,13 +80,28 @@ const ARBITRARY_PROPS = new Set([
 //---------------------------------------------------------------------------
 
 function paintValue(v: string): string {
-    switch (v.toLowerCase()) {
+    const lower = v.toLowerCase();
+    switch (lower) {
         case 'currentcolor': return 'current';
         case 'none': return 'none';
         case 'transparent': return 'transparent';
     }
+    const named = PALETTE_HEX.get(lower);
+    if (named) {
+        return named;
+    }
     return `[${arbitrary(v)}]`;
 }
+
+/** Hex colors that have a Tailwind palette name (default theme), e.g. `#fff` -> `white` */
+const PALETTE_HEX = new Map<string, string>([
+    ['#fff', 'white'],
+    ['#ffffff', 'white'],
+    ['#000', 'black'],
+    ['#000000', 'black'],
+]);
+
+//---------------------------------------------------------------------------
 
 /** Arbitrary values write spaces as underscores (and escape literal underscores) */
 function arbitrary(v: string): string {
