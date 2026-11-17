@@ -1,6 +1,7 @@
 import { type ExportContext, type ExportFormat, type ExportFormatId, type ExportOptions, type ExportOutput, ExportFormatId as Id } from "./9-export-types";
 import { internalStatesStep } from "./0-internal-states";
 import { tailwindClassesStep } from "./1-tailwind-classes";
+import { formatSvgStep } from "./1-format-svg";
 import { componentNameFor, svgToReactComponent } from "./2-svg-to-jsx";
 import { dataUriAsCss, svgToDataUri } from "./3-data-uri";
 import { rasterizeSvg } from "./4-rasterize-png";
@@ -11,8 +12,8 @@ const svgFormat: ExportFormat = {
     id: Id.svg,
     label: 'SVG',
     description: 'SVG file as the source panel shows it',
-    controls: ['tailwind'],
-    steps: [internalStatesStep, tailwindClassesStep],
+    controls: ['tailwind', 'formatSvg'],
+    steps: [internalStatesStep, tailwindClassesStep, formatSvgStep],
     write: (svg, _options, ctx) => ({ kind: 'text', text: svg, language: 'xml', mime: 'image/svg+xml', fileName: `${ctx.baseName}.svg` }),
 };
 

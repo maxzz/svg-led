@@ -3,7 +3,7 @@ import { useAtom } from "jotai";
 import { Input } from "@/ui/shadcn/input";
 import { TabSelect } from "@/ui/local-ui/5-tab-select";
 
-import { ExportBoundsRow, ExportScopeRow, OptionRow } from "./7-export-shared-controls";
+import { Row_ExportBounds, Row_ExportScope, Row_Option } from "./7-export-shared-controls";
 import { exportOptionsAtom } from "./9-atoms-export";
 
 const PNG_SCALES = [1, 2, 3, 4];
@@ -14,10 +14,10 @@ export function PngOptions() {
     const id = useId();
 
     return (<>
-        <ExportScopeRow />
-        <ExportBoundsRow />
+        <Row_ExportScope />
+        <Row_ExportBounds />
 
-        <OptionRow label="Scale">
+        <Row_Option label="Scale">
             <TabSelect<string>
                 className="p-0.5 bg-muted rounded-md"
                 itemClassName="py-1 tabular-nums"
@@ -27,9 +27,9 @@ export function PngOptions() {
                 orientation="horizontal"
                 aria-label="PNG scale"
             />
-        </OptionRow>
+        </Row_Option>
 
-        <OptionRow label="Background" htmlFor={id}>
+        <Row_Option label="Background" htmlFor={id}>
             <Input
                 className="h-7 w-28 text-xs"
                 id={id}
@@ -39,6 +39,6 @@ export function PngOptions() {
                 spellCheck={false}
                 autoComplete="off"
             />
-        </OptionRow>
+        </Row_Option>
     </>);
 }

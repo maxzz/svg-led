@@ -22,6 +22,7 @@ export const exportOptionsAtom = atomWithDialogOptions<ExportOptions>('export', 
     scope: 'selection',
     bounds: 'viewBox',
     tailwind: false,
+    formatSvg: true,
     pngScale: 2,
     pngBackground: '',
     componentName: '',
@@ -156,17 +157,21 @@ export const exportFrameAtom = atom(
         if (!source.ok) {
             return null;
         }
+
         const size = svgIntrinsicSize(source.text);
         if (!size) {
             return null;
         }
+
         const viewBox = `viewBox ${[size.x, size.y, size.width, size.height].map(fmtNum).join(' ')}`;
+
         if (get(exportFormatAtom).id === ExportFormatId.png) {
             const { pngScale } = get(exportOptionsAtom);
             const width = Math.max(1, Math.round(size.width * pngScale));
             const height = Math.max(1, Math.round(size.height * pngScale));
             return { width, height, label: `${viewBox} · ${width} × ${height} px`, oneToOne: true };
         }
+        
         return { width: size.width, height: size.height, label: viewBox, oneToOne: false };
     }
 );
