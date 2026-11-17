@@ -9,7 +9,7 @@ export type ExportFormatId = typeof ExportFormatId[keyof typeof ExportFormatId];
 
 /**
  * Which elements are exported: the selected ones; the visible ones (hidden elements left out); or the editor's text as it is
- * (SVG only, no filtering or rewriting at all)
+ * (SVG only, no filtering; only the "Format exported file" option may rewrite it)
  */
 export type ExportScope = 'selection' | 'visible' | 'editor';
 
@@ -22,6 +22,7 @@ export type ExportOptions = {
     scope: ExportScope;
     bounds: ExportBounds;
     tailwind: boolean;           // SVG and React: presentation attributes as Tailwind classes
+    formatSvg: boolean;          // SVG: the text is pretty-printed (one tag per line, indented by depth)
     pngScale: number;            // PNG: pixels per viewBox unit
     pngBackground: string;       // PNG: CSS color painted under the drawing; empty is transparent
     componentName: string;       // React: component name; empty derives it from the file name
@@ -29,7 +30,7 @@ export type ExportOptions = {
     dataUriCss: boolean;         // Data URI: wrapped as a CSS background-image declaration
 };
 
-/** True when the output is the editor's text as it is: no step may change it */
+/** True when the output is the editor's text: the editor-state and Tailwind steps leave it alone (the format step may still apply) */
 export function isEditorSource(options: ExportOptions): boolean {
     return options.format === ExportFormatId.svg && options.scope === 'editor';
 }
@@ -39,7 +40,7 @@ export type ExportContext = {
 };
 
 /** Option controls the dialog shows for a format */
-export type ExportControlId = 'tailwind' | 'pngScale' | 'pngBackground' | 'componentName' | 'dataUriEncoding';
+export type ExportControlId = 'tailwind' | 'formatSvg' | 'pngScale' | 'pngBackground' | 'componentName' | 'dataUriEncoding';
 
 export type ExportTextLanguage = 'xml' | 'typescript' | 'css' | 'plaintext';
 

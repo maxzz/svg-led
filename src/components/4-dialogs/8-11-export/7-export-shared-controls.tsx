@@ -76,6 +76,15 @@ export function ExportTailwindRow() {
     );
 }
 
+export function ExportFormatSvgRow() {
+    const [options, setOptions] = useAtom(exportOptionsAtom);
+    return (
+        <CheckboxRow checked={options.formatSvg} onChange={(formatSvg) => setOptions({ formatSvg })}>
+            Format exported file
+        </CheckboxRow>
+    );
+}
+
 //---------------------------------------------------------------------------
 
 /** A labeled row: fixed-width label, then the control */

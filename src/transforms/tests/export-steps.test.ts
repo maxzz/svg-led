@@ -5,6 +5,8 @@ import { stripHiddenElements } from "../2-export/5-hidden-elements";
 import { attrsToTailwind, tailwindClass } from "../2-export/1-tailwind-classes";
 import { componentNameFor, svgToReactComponent } from "../2-export/2-svg-to-jsx";
 import { minifySvg, svgToDataUri } from "../2-export/3-data-uri";
+import { formatSvgStep } from "../2-export/1-format-svg";
+import { type ExportOptions } from "../2-export/9-export-types";
 import { runPastePipeline } from "../1-paste/0-paste-pipeline";
 
 const ICON = [
@@ -112,6 +114,20 @@ describe("editor states", () => {
             '</svg>',
             '',
         ].join('\n'));
+    });
+});
+
+describe("format SVG", () => {
+    const opts = { format: 'svg', scope: 'visible', bounds: 'viewBox', tailwind: false, formatSvg: true } as unknown as ExportOptions;
+
+    it("is enabled only when the option is on", () => {
+        expect(formatSvgStep.enabled!({ ...opts, formatSvg: true })).toBe(true);
+        expect(formatSvgStep.enabled!({ ...opts, formatSvg: false })).toBe(false);
+    });
+
+    it("pretty-prints the text, and keeps text that is not well-formed", () => {
+        expect(formatSvgStep.apply('<svg><rect/></svg>', opts, { baseName: 'x' })).toBe('<svg>\n  <rect/>\n</svg>');
+        expect(formatSvgStep.apply('<svg><g></svg>', opts, { baseName: 'x' })).toBe('<svg><g></svg>');
     });
 });
 
