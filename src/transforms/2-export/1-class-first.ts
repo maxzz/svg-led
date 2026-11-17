@@ -1,16 +1,16 @@
-import { type MarkupElement, parseMarkup, printSvgMarkup, walkElements } from "../0-markup/1-markup-tree";
+import { type MarkupElement, type MarkupAttr, parseMarkup, printSvgMarkup, walkElements } from "../0-markup/1-markup-tree";
 import { type ExportStep } from "./9-export-types";
 
-/** Every non-PNG export puts the class attribute first in each element's attribute list (`className` for React is the same attribute) */
+/** Every non-PNG export lists the class attribute first in each element, then id, then the rest (`className` for React is the same attribute) */
 export const classFirstStep: ExportStep = {
-    id: 'class-first',
-    label: 'class attribute first on each element',
+    id: 'attribute-order',
+    label: 'class, then id, then the other attributes',
     apply: (svg) => classFirst(svg),
 };
 
 //---------------------------------------------------------------------------
 
-/** Moves the class attribute of each element to the front of its attributes; returns the text as it was when no class has to move */
+/** Orders the attributes of each element: class, id, then the rest; returns the text as it was when no element changes */
 export function classFirst(svg: string): string {
     const nodes = parseMarkup(svg);
     if (!nodes) {
@@ -18,20 +18,26 @@ export function classFirst(svg: string): string {
     }
     let changed = false;
     walkElements(nodes, (el) => {
-        if (moveClassToFront(el)) {
+        if (orderAttrs(el)) {
             changed = true;
         }
     });
     return changed ? printSvgMarkup(nodes) : svg;
 }
 
-/** True when the element had a class attribute that was not first */
-function moveClassToFront(el: MarkupElement): boolean {
-    const i = el.attrs.findIndex((a) => a.name === 'class' || a.name === 'className');
-    if (i <= 0) {
-        return false;
+/** Rank of an attribute in the export order: class first, id second, everything else after in its own order */
+function rank({ name }: MarkupAttr): number {
+    if (name === 'class' || name === 'className') return 0;
+    if (name === 'id') return 1;
+    return 2;
+}
+
+/** True when the element's attributes were out of order and have been reordered */
+function orderAttrs(el: MarkupElement): boolean {
+    const sorted = [...el.attrs].sort((a, b) => rank(a) - rank(b)); // sort is stable, so the rest keep their order
+    const changed = sorted.some((a, i) => a !== el.attrs[i]);
+    if (changed) {
+        el.attrs = sorted;
     }
-    const [attr] = el.attrs.splice(i, 1);
-    el.attrs.unshift(attr);
-    return true;
+    return changed;
 }

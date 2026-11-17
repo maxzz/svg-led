@@ -144,17 +144,17 @@ describe("visible elements", () => {
 });
 
 describe("class attribute first", () => {
-    it("moves class to the front of each element's attributes", () => {
-        expect(classFirst('<svg viewBox="0 0 1 1"><path d="M0 0" id="p" class="a"/></svg>')).toBe([
+    it("moves class to the front, then id, then the other attributes in their order", () => {
+        expect(classFirst('<svg viewBox="0 0 1 1"><path d="M0 0" stroke="red" id="p" class="a"/></svg>')).toBe([
             '<svg viewBox="0 0 1 1">',
-            '    <path class="a" d="M0 0" id="p"/>',
+            '    <path class="a" id="p" d="M0 0" stroke="red"/>',
             '</svg>',
             '',
         ].join('\n'));
     });
 
-    it("keeps the text as it was when class is already first or absent", () => {
-        const svg = '<svg><path class="a" d="M0 0"/><rect id="r"/></svg>';
+    it("keeps the text as it was when class and id are already in order or absent", () => {
+        const svg = '<svg><path class="a" id="p" d="M0 0"/><rect id="r" x="1"/><g d="x"/></svg>';
         expect(classFirst(svg)).toBe(svg);
     });
 
