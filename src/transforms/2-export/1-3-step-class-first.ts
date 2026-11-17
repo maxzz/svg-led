@@ -27,27 +27,6 @@ export function classFirst(svg: string): string {
     return changed ? printSvgMarkup(nodes) : svg;
 }
 
-/**
- * Attributes whose values are long strings (path data, point lists, animation and filter value lists, embedded image data,
- * inline CSS). They go after every other attribute.
- */
-const LONG_STRING_ATTRS = new Set([
-    'd',                                  // path
-    'points',                             // polygon, polyline
-    'values', 'keyTimes', 'keySplines', 'keyPoints', // animate, animateMotion, animateTransform
-    'tableValues', 'kernelMatrix',        // feFuncX, feConvolveMatrix
-    'href', 'xlink:href',                 // image, use, ... (data URIs are long)
-    'style',
-]);
-
-/** Rank of an attribute in the export order: class first, id second, long strings last, everything else in its own order between */
-function rank({ name }: MarkupAttr): number {
-    if (name === 'class' || name === 'className') return 0;
-    if (name === 'id') return 1;
-    if (LONG_STRING_ATTRS.has(name)) return 3;
-    return 2;
-}
-
 /** True when the element's attributes were out of order and have been reordered */
 function orderAttrs(el: MarkupElement): boolean {
     const sorted = [...el.attrs].sort((a, b) => rank(a) - rank(b)); // sort is stable, so the rest keep their order
@@ -57,3 +36,29 @@ function orderAttrs(el: MarkupElement): boolean {
     }
     return changed;
 }
+
+//---------------------------------------------------------------------------
+
+/** Rank of an attribute in the export order: class first, id second, long strings last, everything else in its own order between */
+function rank({ name }: MarkupAttr): number {
+    if (name === 'class' || name === 'className') return 0;
+    if (name === 'id') return 1;
+    if (LONG_STRING_ATTRS.has(name)) return 3;
+    return 2;
+}
+
+/**
+ * Attributes whose values are long strings (path data, point lists, animation and filter value lists, embedded image data,
+ * inline CSS). They go after every other attribute.
+ */
+const LONG_STRING_ATTRS = new Set([
+    'd',                                  // path
+    'points',                             // polygon, polyline
+    'values', 'keyTimes', 'keySplines', 'keyPoints', // animate, animateMotion, animateTransform
+    'tableValues', 'kernelMatrix',        // feFuncX, feConvolveMatrix
+    //tm: these two may be at their own place in the export order
+    //'href', 'xlink:href',                 // image, use, ... (data URIs are long)
+    //'style',
+]);
+
+//---------------------------------------------------------------------------
