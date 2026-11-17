@@ -5,7 +5,9 @@ export function SvgOptions() {
     return (<>
         <Row_ExportScope />
         <Row_ExportBounds />
-        <Checkbox_ExportTailwind />
-        <Checkbox_FormatSvg />
+        <div className="flex items-center gap-8">
+            <Checkbox_ExportTailwind />
+            <Checkbox_FormatSvg />
+        </div>
     </>);
 }
