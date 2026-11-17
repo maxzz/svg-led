@@ -1,6 +1,8 @@
 import { type MarkupElement, type MarkupAttr, parseMarkup, printSvgMarkup, walkElements } from "../0-markup/1-markup-tree";
 import { type ExportStep } from "./9-export-types";
 
+//---------------------------------------------------------------------------
+
 /** Every non-PNG export lists the class attribute first in each element, then id, then the rest (`className` for React is the same attribute) */
 export const classFirstStep: ExportStep = {
     id: 'attribute-order',
