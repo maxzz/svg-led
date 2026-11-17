@@ -11,7 +11,7 @@ import { exportFormatAtom, exportFrameAtom, exportOptionsAtom, exportScopeAtom, 
 
 //---------------------------------------------------------------------------
 
-export function ExportScopeRow() {
+export function Row_ExportScope() {
     const scope = useAtomValue(exportScopeAtom);
     const format = useAtomValue(exportFormatAtom);
     const selectedCount = useAtomValue(exportSelectedCountAtom);
@@ -25,7 +25,7 @@ export function ExportScopeRow() {
     ];
 
     return (
-        <OptionRow label="Elements">
+        <Row_Option label="Elements">
             <TabSelect<ExportScope>
                 className="p-0.5 bg-muted rounded-md"
                 itemClassName="py-1"
@@ -35,17 +35,17 @@ export function ExportScopeRow() {
                 orientation="horizontal"
                 aria-label="Elements to export"
             />
-        </OptionRow>
+        </Row_Option>
     );
 }
 
 //---------------------------------------------------------------------------
 
-export function ExportBoundsRow() {
+export function Row_ExportBounds() {
     const [options, setOptions] = useAtom(exportOptionsAtom);
     const frame = useAtomValue(exportFrameAtom);
     return (
-        <OptionRow label="Bounds">
+        <Row_Option label="Bounds">
             <TabSelect<ExportBounds>
                 className="p-0.5 bg-muted rounded-md"
                 itemClassName="py-1"
@@ -55,8 +55,13 @@ export function ExportBoundsRow() {
                 orientation="horizontal"
                 aria-label="Export bounds"
             />
-            {frame && <span className="text-[10px] whitespace-nowrap tabular-nums text-muted-foreground">{frame.label}</span>}
-        </OptionRow>
+
+            {frame && (
+                <span className="text-[10px] whitespace-nowrap tabular-nums text-muted-foreground">
+                    {frame.label}
+                </span>
+            )}
+        </Row_Option>
     );
 }
 
@@ -67,28 +72,28 @@ const BOUNDS = [
 
 //---------------------------------------------------------------------------
 
-export function ExportTailwindRow() {
+export function Checkbox_ExportTailwind() {
     const [options, setOptions] = useAtom(exportOptionsAtom);
     return (
-        <CheckboxRow checked={options.tailwind} onChange={(tailwind) => setOptions({ tailwind })}>
+        <Row_Checkbox checked={options.tailwind} onChange={(tailwind) => setOptions({ tailwind })}>
             Tailwind classes instead of presentation attributes
-        </CheckboxRow>
+        </Row_Checkbox>
     );
 }
 
-export function ExportFormatSvgRow() {
+export function Checkbox_FormatSvg() {
     const [options, setOptions] = useAtom(exportOptionsAtom);
     return (
-        <CheckboxRow checked={options.formatSvg} onChange={(formatSvg) => setOptions({ formatSvg })}>
+        <Row_Checkbox checked={options.formatSvg} onChange={(formatSvg) => setOptions({ formatSvg })}>
             Format exported file
-        </CheckboxRow>
+        </Row_Checkbox>
     );
 }
 
 //---------------------------------------------------------------------------
 
 /** A labeled row: fixed-width label, then the control */
-export function OptionRow({ label, htmlFor, children }: { label: string; htmlFor?: string; children: ReactNode; }) {
+export function Row_Option({ label, htmlFor, children }: { label: string; htmlFor?: string; children: ReactNode; }) {
     return (
         <div className="flex items-center gap-2">
             <Label className="shrink-0 w-16 text-xs font-normal text-muted-foreground" htmlFor={htmlFor}>{label}</Label>
@@ -97,7 +102,7 @@ export function OptionRow({ label, htmlFor, children }: { label: string; htmlFor
     );
 }
 
-export function CheckboxRow({ checked, onChange, children }: { checked: boolean; onChange: (checked: boolean) => void; children: ReactNode; }) {
+export function Row_Checkbox({ checked, onChange, children }: { checked: boolean; onChange: (checked: boolean) => void; children: ReactNode; }) {
     const id = useId();
     return (
         <div className="flex items-center gap-2">

@@ -1,11 +1,11 @@
-import { ExportBoundsRow, ExportFormatSvgRow, ExportScopeRow, ExportTailwindRow } from "./7-export-shared-controls";
+import { Row_ExportBounds, Checkbox_FormatSvg, Row_ExportScope, Checkbox_ExportTailwind } from "./7-export-shared-controls";
 
 /** Options of the SVG export */
 export function SvgOptions() {
     return (<>
-        <ExportScopeRow />
-        <ExportBoundsRow />
-        <ExportTailwindRow />
-        <ExportFormatSvgRow />
+        <Row_ExportScope />
+        <Row_ExportBounds />
+        <Checkbox_ExportTailwind />
+        <Checkbox_FormatSvg />
     </>);
 }
