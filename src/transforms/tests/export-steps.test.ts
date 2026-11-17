@@ -153,11 +153,12 @@ describe("class attribute first", () => {
         ].join('\n'));
     });
 
-    it("puts d last on a path, and leaves d alone on other elements", () => {
-        expect(classFirst('<svg><path d="M0 0" stroke="red" id="p"/><rect d="x" stroke="red"/></svg>')).toBe([
+    it("puts long-string attributes last on any element", () => {
+        expect(classFirst('<svg><path d="M0 0" stroke="red" id="p"/><polygon style="fill:red" points="0,0 1,1" fill="blue"/><animate values="0;1" attributeName="x"/></svg>')).toBe([
             '<svg>',
             '    <path id="p" stroke="red" d="M0 0"/>',
-            '    <rect d="x" stroke="red"/>',
+            '    <polygon fill="blue" style="fill:red" points="0,0 1,1"/>',
+            '    <animate attributeName="x" values="0;1"/>',
             '</svg>',
             '',
         ].join('\n'));
